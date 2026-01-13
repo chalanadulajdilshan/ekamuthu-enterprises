@@ -27,6 +27,26 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
+    } else if ($("#nic").val() && !isNICValid()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter a valid NIC number",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#nic").val() && !$("#water_bill_no").val() && !$("#electricity_bill_no").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter at least one of: NIC, Water Bill Number, or Electricity Bill Number",
+        type: "error",
+        timer: 3000,
+        showConfirmButton: true,
+      });
     } else {
       // Show page preloader
       $("#page-preloader").show();
@@ -224,6 +244,26 @@ jQuery(document).ready(function () {
         type: "error",
         timer: 2000,
         showConfirmButton: false,
+      });
+    } else if ($("#nic").val() && !isNICValid()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter a valid NIC number",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#nic").val() && !$("#water_bill_no").val() && !$("#electricity_bill_no").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter at least one of: NIC, Water Bill Number, or Electricity Bill Number",
+        type: "error",
+        timer: 3000,
+        showConfirmButton: true,
       });
     } else {
       // Show page preloader

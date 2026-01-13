@@ -29,6 +29,7 @@ if (isset($_POST['create'])) {
     $EQUIPMENT->is_condition = $_POST['is_condition'] ?? 1;
     $EQUIPMENT->availability_status = $_POST['availability_status'] ?? 1;
     $EQUIPMENT->queue = $_POST['queue'] ?? 0;
+    $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
 
     $res = $EQUIPMENT->create();
 
@@ -73,6 +74,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT->is_condition = $_POST['is_condition'] ?? 1;
     $EQUIPMENT->availability_status = $_POST['availability_status'] ?? 1;
     $EQUIPMENT->queue = $_POST['queue'] ?? 0;
+    $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
 
     $res = $EQUIPMENT->update();
 
@@ -151,12 +153,23 @@ if (isset($_POST['filter'])) {
     $key = 1;
 
     while ($row = mysqli_fetch_assoc($dataQuery)) {
+        // Category name mapping
+        $categoryNames = [
+            '1' => 'Power Tools',
+            '2' => 'Hand Tools',
+            '3' => 'Safety Equipment',
+            '4' => 'Measuring Instruments',
+            '5' => 'Electrical Equipment'
+        ];
+        $categoryLabel = isset($categoryNames[$row['category']]) ? $categoryNames[$row['category']] : $row['category'];
+
         $nestedData = [
             "key" => $key,
             "id" => $row['id'],
             "code" => $row['code'],
             "item_name" => $row['item_name'],
             "category" => $row['category'],
+            "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
             "is_condition" => $row['is_condition'],
             "condition_label" => $row['is_condition'] == 1
@@ -166,7 +179,8 @@ if (isset($_POST['filter'])) {
             "status_label" => $row['availability_status'] == 1
                 ? '<span class="badge bg-soft-success font-size-12">Available</span>'
                 : '<span class="badge bg-soft-danger font-size-12">Unavailable</span>',
-            "queue" => $row['queue']
+            "queue" => $row['queue'],
+            "quantity" => $row['quantity']
         ];
 
         $data[] = $nestedData;
@@ -191,6 +205,67 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     echo json_encode([
         "status" => "success",
         "code" => $newCode
+    ]);
+    exit;
+}
+
+// Get sub-equipment by equipment_id
+if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
+    $equipment_id = isset($_POST['equipment_id']) ? (int) $_POST['equipment_id'] : 0;
+
+    if ($equipment_id > 0) {
+        $db = Database::getInstance();
+        $sql = "SELECT id, code, name FROM sub_equipment WHERE equipment_id = $equipment_id ORDER BY id ASC";
+        $result = $db->readQuery($sql);
+
+        $subEquipments = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $subEquipments[] = [
+                'id' => $row['id'],
+                'code' => $row['code'],
+                'name' => $row['name']
+            ];
+        }
+
+        echo json_encode([
+            "status" => "success",
+            "data" => $subEquipments
+        ]);
+    } else {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Equipment ID required"
+        ]);
+    }
+    exit;
+}
+
+// Get equipment totals for summary cards
+if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_totals') {
+    $db = Database::getInstance();
+
+    // Total equipment count
+    $totalSql = "SELECT COUNT(*) as total FROM equipment";
+    $totalResult = $db->readQuery($totalSql);
+    $total = mysqli_fetch_assoc($totalResult)['total'] ?? 0;
+
+    // Available equipment count
+    $availableSql = "SELECT COUNT(*) as available FROM equipment WHERE availability_status = 1";
+    $availableResult = $db->readQuery($availableSql);
+    $available = mysqli_fetch_assoc($availableResult)['available'] ?? 0;
+
+    // Unavailable equipment count
+    $unavailableSql = "SELECT COUNT(*) as unavailable FROM equipment WHERE availability_status = 0";
+    $unavailableResult = $db->readQuery($unavailableSql);
+    $unavailable = mysqli_fetch_assoc($unavailableResult)['unavailable'] ?? 0;
+
+    echo json_encode([
+        "status" => "success",
+        "data" => [
+            "total" => (int) $total,
+            "available" => (int) $available,
+            "unavailable" => (int) $unavailable
+        ]
     ]);
     exit;
 }

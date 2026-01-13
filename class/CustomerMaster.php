@@ -18,6 +18,9 @@ class CustomerMaster
     public $category;
     public $remark;
     public $is_active;
+    public $nic;
+    public $water_bill_no;
+    public $electricity_bill_no;
 
     // Constructor
     public function __construct($id = null)
@@ -40,10 +43,10 @@ class CustomerMaster
     {
         $query = "INSERT INTO `customer_master` (
                     `code`, `name`, `address`, `mobile_number`, `mobile_number_2`, `email`, 
-                    `contact_person`, `contact_person_number`, `credit_limit`, `outstanding`, `old_outstanding`, `category`, `remark`, `is_active`, `vat_no`
+                    `contact_person`, `contact_person_number`, `credit_limit`, `outstanding`, `old_outstanding`, `category`, `remark`, `is_active`, `vat_no`, `nic`, `water_bill_no`, `electricity_bill_no`
                 ) VALUES (
                     '{$this->code}', '{$this->name}', '{$this->address}', '{$this->mobile_number}', '{$this->mobile_number_2}', '{$this->email}',
-                    '{$this->contact_person}', '{$this->contact_person_number}', '{$this->credit_limit}', '{$this->outstanding}', '{$this->old_outstanding}', '{$this->category}', '{$this->remark}', '{$this->is_active}', '{$this->vat_no}'
+                    '{$this->contact_person}', '{$this->contact_person_number}', '{$this->credit_limit}', '{$this->outstanding}', '{$this->old_outstanding}', '{$this->category}', '{$this->remark}', '{$this->is_active}', '{$this->vat_no}', '{$this->nic}', '{$this->water_bill_no}', '{$this->electricity_bill_no}'
                 )";
         $db = Database::getInstance();
         $result = $db->readQuery($query);
@@ -99,7 +102,10 @@ class CustomerMaster
                     `category` = '{$this->category}', 
                     `remark` = '{$this->remark}', 
                     `is_active` = '{$this->is_active}', 
-                    `vat_no` = '{$this->vat_no}'
+                    `vat_no` = '{$this->vat_no}',
+                    `nic` = '{$this->nic}',
+                    `water_bill_no` = '{$this->water_bill_no}',
+                    `electricity_bill_no` = '{$this->electricity_bill_no}'
                 WHERE `id` = '{$this->id}'";
 
         $db = Database::getInstance();
@@ -223,7 +229,10 @@ class CustomerMaster
                     : '<span class="badge bg-soft-danger font-size-12">Inactive</span>',
                 "province" => $PROVINCE->name,
                 "district" => $DISTRICT->name,
-                "vat_no" => $row['vat_no']
+                "vat_no" => $row['vat_no'],
+                "nic" => $row['nic'],
+                "water_bill_no" => $row['water_bill_no'],
+                "electricity_bill_no" => $row['electricity_bill_no']
             ];
 
             $data[] = $nestedData;

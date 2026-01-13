@@ -1,23 +1,50 @@
 jQuery(document).ready(function () {
-    // Load Equipment Table when modal opens
-    $("#EquipmentModal").on("shown.bs.modal", function () {
-        loadEquipmentTable();
+    // Get equipment_id from URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var parentEquipmentId = urlParams.get("equipment_id");
+
+    // Load parent equipment info
+    if (parentEquipmentId) {
+        $.ajax({
+            url: "ajax/php/sub-equipment-master.php",
+            type: "POST",
+            data: {
+                action: "get_equipment_info",
+                equipment_id: parentEquipmentId,
+            },
+            dataType: "JSON",
+            success: function (result) {
+                if (result.status === "success") {
+                    $("#parent_equipment_id").val(result.id);
+                    $("#parent_equipment_display").val(
+                        result.code + " - " + result.item_name
+                    );
+                    $("#equipment_id").val(result.id);
+                }
+            },
+        });
+    }
+
+    // Load Sub Equipment Table when modal opens
+    $("#SubEquipmentModal").on("shown.bs.modal", function () {
+        loadSubEquipmentTable();
     });
 
-    function loadEquipmentTable() {
+    function loadSubEquipmentTable() {
         // Destroy if already initialized
-        if ($.fn.DataTable.isDataTable("#equipmentTable")) {
-            $("#equipmentTable").DataTable().destroy();
+        if ($.fn.DataTable.isDataTable("#subEquipmentTable")) {
+            $("#subEquipmentTable").DataTable().destroy();
         }
 
-        $("#equipmentTable").DataTable({
+        $("#subEquipmentTable").DataTable({
             processing: true,
             serverSide: true,
             ajax: {
-                url: "ajax/php/equipment-master.php",
+                url: "ajax/php/sub-equipment-master.php",
                 type: "POST",
                 data: function (d) {
                     d.filter = true;
+                    d.equipment_id = parentEquipmentId;
                 },
                 dataSrc: function (json) {
                     return json.data;
@@ -29,70 +56,34 @@ jQuery(document).ready(function () {
             columns: [
                 { data: "key", title: "#ID" },
                 { data: "code", title: "Code" },
-                { data: "item_name", title: "Item Name" },
-                { data: "category_label", title: "Category" },
-                { data: "serial_number", title: "Serial Number" },
-                { data: "condition_label", title: "Condition" },
-                { data: "status_label", title: "Status" },
-                {
-                    data: null,
-                    title: "Action",
-                    orderable: false,
-                    render: function (data, type, row) {
-                        return '<button class="btn btn-sm btn-info add-sub-equipment" data-id="' + row.id + '" data-code="' + row.code + '" data-name="' + row.item_name + '"><i class="uil uil-plus me-1"></i>Add Sub</button>';
-                    }
-                }
+                { data: "name", title: "Name" },
             ],
             order: [[0, "desc"]],
             pageLength: 100,
         });
 
-        // Row click event to populate form and close modal (exclude button clicks)
-        $("#equipmentTable tbody")
-            .off("click", "tr")
-            .on("click", "tr", function (e) {
-                // Skip if clicked on button
-                if ($(e.target).closest(".add-sub-equipment").length) {
-                    return;
-                }
-
-                var data = $("#equipmentTable").DataTable().row(this).data();
+        // Row click event to populate form and close modal
+        $("#subEquipmentTable tbody")
+            .off("click")
+            .on("click", "tr", function () {
+                var data = $("#subEquipmentTable").DataTable().row(this).data();
 
                 if (data) {
-                    $("#equipment_id").val(data.id || "");
+                    $("#sub_equipment_id").val(data.id || "");
                     $("#code").val(data.code || "");
-                    $("#item_name").val(data.item_name || "");
-                    $("#category").val(data.category || "");
-                    $("#serial_number").val(data.serial_number || "");
-                    $("#is_condition").val(data.is_condition || "1");
-                    $("#availability_status").val(data.availability_status || "1");
-                    $("#queue").val(data.queue || "0");
-                    $("#quantity").val(data.quantity || "0");
+                    $("#name").val(data.name || "");
 
                     // Show update button, hide create button
                     $("#create").hide();
                     $("#update").show();
 
                     // Close the modal
-                    $("#EquipmentModal").modal("hide");
+                    $("#SubEquipmentModal").modal("hide");
                 }
-            });
-
-        // Add Sub Equipment button click handler
-        $("#equipmentTable tbody")
-            .off("click", ".add-sub-equipment")
-            .on("click", ".add-sub-equipment", function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                var parentId = $(this).data("id");
-
-                // Redirect to Sub Equipment Master page
-                window.location.href = "sub-equipment-master.php?equipment_id=" + parentId;
             });
     }
 
-    // Create Equipment
+    // Create Sub Equipment
     $("#create").click(function (event) {
         event.preventDefault();
 
@@ -104,16 +95,25 @@ jQuery(document).ready(function () {
             $("#create").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please enter equipment code",
+                text: "Please enter sub equipment code",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
             });
-        } else if (!$("#item_name").val()) {
+        } else if (!$("#name").val()) {
             $("#create").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please enter item name",
+                text: "Please enter sub equipment name",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } else if (!$("#equipment_id").val()) {
+            $("#create").prop("disabled", false);
+            swal({
+                title: "Error!",
+                text: "Parent equipment is required",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -126,7 +126,7 @@ jQuery(document).ready(function () {
             formData.append("create", true);
 
             $.ajax({
-                url: "ajax/php/equipment-master.php",
+                url: "ajax/php/sub-equipment-master.php",
                 type: "POST",
                 data: formData,
                 async: false,
@@ -144,7 +144,7 @@ jQuery(document).ready(function () {
                     if (result.status === "success") {
                         swal({
                             title: "Success!",
-                            text: "Equipment added successfully!",
+                            text: "Sub equipment added successfully!",
                             type: "success",
                             timer: 2000,
                             showConfirmButton: false,
@@ -163,10 +163,9 @@ jQuery(document).ready(function () {
                     } else {
                         swal({
                             title: "Error!",
-                            text: "Something went wrong.",
+                            text: result.message || "Something went wrong.",
                             type: "error",
-                            timer: 2000,
-                            showConfirmButton: false,
+                            showConfirmButton: true,
                         });
                     }
                 },
@@ -182,7 +181,7 @@ jQuery(document).ready(function () {
 
                     swal({
                         title: "Error!",
-                        text: "Failed to create equipment. Please check the console for details.",
+                        text: "Failed to create sub equipment. Please check the console for details.",
                         type: "error",
                         showConfirmButton: true,
                     });
@@ -193,7 +192,7 @@ jQuery(document).ready(function () {
         return false;
     });
 
-    // Update Equipment
+    // Update Sub Equipment
     $("#update").click(function (event) {
         event.preventDefault();
 
@@ -204,16 +203,16 @@ jQuery(document).ready(function () {
             $("#update").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please enter equipment code",
+                text: "Please enter sub equipment code",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
             });
-        } else if (!$("#item_name").val()) {
+        } else if (!$("#name").val()) {
             $("#update").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please enter item name",
+                text: "Please enter sub equipment name",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -226,7 +225,7 @@ jQuery(document).ready(function () {
             formData.append("update", true);
 
             $.ajax({
-                url: "ajax/php/equipment-master.php",
+                url: "ajax/php/sub-equipment-master.php",
                 type: "POST",
                 data: formData,
                 async: false,
@@ -241,7 +240,7 @@ jQuery(document).ready(function () {
                     if (result.status == "success") {
                         swal({
                             title: "Success!",
-                            text: "Equipment updated successfully!",
+                            text: "Sub equipment updated successfully!",
                             type: "success",
                             timer: 2500,
                             showConfirmButton: false,
@@ -264,10 +263,9 @@ jQuery(document).ready(function () {
                         $("#update").prop("disabled", false);
                         swal({
                             title: "Error!",
-                            text: "Something went wrong.",
+                            text: result.message || "Something went wrong.",
                             type: "error",
-                            timer: 2000,
-                            showConfirmButton: false,
+                            showConfirmButton: true,
                         });
                     }
                 },
@@ -283,7 +281,7 @@ jQuery(document).ready(function () {
 
                     swal({
                         title: "Error!",
-                        text: "Failed to update equipment. Please check the console for details.",
+                        text: "Failed to update sub equipment. Please check the console for details.",
                         type: "error",
                         showConfirmButton: true,
                     });
@@ -298,17 +296,20 @@ jQuery(document).ready(function () {
     $("#new").click(function (e) {
         e.preventDefault();
         $("#form-data")[0].reset();
-        $("#equipment_id").val("");
-        $("#is_condition").prop("selectedIndex", 0);
-        $("#availability_status").prop("selectedIndex", 0);
+        $("#sub_equipment_id").val("");
+        // Keep the parent equipment ID
+        $("#equipment_id").val(parentEquipmentId);
         $("#create").show();
         $("#update").hide();
 
         // Generate new code
         $.ajax({
-            url: "ajax/php/equipment-master.php",
+            url: "ajax/php/sub-equipment-master.php",
             type: "POST",
-            data: { action: "get_new_code" },
+            data: {
+                action: "get_new_code",
+                equipment_id: parentEquipmentId,
+            },
             dataType: "JSON",
             success: function (result) {
                 if (result.status === "success") {
@@ -318,22 +319,22 @@ jQuery(document).ready(function () {
         });
     });
 
-    // Delete Equipment
-    $(document).on("click", ".delete-equipment", function (e) {
+    // Delete Sub Equipment
+    $(document).on("click", ".delete-sub-equipment", function (e) {
         e.preventDefault();
 
         // Disable the button to prevent multiple submissions
-        $(".delete-equipment").prop("disabled", true);
+        $(".delete-sub-equipment").prop("disabled", true);
 
-        var equipmentId = $("#equipment_id").val();
-        var itemName = $("#item_name").val();
+        var subEquipmentId = $("#sub_equipment_id").val();
+        var subEquipmentCode = $("#code").val();
 
-        if (!equipmentId || equipmentId === "") {
+        if (!subEquipmentId || subEquipmentId === "") {
             // Re-enable the button on validation error
-            $(".delete-equipment").prop("disabled", false);
+            $(".delete-sub-equipment").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please select equipment first.",
+                text: "Please select a sub equipment first.",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -344,7 +345,7 @@ jQuery(document).ready(function () {
         swal(
             {
                 title: "Are you sure?",
-                text: "Do you want to delete equipment '" + itemName + "'?",
+                text: "Do you want to delete sub equipment '" + subEquipmentCode + "'?",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#d33",
@@ -359,10 +360,10 @@ jQuery(document).ready(function () {
                     $("#page-preloader").show();
 
                     $.ajax({
-                        url: "ajax/php/equipment-master.php",
+                        url: "ajax/php/sub-equipment-master.php",
                         type: "POST",
                         data: {
-                            id: equipmentId,
+                            id: subEquipmentId,
                             delete: true,
                         },
                         dataType: "JSON",
@@ -371,12 +372,12 @@ jQuery(document).ready(function () {
                             $("#page-preloader").hide();
 
                             // Re-enable the button
-                            $(".delete-equipment").prop("disabled", false);
+                            $(".delete-sub-equipment").prop("disabled", false);
 
                             if (response.status === "success") {
                                 swal({
                                     title: "Deleted!",
-                                    text: "Equipment has been deleted.",
+                                    text: "Sub equipment has been deleted.",
                                     type: "success",
                                     timer: 2000,
                                     showConfirmButton: false,
@@ -398,9 +399,15 @@ jQuery(document).ready(function () {
                     });
                 } else {
                     // Re-enable the button if user cancels
-                    $(".delete-equipment").prop("disabled", false);
+                    $(".delete-sub-equipment").prop("disabled", false);
                 }
             }
         );
+    });
+
+    // Back to Equipment Master button
+    $("#back-to-equipment").click(function (e) {
+        e.preventDefault();
+        window.location.href = "equipment-master.php";
     });
 });
