@@ -322,6 +322,9 @@ jQuery(document).ready(function () {
             .trigger("change");
 
           $("#remark").val(data.remark || "");
+          $("#nic").val(data.nic || "");
+          $("#water_bill_no").val(data.water_bill_no || "");
+          $("#electricity_bill_no").val(data.electricity_bill_no || "");
           $("#create").hide();
           $("#update").show();
           // Close the modal
@@ -782,4 +785,70 @@ jQuery(document).ready(function () {
 // Global function to convert input to uppercase
 function toUpperCaseInput(element) {
   element.value = element.value.toUpperCase();
+}
+
+// NIC Validation Function for Sri Lankan NICs
+// Old format: 9 digits + V or X (e.g., 123456789V)
+// New format: 12 digits (e.g., 200012345678)
+function validateNIC(input) {
+  var nic = input.value.toUpperCase().trim();
+  input.value = nic; // Convert to uppercase
+
+  var statusSpan = document.getElementById('nic-status');
+  var errorSpan = document.getElementById('nic-error');
+
+  // Reset styles
+  input.classList.remove('is-valid', 'is-invalid');
+  statusSpan.innerHTML = '';
+  errorSpan.style.display = 'none';
+  errorSpan.textContent = '';
+
+  // If empty, no validation needed
+  if (nic === '') {
+    statusSpan.innerHTML = '';
+    return true;
+  }
+
+  // Old NIC format: 9 digits followed by V or X
+  var oldNicPattern = /^[0-9]{9}[VX]$/;
+
+  // New NIC format: 12 digits
+  var newNicPattern = /^[0-9]{12}$/;
+
+  if (oldNicPattern.test(nic) || newNicPattern.test(nic)) {
+    // Valid NIC
+    input.classList.add('is-valid');
+    statusSpan.innerHTML = '<i class="uil uil-check text-success"></i>';
+    return true;
+  } else {
+    // Invalid NIC
+    input.classList.add('is-invalid');
+    statusSpan.innerHTML = '<i class="uil uil-times text-danger"></i>';
+
+    // Provide helpful error message
+    if (nic.length < 10) {
+      errorSpan.textContent = 'NIC is too short';
+    } else if (nic.length === 10 && !/[VX]$/.test(nic)) {
+      errorSpan.textContent = 'Old NIC must end with V or X';
+    } else if (nic.length > 10 && nic.length < 12) {
+      errorSpan.textContent = 'New NIC must be 12 digits';
+    } else if (nic.length === 12 && !/^[0-9]+$/.test(nic)) {
+      errorSpan.textContent = 'New NIC must contain only digits';
+    } else {
+      errorSpan.textContent = 'Invalid NIC format';
+    }
+    errorSpan.style.display = 'block';
+    return false;
+  }
+}
+
+// Function to check NIC validity (used before form submission)
+function isNICValid() {
+  var nic = document.getElementById('nic').value.trim();
+  if (nic === '') return true; // Empty is allowed (not required)
+
+  var oldNicPattern = /^[0-9]{9}[VX]$/;
+  var newNicPattern = /^[0-9]{12}$/;
+
+  return oldNicPattern.test(nic.toUpperCase()) || newNicPattern.test(nic);
 }

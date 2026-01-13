@@ -223,6 +223,36 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <input id="svat_no" name="svat_no" type="text" class="form-control"
                                                         placeholder="Enter SVAT number">
                                                 </div>
+
+                                                <!-- NIC -->
+                                                <div class="col-md-3">
+                                                    <label for="nic" class="form-label">NIC</label>
+                                                    <div class="input-group">
+                                                        <input id="nic" name="nic" type="text" class="form-control"
+                                                            placeholder="Enter NIC number" maxlength="12"
+                                                            oninput="validateNIC(this)">
+                                                        <span class="input-group-text" id="nic-status"></span>
+                                                    </div>
+                                                    <small id="nic-error" class="text-danger"
+                                                        style="display: none;"></small>
+                                                </div>
+
+                                                <!-- Water Bill Number -->
+                                                <div class="col-md-3">
+                                                    <label for="water_bill_no" class="form-label">Water Bill
+                                                        Number</label>
+                                                    <input id="water_bill_no" name="water_bill_no" type="text"
+                                                        class="form-control" placeholder="Enter water bill number">
+                                                </div>
+
+                                                <!-- Electricity Bill Number -->
+                                                <div class="col-md-3">
+                                                    <label for="electricity_bill_no" class="form-label">Electricity Bill
+                                                        Number</label>
+                                                    <input id="electricity_bill_no" name="electricity_bill_no"
+                                                        type="text" class="form-control"
+                                                        placeholder="Enter electricity bill number">
+                                                </div>
                                                 <div
                                                     class="col-md-1 mt-3 d-flex justify-content-center align-items-center">
                                                     <div class="form-check">

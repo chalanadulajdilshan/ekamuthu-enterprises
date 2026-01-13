@@ -10,6 +10,7 @@ class Equipment
     public $is_condition;
     public $availability_status;
     public $queue;
+    public $quantity;
 
     public function __construct($id = null)
     {
@@ -27,6 +28,7 @@ class Equipment
                 $this->is_condition = $result['is_condition'];
                 $this->availability_status = $result['availability_status'];
                 $this->queue = $result['queue'];
+                $this->quantity = $result['quantity'];
             }
         }
     }
@@ -34,9 +36,9 @@ class Equipment
     public function create()
     {
         $query = "INSERT INTO `equipment` (
-            `code`, `item_name`, `category`, `serial_number`, `is_condition`, `availability_status`, `queue`
+            `code`, `item_name`, `category`, `serial_number`, `is_condition`, `availability_status`, `queue`, `quantity`
         ) VALUES (
-            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->is_condition', '$this->availability_status', '$this->queue'
+            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->is_condition', '$this->availability_status', '$this->queue', '$this->quantity'
         )";
 
         $db = Database::getInstance();
@@ -58,7 +60,8 @@ class Equipment
             `serial_number` = '$this->serial_number', 
             `is_condition` = '$this->is_condition', 
             `availability_status` = '$this->availability_status',
-            `queue` = '$this->queue'
+            `queue` = '$this->queue',
+            `quantity` = '$this->quantity'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -115,6 +118,7 @@ class Equipment
             $this->is_condition = $result['is_condition'];
             $this->availability_status = $result['availability_status'];
             $this->queue = $result['queue'];
+            $this->quantity = $result['quantity'];
             return true;
         }
         return false;
@@ -176,6 +180,7 @@ class Equipment
                 "is_condition" => $row['is_condition'],
                 "availability_status" => $row['availability_status'],
                 "queue" => $row['queue'],
+                "quantity" => $row['quantity'],
                 "status_label" => $row['availability_status'] == 1
                     ? '<span class="badge bg-soft-success font-size-12">Available</span>'
                     : '<span class="badge bg-soft-danger font-size-12">Unavailable</span>'

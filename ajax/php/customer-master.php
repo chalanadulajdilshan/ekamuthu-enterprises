@@ -48,6 +48,9 @@ if (isset($_POST['create'])) {
     $CUSTOMER->address = strtoupper($_POST['address'] ?? '');
     $CUSTOMER->remark = $_POST['remark'] ?? '';
     $CUSTOMER->vat_no = $_POST['vat_no'] ?? '';
+    $CUSTOMER->nic = $_POST['nic'] ?? '';
+    $CUSTOMER->water_bill_no = $_POST['water_bill_no'] ?? '';
+    $CUSTOMER->electricity_bill_no = $_POST['electricity_bill_no'] ?? '';
     $CUSTOMER->category = $_POST['category'] ?? 1;
     $CUSTOMER->is_active = isset($_POST['is_active']) ? 1 : 0;
     $res = $CUSTOMER->create();
@@ -168,6 +171,9 @@ if (isset($_POST['update'])) {
     $CUSTOMER->old_outstanding = $_POST['old_outstanding'];
     $CUSTOMER->address = strtoupper($_POST['address']);
     $CUSTOMER->remark = $_POST['remark'];
+    $CUSTOMER->nic = $_POST['nic'] ?? '';
+    $CUSTOMER->water_bill_no = $_POST['water_bill_no'] ?? '';
+    $CUSTOMER->electricity_bill_no = $_POST['electricity_bill_no'] ?? '';
     $CUSTOMER->category = $_POST['category'];
     $CUSTOMER->is_active = isset($_POST['is_active']) ? 1 : 0;
 

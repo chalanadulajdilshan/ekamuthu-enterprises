@@ -139,8 +139,14 @@ $equipment_id = 'EQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <!-- Category -->
                                                 <div class="col-md-2">
                                                     <label for="category" class="form-label">Category</label>
-                                                    <input id="category" name="category" type="text"
-                                                        class="form-control" placeholder="Enter category">
+                                                    <select id="category" name="category" class="form-select">
+                                                        <option value="">- Select Category -</option>
+                                                        <option value="1">Power Tools</option>
+                                                        <option value="2">Hand Tools</option>
+                                                        <option value="3">Safety Equipment</option>
+                                                        <option value="4">Measuring Instruments</option>
+                                                        <option value="5">Electrical Equipment</option>
+                                                    </select>
                                                 </div>
 
                                                 <!-- Serial Number -->
@@ -175,6 +181,13 @@ $equipment_id = 'EQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <label for="queue" class="form-label">Queue</label>
                                                     <input id="queue" name="queue" type="number" class="form-control"
                                                         placeholder="0" value="0">
+                                                </div>
+
+                                                <!-- Quantity -->
+                                                <div class="col-md-1">
+                                                    <label for="quantity" class="form-label">Quantity</label>
+                                                    <input id="quantity" name="quantity" type="number"
+                                                        class="form-control" placeholder="0" value="0" min="0">
                                                 </div>
 
                                                 <input type="hidden" id="equipment_id" name="equipment_id" />
@@ -218,6 +231,7 @@ $equipment_id = 'EQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         <th>Serial Number</th>
                                         <th>Condition</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                             </table>
