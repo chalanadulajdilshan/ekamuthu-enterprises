@@ -1,0 +1,263 @@
+ .chart-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .chart-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .chart-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #5b73e8, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .chart-subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 500px;
+            margin: 30px 100px;
+            background: linear-gradient(145deg, #f8f9ff, #e8ecff);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: inset 0 2px 10px rgba(91, 115, 232, 0.1);
+        }
+
+        .bar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 100%;
+            position: relative;
+        }
+
+        .bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .bar-wrapper:hover {
+            transform: translateY(-5px);
+        }
+
+        .bar {
+            width: 100%;
+            max-width: 50px;
+            background: linear-gradient(180deg, #5b73e8, #667eea);
+            border-radius: 8px 8px 4px 4px;
+            position: relative;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(91, 115, 232, 0.3);
+            transform-origin: bottom;
+            animation: barGrow 1.5s ease-out forwards;
+            animation-delay: calc(var(--index) * 0.1s);
+            height: 0;
+        }
+
+        @keyframes barGrow {
+            from {
+                height: 0;
+                transform: scaleY(0);
+            }
+
+            to {
+                height: var(--height);
+                transform: scaleY(1);
+            }
+        }
+
+        .bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #fff, #f0f2ff);
+            border-radius: 8px 8px 0 0;
+            opacity: 0.8;
+        }
+
+        .bar:hover {
+            background: linear-gradient(180deg, #6c82f0, #7589f2);
+            box-shadow: 0 6px 25px rgba(91, 115, 232, 0.4);
+            transform: scale(1.05);
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(91, 115, 232, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .bar-wrapper:hover .bar-value {
+            opacity: 1;
+        }
+
+        .bar-label {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            pointer-events: none;
+        }
+
+        .grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(108, 117, 125, 0.15);
+        }
+
+        .grid-label {
+            position: absolute;
+            left: -50px;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .chart-wrapper {
+                padding: 20px;
+                height: 400px;
+            }
+
+            .chart-title {
+                font-size: 2rem;
+            }
+
+            .bar {
+                max-width: 35px;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 15px rgba(91, 115, 232, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 6px 25px rgba(91, 115, 232, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 4px 15px rgba(91, 115, 232, 0.3);
+            }
+        }
+
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .display {
+            background: #f8f9fa;
+            padding: 5px 5px 0px 0px;
+            margin-bottom: 15px;
+            text-align: right;
+            font-size: 24px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 40px;
+            overflow: hidden;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background: #f0f2f5;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: #e2e6ea;
+        }
+
+        button.operator {
+            background: #4a90e2;
+            color: white;
+        }
+
+        button.operator:hover {
+            background: #357abd;
+        }
+
+        button.equals {
+            background: #28a745;
+            color: white;
+            grid-column: span 2;
+        }
+
+        button.equals:hover {
+            background: #218838;
+        }
+
+        button.clear {
+            background: #dc3545;
+            color: white;
+        }
+
+        button.clear:hover {
+            background: #c82333;
+        }
