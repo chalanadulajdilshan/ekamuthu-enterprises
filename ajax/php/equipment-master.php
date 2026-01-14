@@ -153,15 +153,15 @@ if (isset($_POST['filter'])) {
     $key = 1;
 
     while ($row = mysqli_fetch_assoc($dataQuery)) {
-        // Category name mapping
-        $categoryNames = [
-            '1' => 'Power Tools',
-            '2' => 'Hand Tools',
-            '3' => 'Safety Equipment',
-            '4' => 'Measuring Instruments',
-            '5' => 'Electrical Equipment'
-        ];
-        $categoryLabel = isset($categoryNames[$row['category']]) ? $categoryNames[$row['category']] : $row['category'];
+        // Get category name from equipment_category table
+        $categoryLabel = $row['category'];
+        if (!empty($row['category'])) {
+            $catQuery = "SELECT name FROM equipment_category WHERE id = " . (int) $row['category'];
+            $catResult = $db->readQuery($catQuery);
+            if ($catResult && $catRow = mysqli_fetch_assoc($catResult)) {
+                $categoryLabel = $catRow['name'];
+            }
+        }
 
         $nestedData = [
             "key" => $key,

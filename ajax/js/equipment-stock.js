@@ -1,13 +1,4 @@
 jQuery(document).ready(function () {
-    // Category name mapping
-    const categoryNames = {
-        1: "Power Tools",
-        2: "Hand Tools",
-        3: "Safety Equipment",
-        4: "Measuring Instruments",
-        5: "Electrical Equipment",
-    };
-
     // Initialize DataTable with server-side processing
     var table = $("#equipmentStockTable").DataTable({
         processing: true,
@@ -38,10 +29,10 @@ jQuery(document).ready(function () {
             { data: "code", title: "Equipment Code" },
             { data: "item_name", title: "Item Name" },
             {
-                data: "category",
+                data: "category_label",
                 title: "Category",
-                render: function (data, type, row) {
-                    return categoryNames[data] || data || "-";
+                render: function (data) {
+                    return data || "-";
                 },
             },
             {
