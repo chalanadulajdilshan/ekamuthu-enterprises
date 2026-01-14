@@ -1,7 +1,7 @@
 <?php
 
 include '../../class/include.php';
-header('Content-Type: application/json; charset=UTF8');
+header('Content-Type: application/json; charset=UTF-8');
 
 $response = array();
 

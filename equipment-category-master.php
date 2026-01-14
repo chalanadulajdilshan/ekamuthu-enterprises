@@ -121,8 +121,7 @@ $category_code = 'EC-' . str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                             <div class="col-md-3">
                                                 <label for="name" class="form-label">Category Name</label>
                                                 <div class="input-group mb-3">
-                                                    <input id="name" onkeyup="toUpperCaseInput(this)" name="name"
-                                                        type="text" class="form-control"
+                                                    <input id="name" name="name" type="text" class="form-control"
                                                         placeholder="Enter Category Name">
                                                 </div>
                                             </div>
