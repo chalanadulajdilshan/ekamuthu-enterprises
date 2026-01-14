@@ -36,6 +36,9 @@ class Database
         if (!$this->DB_CON) {
             die("Database connection failed: " . mysqli_connect_error());
         }
+
+        // Set UTF-8 charset for Sinhala/Unicode support
+        mysqli_set_charset($this->DB_CON, "utf8mb4");
     }
 
     // ✔ Singleton: Only 1 DB connection in full system
