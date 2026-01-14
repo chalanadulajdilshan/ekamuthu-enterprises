@@ -200,7 +200,9 @@ if (isset($_POST['filter'])) {
 if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     $EQUIPMENT = new Equipment(NULL);
     $lastId = $EQUIPMENT->getLastID();
-    $newCode = 'EQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+    $nextNumber = $lastId + 1;
+    // Pad with leading zeros for minimum 3 digits (001, 010, 100, 1000+)
+    $newCode = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
     echo json_encode([
         "status" => "success",

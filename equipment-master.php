@@ -8,7 +8,7 @@ $EQUIPMENT = new Equipment(NULL);
 
 // Get the last inserted ID
 $lastId = $EQUIPMENT->getLastID();
-$equipment_id = 'EQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+$equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 ?>
 
 <head>
@@ -141,11 +141,12 @@ $equipment_id = 'EQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <label for="category" class="form-label">Category</label>
                                                     <select id="category" name="category" class="form-select">
                                                         <option value="">- Select Category -</option>
-                                                        <option value="1">Power Tools</option>
-                                                        <option value="2">Hand Tools</option>
-                                                        <option value="3">Safety Equipment</option>
-                                                        <option value="4">Measuring Instruments</option>
-                                                        <option value="5">Electrical Equipment</option>
+                                                        <?php
+                                                        $EQUIPMENT_CATEGORY = new EquipmentCategory(NULL);
+                                                        foreach ($EQUIPMENT_CATEGORY->getActiveCategories() as $cat) {
+                                                            echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                                                        }
+                                                        ?>
                                                     </select>
                                                 </div>
 

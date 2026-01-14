@@ -14,7 +14,7 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 <head>
 
     <meta charset="utf-8" />
-    <title>Equipment Rent Master |
+    <title>Equipment Rent |
         <?php echo $COMPANY_PROFILE_DETAILS->name ?>
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,7 +73,7 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
                             <ol class="breadcrumb m-0 justify-content-md-end">
                                 <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Equipment Rent Master</li>
+                                <li class="breadcrumb-item active">Equipment Rent</li>
                             </ol>
                         </div>
                     </div>
@@ -98,7 +98,7 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1 overflow-hidden">
-                                                    <h5 class="font-size-16 mb-1">Equipment Rent Master</h5>
+                                                    <h5 class="font-size-16 mb-1">Equipment Rent</h5>
                                                     <p class="text-muted text-truncate mb-0">Fill all information below
                                                         to add equipment rent
                                                     </p>
