@@ -8,6 +8,7 @@ $SUB_EQUIPMENT = new SubEquipment(NULL);
 
 // Get parent equipment ID from URL
 $parent_equipment_id = isset($_GET['equipment_id']) ? (int) $_GET['equipment_id'] : 0;
+
 $parent_equipment = null;
 $parent_equipment_display = '';
 
@@ -15,10 +16,6 @@ if ($parent_equipment_id) {
     $parent_equipment = new Equipment($parent_equipment_id);
     $parent_equipment_display = $parent_equipment->code . ' - ' . $parent_equipment->item_name;
 }
-
-// Get the last inserted ID
-$lastId = $SUB_EQUIPMENT->getLastID();
-$sub_equipment_code = 'SE/' . $parent_equipment_id . '/0' . ($lastId + 1);
 ?>
 
 <head>
@@ -145,8 +142,8 @@ $sub_equipment_code = 'SE/' . $parent_equipment_id . '/0' . ($lastId + 1);
                                                 <div class="col-md-3">
                                                     <label for="code" class="form-label">Sub Equipment Code</label>
                                                     <div class="input-group mb-3">
-                                                        <input id="code" name="code" type="text" class="form-control"
-                                                            value="<?php echo $sub_equipment_code ?>" readonly>
+                                                        <input id="code" name="code" type="text"
+                                                            class="form-control" placeholder="Enter sub equipment code">
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#SubEquipmentModal">
                                                             <i class="uil uil-search me-1"></i>

@@ -302,21 +302,6 @@ jQuery(document).ready(function () {
         $("#create").show();
         $("#update").hide();
 
-        // Generate new code
-        $.ajax({
-            url: "ajax/php/sub-equipment-master.php",
-            type: "POST",
-            data: {
-                action: "get_new_code",
-                equipment_id: parentEquipmentId,
-            },
-            dataType: "JSON",
-            success: function (result) {
-                if (result.status === "success") {
-                    $("#code").val(result.code);
-                }
-            },
-        });
     });
 
     // Delete Sub Equipment
