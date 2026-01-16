@@ -55,8 +55,7 @@ jQuery(document).ready(function () {
             },
             columns: [
                 { data: "key", title: "#ID" },
-                { data: "code", title: "Code" },
-                { data: "name", title: "Name" },
+                { data: "code", title: "Code" }
             ],
             order: [[0, "desc"]],
             pageLength: 100,
@@ -71,7 +70,6 @@ jQuery(document).ready(function () {
                 if (data) {
                     $("#sub_equipment_id").val(data.id || "");
                     $("#code").val(data.code || "");
-                    $("#name").val(data.name || "");
 
                     // Show update button, hide create button
                     $("#create").hide();
@@ -96,15 +94,6 @@ jQuery(document).ready(function () {
             swal({
                 title: "Error!",
                 text: "Please enter sub equipment code",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false,
-            });
-        } else if (!$("#name").val()) {
-            $("#create").prop("disabled", false);
-            swal({
-                title: "Error!",
-                text: "Please enter sub equipment name",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -204,15 +193,6 @@ jQuery(document).ready(function () {
             swal({
                 title: "Error!",
                 text: "Please enter sub equipment code",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false,
-            });
-        } else if (!$("#name").val()) {
-            $("#update").prop("disabled", false);
-            swal({
-                title: "Error!",
-                text: "Please enter sub equipment name",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,

@@ -4,6 +4,21 @@ jQuery(document).ready(function () {
         loadEquipmentTable();
     });
 
+    // Shared required fields list
+    var requiredFields = [
+        { selector: "#code", message: "Please enter equipment code" },
+        { selector: "#item_name", message: "Please enter item name" },
+        { selector: "#category", message: "Please select category" },
+        { selector: "#serial_number", message: "Please enter serial number" },
+        { selector: "#damage", message: "Please enter damage status/notes" },
+        { selector: "#size", message: "Please enter size" },
+        { selector: "#rent_one_day", message: "Please enter one day's rent" },
+        { selector: "#deposit_one_day", message: "Please enter one day's deposit" },
+        { selector: "#rent_one_month", message: "Please enter one month's rent" },
+        { selector: "#value", message: "Please enter value" },
+        { selector: "#quantity", message: "Please enter quantity" }
+    ];
+
     function loadEquipmentTable() {
         // Destroy if already initialized
         if ($.fn.DataTable.isDataTable("#equipmentTable")) {
@@ -32,11 +47,6 @@ jQuery(document).ready(function () {
                 { data: "item_name", title: "Item Name" },
                 { data: "category_label", title: "Category" },
                 { data: "serial_number", title: "Serial Number" },
-                { data: "damage", title: "Damage" },
-                { data: "size", title: "Size" },
-                { data: "rent_one_day", title: "One Day's Rent" },
-                { data: "deposit_one_day", title: "One Day's Deposit" },
-                { data: "rent_one_month", title: "One Month's Rent" },
                 { data: "value", title: "Value" },
                 { data: "quantity", title: "Quantity" },
                 {
@@ -111,20 +121,29 @@ jQuery(document).ready(function () {
         $("#create").prop("disabled", true);
 
         // Validation
-        if (!$("#code").val()) {
+        var requiredFields = [
+            { selector: "#code", message: "Please enter equipment code" },
+            { selector: "#item_name", message: "Please enter item name" },
+            { selector: "#category", message: "Please select category" },
+            { selector: "#serial_number", message: "Please enter serial number" },
+            { selector: "#damage", message: "Please enter damage status/notes" },
+            { selector: "#size", message: "Please enter size" },
+            { selector: "#rent_one_day", message: "Please enter one day's rent" },
+            { selector: "#deposit_one_day", message: "Please enter one day's deposit" },
+            { selector: "#rent_one_month", message: "Please enter one month's rent" },
+            { selector: "#value", message: "Please enter value" },
+            { selector: "#quantity", message: "Please enter quantity" }
+        ];
+
+        var invalidField = requiredFields.find(function (field) {
+            return !$(field.selector).val();
+        });
+
+        if (invalidField) {
             $("#create").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please enter equipment code",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false,
-            });
-        } else if (!$("#item_name").val()) {
-            $("#create").prop("disabled", false);
-            swal({
-                title: "Error!",
-                text: "Please enter item name",
+                text: invalidField.message,
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -211,20 +230,15 @@ jQuery(document).ready(function () {
         // Disable the button to prevent multiple submissions
         $("#update").prop("disabled", true);
 
-        if (!$("#code").val()) {
+        var invalidUpdateField = requiredFields.find(function (field) {
+            return !$(field.selector).val();
+        });
+
+        if (invalidUpdateField) {
             $("#update").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please enter equipment code",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false,
-            });
-        } else if (!$("#item_name").val()) {
-            $("#update").prop("disabled", false);
-            swal({
-                title: "Error!",
-                text: "Please enter item name",
+                text: invalidUpdateField.message,
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
