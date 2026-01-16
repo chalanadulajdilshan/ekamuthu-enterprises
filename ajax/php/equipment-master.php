@@ -26,9 +26,12 @@ if (isset($_POST['create'])) {
     $EQUIPMENT->item_name = strtoupper($_POST['item_name'] ?? '');
     $EQUIPMENT->category = $_POST['category'] ?? '';
     $EQUIPMENT->serial_number = $_POST['serial_number'] ?? '';
-    $EQUIPMENT->is_condition = $_POST['is_condition'] ?? 1;
-    $EQUIPMENT->availability_status = $_POST['availability_status'] ?? 1;
-    $EQUIPMENT->queue = $_POST['queue'] ?? 0;
+    $EQUIPMENT->damage = $_POST['damage'] ?? '';
+    $EQUIPMENT->size = $_POST['size'] ?? '';
+    $EQUIPMENT->rent_one_day = $_POST['rent_one_day'] ?? 0;
+    $EQUIPMENT->deposit_one_day = $_POST['deposit_one_day'] ?? 0;
+    $EQUIPMENT->rent_one_month = $_POST['rent_one_month'] ?? 0;
+    $EQUIPMENT->value = $_POST['value'] ?? 0;
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
 
     $res = $EQUIPMENT->create();
@@ -71,9 +74,12 @@ if (isset($_POST['update'])) {
     $EQUIPMENT->item_name = strtoupper($_POST['item_name'] ?? '');
     $EQUIPMENT->category = $_POST['category'] ?? '';
     $EQUIPMENT->serial_number = $_POST['serial_number'] ?? '';
-    $EQUIPMENT->is_condition = $_POST['is_condition'] ?? 1;
-    $EQUIPMENT->availability_status = $_POST['availability_status'] ?? 1;
-    $EQUIPMENT->queue = $_POST['queue'] ?? 0;
+    $EQUIPMENT->damage = $_POST['damage'] ?? '';
+    $EQUIPMENT->size = $_POST['size'] ?? '';
+    $EQUIPMENT->rent_one_day = $_POST['rent_one_day'] ?? 0;
+    $EQUIPMENT->deposit_one_day = $_POST['deposit_one_day'] ?? 0;
+    $EQUIPMENT->rent_one_month = $_POST['rent_one_month'] ?? 0;
+    $EQUIPMENT->value = $_POST['value'] ?? 0;
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
 
     $res = $EQUIPMENT->update();
@@ -137,7 +143,7 @@ if (isset($_POST['filter'])) {
     // Search filter
     $where = "WHERE 1=1";
     if (!empty($search)) {
-        $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%')";
+        $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%' OR damage LIKE '%$search%' OR size LIKE '%$search%')";
     }
 
     // Filtered records
@@ -171,15 +177,12 @@ if (isset($_POST['filter'])) {
             "category" => $row['category'],
             "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
-            "is_condition" => $row['is_condition'],
-            "condition_label" => $row['is_condition'] == 1
-                ? '<span class="badge bg-soft-success font-size-12">Good</span>'
-                : '<span class="badge bg-soft-danger font-size-12">Bad</span>',
-            "availability_status" => $row['availability_status'],
-            "status_label" => $row['availability_status'] == 1
-                ? '<span class="badge bg-soft-success font-size-12">Available</span>'
-                : '<span class="badge bg-soft-danger font-size-12">Unavailable</span>',
-            "queue" => $row['queue'],
+            "damage" => $row['damage'],
+            "size" => $row['size'],
+            "rent_one_day" => $row['rent_one_day'],
+            "deposit_one_day" => $row['deposit_one_day'],
+            "rent_one_month" => $row['rent_one_month'],
+            "value" => $row['value'],
             "quantity" => $row['quantity']
         ];
 

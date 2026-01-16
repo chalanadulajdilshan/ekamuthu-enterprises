@@ -32,8 +32,13 @@ jQuery(document).ready(function () {
                 { data: "item_name", title: "Item Name" },
                 { data: "category_label", title: "Category" },
                 { data: "serial_number", title: "Serial Number" },
-                { data: "condition_label", title: "Condition" },
-                { data: "status_label", title: "Status" },
+                { data: "damage", title: "Damage" },
+                { data: "size", title: "Size" },
+                { data: "rent_one_day", title: "One Day's Rent" },
+                { data: "deposit_one_day", title: "One Day's Deposit" },
+                { data: "rent_one_month", title: "One Month's Rent" },
+                { data: "value", title: "Value" },
+                { data: "quantity", title: "Quantity" },
                 {
                     data: null,
                     title: "Action",
@@ -67,9 +72,12 @@ jQuery(document).ready(function () {
                     $("#item_name").val(data.item_name || "");
                     $("#category").val(data.category || "");
                     $("#serial_number").val(data.serial_number || "");
-                    $("#is_condition").val(data.is_condition || "1");
-                    $("#availability_status").val(data.availability_status || "1");
-                    $("#queue").val(data.queue || "0");
+                    $("#damage").val(data.damage || "");
+                    $("#size").val(data.size || "");
+                    $("#rent_one_day").val(data.rent_one_day || "0");
+                    $("#deposit_one_day").val(data.deposit_one_day || "0");
+                    $("#rent_one_month").val(data.rent_one_month || "0");
+                    $("#value").val(data.value || "0");
                     $("#quantity").val(data.quantity || "0");
 
                     // Show update button, hide create button
@@ -302,8 +310,6 @@ jQuery(document).ready(function () {
         e.preventDefault();
         $("#form-data")[0].reset();
         $("#equipment_id").val("");
-        $("#is_condition").prop("selectedIndex", 0);
-        $("#availability_status").prop("selectedIndex", 0);
         $("#create").show();
         $("#update").hide();
 
