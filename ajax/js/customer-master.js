@@ -27,6 +27,26 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
+    } else if (!$("#address").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter customer address",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#nic").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter NIC number",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } else if ($("#nic").val() && !isNICValid()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
@@ -37,15 +57,55 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#nic").val() && !$("#water_bill_no").val() && !$("#electricity_bill_no").val()) {
+    } else if (!$("#mobile_number").val()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
       swal({
         title: "Error!",
-        text: "Please enter at least one of: NIC, Water Bill Number, or Electricity Bill Number",
+        text: "Please enter mobile number",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#water_bill_no").val() && !$("#electricity_bill_no").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter at least Water Bill Number or Electricity Bill Number",
         type: "error",
         timer: 3000,
         showConfirmButton: true,
+      });
+    } else if (!$("#guarantor_name").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor name",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#guarantor_nic").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor NIC",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#guarantor_address").val()) {
+      // Re-enable the button on validation error
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor address",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
       });
     } else {
       // Show page preloader
@@ -235,12 +295,22 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#mobile_number").val()) {
+    } else if (!$("#address").val()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
       swal({
         title: "Error!",
-        text: "Please enter customer mobile number",
+        text: "Please enter customer address",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#nic").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter NIC number",
         type: "error",
         timer: 2000,
         showConfirmButton: false,
@@ -255,15 +325,55 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#nic").val() && !$("#water_bill_no").val() && !$("#electricity_bill_no").val()) {
+    } else if (!$("#mobile_number").val()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
       swal({
         title: "Error!",
-        text: "Please enter at least one of: NIC, Water Bill Number, or Electricity Bill Number",
+        text: "Please enter mobile number",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#water_bill_no").val() && !$("#electricity_bill_no").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter at least Water Bill Number or Electricity Bill Number",
         type: "error",
         timer: 3000,
         showConfirmButton: true,
+      });
+    } else if (!$("#guarantor_name").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor name",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#guarantor_nic").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor NIC",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#guarantor_address").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor address",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
       });
     } else {
       // Show page preloader
