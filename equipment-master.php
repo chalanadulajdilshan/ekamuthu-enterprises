@@ -133,13 +133,16 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                     <label for="item_name" class="form-label">Item Name <span
                                                             class="text-danger">*</span></label>
                                                     <input id="item_name" name="item_name" type="text"
-                                                        class="form-control" placeholder="Enter item name">
+                                                        class="form-control" placeholder="Enter item name" required>
+
                                                 </div>
 
                                                 <!-- Category -->
                                                 <div class="col-md-2">
-                                                    <label for="category" class="form-label">Category</label>
-                                                    <select id="category" name="category" class="form-select">
+                                                    <label for="category" class="form-label">Category <span
+                                                            class="text-danger">*</span></label>
+                                                    <select id="category" name="category" class="form-select" required>
+
                                                         <option value="">- Select Category -</option>
                                                         <?php
                                                         $EQUIPMENT_CATEGORY = new EquipmentCategory(NULL);
@@ -152,58 +155,74 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
                                                 <!-- Serial Number -->
                                                 <div class="col-md-2">
-                                                    <label for="serial_number" class="form-label">Serial Number</label>
+                                                    <label for="serial_number" class="form-label">Serial Number <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="serial_number" name="serial_number" type="text"
-                                                        class="form-control" placeholder="Enter serial number">
+                                                        class="form-control" placeholder="Enter serial number" required>
+
                                                 </div>
 
                                                 <!-- Damage -->
                                                 <div class="col-md-2">
-                                                    <label for="damage" class="form-label">Damage</label>
+                                                    <label for="damage" class="form-label">Damage <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="damage" name="damage" type="text" class="form-control"
-                                                        placeholder="Enter damage status/notes">
+                                                        placeholder="Enter damage status/notes" required>
+
                                                 </div>
 
                                                 <!-- Size -->
                                                 <div class="col-md-1">
-                                                    <label for="size" class="form-label">Size</label>
+                                                    <label for="size" class="form-label">Size <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="size" name="size" type="text" class="form-control"
-                                                        placeholder="Size">
+                                                        placeholder="Size" required>
+
                                                 </div>
 
                                                 <!-- One Day's Rent -->
                                                 <div class="col-md-2">
-                                                    <label for="rent_one_day" class="form-label">One Day's Rent</label>
+                                                    <label for="rent_one_day" class="form-label">One Day's Rent <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="rent_one_day" name="rent_one_day" type="number" step="0.01"
-                                                        class="form-control" placeholder="0.00" min="0">
+                                                        class="form-control" placeholder="0.00" min="0" required>
+
                                                 </div>
 
                                                 <!-- One Day's Deposit -->
                                                 <div class="col-md-2">
-                                                    <label for="deposit_one_day" class="form-label">One Day's Deposit</label>
+                                                    <label for="deposit_one_day" class="form-label">One Day's Deposit <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="deposit_one_day" name="deposit_one_day" type="number" step="0.01"
-                                                        class="form-control" placeholder="0.00" min="0">
+                                                        class="form-control" placeholder="0.00" min="0" required>
+
                                                 </div>
 
                                                 <!-- One Month's Rent -->
                                                 <div class="col-md-2">
-                                                    <label for="rent_one_month" class="form-label">One Month's Rent</label>
+                                                    <label for="rent_one_month" class="form-label">One Month's Rent <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="rent_one_month" name="rent_one_month" type="number" step="0.01"
-                                                        class="form-control" placeholder="0.00" min="0">
+                                                        class="form-control" placeholder="0.00" min="0" required>
+
                                                 </div>
 
                                                 <!-- Value -->
                                                 <div class="col-md-2">
-                                                    <label for="value" class="form-label">Value</label>
+                                                    <label for="value" class="form-label">Value <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="value" name="value" type="number" step="0.01" class="form-control"
-                                                        placeholder="0.00" min="0">
+                                                        placeholder="0.00" min="0" required>
+
                                                 </div>
 
                                                 <!-- Quantity -->
                                                 <div class="col-md-1">
-                                                    <label for="quantity" class="form-label">Quantity</label>
+                                                    <label for="quantity" class="form-label">Quantity <span
+                                                            class="text-danger">*</span></label>
                                                     <input id="quantity" name="quantity" type="number"
-                                                        class="form-control" placeholder="0" value="0" min="0">
+                                                        class="form-control" placeholder="0" value="0" min="0" required>
+
                                                 </div>
 
                                                 <input type="hidden" id="equipment_id" name="equipment_id" />
@@ -245,11 +264,6 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                         <th>Item Name</th>
                                         <th>Category</th>
                                         <th>Serial Number</th>
-                                        <th>Damage</th>
-                                        <th>Size</th>
-                                        <th>One Day's Rent</th>
-                                        <th>One Day's Deposit</th>
-                                        <th>One Month's Rent</th>
                                         <th>Value</th>
                                         <th>Quantity</th>
                                         <th>Action</th>
