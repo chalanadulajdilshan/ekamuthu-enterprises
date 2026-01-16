@@ -7,9 +7,12 @@ class Equipment
     public $item_name;
     public $category;
     public $serial_number;
-    public $is_condition;
-    public $availability_status;
-    public $queue;
+    public $damage;
+    public $size;
+    public $rent_one_day;
+    public $deposit_one_day;
+    public $rent_one_month;
+    public $value;
     public $quantity;
 
     public function __construct($id = null)
@@ -25,9 +28,12 @@ class Equipment
                 $this->item_name = $result['item_name'];
                 $this->category = $result['category'];
                 $this->serial_number = $result['serial_number'];
-                $this->is_condition = $result['is_condition'];
-                $this->availability_status = $result['availability_status'];
-                $this->queue = $result['queue'];
+                $this->damage = $result['damage'];
+                $this->size = $result['size'];
+                $this->rent_one_day = $result['rent_one_day'];
+                $this->deposit_one_day = $result['deposit_one_day'];
+                $this->rent_one_month = $result['rent_one_month'];
+                $this->value = $result['value'];
                 $this->quantity = $result['quantity'];
             }
         }
@@ -36,9 +42,9 @@ class Equipment
     public function create()
     {
         $query = "INSERT INTO `equipment` (
-            `code`, `item_name`, `category`, `serial_number`, `is_condition`, `availability_status`, `queue`, `quantity`
+            `code`, `item_name`, `category`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`
         ) VALUES (
-            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->is_condition', '$this->availability_status', '$this->queue', '$this->quantity'
+            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity'
         )";
 
         $db = Database::getInstance();
@@ -58,9 +64,12 @@ class Equipment
             `item_name` = '$this->item_name',
             `category` = '$this->category', 
             `serial_number` = '$this->serial_number', 
-            `is_condition` = '$this->is_condition', 
-            `availability_status` = '$this->availability_status',
-            `queue` = '$this->queue',
+            `damage` = '$this->damage', 
+            `size` = '$this->size',
+            `rent_one_day` = '$this->rent_one_day',
+            `deposit_one_day` = '$this->deposit_one_day',
+            `rent_one_month` = '$this->rent_one_month',
+            `value` = '$this->value',
             `quantity` = '$this->quantity'
             WHERE `id` = '$this->id'";
 
@@ -115,27 +124,16 @@ class Equipment
             $this->item_name = $result['item_name'];
             $this->category = $result['category'];
             $this->serial_number = $result['serial_number'];
-            $this->is_condition = $result['is_condition'];
-            $this->availability_status = $result['availability_status'];
-            $this->queue = $result['queue'];
+            $this->damage = $result['damage'];
+            $this->size = $result['size'];
+            $this->rent_one_day = $result['rent_one_day'];
+            $this->deposit_one_day = $result['deposit_one_day'];
+            $this->rent_one_month = $result['rent_one_month'];
+            $this->value = $result['value'];
             $this->quantity = $result['quantity'];
             return true;
         }
         return false;
-    }
-
-    public function getAvailable()
-    {
-        $query = "SELECT * FROM `equipment` WHERE `availability_status` = 1 ORDER BY item_name ASC";
-        $db = Database::getInstance();
-        $result = $db->readQuery($query);
-
-        $array_res = array();
-        while ($row = mysqli_fetch_array($result)) {
-            array_push($array_res, $row);
-        }
-
-        return $array_res;
     }
 
     public function fetchForDataTable($request)
@@ -177,13 +175,13 @@ class Equipment
                 "item_name" => $row['item_name'],
                 "category" => $row['category'],
                 "serial_number" => $row['serial_number'],
-                "is_condition" => $row['is_condition'],
-                "availability_status" => $row['availability_status'],
-                "queue" => $row['queue'],
-                "quantity" => $row['quantity'],
-                "status_label" => $row['availability_status'] == 1
-                    ? '<span class="badge bg-soft-success font-size-12">Available</span>'
-                    : '<span class="badge bg-soft-danger font-size-12">Unavailable</span>'
+                "damage" => $row['damage'],
+                "size" => $row['size'],
+                "rent_one_day" => $row['rent_one_day'],
+                "deposit_one_day" => $row['deposit_one_day'],
+                "rent_one_month" => $row['rent_one_month'],
+                "value" => $row['value'],
+                "quantity" => $row['quantity']
             ];
 
             $data[] = $nestedData;

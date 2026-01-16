@@ -157,31 +157,46 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                         class="form-control" placeholder="Enter serial number">
                                                 </div>
 
-                                                <!-- Condition -->
-                                                <div class="col-md-1">
-                                                    <label for="is_condition" class="form-label">Condition</label>
-                                                    <select id="is_condition" name="is_condition" class="form-select">
-                                                        <option value="1">Good</option>
-                                                        <option value="0">Bad</option>
-                                                    </select>
+                                                <!-- Damage -->
+                                                <div class="col-md-2">
+                                                    <label for="damage" class="form-label">Damage</label>
+                                                    <input id="damage" name="damage" type="text" class="form-control"
+                                                        placeholder="Enter damage status/notes">
                                                 </div>
 
-                                                <!-- Availability Status -->
+                                                <!-- Size -->
                                                 <div class="col-md-1">
-                                                    <label for="availability_status"
-                                                        class="form-label">Available</label>
-                                                    <select id="availability_status" name="availability_status"
-                                                        class="form-select">
-                                                        <option value="1">Yes</option>
-                                                        <option value="0">No</option>
-                                                    </select>
+                                                    <label for="size" class="form-label">Size</label>
+                                                    <input id="size" name="size" type="text" class="form-control"
+                                                        placeholder="Size">
                                                 </div>
 
-                                                <!-- Queue -->
-                                                <div class="col-md-1">
-                                                    <label for="queue" class="form-label">Queue</label>
-                                                    <input id="queue" name="queue" type="number" class="form-control"
-                                                        placeholder="0" value="0">
+                                                <!-- One Day's Rent -->
+                                                <div class="col-md-2">
+                                                    <label for="rent_one_day" class="form-label">One Day's Rent</label>
+                                                    <input id="rent_one_day" name="rent_one_day" type="number" step="0.01"
+                                                        class="form-control" placeholder="0.00" min="0">
+                                                </div>
+
+                                                <!-- One Day's Deposit -->
+                                                <div class="col-md-2">
+                                                    <label for="deposit_one_day" class="form-label">One Day's Deposit</label>
+                                                    <input id="deposit_one_day" name="deposit_one_day" type="number" step="0.01"
+                                                        class="form-control" placeholder="0.00" min="0">
+                                                </div>
+
+                                                <!-- One Month's Rent -->
+                                                <div class="col-md-2">
+                                                    <label for="rent_one_month" class="form-label">One Month's Rent</label>
+                                                    <input id="rent_one_month" name="rent_one_month" type="number" step="0.01"
+                                                        class="form-control" placeholder="0.00" min="0">
+                                                </div>
+
+                                                <!-- Value -->
+                                                <div class="col-md-2">
+                                                    <label for="value" class="form-label">Value</label>
+                                                    <input id="value" name="value" type="number" step="0.01" class="form-control"
+                                                        placeholder="0.00" min="0">
                                                 </div>
 
                                                 <!-- Quantity -->
@@ -230,8 +245,13 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                         <th>Item Name</th>
                                         <th>Category</th>
                                         <th>Serial Number</th>
-                                        <th>Condition</th>
-                                        <th>Status</th>
+                                        <th>Damage</th>
+                                        <th>Size</th>
+                                        <th>One Day's Rent</th>
+                                        <th>One Day's Deposit</th>
+                                        <th>One Month's Rent</th>
+                                        <th>Value</th>
+                                        <th>Quantity</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
