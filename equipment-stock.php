@@ -57,22 +57,7 @@ $EQUIPMENT = new Equipment(NULL);
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Available</h5>
-                                    <h3 class="card-text" id="available-equipment">Loading...</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">In Use / Unavailable</h5>
-                                    <h3 class="card-text" id="unavailable-equipment">Loading...</h3>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
 
                     <div class="row">
@@ -86,12 +71,12 @@ $EQUIPMENT = new Equipment(NULL);
                                             <thead class="table-light">
                                                 <tr>
                                                     <th style="width:30px;"></th>
-                                                    <th>Equipment Code</th>
+                                                    <th>Code</th>
                                                     <th>Item Name</th>
                                                     <th>Category</th>
                                                     <th>Serial Number</th>
-                                                    <th>Condition</th>
-                                                    <th>Availability</th>
+
+
                                                     <th>Quantity</th>
                                                 </tr>
                                             </thead>

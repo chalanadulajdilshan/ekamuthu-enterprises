@@ -341,10 +341,7 @@ if (isset($_POST['filter_equipment'])) {
             "category" => $row['category'],
             "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
-            "quantity" => $row['quantity'],
-            "condition_label" => $row['is_condition'] == 1
-                ? '<span class="badge bg-soft-success font-size-12">Good</span>'
-                : '<span class="badge bg-soft-danger font-size-12">Bad</span>'
+            "quantity" => $row['quantity']
         ];
 
         $data[] = $nestedData;

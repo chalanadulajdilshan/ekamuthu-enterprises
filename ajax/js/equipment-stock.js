@@ -42,28 +42,8 @@ jQuery(document).ready(function () {
                     return data || "-";
                 },
             },
-            {
-                data: "is_condition",
-                title: "Condition",
-                render: function (data) {
-                    if (data == 1) {
-                        return '<span class="badge bg-soft-success font-size-12">Good</span>';
-                    } else {
-                        return '<span class="badge bg-soft-danger font-size-12">Bad</span>';
-                    }
-                },
-            },
-            {
-                data: "availability_status",
-                title: "Availability",
-                render: function (data) {
-                    if (data == 1) {
-                        return '<span class="badge bg-soft-success font-size-12">Available</span>';
-                    } else {
-                        return '<span class="badge bg-soft-danger font-size-12">Unavailable</span>';
-                    }
-                },
-            },
+
+
             {
                 data: "quantity",
                 title: "Quantity",
@@ -101,18 +81,15 @@ jQuery(document).ready(function () {
                 if (resp && resp.status === "success") {
                     const data = resp.data;
                     $("#total-equipment").text(data.total || 0);
-                    $("#available-equipment").text(data.available || 0);
-                    $("#unavailable-equipment").text(data.unavailable || 0);
+
                 } else {
                     $("#total-equipment").text("Error");
-                    $("#available-equipment").text("Error");
-                    $("#unavailable-equipment").text("Error");
+
                 }
             },
             error: function () {
                 $("#total-equipment").text("Error");
-                $("#available-equipment").text("Error");
-                $("#unavailable-equipment").text("Error");
+
             },
         });
     }
