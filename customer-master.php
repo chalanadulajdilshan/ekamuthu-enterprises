@@ -451,6 +451,16 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
         }
 
         async function startCamera() {
+            // Check if browser supports mediaDevices
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                swal({
+                    title: "Camera Error",
+                    text: "Camera API is not supported in this browser. Please use a modern browser.",
+                    type: "error"
+                });
+                return;
+            }
+
             try {
                 // Stop any existing stream first
                 stopCamera();
@@ -467,9 +477,22 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 document.getElementById('cameraStream').srcObject = currentStream;
             } catch (err) {
                 console.error('Error accessing camera:', err);
+                
+                let errorMessage = "Unable to access camera. Please ensure camera permissions are granted.";
+                
+                if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                    errorMessage = "Camera access requires a secure HTTPS connection on live servers. Please switch to HTTPS.";
+                } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    errorMessage = "Camera permission denied. Please allow camera access in your browser settings.";
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    errorMessage = "No camera device found.";
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    errorMessage = "Camera is already in use by another application.";
+                }
+
                 swal({
                     title: "Camera Error",
-                    text: "Unable to access camera. Please ensure camera permissions are granted.",
+                    text: errorMessage,
                     type: "error"
                 });
             }

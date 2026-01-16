@@ -254,22 +254,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_totals') {
     $totalResult = $db->readQuery($totalSql);
     $total = mysqli_fetch_assoc($totalResult)['total'] ?? 0;
 
-    // Available equipment count
-    $availableSql = "SELECT COUNT(*) as available FROM equipment WHERE availability_status = 1";
-    $availableResult = $db->readQuery($availableSql);
-    $available = mysqli_fetch_assoc($availableResult)['available'] ?? 0;
-
-    // Unavailable equipment count
-    $unavailableSql = "SELECT COUNT(*) as unavailable FROM equipment WHERE availability_status = 0";
-    $unavailableResult = $db->readQuery($unavailableSql);
-    $unavailable = mysqli_fetch_assoc($unavailableResult)['unavailable'] ?? 0;
-
     echo json_encode([
         "status" => "success",
         "data" => [
-            "total" => (int) $total,
-            "available" => (int) $available,
-            "unavailable" => (int) $unavailable
+            "total" => (int) $total
         ]
     ]);
     exit;
