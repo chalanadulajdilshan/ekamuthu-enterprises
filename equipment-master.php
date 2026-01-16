@@ -68,6 +68,10 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                 </a>
                             <?php endif; ?>
 
+                            <a href="#" class="btn btn-outline-success d-none" id="add-sub-equipment" title="Add sub equipment for selected equipment">
+                                <i class="uil uil-plus me-1"></i> Add Sub Equipment
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">

@@ -4,7 +4,9 @@ class SubEquipment
 {
     public $id;
     public $equipment_id;
+    public $code;
     public $name;
+    public $rental_status;
 
     public function __construct($id = null)
     {

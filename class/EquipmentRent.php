@@ -11,6 +11,9 @@ class EquipmentRent
     public $status;
     public $quantity;
     public $remark;
+    public $total_items;
+    public $created_at;
+    public $updated_at;
 
     public function __construct($id = null)
     {
@@ -23,12 +26,15 @@ class EquipmentRent
                 $this->id = $result['id'];
                 $this->code = $result['code'];
                 $this->customer_id = $result['customer_id'];
-                $this->equipment_id = $result['equipment_id'];
+                $this->equipment_id = $result['equipment_id'] ?? null;
                 $this->rental_date = $result['rental_date'];
                 $this->received_date = $result['received_date'];
                 $this->status = $result['status'];
-                $this->quantity = $result['quantity'];
+                $this->quantity = $result['quantity'] ?? 0;
                 $this->remark = $result['remark'];
+                $this->total_items = $result['total_items'] ?? 0;
+                $this->created_at = $result['created_at'] ?? null;
+                $this->updated_at = $result['updated_at'] ?? null;
             }
         }
     }
@@ -36,10 +42,10 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `code`, `customer_id`, `equipment_id`, `rental_date`, `received_date`, `status`, `quantity`, `remark`
+            `code`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
         ) VALUES (
-            '$this->code', '$this->customer_id', '$this->equipment_id', '$this->rental_date', " .
-            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->quantity', '$this->remark'
+            '$this->code', '$this->customer_id', '$this->rental_date', " .
+            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items'
         )";
 
         $db = Database::getInstance();
@@ -57,12 +63,11 @@ class EquipmentRent
         $query = "UPDATE `equipment_rent` SET 
             `code` = '$this->code', 
             `customer_id` = '$this->customer_id',
-            `equipment_id` = '$this->equipment_id', 
             `rental_date` = '$this->rental_date', 
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
-            `quantity` = '$this->quantity',
-            `remark` = '$this->remark'
+            `remark` = '$this->remark',
+            `total_items` = '$this->total_items'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -77,9 +82,51 @@ class EquipmentRent
 
     public function delete()
     {
+        // First delete all rent items (this will also release sub_equipment)
+        $RENT_ITEM = new EquipmentRentItem(null);
+        $RENT_ITEM->deleteByRentId($this->id);
+        
         $query = "DELETE FROM `equipment_rent` WHERE `id` = '$this->id'";
         $db = Database::getInstance();
         return $db->readQuery($query);
+    }
+
+    public function updateTotalItems()
+    {
+        $query = "UPDATE `equipment_rent` SET `total_items` = (
+            SELECT COUNT(*) FROM `equipment_rent_items` WHERE `rent_id` = '$this->id'
+        ) WHERE `id` = '$this->id'";
+        $db = Database::getInstance();
+        return $db->readQuery($query);
+    }
+
+    public function getItems()
+    {
+        $RENT_ITEM = new EquipmentRentItem(null);
+        return $RENT_ITEM->getByRentId($this->id);
+    }
+
+    public function hasActiveRentals()
+    {
+        $query = "SELECT COUNT(*) as count FROM `equipment_rent_items` 
+                  WHERE `rent_id` = '$this->id' AND `status` = 'rented'";
+        $db = Database::getInstance();
+        $result = mysqli_fetch_assoc($db->readQuery($query));
+        return ($result['count'] ?? 0) > 0;
+    }
+
+    public function markAllReturned()
+    {
+        $items = $this->getItems();
+        foreach ($items as $item) {
+            if ($item['status'] === 'rented') {
+                $RENT_ITEM = new EquipmentRentItem($item['id']);
+                $RENT_ITEM->markAsReturned();
+            }
+        }
+        $this->status = 'returned';
+        $this->received_date = date('Y-m-d');
+        return $this->update();
     }
 
     public function all()
@@ -146,22 +193,19 @@ class EquipmentRent
         // Search filter
         $where = "WHERE 1=1";
         if (!empty($search)) {
-            $where .= " AND (er.code LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%' OR e.item_name LIKE '%$search%' OR e.code LIKE '%$search%')";
+            $where .= " AND (er.code LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
         }
 
         // Filtered records
         $filteredSql = "SELECT COUNT(*) as filtered FROM equipment_rent er 
-                        LEFT JOIN customer_master cm ON er.customer_id = cm.id 
-                        LEFT JOIN equipment e ON er.equipment_id = e.id $where";
+                        LEFT JOIN customer_master cm ON er.customer_id = cm.id $where";
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
         // Paginated query
-        $sql = "SELECT er.*, cm.name as customer_name, cm.code as customer_code, 
-                e.item_name as equipment_name, e.code as equipment_code, e.quantity as available_quantity
+        $sql = "SELECT er.*, cm.name as customer_name, cm.code as customer_code
                 FROM equipment_rent er 
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id 
-                LEFT JOIN equipment e ON er.equipment_id = e.id 
                 $where ORDER BY er.id DESC LIMIT $start, $length";
         $dataQuery = $db->readQuery($sql);
 
@@ -177,6 +221,11 @@ class EquipmentRent
             ];
             $statusLabel = isset($statusLabels[$row['status']]) ? $statusLabels[$row['status']] : $row['status'];
 
+            // Get item count
+            $itemCountSql = "SELECT COUNT(*) as cnt FROM equipment_rent_items WHERE rent_id = " . $row['id'];
+            $itemCountResult = mysqli_fetch_assoc($db->readQuery($itemCountSql));
+            $itemCount = $itemCountResult['cnt'] ?? 0;
+
             $nestedData = [
                 "key" => $key,
                 "id" => $row['id'],
@@ -184,15 +233,11 @@ class EquipmentRent
                 "customer_id" => $row['customer_id'],
                 "customer_name" => ($row['customer_code'] ?? '') . ' - ' . ($row['customer_name'] ?? ''),
                 "customer_code" => $row['customer_code'],
-                "equipment_id" => $row['equipment_id'],
-                "equipment_name" => ($row['equipment_code'] ?? '') . ' - ' . ($row['equipment_name'] ?? ''),
-                "equipment_code" => $row['equipment_code'],
                 "rental_date" => $row['rental_date'],
                 "received_date" => $row['received_date'],
                 "status" => $row['status'],
                 "status_label" => $statusLabel,
-                "quantity" => $row['quantity'],
-                "available_quantity" => $row['available_quantity'],
+                "total_items" => $itemCount,
                 "remark" => $row['remark']
             ];
 

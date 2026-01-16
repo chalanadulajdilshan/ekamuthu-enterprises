@@ -80,6 +80,7 @@ include_once(dirname(__FILE__) . '/SupplierDiscount.php');
 include_once(dirname(__FILE__) . '/Equipment.php');
 include_once(dirname(__FILE__) . '/RentType.php');
 include_once(dirname(__FILE__) . '/EquipmentRent.php');
+include_once(dirname(__FILE__) . '/EquipmentRentItem.php');
 include_once(dirname(__FILE__) . '/SubEquipment.php');
 include_once(dirname(__FILE__) . '/EquipmentCategory.php');
 
