@@ -1,0 +1,7 @@
+ALTER TABLE `customer_master` 
+ADD COLUMN `nic_image_1` LONGTEXT NULL,
+ADD COLUMN `nic_image_2` LONGTEXT NULL,
+ADD COLUMN `water_bill_image` LONGTEXT NULL,
+ADD COLUMN `electricity_bill_image` LONGTEXT NULL,
+ADD COLUMN `guarantor_nic_image_1` LONGTEXT NULL,
+ADD COLUMN `guarantor_nic_image_2` LONGTEXT NULL;

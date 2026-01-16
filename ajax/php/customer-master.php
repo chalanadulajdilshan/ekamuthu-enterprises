@@ -51,8 +51,26 @@ if (isset($_POST['create'])) {
     $CUSTOMER->nic = $_POST['nic'] ?? '';
     $CUSTOMER->water_bill_no = $_POST['water_bill_no'] ?? '';
     $CUSTOMER->electricity_bill_no = $_POST['electricity_bill_no'] ?? '';
+    $CUSTOMER->workplace_address = strtoupper($_POST['workplace_address'] ?? '');
+    $CUSTOMER->guarantor_name = strtoupper($_POST['guarantor_name'] ?? '');
+    $CUSTOMER->guarantor_nic = $_POST['guarantor_nic'] ?? '';
+    $CUSTOMER->guarantor_address = strtoupper($_POST['guarantor_address'] ?? '');
     $CUSTOMER->category = $_POST['category'] ?? 1;
     $CUSTOMER->is_active = isset($_POST['is_active']) ? 1 : 0;
+    
+    // Document image fields
+    $CUSTOMER->nic_image_1 = $_POST['nic_image_1'] ?? '';
+    $CUSTOMER->nic_image_2 = $_POST['nic_image_2'] ?? '';
+    $CUSTOMER->water_bill_image = $_POST['water_bill_image_1'] ?? '';
+    $CUSTOMER->electricity_bill_image = $_POST['electricity_bill_image_1'] ?? '';
+    $CUSTOMER->guarantor_nic_image_1 = $_POST['guarantor_nic_image_1'] ?? '';
+    $CUSTOMER->guarantor_nic_image_2 = $_POST['guarantor_nic_image_2'] ?? '';
+    
+    // Company fields
+    $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
+    $CUSTOMER->po_document = $_POST['po_document_image_1'] ?? '';
+    $CUSTOMER->letterhead_document = $_POST['letterhead_document_image_1'] ?? '';
+    
     $res = $CUSTOMER->create();
 
     //audit log
@@ -174,8 +192,41 @@ if (isset($_POST['update'])) {
     $CUSTOMER->nic = $_POST['nic'] ?? '';
     $CUSTOMER->water_bill_no = $_POST['water_bill_no'] ?? '';
     $CUSTOMER->electricity_bill_no = $_POST['electricity_bill_no'] ?? '';
+    $CUSTOMER->workplace_address = strtoupper($_POST['workplace_address'] ?? '');
+    $CUSTOMER->guarantor_name = strtoupper($_POST['guarantor_name'] ?? '');
+    $CUSTOMER->guarantor_nic = $_POST['guarantor_nic'] ?? '';
+    $CUSTOMER->guarantor_address = strtoupper($_POST['guarantor_address'] ?? '');
     $CUSTOMER->category = $_POST['category'];
     $CUSTOMER->is_active = isset($_POST['is_active']) ? 1 : 0;
+    
+    // Document image fields - only update if new data is provided
+    if (!empty($_POST['nic_image_1'])) {
+        $CUSTOMER->nic_image_1 = $_POST['nic_image_1'];
+    }
+    if (!empty($_POST['nic_image_2'])) {
+        $CUSTOMER->nic_image_2 = $_POST['nic_image_2'];
+    }
+    if (!empty($_POST['water_bill_image_1'])) {
+        $CUSTOMER->water_bill_image = $_POST['water_bill_image_1'];
+    }
+    if (!empty($_POST['electricity_bill_image_1'])) {
+        $CUSTOMER->electricity_bill_image = $_POST['electricity_bill_image_1'];
+    }
+    if (!empty($_POST['guarantor_nic_image_1'])) {
+        $CUSTOMER->guarantor_nic_image_1 = $_POST['guarantor_nic_image_1'];
+    }
+    if (!empty($_POST['guarantor_nic_image_2'])) {
+        $CUSTOMER->guarantor_nic_image_2 = $_POST['guarantor_nic_image_2'];
+    }
+    
+    // Company fields
+    $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
+    if (!empty($_POST['po_document_image_1'])) {
+        $CUSTOMER->po_document = $_POST['po_document_image_1'];
+    }
+    if (!empty($_POST['letterhead_document_image_1'])) {
+        $CUSTOMER->letterhead_document = $_POST['letterhead_document_image_1'];
+    }
 
     $res = $CUSTOMER->update();
 

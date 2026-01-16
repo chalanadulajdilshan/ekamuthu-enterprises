@@ -325,12 +325,139 @@ jQuery(document).ready(function () {
           $("#nic").val(data.nic || "");
           $("#water_bill_no").val(data.water_bill_no || "");
           $("#electricity_bill_no").val(data.electricity_bill_no || "");
+
+          // New fields - workplace address and guarantor details
+          $("#workplace_address").val(data.workplace_address || "");
+          $("#guarantor_name").val(data.guarantor_name || "");
+          $("#guarantor_nic").val(data.guarantor_nic || "");
+          $("#guarantor_address").val(data.guarantor_address || "");
+
+          // Company checkbox and fields
+          $("#is_company").prop("checked", data.is_company == 1);
+          if (data.is_company == 1) {
+            $("#company_fields").show();
+          } else {
+            $("#company_fields").hide();
+          }
+
+          // Load image previews if they exist
+          loadImagePreview("nic", 1, data.nic_image_1);
+          loadImagePreview("nic", 2, data.nic_image_2);
+          loadImagePreview("water_bill", 1, data.water_bill_image);
+          loadImagePreview("electricity_bill", 1, data.electricity_bill_image);
+          loadImagePreview("guarantor_nic", 1, data.guarantor_nic_image_1);
+          loadImagePreview("guarantor_nic", 2, data.guarantor_nic_image_2);
+          loadDocumentPreview("po_document", data.po_document);
+          loadDocumentPreview("letterhead_document", data.letterhead_document);
+
           $("#create").hide();
           $("#update").show();
           // Close the modal
           $("#AllCustomerModal").modal("hide");
         }
       });
+  }
+
+  // Helper function to load image preview (supports both file paths and base64)
+  function loadImagePreview(fieldName, imageNum, imageData) {
+    const previewId = `#${fieldName}_preview`;
+    const hiddenInputId = `#${fieldName}_image_${imageNum}`;
+
+    // Store data in hidden input (could be path or base64)
+    $(hiddenInputId).val(imageData || "");
+
+    if (imageData && imageData.length > 0) {
+      // Check if it's a file path or base64
+      const isFilePath = imageData.startsWith("uploads/");
+      const isPdf = imageData.endsWith(".pdf") || imageData.startsWith("data:application/pdf");
+
+      // Construct the image source
+      const imageSrc = isFilePath ? imageData : imageData;
+
+      let previewHtml = "";
+
+      if (isPdf) {
+        previewHtml = `
+          <div class="position-relative border rounded p-2 clickable-preview" style="background: #f8f9fa; cursor: pointer;" onclick="viewDocument('${imageSrc}', true)" title="Click to view PDF">
+            <div class="d-flex align-items-center">
+              <i class="uil uil-file-alt text-danger" style="font-size: 24px;"></i>
+              <small class="ms-2">PDF Document</small>
+              <i class="uil uil-external-link-alt ms-auto text-muted"></i>
+            </div>
+          </div>
+        `;
+      } else {
+        previewHtml = `
+          <div class="position-relative clickable-preview" style="width: 60px; cursor: pointer;" onclick="viewDocument('${imageSrc}', false)" title="Click to view image">
+            <img src="${imageSrc}" class="img-fluid rounded border" style="width: 60px; height: 40px; object-fit: cover;">
+            <div class="position-absolute" style="top: 0; right: 0; background: rgba(0,0,0,0.5); border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;">
+              <i class="uil uil-search-plus text-white" style="font-size: 10px;"></i>
+            </div>
+          </div>
+        `;
+      }
+
+      // Append to existing preview or replace
+      if (imageNum === 1) {
+        $(previewId).html(previewHtml);
+      } else {
+        $(previewId).append(previewHtml);
+      }
+    } else if (imageNum === 1) {
+      $(previewId).empty();
+    }
+  }
+
+  // Helper function to load document preview (PO/Letterhead) - supports file paths and base64
+  function loadDocumentPreview(fieldName, documentData) {
+    const previewId = `#${fieldName}_preview`;
+    const hiddenInputId = `#${fieldName}_image_1`;
+    const nameInputId = `#${fieldName}_name`;
+
+    // Store data in hidden input
+    $(hiddenInputId).val(documentData || "");
+
+    if (documentData && documentData.length > 0) {
+      const isFilePath = documentData.startsWith("uploads/");
+      const isPdf = documentData.endsWith(".pdf") || documentData.startsWith("data:application/pdf");
+
+      // Extract filename for display
+      let displayName = "Document";
+      if (isFilePath) {
+        displayName = documentData.split('/').pop();
+      } else {
+        displayName = isPdf ? "Document.pdf" : "Document.jpg";
+      }
+      $(nameInputId).val(displayName);
+
+      const imageSrc = isFilePath ? documentData : documentData;
+
+      let previewHtml = "";
+      if (isPdf) {
+        previewHtml = `
+          <div class="position-relative border rounded p-2 clickable-preview" style="background: #f8f9fa; cursor: pointer;" onclick="viewDocument('${imageSrc}', true)" title="Click to view PDF">
+            <div class="d-flex align-items-center">
+              <i class="uil uil-file-alt text-danger" style="font-size: 24px;"></i>
+              <small class="ms-2">PDF Document</small>
+              <i class="uil uil-external-link-alt ms-auto text-muted"></i>
+            </div>
+          </div>
+        `;
+      } else {
+        previewHtml = `
+          <div class="position-relative clickable-preview" style="width: 60px; cursor: pointer;" onclick="viewDocument('${imageSrc}', false)" title="Click to view image">
+            <img src="${imageSrc}" class="img-fluid rounded border" style="width: 60px; height: 40px; object-fit: cover;">
+            <div class="position-absolute" style="top: 0; right: 0; background: rgba(0,0,0,0.5); border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;">
+              <i class="uil uil-search-plus text-white" style="font-size: 10px;"></i>
+            </div>
+          </div>
+        `;
+      }
+      $(previewId).html(previewHtml);
+    } else {
+      $(previewId).empty();
+      $(nameInputId).val("");
+    }
   }
 
   // When the modal is shown, load the DataTable
@@ -458,7 +585,7 @@ jQuery(document).ready(function () {
       },
       error: function (xhr) {
         $("#invoiceTableBody").html(
-          `<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>`
+          `< tr > <td colspan="6" class="text-center text-danger">Error loading data</td></tr > `
         );
         console.error(xhr.responseText);
       },
@@ -477,7 +604,7 @@ jQuery(document).ready(function () {
       },
       error: function (xhr) {
         $("#invoiceTableBody").html(
-          `<tr><td colspan="6" class="text-center text-danger">Error loading search results</td></tr>`
+          `< tr > <td colspan="6" class="text-center text-danger">Error loading search results</td></tr > `
         );
         console.error(xhr.responseText);
       },
@@ -492,7 +619,7 @@ jQuery(document).ready(function () {
       invoices.forEach((inv) => {
         const isCancelled = inv.is_cancel == 1;
         rows += `
-                <tr data-id="${inv.id}" ${isCancelled ? 'style="background-color: #fff5f5;"' : ""
+    < tr data - id="${inv.id}" ${isCancelled ? 'style="background-color: #fff5f5;"' : ""
           }>
                     <td>${inv.id}</td>
                     <td>${inv.invoice_no} ${isCancelled
@@ -503,11 +630,11 @@ jQuery(document).ready(function () {
                     <td>${inv.department_name}</td>
                     <td>${inv.customer_name}</td>
                     <td>${inv.grand_total}</td>
-                </tr>
-            `;
+                </tr >
+    `;
       });
     } else {
-      rows = `<tr><td colspan="6" class="text-center">No records found</td></tr>`;
+      rows = `< tr > <td colspan="6" class="text-center">No records found</td></tr > `;
     }
     $("#invoiceTableBody").html(rows);
 
@@ -568,7 +695,7 @@ jQuery(document).ready(function () {
           response.forEach((item) => {
             const discountValue = parseFloat(item.discount) || 0;
             let row = `
-                            <tr>
+    < tr >
                                 <td>${item.item_code_name}</td>
                                 <td>${item.item_name}</td>
                                 <td>${parseFloat(
@@ -598,20 +725,20 @@ jQuery(document).ready(function () {
               }" data-qty="${item.quantity
               }" data-arn-id="${item.id}">Remove</button>
                                 </td>
-                            </tr>
-                        `;
+                            </tr >
+    `;
             tbody.append(row);
           });
         } else {
-          tbody.html(`<tr id="noItemRow">
-                                    <td colspan="8" class="text-center text-muted">No items found</td>
-                                </tr>`);
+          tbody.html(`< tr id = "noItemRow" >
+    <td colspan="8" class="text-center text-muted">No items found</td>
+                                </tr > `);
         }
       },
       error: function (xhr, status, error) {
         console.error("Failed to fetch items:", error);
         $("#invoiceItemsBody").html(
-          `<tr><td colspan="8" class="text-center text-danger">Error loading items </td></tr>`
+          `< tr > <td colspan="8" class="text-center text-danger">Error loading items </td></tr > `
         );
       },
     });
@@ -851,4 +978,45 @@ function isNICValid() {
   var newNicPattern = /^[0-9]{12}$/;
 
   return oldNicPattern.test(nic.toUpperCase()) || newNicPattern.test(nic);
+}
+
+// Function to view document (image in modal, PDF in new tab)
+function viewDocument(src, isPdf) {
+  if (isPdf) {
+    // Open PDF in new tab
+    window.open(src, '_blank');
+  } else {
+    // Open image in modal
+    const modalHtml = `
+      <div class="modal fade" id="documentViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Document Preview</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+              <img src="${src}" class="img-fluid" style="max-height: 80vh; width: auto;">
+            </div>
+            <div class="modal-footer">
+              <a href="${src}" download class="btn btn-primary"><i class="uil uil-download-alt me-1"></i> Download</a>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Remove existing modal if any
+    $('#documentViewModal').remove();
+
+    // Add modal to body and show
+    $('body').append(modalHtml);
+    $('#documentViewModal').modal('show');
+
+    // Clean up modal after hidden
+    $('#documentViewModal').on('hidden.bs.modal', function () {
+      $(this).remove();
+    });
+  }
 }
