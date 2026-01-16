@@ -152,23 +152,23 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                 pattern="[0-9]{10}" maxlength="10"
                                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                                         </div>
-                                                        <div class="col-md-5 mt-3">
+                                                        <div class="col-md-4 mt-3">
                                                             <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
                                                             <input id="address" onkeyup="toUpperCaseInput(this)" name="address"
                                                                 type="text" class="form-control" placeholder="Enter address">
                                                         </div>
 
-                                                        <div class="col-md-5 mt-3">
+                                                        <div class="col-md-4 mt-3">
                                                             <label for="workplace_address" class="form-label">Workplace Address</label>
                                                             <input id="workplace_address" onkeyup="toUpperCaseInput(this)" name="workplace_address"
                                                                 type="text" class="form-control" placeholder="Enter workplace address">
                                                         </div>
-                                                        <div class="col-md-1 d-flex align-items-center mt-3">
+                                                        <div class="col-md-2 d-flex align-items-center mt-3">
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
                                                                 <label class="form-check-label" for="is_active">Active</label>
                                                             </div>
-                                                        </div><div class="col-md-1 d-flex align-items-center mt-3">
+                                                        </div><div class="col-md-2 d-flex align-items-center mt-3">
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="checkbox" id="is_company" name="is_company" onchange="toggleCompanyFields()">
                                                                 <label class="form-check-label" for="is_company">Is Company</label>
