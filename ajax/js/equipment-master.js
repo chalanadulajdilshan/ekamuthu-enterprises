@@ -47,12 +47,15 @@ jQuery(document).ready(function () {
             pageLength: 100,
         });
 
-        // Row click event to populate form and close modal (exclude button clicks)
+        // Row click event to populate form and close modal (exclude action/expand clicks)
         $("#equipmentTable tbody")
             .off("click", "tr")
             .on("click", "tr", function (e) {
-                // Skip if clicked on button
-                if ($(e.target).closest(".add-sub-equipment").length) {
+                // Skip if clicked on add-sub button or responsive expand control
+                if (
+                    $(e.target).closest(".add-sub-equipment").length ||
+                    $(e.target).closest("td.dtr-control").length
+                ) {
                     return;
                 }
 
