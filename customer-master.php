@@ -82,18 +82,11 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     <div class="row">
                         <div class="col-lg-12">
                             <div id="addproduct-accordion" class="custom-accordion">
+                            <div id="addproduct-accordion" class="custom-accordion">
                                 <div class="card">
-                                    <a href="#" class="text-dark" data-bs-toggle="collapse" aria-expanded="true"
-                                        aria-controls="addproduct-billinginfo-collapse">
-                                        <div class="p-4">
-
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-shrink-0 me-3">
-
-
                                     <div class="p-4">
                                         <form id="form-data" autocomplete="off">
-
+                                            
                                             <!-- Card 1: Customer Details -->
                                             <div class="card border shadow-sm mb-4">
                                                 <div class="card-header" style="background-color: rgba(80, 141, 218, 0.15);">
@@ -102,7 +95,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-md-2">
+                                                        <div class="col-12 col-md-4 col-lg-2">
                                                             <label for="customerCode" class="form-label">Customer Code</label>
                                                             <div class="input-group mb-3">
                                                                 <input id="code" name="code" type="text" class="form-control"
@@ -114,13 +107,13 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             </div>
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-8 col-lg-3">
                                                             <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
                                                             <input id="name" name="name" onkeyup="toUpperCaseInput(this)"
                                                                 type="text" class="form-control" placeholder="Enter full name">
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="nic" class="form-label">NIC <span class="text-danger">*</span></label>
                                                             <div class="input-group">
                                                                 <input id="nic" name="nic" type="text" class="form-control"
@@ -137,7 +130,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <div id="nic_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
 
-                                                        <div class="col-md-2">
+                                                        <div class="col-12 col-md-3 col-lg-2">
                                                             <label for="mobile1" class="form-label">Mobile Number <span class="text-danger">*</span></label>
                                                             <input id="mobile_number" name="mobile_number" type="tel"
                                                                 class="form-control" placeholder="Enter primary mobile"
@@ -145,30 +138,34 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                                         </div>
                                                         
-                                                        <div class="col-md-2">
+                                                        <div class="col-12 col-md-3 col-lg-2">
                                                             <label for="mobile_number_2" class="form-label">Mobile Number 02</label>
                                                             <input id="mobile_number_2" name="mobile_number_2" type="tel"
                                                                 class="form-control" placeholder="Enter secondary mobile"
                                                                 pattern="[0-9]{10}" maxlength="10"
                                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                                         </div>
-                                                        <div class="col-md-4 mt-3">
+
+                                                        <div class="col-12 col-md-8 col-lg-4 mt-3">
                                                             <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
                                                             <input id="address" onkeyup="toUpperCaseInput(this)" name="address"
                                                                 type="text" class="form-control" placeholder="Enter address">
                                                         </div>
 
-                                                        <div class="col-md-4 mt-3">
+                                                        <div class="col-12 col-md-8 col-lg-4 mt-3">
                                                             <label for="workplace_address" class="form-label">Workplace Address</label>
                                                             <input id="workplace_address" onkeyup="toUpperCaseInput(this)" name="workplace_address"
                                                                 type="text" class="form-control" placeholder="Enter workplace address">
                                                         </div>
-                                                        <div class="col-md-2 d-flex align-items-center mt-3">
+
+                                                        <div class="col-6 col-md-4 col-lg-2 d-flex align-items-center mt-3">
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
                                                                 <label class="form-check-label" for="is_active">Active</label>
                                                             </div>
-                                                        </div><div class="col-md-2 d-flex align-items-center mt-3">
+                                                        </div>
+                                                        
+                                                        <div class="col-6 col-md-4 col-lg-2 d-flex align-items-center mt-3">
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="checkbox" id="is_company" name="is_company" onchange="toggleCompanyFields()">
                                                                 <label class="form-check-label" for="is_company">Is Company</label>
@@ -231,7 +228,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="water_bill_no" class="form-label">Water Bill Number <span class="text-danger">*</span></label>
                                                             <div class="input-group">
                                                                 <input id="water_bill_no" name="water_bill_no" type="text"
@@ -248,7 +245,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <div id="water_bill_preview" class="mt-2 d-flex gap-2 flex-wrap"></div>
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="electricity_bill_no" class="form-label">Electricity Bill Number <span class="text-danger">*</span></label>
                                                             <div class="input-group">
                                                                 <input id="electricity_bill_no" name="electricity_bill_no"
@@ -265,13 +262,13 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <div id="electricity_bill_preview" class="mt-2 d-flex gap-2 flex-wrap"></div>
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="outstanding" class="form-label">Outstanding Balance</label>
                                                             <input id="outstanding" name="outstanding" type="text"
                                                                 class="form-control" placeholder="Enter outstanding balance">
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="old_outstanding" class="form-label">Old Outstanding Balance</label>
                                                             <input id="old_outstanding" name="old_outstanding" type="text"
                                                                 class="form-control" placeholder="Enter old outstanding balance">
@@ -288,13 +285,13 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="guarantor_name" class="form-label">Guarantor Name <span class="text-danger">*</span></label>
                                                             <input id="guarantor_name" name="guarantor_name" onkeyup="toUpperCaseInput(this)"
                                                                 type="text" class="form-control" placeholder="Enter guarantor name">
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="guarantor_nic" class="form-label">Guarantor NIC <span class="text-danger">*</span></label>
                                                             <div class="input-group">
                                                                 <input id="guarantor_nic" name="guarantor_nic" type="text" class="form-control"
@@ -309,7 +306,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <div id="guarantor_nic_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
 
-                                                        <div class="col-md-6">
+                                                        <div class="col-12 col-md-12 col-lg-6">
                                                             <label for="guarantor_address" class="form-label">Guarantor Address <span class="text-danger">*</span></label>
                                                             <input id="guarantor_address" name="guarantor_address" onkeyup="toUpperCaseInput(this)"
                                                                 type="text" class="form-control" placeholder="Enter guarantor address">
@@ -318,7 +315,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
-                                            <!-- Remarks Section -->
+                                            <!-- Remark (Full Width) -->
                                             <div class="card border shadow-sm">
                                                 <div class="card-body">
                                                     <div class="row">
@@ -336,9 +333,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         </form>
                                     </div>
                                 </div>
-
                             </div>
-                        </div>
                     </div>
                 </div> <!-- container-fluid -->
             </div>
