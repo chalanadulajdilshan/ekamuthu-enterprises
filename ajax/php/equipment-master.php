@@ -220,13 +220,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
 
     if ($equipment_id > 0) {
         $db = Database::getInstance();
-        $sql = "SELECT id, code, name FROM sub_equipment WHERE equipment_id = $equipment_id ORDER BY id ASC";
+        $sql = "SELECT id, equipment_id, code, name FROM sub_equipment WHERE equipment_id = $equipment_id ORDER BY id ASC";
         $result = $db->readQuery($sql);
 
         $subEquipments = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $subEquipments[] = [
                 'id' => $row['id'],
+                'equipment_id' => $row['equipment_id'],
                 'code' => $row['code'],
                 'name' => $row['name']
             ];

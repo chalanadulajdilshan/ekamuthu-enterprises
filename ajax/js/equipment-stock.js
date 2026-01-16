@@ -42,6 +42,20 @@ jQuery(document).ready(function () {
                     return data || "-";
                 },
             },
+            {
+                data: "size",
+                title: "Size",
+                render: function (data) {
+                    return data || "-";
+                },
+            },
+            {
+                data: "value",
+                title: "Value",
+                render: function (data) {
+                    return data || "0.00";
+                },
+            },
 
 
             {
@@ -107,31 +121,30 @@ jQuery(document).ready(function () {
             '<div class="table-responsive"><table class="table table-sm table-bordered mb-0">';
         html +=
             '<thead class="table-light"><tr>' +
-            "<th>#</th>" +
+            "<th>ID</th>" +
+            "<th>Equipment ID</th>" +
             "<th>Sub Equipment Code</th>" +
             "<th>Sub Equipment Name</th>" +
-            "<th>Sub Equipment Status</th>" +
             "</tr></thead><tbody>";
 
         subEquipments.forEach(function (item, index) {
             html +=
                 "<tr>" +
-                "<td>" + (index + 1) + "</td>" +
+                "<td>" + (item.id || "-") + "</td>" +
+                "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + (item.code || "-") + "</td>" +
                 "<td>" + (item.name || "-") + "</td>" +
-                // "<td>" + (item.status || "-") + "</td>" +
                 "</tr>";
         });
         html += "</tbody></table></div>";
         return html;
     }
 
-    // Toggle details on click of first column
-    $("#equipmentStockTable tbody").on("click", "td.details-control", function (e) {
-        e.stopPropagation();
+    // Toggle details on row click
+    $("#equipmentStockTable tbody").on("click", "tr", function (e) {
         var tr = $(this).closest("tr");
         var row = table.row(tr);
-        var icon = $(this).find("span.mdi");
+        var icon = tr.find("td.details-control span.mdi");
 
         if (row.child.isShown()) {
             // Close
@@ -143,6 +156,8 @@ jQuery(document).ready(function () {
         } else {
             // Open
             const data = row.data();
+            if (!data) return;
+
             // Show temporary loading content
             const loading =
                 '<div class="p-2 text-muted">Loading sub-equipment...</div>';
@@ -176,47 +191,6 @@ jQuery(document).ready(function () {
                     ).show();
                 },
             });
-        }
-    });
-
-    // Row click: navigate to equipment-master page
-    $("#equipmentStockTable tbody").on("click", "tr", function (e) {
-        // Don't navigate if details-control was clicked
-        if ($(e.target).closest("td.details-control").length) {
-            return;
-        }
-
-        const rowData = table.row(this).data();
-        if (!rowData) return;
-
-        const equipmentId = rowData.id;
-        if (equipmentId) {
-            // Navigate to equipment master with the equipment pre-selected
-            // Try to find the page_id from navigation
-            const equipmentMasterAnchor = $(
-                'a[href*="equipment-master.php"][href*="page_id="]'
-            )
-                .first()
-                .attr("href");
-
-            if (equipmentMasterAnchor) {
-                try {
-                    const linkUrl = new URL(
-                        equipmentMasterAnchor,
-                        window.location.origin
-                    );
-                    const pageId = linkUrl.searchParams.get("page_id");
-                    if (pageId) {
-                        window.location.href = `equipment-master.php?page_id=${pageId}&prefill_equipment_id=${equipmentId}`;
-                        return;
-                    }
-                } catch (e) {
-                    // Fallback
-                }
-            }
-
-            // Fallback: navigate without page_id
-            window.location.href = `equipment-master.php?prefill_equipment_id=${equipmentId}`;
         }
     });
 });

@@ -75,6 +75,8 @@ $EQUIPMENT = new Equipment(NULL);
                                                     <th>Item Name</th>
                                                     <th>Category</th>
                                                     <th>Serial Number</th>
+                                                    <th>Size</th>
+                                                    <th>Value</th>
 
 
                                                     <th>Quantity</th>

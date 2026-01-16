@@ -151,6 +151,13 @@ if ($parent_equipment_id) {
                                                     </div>
                                                 </div>
 
+                                                <!-- Sub Equipment Name -->
+                                                <div class="col-md-5">
+                                                    <label for="name" class="form-label">Sub Equipment Name</label>
+                                                    <input id="name" name="name" type="text" class="form-control"
+                                                        placeholder="Enter sub equipment name">
+                                                </div>
+
                                                 <input type="hidden" id="sub_equipment_id" name="sub_equipment_id" />
 
                                             </div>
@@ -188,6 +195,7 @@ if ($parent_equipment_id) {
                                     <tr>
                                         <th>#ID</th>
                                         <th>Code</th>
+                                        <th>Name</th>
                                     </tr>
                                 </thead>
                             </table>
