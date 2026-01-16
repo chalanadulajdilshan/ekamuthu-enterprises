@@ -19,6 +19,17 @@ jQuery(document).ready(function () {
         { selector: "#quantity", message: "Please enter quantity" }
     ];
 
+    function toggleAddSubButton() {
+        var hasEquipment = $("#equipment_id").val();
+        if (hasEquipment) {
+            $("#add-sub-equipment").removeClass("d-none");
+        } else {
+            $("#add-sub-equipment").addClass("d-none");
+        }
+    }
+
+    toggleAddSubButton();
+
     function loadEquipmentTable() {
         // Destroy if already initialized
         if ($.fn.DataTable.isDataTable("#equipmentTable")) {
@@ -93,6 +104,8 @@ jQuery(document).ready(function () {
                     // Show update button, hide create button
                     $("#create").hide();
                     $("#update").show();
+
+                    toggleAddSubButton();
 
                     // Close the modal
                     $("#EquipmentModal").modal("hide");
@@ -339,6 +352,30 @@ jQuery(document).ready(function () {
                 }
             },
         });
+
+        toggleAddSubButton();
+    });
+
+    // Header Add Sub Equipment button
+    $(document).on("click", "#add-sub-equipment", function (e) {
+        e.preventDefault();
+
+        var equipmentId = $("#equipment_id").val();
+        var itemName = $("#item_name").val();
+
+        if (!equipmentId) {
+            swal({
+                title: "Error!",
+                text: "Please select equipment first.",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            return;
+        }
+
+        // Redirect to sub equipment page for the selected equipment
+        window.location.href = "sub-equipment-master.php?equipment_id=" + equipmentId + "&equipment_name=" + encodeURIComponent(itemName || "");
     });
 
     // Delete Equipment

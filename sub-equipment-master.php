@@ -139,23 +139,16 @@ if ($parent_equipment_id) {
                                                 </div>
 
                                                 <!-- Sub Equipment Code -->
-                                                <div class="col-md-3">
-                                                    <label for="code" class="form-label">Sub Equipment Code</label>
+                                                <div class="col-md-6">
+                                                    <label for="code" class="form-label">Sub Equipment Code <span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text"
-                                                            class="form-control" placeholder="Enter sub equipment code">
+                                                            class="form-control" placeholder="Enter sub equipment code" required>
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#SubEquipmentModal">
                                                             <i class="uil uil-search me-1"></i>
                                                         </button>
                                                     </div>
-                                                </div>
-
-                                                <!-- Sub Equipment Name -->
-                                                <div class="col-md-5">
-                                                    <label for="name" class="form-label">Sub Equipment Name</label>
-                                                    <input id="name" name="name" type="text" class="form-control"
-                                                        placeholder="Enter sub equipment name">
                                                 </div>
 
                                                 <input type="hidden" id="sub_equipment_id" name="sub_equipment_id" />
@@ -195,7 +188,6 @@ if ($parent_equipment_id) {
                                     <tr>
                                         <th>#ID</th>
                                         <th>Code</th>
-                                        <th>Name</th>
                                     </tr>
                                 </thead>
                             </table>
