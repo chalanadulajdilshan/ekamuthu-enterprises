@@ -64,14 +64,9 @@ jQuery(document).ready(function () {
         <div class="fw-bold">${data}</div>
         <div class="text-muted small">
          <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || '-'}</span> |
-          <span class="fw-bold text-primary">Damage -</span> <span class="text-danger"> ${row.damage || '00.00'}</span> |
-          <span class="fw-bold text-primary">Value -</span> <span class="text-danger">Rs. ${row.value || '0.00'}</span> |
+         <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || '0.00'}</span> |
           <span class="fw-bold text-primary">Qty -</span> <span class="badge bg-info">${row.quantity || 0}</span> |
-          <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || '-'}</span> |
-          <span class="fw-bold text-primary">Rent 1D -</span> <span class="text-danger">Rs. ${row.rent_one_day || '0.00'}</span> |
-          <span class="fw-bold text-primary">Deposit 1D -</span> <span class="text-danger">Rs. ${row.deposit_one_day || '0.00'}</span> |
-          <span class="fw-bold text-primary">Rent 1M -</span> <span class="text-danger">Rs. ${row.rent_one_month || '0.00'}</span>
-
+           <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || '-'}</span>    sss
         </div>
       `;
     }
