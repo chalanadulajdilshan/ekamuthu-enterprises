@@ -267,10 +267,6 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                         <th>Code</th>
                                         <th>Item Name</th>
                                         <th>Category</th>
-                                        <th>Serial Number</th>
-                                        <th>Value</th>
-                                        <th>Quantity</th>
-                                        <th>Action</th>
                                     </tr>
                                 </thead>
                             </table>

@@ -7,16 +7,16 @@ jQuery(document).ready(function () {
   // Shared required fields list
   var requiredFields = [
     { selector: "#code", message: "Please enter equipment code" },
-    { selector: "#item_name", message: "Please enter item name" },
-    { selector: "#category", message: "Please select category" },
-    { selector: "#serial_number", message: "Please enter serial number" },
-    { selector: "#damage", message: "Please enter damage status/notes" },
-    { selector: "#size", message: "Please enter size" },
-    { selector: "#rent_one_day", message: "Please enter one day's rent" },
-    { selector: "#deposit_one_day", message: "Please enter one day's deposit" },
-    { selector: "#rent_one_month", message: "Please enter one month's rent" },
-    { selector: "#value", message: "Please enter value" },
-    { selector: "#quantity", message: "Please enter quantity" },
+    // { selector: "#item_name", message: "Please enter item name" },
+    // { selector: "#category", message: "Please select category" },
+    // { selector: "#serial_number", message: "Please enter serial number" },
+    // { selector: "#damage", message: "Please enter damage status/notes" },
+    // { selector: "#size", message: "Please enter size" },
+    // { selector: "#rent_one_day", message: "Please enter one day's rent" },
+    // { selector: "#deposit_one_day", message: "Please enter one day's deposit" },
+    // { selector: "#rent_one_month", message: "Please enter one month's rent" },
+    // { selector: "#value", message: "Please enter value" },
+    // { selector: "#quantity", message: "Please enter quantity" },
   ];
 
   function toggleAddSubButton() {
@@ -52,31 +52,29 @@ jQuery(document).ready(function () {
           console.error("Server Error Response:", xhr.responseText);
         },
       },
-      columns: [
-        { data: "key", title: "#ID" },
-        { data: "code", title: "Code" },
-        { data: "item_name", title: "Item Name" },
-        { data: "category_label", title: "Category" },
-        { data: "serial_number", title: "Serial Number" },
-        { data: "value", title: "Value" },
-        { data: "quantity", title: "Quantity" },
-        {
-          data: null,
-          title: "Action",
-          orderable: false,
-          render: function (data, type, row) {
-            return (
-              '<button class="btn btn-sm btn-info add-sub-equipment" data-id="' +
-              row.id +
-              '" data-code="' +
-              row.code +
-              '" data-name="' +
-              row.item_name +
-              '"><i class="uil uil-plus me-1"></i>Add Sub</button>'
-            );
-          },
-        },
-      ],
+
+     columns: [
+  { data: "key", title: "#ID" },
+  { data: "code", title: "Code" },
+  {
+    data: "item_name",
+    title: "Item Name",
+    render: function (data, type, row) {
+      return `
+        <div class="fw-bold">${data}</div>
+        <div class="text-muted small">
+         <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || '-'}</span> |
+          <span class="fw-bold text-primary">Damage -</span> <span class="text-danger">${row.damage || '00.00'}</span> |
+          <span class="fw-bold text-primary">Value -</span> <span class="text-danger">Rs. ${row.value || '0.00'}</span> |
+          <span class="fw-bold text-primary">Qty -</span> <span class="badge bg-info">${row.quantity || 0}</span>
+        </div>
+      `;
+    }
+  },
+  { data: "category_label", title: "Category" }
+],
+
+
       order: [[0, "desc"]],
       pageLength: 100,
     });
@@ -121,18 +119,7 @@ jQuery(document).ready(function () {
       });
 
     // Add Sub Equipment button click handler
-    $("#equipmentTable tbody")
-      .off("click", ".add-sub-equipment")
-      .on("click", ".add-sub-equipment", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        var parentId = $(this).data("id");
-
-        // Redirect to Sub Equipment Master page
-        window.location.href =
-          "sub-equipment-master.php?equipment_id=" + parentId;
-      });
+    $("#equipmentTable tbody").off("click", ".add-sub-equipment");
   }
 
   // Create Equipment
