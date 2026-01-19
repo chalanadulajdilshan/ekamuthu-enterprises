@@ -117,7 +117,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div class="row">
                                                 <!-- Bill Number -->
                                                 <div class="col-md-3">
-                                                    <label for="code" class="form-label">Bill Number</label>
+                                                    <label for="code" class="form-label">Bill Number - බිල්පත් අංකය</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
                                                             value="<?php echo $bill_number ?>" readonly>
@@ -131,7 +131,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Customer Selection -->
                                                 <div class="col-md-4">
-                                                    <label for="customer_display" class="form-label">Customer <span
+                                                    <label for="customer_display" class="form-label">Customer - පාරිභෝගිකයා<span
                                                             class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="customer_display" name="customer_display" type="text"
@@ -147,7 +147,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Rental Date -->
                                                 <div class="col-md-2">
-                                                    <label for="rental_date" class="form-label">Rental Date <span
+                                                    <label for="rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය<span
                                                             class="text-danger">*</span></label>
                                                     <div class="mb-3">
                                                         <input id="rental_date" name="rental_date" type="text"
@@ -157,7 +157,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Received Date -->
                                                 <div class="col-md-3" id="received_date_container" style="display: none;">
-                                                    <label for="received_date" class="form-label">Received Date (All Items)</label>
+                                                    <label for="received_date" class="form-label">Received Date (All Items) - ලැබුණු දිනය (සියලුම අයිතම)</label>
                                                     <div class="mb-3">
                                                         <input id="received_date" name="received_date" type="text"
                                                             class="form-control date-picker-date">
@@ -166,7 +166,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Remark Note -->
                                                 <div class="col-12">
-                                                    <label for="remark" class="form-label">Remark Note</label>
+                                                    <label for="remark" class="form-label">Remark - සටහන</label>
                                                     <textarea id="remark" name="remark" class="form-control" rows="2"
                                                         placeholder="Enter any remarks or notes about the rental..."></textarea>
                                                 </div>
@@ -192,10 +192,10 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             </div>
                                         </div>
                                         
-                                        <div class="row align-items-end">
+                                        <div class="row align-items-end mb-3">
                                             <!-- Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_equipment_display" class="form-label">Equipment</label>
+                                                <label for="item_equipment_display" class="form-label">Equipment - උපකරණ</label>
                                                 <div class="input-group">
                                                     <input id="item_equipment_display" type="text" class="form-control"
                                                         placeholder="Select equipment" readonly>
@@ -210,7 +210,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                             <!-- Sub Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment (Code)</label>
+                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment (Code) - උප උපකරණ (කේතය)</label>
                                                 <div class="input-group">
                                                     <input id="item_sub_equipment_display" type="text" class="form-control"
                                                         placeholder="Select sub equipment" readonly>
@@ -224,7 +224,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             </div>
 
                                             <div class="col-md-2">
-                                                <label class="form-label">Rent Type</label>
+                                                <label class="form-label">Rent Type - කුලී වර්ගය</label>
                                                 <select class="form-select" id="item_rent_type">
                                                     <option value="day">Day</option>
                                                     <option value="month">Month</option>
@@ -232,7 +232,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             </div>
 
                                             <div class="col-md-2">
-                                                <label class="form-label">Duration</label>
+                                                <label class="form-label">Duration - කාල සීමාව</label>
                                                 <div class="input-group">
                                                     <input type="number" class="form-control" id="item_duration" min="1" step="1" placeholder="0">
                                                     <span class="input-group-text" id="duration_label">Days</span>
@@ -240,20 +240,22 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             </div>
 
                                             <div class="col-md-2">
-                                                <label class="form-label">Amount</label>
+                                                <label class="form-label">Amount - අගය</label>
                                                 <input type="text" class="form-control" id="item_amount" readonly placeholder="0.00">
                                             </div>
+                                        </div>
 
+                                        <div class="row align-items-end">
                                             <!-- Item Rental Date -->
                                             <div class="col-md-2">
-                                                <label for="item_rental_date" class="form-label">Rental Date</label>
+                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය</label>
                                                 <input id="item_rental_date" type="text" class="form-control date-picker" 
                                                     value="<?php echo date('Y-m-d'); ?>">
                                             </div>
 
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
-                                                <label for="item_return_date" class="form-label">Return Date</label>
+                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන් දිනය</label>
                                                 <input id="item_return_date" type="text" class="form-control date-picker-date">
                                             </div>
 
