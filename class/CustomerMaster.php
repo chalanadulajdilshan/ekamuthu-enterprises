@@ -190,6 +190,7 @@ class CustomerMaster
     {
         $db = Database::getInstance();
         $is_company = $this->is_company ?? 0;
+        $company_name = $this->company_name ?? ''; // Default to empty string if not set
         
         $query = "UPDATE `customer_master` SET 
                     `code` = '{$this->code}', 
@@ -206,6 +207,7 @@ class CustomerMaster
                     `guarantor_nic` = '{$this->guarantor_nic}',
                     `guarantor_address` = '{$this->guarantor_address}',
                     `is_company` = '$is_company',
+                    `company_name` = '{$company_name}',
                     `company_document` = '{$this->company_document}'
                 WHERE `id` = '{$this->id}'";
 
@@ -315,6 +317,7 @@ class CustomerMaster
                 "guarantor_nic_image_1" => $row['guarantor_nic_image_1'] ?? '',
                 "guarantor_nic_image_2" => $row['guarantor_nic_image_2'] ?? '',
                 "is_company" => $row['is_company'] ?? 0,
+                "company_name" => $row['company_name'] ?? '', // Added company_name to fetchForDataTable
                 "company_document" => $row['company_document'] ?? ''
             ];
 
@@ -353,5 +356,151 @@ class CustomerMaster
     public function updateCustomerOutstanding($customerId, $amount, $isCredit = false)
     {
         return true;
+    }
+
+    // Helper to sync customer_master old_outstanding with sum of unpaid invoices
+    private function updateOldOutstandingBalance($customerId)
+    {
+        $db = Database::getInstance();
+        $query = "SELECT SUM(amount) as total FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Not Paid'";
+        $result = mysqli_fetch_assoc($db->readQuery($query));
+        $total = $result['total'] ?? 0;
+        
+        $updateQuery = "UPDATE customer_master SET old_outstanding = $total WHERE id = $customerId";
+        return $db->readQuery($updateQuery);
+    }
+
+    // --- Old Outstanding Management ---
+
+    public function addOldOutstandingDetail($customerId, $invoiceNo, $date, $amount, $status)
+    {
+        $db = Database::getInstance();
+        $query = "INSERT INTO customer_old_outstanding (customer_id, invoice_no, date, amount, status) 
+                  VALUES ('$customerId', '$invoiceNo', '$date', '$amount', '$status')";
+                  
+        $result = $db->readQuery($query);
+        
+        if($result) {
+            $this->updateOldOutstandingBalance($customerId);
+            return true;
+        }
+        return false;
+    }
+
+    public function getOldOutstandingDetails($customerId)
+    {
+        $db = Database::getInstance();
+        // Filter out Paid invoices as requested
+        $query = "SELECT * FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Not Paid' ORDER BY date DESC";
+        $result = $db->readQuery($query);
+        
+        $data = [];
+        while($row = mysqli_fetch_assoc($result)) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    public function getOldOutstandingSummary($customerId)
+    {
+        $db = Database::getInstance();
+        
+        // Total
+        $qTotal = "SELECT SUM(amount) as total FROM customer_old_outstanding WHERE customer_id = $customerId";
+        $rTotal = mysqli_fetch_assoc($db->readQuery($qTotal));
+        $total = $rTotal['total'] ?? 0;
+        
+        // Paid
+        $qPaid = "SELECT SUM(amount) as paid FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Paid'";
+        $rPaid = mysqli_fetch_assoc($db->readQuery($qPaid));
+        $paid = $rPaid['paid'] ?? 0;
+        
+        // Payable
+        $qPayable = "SELECT SUM(amount) as payable FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Not Paid'";
+        $rPayable = mysqli_fetch_assoc($db->readQuery($qPayable));
+        $payable = $rPayable['payable'] ?? 0;
+        
+        return [
+            'total' => $total,
+            'paid' => $paid,
+            'payable' => $payable
+        ];
+    }
+
+    public function getPendingInvoices($customerId)
+    {
+        $db = Database::getInstance();
+        $query = "SELECT * FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Not Paid' ORDER BY date ASC";
+        $result = $db->readQuery($query);
+        
+        $data = [];
+        while($row = mysqli_fetch_assoc($result)) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    public function saveOldOutstandingPayment($customerId, $invoiceId, $date, $amount, $remark)
+    {
+        $db = Database::getInstance();
+        
+        $query = "INSERT INTO `old-outstanding-collection` (`outstanding_id`, `customer_id`, `amount`, `collect-date`, `remark`) 
+                  VALUES ('$invoiceId', '$customerId', '$amount', '$date', '$remark')";
+        
+        if($db->readQuery($query)) {
+            
+            // Reduce amount from customer_old_outstanding
+            $qCheck = "SELECT amount FROM customer_old_outstanding WHERE id = $invoiceId";
+            $rCheck = mysqli_fetch_assoc($db->readQuery($qCheck));
+            $currentAmount = $rCheck['amount'];
+            
+            $newAmount = $currentAmount - $amount;
+            $status = ($newAmount <= 0) ? 'Paid' : 'Not Paid';
+            if($newAmount < 0) $newAmount = 0; 
+            
+            $qUpdate = "UPDATE customer_old_outstanding SET amount = $newAmount, status = '$status' WHERE id = $invoiceId";
+            $db->readQuery($qUpdate);
+            
+            // Recalculate total balance strictly
+            $this->updateOldOutstandingBalance($customerId);
+            
+            return true;
+        }
+        return false;
+    }
+
+    public function getOldOutstandingPayments($customerId)
+    {
+        $db = Database::getInstance();
+        $query = "SELECT p.*, o.invoice_no 
+                  FROM `old-outstanding-collection` p 
+                  LEFT JOIN customer_old_outstanding o ON p.outstanding_id = o.id 
+                  WHERE p.customer_id = $customerId 
+                  ORDER BY p.`collect-date` DESC";
+                  
+        $result = $db->readQuery($query);
+        
+        $data = [];
+        while($row = mysqli_fetch_assoc($result)) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    public function deleteOldOutstandingDetail($id)
+    {
+        $db = Database::getInstance();
+        
+        $checkQuery = "SELECT * FROM customer_old_outstanding WHERE id = $id";
+        $detail = mysqli_fetch_assoc($db->readQuery($checkQuery));
+        
+        if($detail) {
+            $deleteQuery = "DELETE FROM customer_old_outstanding WHERE id = $id";
+            if($db->readQuery($deleteQuery)) {
+                $this->updateOldOutstandingBalance($detail['customer_id']);
+                return true;
+            }
+        }
+        return false;
     }
 }

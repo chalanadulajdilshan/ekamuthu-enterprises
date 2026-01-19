@@ -168,7 +168,10 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             </div>
                                                         </div>
                                                         <div id="company_fields" class="col-12 col-md-8 col-lg-3 mt-3" style="display: none;">
-                                                                    <label for="po_document" class="form-label">Company Document (PO/Letterhead)</label>
+                                                                    <label for="company_name" class="form-label">Company Name</label>
+                                                                    <input id="company_name" name="company_name" type="text" class="form-control" placeholder="Enter company name" onkeyup="toUpperCaseInput(this)">
+                                                                    
+                                                                    <label for="po_document" class="form-label mt-2">Company Document (PO/Letterhead)</label>
                                                                     <div class="input-group">
                                                                         <input id="po_document_name" type="text" class="form-control" placeholder="No file selected" readonly>
                                                                         <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('po_document', 1)" title="Capture Image">
@@ -218,12 +221,12 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
 
                                                         <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="old_outstanding" class="form-label">Old Outstanding Balance</label>
+                                                            <label for="old_outstanding" class="form-label">Outstanding Balance</label>
                                                             <div class="input-group">
                                                                 <input id="old_outstanding" name="old_outstanding" type="text"
-                                                                    class="form-control" placeholder="Enter old outstanding balance">
+                                                                    class="form-control" placeholder="Enter outstanding balance" readonly>
                                                                 <button class="btn btn-warning" type="button" id="btnAddDescription" style="display:none;" title="Add Description">
-                                                                    <i class="mdi mdi-playlist-plus"></i> Add Detail
+                                                                    <i class="mdi mdi-playlist-plus"></i> Add
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -248,6 +251,8 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                     <i class="uil uil-camera"></i>
                                                                 </button>
                                                             </div>
+                                                            <input type="hidden" id="guarantor_photo_image_1" name="guarantor_photo_image_1">
+                                                            <div id="guarantor_photo_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
 
                                                         <div class="col-12 col-md-6 col-lg-3">
@@ -269,8 +274,6 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <label for="guarantor_address" class="form-label">Guarantor Address <span class="text-danger">*</span></label>
                                                             <input id="guarantor_address" name="guarantor_address" onkeyup="toUpperCaseInput(this)"
                                                                 type="text" class="form-control" placeholder="Enter guarantor address">
-                                                            <input type="hidden" id="guarantor_photo_image_1" name="guarantor_photo_image_1">
-                                                            <div id="guarantor_photo_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -666,6 +669,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
             } else {
                 companyFields.style.display = 'none';
                 // Clear the fields when unchecked
+                $('#company_name').val('');
                 $('#po_document_image_1').val('');
                 $('#po_document_file').val('');
                 $('#po_document_name').val('');
