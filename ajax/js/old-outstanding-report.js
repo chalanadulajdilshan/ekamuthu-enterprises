@@ -17,9 +17,7 @@ $(document).ready(function () {
             type: 'POST',
             data: function (d) {
                 d.filter = true;
-                d.category = '1'; // Filter for category = 1 only
-                d.status = 'active'; // Keep the active status filter
-                d.old_outstanding_only = true; // Add filter for old outstanding > 0
+                d.old_outstanding_only = true;
             },
             // No need to modify customer table styling here
             dataSrc: function (json) {
@@ -36,29 +34,18 @@ $(document).ready(function () {
         },
         // Update the columns configuration to handle is_vat properly
         columns: [
-            { data: 'id' },
+            { data: 'key' },
             { data: 'code' },
             { data: 'name' },
             { data: 'mobile_number' },
-            { data: 'email' },
-            { data: 'category' },
-            { data: 'credit_limit' },  // Credit Discount
-            { data: 'old_outstanding' },   // Old Outstanding amount for this page
-            {
-                data: 'is_vat',
-                render: function(data) {
-                    return (data === 1 || data === '1') ? 'Yes' : 'No';
-                }
-            },
-            {
-                data: 'status_label',
-                orderable: false
-            }
+            { data: 'nic' },
+            { data: 'address' },
+            { data: 'old_outstanding' }
         ],
         order: [[0, "desc"]],
         pageLength: 100,
         responsive: true,
-        createdRow: function(row, data, index) {
+        createdRow: function (row, data, index) {
             // Ensure styling is not accidentally applied to email; target credit column (index 5)
             $('td:eq(5)', row).removeClass('text-danger');
         },
@@ -175,7 +162,7 @@ $(document).ready(function () {
             const row = `
                 <tr>
                     <td>${item.code || ''}</td>
-                    <td>${item.name || ''}${item.name_2 ? ' ' + item.name_2 : ''}</td>
+                    <td>${item.name || ''}</td>
                     <td>${item.mobile_number || ''}</td>
                     <td class="text-end text-danger" style="background-color: #fff3cd;">${formattedValue}</td>
                 </tr>`;

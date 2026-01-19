@@ -12,8 +12,18 @@
                 <div class="row">
                     <div class="col-12">
                         <table id="allCustomerTable" class="table table-bordered dt-responsive nowrap w-100">
-                           
-                        </table>
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Code</th>
+                                    <th>Type</th>
+                                    <th>Name</th>
+                                    <th>NIC</th>
+                                    <th>Mobile</th>
+                                    <th>Address</th>
+                                    <th>Outstanding</th>
+                                </tr>
+                            </thead>                        </table>
                     </div>
                 </div>
             </div>

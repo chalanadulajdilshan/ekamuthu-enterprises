@@ -16,13 +16,10 @@
                                         <th>#ID</th>
                                         <th>Code</th>
                                         <th>Name</th>
-                                        <th>Mobile Number</th>
-                                        <th>Email</th>
-                                        <th>Category</th>
-                                        <th>Credit Limit</th>
+                                        <th>Mobile</th>
+                                        <th>NIC</th>
+                                        <th>Address</th>
                                         <th>Old Outstanding</th>
-                                        <th>VAT</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                         </table>

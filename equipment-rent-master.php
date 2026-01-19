@@ -8,7 +8,7 @@ $EQUIPMENT_RENT = new EquipmentRent(NULL);
 
 // Get the last inserted ID
 $lastId = $EQUIPMENT_RENT->getLastID();
-$rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+$bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 ?>
 
 <head>
@@ -114,12 +114,12 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                     <div class="p-4">
                                         <form id="form-data" autocomplete="off">
                                             <div class="row">
-                                                <!-- Equipment Rent Code -->
+                                                <!-- Bill Number -->
                                                 <div class="col-md-3">
-                                                    <label for="code" class="form-label">Rent Code</label>
+                                                    <label for="code" class="form-label">Bill Number</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
-                                                            value="<?php echo $rent_code ?>" readonly>
+                                                            value="<?php echo $bill_number ?>" readonly>
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#EquipmentRentModal"><i
@@ -149,8 +149,8 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <label for="rental_date" class="form-label">Rental Date <span
                                                             class="text-danger">*</span></label>
                                                     <div class="mb-3">
-                                                        <input id="rental_date" name="rental_date" type="date"
-                                                            class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                                                        <input id="rental_date" name="rental_date" type="text"
+                                                            class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
                                                     </div>
                                                 </div>
 
@@ -158,8 +158,8 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <div class="col-md-3">
                                                     <label for="received_date" class="form-label">Received Date (All Items)</label>
                                                     <div class="mb-3">
-                                                        <input id="received_date" name="received_date" type="date"
-                                                            class="form-control">
+                                                        <input id="received_date" name="received_date" type="text"
+                                                            class="form-control date-picker-date">
                                                     </div>
                                                 </div>
 
@@ -225,14 +225,14 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <!-- Item Rental Date -->
                                             <div class="col-md-2">
                                                 <label for="item_rental_date" class="form-label">Rental Date</label>
-                                                <input id="item_rental_date" type="date" class="form-control" 
+                                                <input id="item_rental_date" type="text" class="form-control date-picker" 
                                                     value="<?php echo date('Y-m-d'); ?>">
                                             </div>
 
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
                                                 <label for="item_return_date" class="form-label">Return Date</label>
-                                                <input id="item_return_date" type="date" class="form-control">
+                                                <input id="item_return_date" type="text" class="form-control date-picker-date">
                                             </div>
 
                                             <!-- Add Button -->
@@ -298,7 +298,7 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 <thead>
                                     <tr>
                                         <th>#ID</th>
-                                        <th>Code</th>
+                                        <th>Bill Number</th>
                                         <th>Customer</th>
                                         <th>Rental Date</th>
                                         <th>Received Date</th>
@@ -330,10 +330,13 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                             <table id="customerSelectTable" class="table table-bordered dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>#ID</th>
                                         <th>Code</th>
                                         <th>Name</th>
                                         <th>Mobile</th>
+                                        <th>NIC</th>
+                                        <th>Address</th>
+                                        <th>Outstanding</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -397,7 +400,6 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                     <tr>
                                         <th>#</th>
                                         <th>Code</th>
-                                        <th>Name</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -415,10 +417,10 @@ $rent_code = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <!-- /////////////////////////// -->
-    <script src="ajax/js/equipment-rent-master.js"></script>
-
     <!-- include main js  -->
     <?php include 'main-js.php' ?>
+
+    <script src="ajax/js/equipment-rent-master.js"></script>
 
     <!-- Page Preloader Script -->
     <script>

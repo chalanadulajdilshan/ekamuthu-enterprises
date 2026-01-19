@@ -1,4 +1,8 @@
 jQuery(document).ready(function () {
+  // Image Cropping
+  var cropper;
+  var croppedBlob;
+
   // Load Equipment Table when modal opens
   $("#EquipmentModal").on("shown.bs.modal", function () {
     loadEquipmentTable();
@@ -7,16 +11,16 @@ jQuery(document).ready(function () {
   // Shared required fields list
   var requiredFields = [
     { selector: "#code", message: "Please enter equipment code" },
-    // { selector: "#item_name", message: "Please enter item name" },
-    // { selector: "#category", message: "Please select category" },
-    // { selector: "#serial_number", message: "Please enter serial number" },
-    // { selector: "#damage", message: "Please enter damage status/notes" },
-    // { selector: "#size", message: "Please enter size" },
-    // { selector: "#rent_one_day", message: "Please enter one day's rent" },
-    // { selector: "#deposit_one_day", message: "Please enter one day's deposit" },
-    // { selector: "#rent_one_month", message: "Please enter one month's rent" },
-    // { selector: "#value", message: "Please enter value" },
-    // { selector: "#quantity", message: "Please enter quantity" },
+    { selector: "#item_name", message: "Please enter item name" },
+    { selector: "#category", message: "Please select category" },
+    { selector: "#serial_number", message: "Please enter serial number" },
+    { selector: "#damage", message: "Please enter damage status/notes" },
+    { selector: "#size", message: "Please enter size" },
+    { selector: "#rent_one_day", message: "Please enter one day's rent" },
+    { selector: "#deposit_one_day", message: "Please enter one day's deposit" },
+    { selector: "#rent_one_month", message: "Please enter one month's rent" },
+    { selector: "#value", message: "Please enter value" },
+    { selector: "#quantity", message: "Please enter quantity" },
   ];
 
   function toggleAddSubButton() {
@@ -53,14 +57,14 @@ jQuery(document).ready(function () {
         },
       },
 
-     columns: [
-  { data: "key", title: "#ID" },
-  { data: "code", title: "Code" },
-  {
-    data: "item_name",
-    title: "Item Name",
-    render: function (data, type, row) {
-      return `
+      columns: [
+        { data: "key", title: "#ID" },
+        { data: "code", title: "Code" },
+        {
+          data: "item_name",
+          title: "Item Name",
+          render: function (data, type, row) {
+            return `
         <div class="fw-bold">${data}</div>
         <div class="text-muted small">
          <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || '-'}</span> |
@@ -69,10 +73,10 @@ jQuery(document).ready(function () {
            <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || '-'}</span>  
         </div>
       `;
-    }
-  },
-  { data: "category_label", title: "Category" }
-],
+          }
+        },
+        { data: "category_label", title: "Category" }
+      ],
 
 
       order: [[0, "desc"]],
@@ -106,6 +110,16 @@ jQuery(document).ready(function () {
           $("#rent_one_month").val(data.rent_one_month || "0");
           $("#value").val(data.value || "0");
           $("#quantity").val(data.quantity || "0");
+          $("#remark").val(data.remark || "");
+          $("#old_image_name").val(data.image_name || "");
+
+          if (data.image_name) {
+            $("#image_preview").attr("src", "uploads/equipment/" + data.image_name);
+            $("#preview_text").hide();
+          } else {
+            $("#image_preview").attr("src", "assets/images/no-image.png");
+            $("#preview_text").show();
+          }
 
           // Show update button, hide create button
           $("#create").hide();
@@ -130,23 +144,6 @@ jQuery(document).ready(function () {
     $("#create").prop("disabled", true);
 
     // Validation
-    var requiredFields = [
-      { selector: "#code", message: "Please enter equipment code" },
-      { selector: "#item_name", message: "Please enter item name" },
-      { selector: "#category", message: "Please select category" },
-      { selector: "#serial_number", message: "Please enter serial number" },
-      { selector: "#damage", message: "Please enter damage status/notes" },
-      { selector: "#size", message: "Please enter size" },
-      { selector: "#rent_one_day", message: "Please enter one day's rent" },
-      {
-        selector: "#deposit_one_day",
-        message: "Please enter one day's deposit",
-      },
-      { selector: "#rent_one_month", message: "Please enter one month's rent" },
-      { selector: "#value", message: "Please enter value" },
-      { selector: "#quantity", message: "Please enter quantity" },
-    ];
-
     var invalidField = requiredFields.find(function (field) {
       return !$(field.selector).val();
     });
@@ -166,6 +163,10 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
+
+      if (croppedBlob) {
+        formData.append("equipment_image", croppedBlob, "equipment.jpg");
+      }
 
       $.ajax({
         url: "ajax/php/equipment-master.php",
@@ -262,6 +263,10 @@ jQuery(document).ready(function () {
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
 
+      if (croppedBlob) {
+        formData.append("equipment_image", croppedBlob, "equipment.jpg");
+      }
+
       $.ajax({
         url: "ajax/php/equipment-master.php",
         type: "POST",
@@ -336,8 +341,14 @@ jQuery(document).ready(function () {
     e.preventDefault();
     $("#form-data")[0].reset();
     $("#equipment_id").val("");
-    $("#create").show();
+    $("#old_image_name").val("");
+    $("#image_preview").attr("src", "assets/images/no-image.png");
     $("#update").hide();
+    croppedBlob = null;
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
 
     // Generate new code
     $.ajax({
@@ -467,5 +478,57 @@ jQuery(document).ready(function () {
         }
       }
     );
+  });
+
+  // Image Preview and Cropping Logic
+  $(document).on("change", "#equipment_image", function () {
+    var files = this.files;
+    var file;
+
+    if (files && files.length > 0) {
+      file = files[0];
+
+      if (/^image\/\w+$/.test(file.type)) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          $("#image-to-crop").attr("src", e.target.result);
+          $("#cropModal").modal("show");
+        };
+        reader.readAsDataURL(file);
+      } else {
+        swal("Error", "Please choose an image file.", "error");
+      }
+    }
+  });
+
+  $("#cropModal").on("shown.bs.modal", function () {
+    cropper = new Cropper(document.getElementById("image-to-crop"), {
+      aspectRatio: 1,
+      viewMode: 1,
+      autoCropArea: 1,
+    });
+  }).on("hidden.bs.modal", function () {
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+  });
+
+  $("#crop-button").click(function () {
+    if (cropper) {
+      var canvas = cropper.getCroppedCanvas({
+        width: 600,
+        height: 600,
+      });
+
+      $("#image_preview").attr("src", canvas.toDataURL("image/jpeg"));
+      $("#preview_text").hide();
+
+      canvas.toBlob(function (blob) {
+        croppedBlob = blob;
+      }, "image/jpeg");
+
+      $("#cropModal").modal("hide");
+    }
   });
 });

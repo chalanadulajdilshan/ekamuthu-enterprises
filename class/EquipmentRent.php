@@ -3,7 +3,7 @@
 class EquipmentRent
 {
     public $id;
-    public $code;
+    public $bill_number;
     public $customer_id;
     public $equipment_id;
     public $rental_date;
@@ -24,7 +24,7 @@ class EquipmentRent
 
             if ($result) {
                 $this->id = $result['id'];
-                $this->code = $result['code'];
+                $this->bill_number = $result['bill_number'];
                 $this->customer_id = $result['customer_id'];
                 $this->equipment_id = $result['equipment_id'] ?? null;
                 $this->rental_date = $result['rental_date'];
@@ -42,9 +42,9 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `code`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
+            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
         ) VALUES (
-            '$this->code', '$this->customer_id', '$this->rental_date', " .
+            '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items'
         )";
 
@@ -61,7 +61,7 @@ class EquipmentRent
     public function update()
     {
         $query = "UPDATE `equipment_rent` SET 
-            `code` = '$this->code', 
+            `bill_number` = '$this->bill_number', 
             `customer_id` = '$this->customer_id',
             `rental_date` = '$this->rental_date', 
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
@@ -156,15 +156,15 @@ class EquipmentRent
         return $result['id'] ?? 0;
     }
 
-    public function getByCode($code)
+    public function getByBillNumber($bill_number)
     {
-        $query = "SELECT * FROM `equipment_rent` WHERE `code` = '$code' LIMIT 1";
+        $query = "SELECT * FROM `equipment_rent` WHERE `bill_number` = '$bill_number' LIMIT 1";
         $db = Database::getInstance();
         $result = mysqli_fetch_array($db->readQuery($query));
 
         if ($result) {
             $this->id = $result['id'];
-            $this->code = $result['code'];
+            $this->bill_number = $result['bill_number'];
             $this->customer_id = $result['customer_id'];
             $this->equipment_id = $result['equipment_id'];
             $this->rental_date = $result['rental_date'];
@@ -193,7 +193,7 @@ class EquipmentRent
         // Search filter
         $where = "WHERE 1=1";
         if (!empty($search)) {
-            $where .= " AND (er.code LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
+            $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
         }
 
         // Filtered records
@@ -229,7 +229,7 @@ class EquipmentRent
             $nestedData = [
                 "key" => $key,
                 "id" => $row['id'],
-                "code" => $row['code'],
+                "bill_number" => $row['bill_number'],
                 "customer_id" => $row['customer_id'],
                 "customer_name" => ($row['customer_code'] ?? '') . ' - ' . ($row['customer_name'] ?? ''),
                 "customer_code" => $row['customer_code'],

@@ -25,9 +25,9 @@ try {
         $db = Database::getInstance();
 
         $query = "SELECT
-                    id, code, name, name_2, mobile_number, old_outstanding
+                    id, code, name, mobile_number, old_outstanding
                   FROM customer_master
-                  WHERE id = ? AND is_active = 1 AND old_outstanding > 0";
+                  WHERE id = ? AND old_outstanding > 0";
 
         $stmt = $db->DB_CON->prepare($query);
         $stmt->bind_param('i', $customerId);
@@ -40,7 +40,7 @@ try {
                 'id' => $row['id'],
                 'code' => $row['code'],
                 'name' => $row['name'],
-                'name_2' => $row['name_2'],
+
                 'mobile_number' => $row['mobile_number'],
                 'old_outstanding' => (float)$row['old_outstanding']
             ];
@@ -68,7 +68,7 @@ try {
 
         try {
             // Get current old outstanding
-            $query = "SELECT old_outstanding FROM customer_master WHERE id = ? AND is_active = 1 FOR UPDATE";
+            $query = "SELECT old_outstanding FROM customer_master WHERE id = ? FOR UPDATE";
             $stmt = $db->DB_CON->prepare($query);
             $stmt->bind_param('i', $customerId);
             $stmt->execute();

@@ -22,6 +22,15 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
     <!-- include main CSS -->
     <?php include 'main-css.php' ?>
 
+    <!-- Cropper CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <style>
+        .img-container {
+            max-width: 100%;
+            max-height: 400px;
+        }
+    </style>
+
 </head>
 
 <body data-layout="horizontal" data-topbar="colored" class="someBlock">
@@ -117,7 +126,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                     </a>
 
                                     <div class="p-4">
-                                        <form id="form-data" autocomplete="off">
+                                        <form id="form-data" autocomplete="off" enctype="multipart/form-data">
                                             <div class="row">
                                                 <!-- Equipment Code -->
                                                 <div class="col-md-2">
@@ -229,7 +238,25 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
                                                 </div>
 
+                                                <!-- Image Upload -->
+                                                <div class="col-md-4 mt-3">
+                                                    <label for="equipment_image" class="form-label">Equipment Image (600x600)</label>
+                                                    <input type="file" id="equipment_image" name="equipment_image" class="form-control" accept="image/*">
+                                                    <div id="image_preview_container" class="mt-2 text-center border rounded p-2" style="min-height: 150px; background: #f8f9fa;">
+                                                        <img id="image_preview" src="assets/images/no-image.png" alt="Preview" style="max-width: 100%; max-height: 200px; display: block; margin: 0 auto;">
+                                                        <p id="preview_text" class="text-muted mt-2 small">600 x 600 Recommended</p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Remark -->
+                                                <div class="col-md-8 mt-3">
+                                                    <label for="remark" class="form-label">Remark</label>
+                                                    <textarea id="remark" name="remark" class="form-control" rows="8" placeholder="Enter any additional remarks or notes..."></textarea>
+                                                </div>
+
                                                 <input type="hidden" id="equipment_id" name="equipment_id" />
+                                                <input type="hidden" id="old_image_name" name="old_image_name" />
+                                                <input type="hidden" id="cropped_image_data" name="cropped_image_data" />
                                             </div>
                                         </form>
                                     </div>
@@ -277,16 +304,41 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
         </div>
     </div>
 
+    <!-- Cropping Modal -->
+    <div class="modal fade" id="cropModal" tabindex="-1" role="dialog" aria-labelledby="cropModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cropModalLabel">Crop Equipment Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="img-container">
+                        <img id="image-to-crop" src="" alt="Image to crop">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="crop-button">Crop & Use</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Right bar overlay-->
     <div class="rightbar-overlay"></div>
 
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <!-- /////////////////////////// -->
-    <script src="ajax/js/equipment-master.js"></script>
 
     <!-- include main js  -->
     <?php include 'main-js.php' ?>
+
+    <!-- Cropper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+    <script src="ajax/js/equipment-master.js"></script>
 
     <!-- Page Preloader Script -->
     <script>

@@ -5,7 +5,6 @@ class SubEquipment
     public $id;
     public $equipment_id;
     public $code;
-    public $name;
     public $rental_status;
 
     public function __construct($id = null)
@@ -19,7 +18,6 @@ class SubEquipment
                 $this->id = $result['id'];
                 $this->equipment_id = $result['equipment_id'];
                 $this->code = $result['code'];
-                $this->name = $result['name'];
             }
         }
     }
@@ -27,9 +25,9 @@ class SubEquipment
     public function create()
     {
         $query = "INSERT INTO `sub_equipment` (
-            `equipment_id`, `code`, `name`
+            `equipment_id`, `code`
         ) VALUES (
-            '$this->equipment_id', '$this->code', '$this->name'
+            '$this->equipment_id', '$this->code'
         )";
 
         $db = Database::getInstance();
@@ -46,8 +44,7 @@ class SubEquipment
     {
         $query = "UPDATE `sub_equipment` SET 
             `equipment_id` = '$this->equipment_id', 
-            `code` = '$this->code',
-            `name` = '$this->name'
+            `code` = '$this->code'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -72,7 +69,6 @@ class SubEquipment
             $this->id = $result['id'];
             $this->equipment_id = $result['equipment_id'];
             $this->code = $result['code'];
-            $this->name = $result['name'];
             return true;
         }
         return false;
@@ -99,7 +95,7 @@ class SubEquipment
 
         // Search filter
         if (!empty($search)) {
-            $where .= " AND (se.code LIKE '%$search%' OR se.name LIKE '%$search%')";
+            $where .= " AND (se.code LIKE '%$search%')";
         }
 
         // Filtered records
@@ -125,7 +121,6 @@ class SubEquipment
                 "equipment_id" => $row['equipment_id'],
                 "equipment_name" => ($row['equipment_code'] ?? '') . ' - ' . ($row['equipment_name'] ?? ''),
                 "code" => $row['code'],
-                "name" => $row['name']
             ];
 
             $data[] = $nestedData;

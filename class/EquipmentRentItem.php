@@ -121,7 +121,7 @@ class EquipmentRentItem
     {
         $query = "SELECT eri.*, 
                   e.code as equipment_code, e.item_name as equipment_name,
-                  se.code as sub_equipment_code, se.name as sub_equipment_name
+                  se.code as sub_equipment_code
                   FROM `equipment_rent_items` eri
                   LEFT JOIN `equipment` e ON eri.equipment_id = e.id
                   LEFT JOIN `sub_equipment` se ON eri.sub_equipment_id = se.id

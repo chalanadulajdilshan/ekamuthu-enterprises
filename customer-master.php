@@ -104,6 +104,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                     data-bs-toggle="modal" data-bs-target="#AllCustomerModal"><i
                                                                         class="uil uil-search me-1"></i>
                                                                 </button>
+                                                                <input type="hidden" id="id" name="id">
                                                             </div>
                                                         </div>
 
@@ -147,9 +148,9 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
 
                                                         <div class="col-12 col-md-8 col-lg-4 mt-3">
-                                                            <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
+                                                            <label for="address" class="form-label">NIC Address <span class="text-danger">*</span></label>
                                                             <input id="address" onkeyup="toUpperCaseInput(this)" name="address"
-                                                                type="text" class="form-control" placeholder="Enter address">
+                                                                type="text" class="form-control" placeholder="Enter NIC address">
                                                         </div>
 
                                                         <div class="col-12 col-md-8 col-lg-4 mt-3">
@@ -158,64 +159,31 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                 type="text" class="form-control" placeholder="Enter workplace address">
                                                         </div>
 
-                                                        <div class="col-6 col-md-4 col-lg-2 d-flex align-items-center mt-3">
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                                                <label class="form-check-label" for="is_active">Active</label>
-                                                            </div>
-                                                        </div>
+
                                                         
-                                                        <div class="col-6 col-md-4 col-lg-2 d-flex align-items-center mt-3">
+                                                        <div class="col-6 col-md-4 col-lg-1 d-flex align-items-center mt-3">
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="checkbox" id="is_company" name="is_company" onchange="toggleCompanyFields()">
-                                                                <label class="form-check-label" for="is_company">Is Company</label>
+                                                                <label class="form-check-label" for="is_company">If Company</label>
                                                             </div>
                                                         </div>
-
-                                                        <!-- Company Document Fields (shown when Is Company is checked) -->
-                                                        <div id="company_fields" class="col-12 mt-3" style="display: none;">
-                                                            <div class="row">
-                                                                <div class="col-md-4">
-                                                                    <label for="po_document" class="form-label">Purchase Order (PO)</label>
+                                                        <div id="company_fields" class="col-12 col-md-8 col-lg-3 mt-3" style="display: none;">
+                                                                    <label for="po_document" class="form-label">Company Document (PO/Letterhead)</label>
                                                                     <div class="input-group">
                                                                         <input id="po_document_name" type="text" class="form-control" placeholder="No file selected" readonly>
-                                                                        <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('po_document')" title="Upload PO">
-                                                                            <i class="uil uil-file-upload"></i> Upload
+                                                                        <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('po_document', 1)" title="Capture Image">
+                                                                            <i class="uil uil-camera"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('po_document')" title="Upload File">
+                                                                            <i class="uil uil-file-upload"></i>
                                                                         </button>
                                                                     </div>
                                                                     <input type="hidden" id="po_document_image_1" name="po_document_image_1">
                                                                     <input type="file" id="po_document_file" name="po_document_file" accept=".pdf,image/*" style="display:none;" onchange="handleFileUpload('po_document', this)">
                                                                     <div id="po_document_preview" class="mt-2 d-flex gap-2 flex-wrap"></div>
+                                                                    <input type="hidden" id="company_document_image_1" name="company_document_image_1">
                                                                 </div>
-
-                                                                <div class="col-md-4">
-                                                                    <label for="letterhead_document" class="form-label">Company Letterhead</label>
-                                                                    <div class="input-group">
-                                                                        <input id="letterhead_document_name" type="text" class="form-control" placeholder="No file selected" readonly>
-                                                                        <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('letterhead_document')" title="Upload Letterhead">
-                                                                            <i class="uil uil-file-upload"></i> Upload
-                                                                        </button>
-                                                                    </div>
-                                                                    <input type="hidden" id="letterhead_document_image_1" name="letterhead_document_image_1">
-                                                                    <input type="file" id="letterhead_document_file" name="letterhead_document_file" accept=".pdf,image/*" style="display:none;" onchange="handleFileUpload('letterhead_document', this)">
-                                                                    <div id="letterhead_document_preview" class="mt-2 d-flex gap-2 flex-wrap"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Hidden Fields -->
-                                                        <div class="col-md-3 hidden">
-                                                            <input id="name_2" name="name_2" type="text" class="form-control">
-                                                        </div>
-                                                        <div class="col-md-3 hidden">
-                                                            <input id="email" name="email" type="email" class="form-control">
-                                                        </div>
-                                                        <div class="col-md-3 hidden">
-                                                            <input id="contact_person" name="contact_person" type="text" class="form-control">
-                                                        </div>
-                                                        <div class="col-md-3 hidden">
-                                                            <input id="contact_person_number" name="contact_person_number" type="tel" class="form-control">
-                                                        </div>
+ 
                                                     </div>
                                                 </div>
                                             </div>
@@ -228,11 +196,11 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="water_bill_no" class="form-label">Water Bill Number <span class="text-danger">*</span></label>
+                                                        <div class="col-12 col-md-6 col-lg-6">
+                                                            <label for="water_bill_no" class="form-label">Utility Bill Number (Water/Electricity) <span class="text-danger">*</span></label>
                                                             <div class="input-group">
                                                                 <input id="water_bill_no" name="water_bill_no" type="text"
-                                                                    class="form-control" placeholder="Enter water bill number">
+                                                                    class="form-control" placeholder="Enter utility bill number">
                                                                 <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('water_bill', 1)" title="Capture Image">
                                                                     <i class="uil uil-camera"></i>
                                                                 </button>
@@ -243,35 +211,21 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <input type="hidden" id="water_bill_image_1" name="water_bill_image_1">
                                                             <input type="file" id="water_bill_file" name="water_bill_file" accept=".pdf,image/*" style="display:none;" onchange="handleFileUpload('water_bill', this)">
                                                             <div id="water_bill_preview" class="mt-2 d-flex gap-2 flex-wrap"></div>
+                                                            <input id="utility_bill_no" name="utility_bill_no" type="hidden">
                                                         </div>
 
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="electricity_bill_no" class="form-label">Electricity Bill Number <span class="text-danger">*</span></label>
-                                                            <div class="input-group">
-                                                                <input id="electricity_bill_no" name="electricity_bill_no"
-                                                                    type="text" class="form-control" placeholder="Enter electricity bill number">
-                                                                <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('electricity_bill', 1)" title="Capture Image">
-                                                                    <i class="uil uil-camera"></i>
-                                                                </button>
-                                                                <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('electricity_bill')" title="Upload PDF">
-                                                                    <i class="uil uil-file-upload"></i>
-                                                                </button>
-                                                            </div>
-                                                            <input type="hidden" id="electricity_bill_image_1" name="electricity_bill_image_1">
-                                                            <input type="file" id="electricity_bill_file" name="electricity_bill_file" accept=".pdf,image/*" style="display:none;" onchange="handleFileUpload('electricity_bill', this)">
-                                                            <div id="electricity_bill_preview" class="mt-2 d-flex gap-2 flex-wrap"></div>
-                                                        </div>
 
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="outstanding" class="form-label">Outstanding Balance</label>
-                                                            <input id="outstanding" name="outstanding" type="text"
-                                                                class="form-control" placeholder="Enter outstanding balance">
-                                                        </div>
+
 
                                                         <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="old_outstanding" class="form-label">Old Outstanding Balance</label>
-                                                            <input id="old_outstanding" name="old_outstanding" type="text"
-                                                                class="form-control" placeholder="Enter old outstanding balance">
+                                                            <div class="input-group">
+                                                                <input id="old_outstanding" name="old_outstanding" type="text"
+                                                                    class="form-control" placeholder="Enter old outstanding balance">
+                                                                <button class="btn btn-warning" type="button" id="btnAddDescription" style="display:none;" title="Add Description">
+                                                                    <i class="mdi mdi-playlist-plus"></i> Add Detail
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -287,8 +241,13 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <div class="row">
                                                         <div class="col-12 col-md-6 col-lg-3">
                                                             <label for="guarantor_name" class="form-label">Guarantor Name <span class="text-danger">*</span></label>
-                                                            <input id="guarantor_name" name="guarantor_name" onkeyup="toUpperCaseInput(this)"
-                                                                type="text" class="form-control" placeholder="Enter guarantor name">
+                                                            <div class="input-group">
+                                                                <input id="guarantor_name" name="guarantor_name" onkeyup="toUpperCaseInput(this)"
+                                                                    type="text" class="form-control" placeholder="Enter guarantor name">
+                                                                <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('guarantor_photo', 1)" title="Capture Guarantor Photo">
+                                                                    <i class="uil uil-camera"></i>
+                                                                </button>
+                                                            </div>
                                                         </div>
 
                                                         <div class="col-12 col-md-6 col-lg-3">
@@ -310,6 +269,8 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <label for="guarantor_address" class="form-label">Guarantor Address <span class="text-danger">*</span></label>
                                                             <input id="guarantor_address" name="guarantor_address" onkeyup="toUpperCaseInput(this)"
                                                                 type="text" class="form-control" placeholder="Enter guarantor address">
+                                                            <input type="hidden" id="guarantor_photo_image_1" name="guarantor_photo_image_1">
+                                                            <div id="guarantor_photo_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -709,10 +670,6 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 $('#po_document_file').val('');
                 $('#po_document_name').val('');
                 $('#po_document_preview').empty();
-                $('#letterhead_document_image_1').val('');
-                $('#letterhead_document_file').val('');
-                $('#letterhead_document_name').val('');
-                $('#letterhead_document_preview').empty();
             }
         }
     </script>
@@ -724,6 +681,9 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 $(this).remove();
             });
         });
+    </script>
+
+
     </script>
 
 </body>

@@ -10,13 +10,13 @@ header('Content-Type: application/json; charset=UTF-8');
 // Create new equipment rent with items
 if (isset($_POST['create'])) {
 
-    // Check if code already exists
+    // Check if bill number already exists
     $db = Database::getInstance();
-    $codeCheck = "SELECT id FROM equipment_rent WHERE code = '{$_POST['code']}'";
+    $codeCheck = "SELECT id FROM equipment_rent WHERE bill_number = '{$_POST['code']}'";
     $existingRent = mysqli_fetch_assoc($db->readQuery($codeCheck));
 
     if ($existingRent) {
-        echo json_encode(["status" => "duplicate", "message" => "Equipment rent code already exists in the system"]);
+        echo json_encode(["status" => "duplicate", "message" => "Bill number already exists in the system"]);
         exit();
     }
 
@@ -42,7 +42,7 @@ if (isset($_POST['create'])) {
 
     // Create master rent record
     $EQUIPMENT_RENT = new EquipmentRent(NULL);
-    $EQUIPMENT_RENT->code = $_POST['code'];
+    $EQUIPMENT_RENT->bill_number = $_POST['code'];
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
@@ -76,7 +76,7 @@ if (isset($_POST['create'])) {
         $AUDIT_LOG->ref_id = $rent_id;
         $AUDIT_LOG->ref_code = $_POST['code'];
         $AUDIT_LOG->action = 'CREATE';
-        $AUDIT_LOG->description = 'CREATE EQUIPMENT RENT NO #' . $_POST['code'] . ' with ' . count($items) . ' items';
+        $AUDIT_LOG->description = 'CREATE EQUIPMENT BILL NO #' . $_POST['code'] . ' with ' . count($items) . ' items';
         $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
@@ -91,13 +91,13 @@ if (isset($_POST['create'])) {
 // Update equipment rent
 if (isset($_POST['update'])) {
 
-    // Check if code already exists (excluding current record)
+    // Check if bill number already exists (excluding current record)
     $db = Database::getInstance();
-    $codeCheck = "SELECT id FROM equipment_rent WHERE code = '{$_POST['code']}' AND id != '{$_POST['rent_id']}'";
+    $codeCheck = "SELECT id FROM equipment_rent WHERE bill_number = '{$_POST['code']}' AND id != '{$_POST['rent_id']}'";
     $existingRent = mysqli_fetch_assoc($db->readQuery($codeCheck));
 
     if ($existingRent) {
-        echo json_encode(["status" => "duplicate", "message" => "Equipment rent code already exists in the system"]);
+        echo json_encode(["status" => "duplicate", "message" => "Bill number already exists in the system"]);
         exit();
     }
 
@@ -167,7 +167,7 @@ if (isset($_POST['update'])) {
     }
 
     // Update master record
-    $EQUIPMENT_RENT->code = $_POST['code'];
+    $EQUIPMENT_RENT->bill_number = $_POST['code'];
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
@@ -191,7 +191,7 @@ if (isset($_POST['update'])) {
     $AUDIT_LOG->ref_id = $_POST['rent_id'];
     $AUDIT_LOG->ref_code = $_POST['code'];
     $AUDIT_LOG->action = 'UPDATE';
-    $AUDIT_LOG->description = 'UPDATE EQUIPMENT RENT NO #' . $_POST['code'];
+    $AUDIT_LOG->description = 'UPDATE EQUIPMENT BILL NO #' . $_POST['code'];
     $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
     $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
     $AUDIT_LOG->create();
@@ -211,9 +211,9 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
     // Audit log
     $AUDIT_LOG = new AuditLog(NULL);
     $AUDIT_LOG->ref_id = $_POST['id'];
-    $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->code;
+    $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
     $AUDIT_LOG->action = 'DELETE';
-    $AUDIT_LOG->description = 'DELETE EQUIPMENT RENT NO #' . $EQUIPMENT_RENT->code;
+    $AUDIT_LOG->description = 'DELETE EQUIPMENT RENT NO #' . $EQUIPMENT_RENT->bill_number;
     $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
     $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
     $AUDIT_LOG->create();
@@ -294,7 +294,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
             "status" => "success",
             "rent" => [
                 "id" => $EQUIPMENT_RENT->id,
-                "code" => $EQUIPMENT_RENT->code,
+                "bill_number" => $EQUIPMENT_RENT->bill_number,
                 "customer_id" => $EQUIPMENT_RENT->customer_id,
                 "customer_name" => $CUSTOMER->code . ' - ' . $CUSTOMER->name,
                 "rental_date" => $EQUIPMENT_RENT->rental_date,
@@ -401,14 +401,14 @@ if (isset($_POST['filter_customers'])) {
     $search = $_REQUEST['search']['value'] ?? '';
 
     // Total records
-    $totalSql = "SELECT COUNT(*) as total FROM customer_master WHERE is_active = 1";
+    $totalSql = "SELECT COUNT(*) as total FROM customer_master";
     $totalQuery = $db->readQuery($totalSql);
     $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 
     // Search filter
-    $where = "WHERE is_active = 1";
+    $where = "";
     if (!empty($search)) {
-        $where .= " AND (name LIKE '%$search%' OR code LIKE '%$search%' OR mobile_number LIKE '%$search%')";
+        $where .= " WHERE (name LIKE '%$search%' OR code LIKE '%$search%' OR mobile_number LIKE '%$search%')";
     }
 
     // Filtered records
@@ -430,7 +430,9 @@ if (isset($_POST['filter_customers'])) {
             "code" => $row['code'],
             "name" => $row['name'],
             "mobile_number" => $row['mobile_number'],
-            "address" => $row['address']
+            "address" => $row['address'],
+            "nic" => $row['nic'],
+            "outstanding" => number_format($row['old_outstanding'] ?? 0, 2)
         ];
 
         $data[] = $nestedData;
@@ -474,27 +476,19 @@ if (isset($_POST['filter_equipment'])) {
     $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
     // Paginated query with sub-equipment counts
-    $sql = "SELECT e.*, 
+    $sql = "SELECT e.*, ec.name as category_name,
             (SELECT COUNT(*) FROM sub_equipment se WHERE se.equipment_id = e.id) as total_sub,
             (SELECT COUNT(*) FROM sub_equipment se WHERE se.equipment_id = e.id AND se.rental_status = 'available') as available_sub
             FROM equipment e 
+            LEFT JOIN equipment_category ec ON e.category = ec.id
             $where ORDER BY e.item_name ASC LIMIT $start, $length";
     $dataQuery = $db->readQuery($sql);
 
     $data = [];
     $key = 1;
 
-    // Category name mapping
-    $categoryNames = [
-        '1' => 'Power Tools',
-        '2' => 'Hand Tools',
-        '3' => 'Safety Equipment',
-        '4' => 'Measuring Instruments',
-        '5' => 'Electrical Equipment'
-    ];
-
     while ($row = mysqli_fetch_assoc($dataQuery)) {
-        $categoryLabel = isset($categoryNames[$row['category']]) ? $categoryNames[$row['category']] : $row['category'];
+        $categoryLabel = $row['category_name'] ?: ($row['category'] ?: '-');
 
         $nestedData = [
             "key" => $key,
@@ -577,7 +571,6 @@ if (isset($_POST['filter_sub_equipment'])) {
             "key" => $key,
             "id" => $row['id'],
             "code" => $row['code'],
-            "name" => $row['name'],
             "equipment_id" => $row['equipment_id'],
             "equipment_code" => $row['equipment_code'],
             "equipment_name" => $row['equipment_name'],
