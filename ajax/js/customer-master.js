@@ -77,164 +77,118 @@ jQuery(document).ready(function () {
         timer: 3000,
         showConfirmButton: true,
       });
-    } else if (!$("#guarantor_name").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor name",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_nic").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor NIC",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_address").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor address",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_address").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor address",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else {
+ else {
 
-      // --- DOCUMENT & IMAGE VALIDATION ---
-      var isCompany = $("#is_company").is(":checked");
-      var errorMsg = "";
+        // --- DOCUMENT & IMAGE VALIDATION ---
+        var isCompany = $("#is_company").is(":checked");
+        var errorMsg = "";
 
-      if (isCompany) {
-        // Validation for Company
-        if (!$("#company_name").val()) {
-          errorMsg = "Please enter Company Name";
-        } else {
-          var companyDoc = $("#po_document_image_1").val() || $("#company_document_image_1").val();
-          if (!companyDoc) {
-            errorMsg = "Please upload Company PDF/Image";
-          }
-        }
-
-      } else {
-        // Validation for Individual
-        if (!$("#nic_image_1").val()) {
-          errorMsg = "Please upload NIC Front Image";
-        } else if (!$("#nic_image_2").val()) {
-          errorMsg = "Please upload NIC Back Image";
-        } else if (!($("#water_bill_image_1").val() || $("#utility_bill_image_1").val())) {
-          errorMsg = "Please upload Utility Bill Image";
-        } else if (!$("#guarantor_nic_image_1").val()) {
-          errorMsg = "Please upload Guarantor NIC Front Image";
-        } else if (!$("#guarantor_nic_image_2").val()) {
-          errorMsg = "Please upload Guarantor NIC Back Image";
-        } else if (!$("#guarantor_photo_image_1").val()) {
-          errorMsg = "Please upload Guarantor Photo";
-        }
-      }
-
-      if (errorMsg) {
-        $("#create").prop("disabled", false);
-        swal({
-          title: "Error!",
-          text: errorMsg,
-          type: "error",
-          timer: 3000,
-          showConfirmButton: true
-        });
-        return;
-      }
-      // -----------------------------------
-      // Show page preloader
-      $("#page-preloader").show();
-
-      var formData = new FormData($("#form-data")[0]);
-      formData.append("create", true);
-      $.ajax({
-        url: "ajax/php/customer-master.php",
-        type: "POST",
-        data: formData,
-        async: false,
-        cache: false,
-        contentType: false,
-        processData: false,
-        dataType: "JSON",
-        success: function (result) {
-          // Hide page preloader
-          $("#page-preloader").hide();
-
-          // Re-enable the button
-          $("#create").prop("disabled", false);
-
-          if (result.status === "success") {
-            swal({
-              title: "Success!",
-              text: "Customer added successfully!",
-              type: "success",
-              timer: 2000,
-              showConfirmButton: false,
-            });
-
-            setTimeout(() => {
-              window.location.reload();
-            }, 2000);
-          } else if (result.status === "duplicate") {
-            swal({
-              title: "Duplicate Entry!",
-              text: result.message,
-              type: "warning",
-              showConfirmButton: true,
-            });
+        if (isCompany) {
+          // Validation for Company
+          if (!$("#company_name").val()) {
+            errorMsg = "Please enter Company Name";
           } else {
+            var companyDoc = $("#po_document_image_1").val() || $("#company_document_image_1").val();
+            if (!companyDoc) {
+              errorMsg = "Please upload Company PDF/Image";
+            }
+          }
+
+        } else {
+          // Validation for Individual
+          if (!$("#nic_image_1").val()) {
+            errorMsg = "Please upload NIC Front Image";
+          } else if (!$("#nic_image_2").val()) {
+            errorMsg = "Please upload NIC Back Image";
+          } else if (!($("#water_bill_image_1").val() || $("#utility_bill_image_1").val())) {
+            errorMsg = "Please upload Utility Bill Image";
+
+          }
+
+          if (errorMsg) {
+            $("#create").prop("disabled", false);
             swal({
               title: "Error!",
-              text: "Something went wrong.",
+              text: errorMsg,
               type: "error",
-              timer: 2000,
-              showConfirmButton: false,
+              timer: 3000,
+              showConfirmButton: true
             });
+            return;
           }
-        },
-        error: function (xhr, status, error) {
-          // Hide page preloader
-          $("#page-preloader").hide();
+          // -----------------------------------
+          // Show page preloader
+          $("#page-preloader").show();
 
-          // Re-enable the button
-          $("#create").prop("disabled", false);
+          var formData = new FormData($("#form-data")[0]);
+          formData.append("create", true);
+          $.ajax({
+            url: "ajax/php/customer-master.php",
+            type: "POST",
+            data: formData,
+            async: false,
+            cache: false,
+            contentType: false,
+            processData: false,
+            dataType: "JSON",
+            success: function (result) {
+              // Hide page preloader
+              $("#page-preloader").hide();
 
-          console.error("AJAX Error:", status, error);
-          console.error("Response:", xhr.responseText);
+              // Re-enable the button
+              $("#create").prop("disabled", false);
 
-          swal({
-            title: "Error!",
-            text: "Failed to create customer. Please check the console for details.",
-            type: "error",
-            showConfirmButton: true,
+              if (result.status === "success") {
+                swal({
+                  title: "Success!",
+                  text: "Customer added successfully!",
+                  type: "success",
+                  timer: 2000,
+                  showConfirmButton: false,
+                });
+
+                setTimeout(() => {
+                  window.location.reload();
+                }, 2000);
+              } else if (result.status === "duplicate") {
+                swal({
+                  title: "Duplicate Entry!",
+                  text: result.message,
+                  type: "warning",
+                  showConfirmButton: true,
+                });
+              } else {
+                swal({
+                  title: "Error!",
+                  text: "Something went wrong.",
+                  type: "error",
+                  timer: 2000,
+                  showConfirmButton: false,
+                });
+              }
+            },
+            error: function (xhr, status, error) {
+              // Hide page preloader
+              $("#page-preloader").hide();
+
+              // Re-enable the button
+              $("#create").prop("disabled", false);
+
+              console.error("AJAX Error:", status, error);
+              console.error("Response:", xhr.responseText);
+
+              swal({
+                title: "Error!",
+                text: "Failed to create customer. Please check the console for details.",
+                type: "error",
+                showConfirmButton: true,
+              });
+            },
           });
-        },
-      });
-    }
+        }
 
-    return false;
-  });
+        return false;
+      });
 
   // New Button - Reset Form
   $("#new").click(function () {
@@ -411,94 +365,64 @@ jQuery(document).ready(function () {
         timer: 3000,
         showConfirmButton: true,
       });
-    } else if (!$("#guarantor_name").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor name",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_nic").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor NIC",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_address").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor address",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else {
-      // Show page preloader
-      $("#page-preloader").show();
+ else {
+        // Show page preloader
+        $("#page-preloader").show();
 
-      var formData = new FormData($("#form-data")[0]);
-      formData.append("update", true);
+        var formData = new FormData($("#form-data")[0]);
+        formData.append("update", true);
 
-      $.ajax({
-        url: "ajax/php/customer-master.php",
-        type: "POST",
-        data: formData,
-        async: false,
-        cache: false,
-        contentType: false,
-        processData: false,
-        dataType: "JSON",
-        success: function (result) {
-          // Hide page preloader
-          $("#page-preloader").hide();
+        $.ajax({
+          url: "ajax/php/customer-master.php",
+          type: "POST",
+          data: formData,
+          async: false,
+          cache: false,
+          contentType: false,
+          processData: false,
+          dataType: "JSON",
+          success: function (result) {
+            // Hide page preloader
+            $("#page-preloader").hide();
 
-          if (result.status == "success") {
-            swal({
-              title: "Success!",
-              text: "Customer updated successfully!",
-              type: "success",
-              timer: 2500,
-              showConfirmButton: false,
-            });
+            if (result.status == "success") {
+              swal({
+                title: "Success!",
+                text: "Customer updated successfully!",
+                type: "success",
+                timer: 2500,
+                showConfirmButton: false,
+              });
 
-            setTimeout(() => {
-              window.location.reload();
-            }, 2000);
-          } else if (result.status === "duplicate") {
-            // Re-enable the button
-            $("#update").prop("disabled", false);
-            swal({
-              title: "Duplicate Entry!",
-              text: result.message,
-              type: "warning",
-              showConfirmButton: true,
-            });
-          } else {
-            // Re-enable the button
-            $("#update").prop("disabled", false);
-            swal({
-              title: "Error!",
-              text: "Something went wrong.",
-              type: "error",
-              timer: 2000,
-              showConfirmButton: false,
-            });
-          }
-        },
-      });
-    }
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            } else if (result.status === "duplicate") {
+              // Re-enable the button
+              $("#update").prop("disabled", false);
+              swal({
+                title: "Duplicate Entry!",
+                text: result.message,
+                type: "warning",
+                showConfirmButton: true,
+              });
+            } else {
+              // Re-enable the button
+              $("#update").prop("disabled", false);
+              swal({
+                title: "Error!",
+                text: "Something went wrong.",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+            }
+          },
+        });
+      }
 
-    return false;
-  });
+      return false;
+    });
 
   // Reset input fields
   $("#new").click(function (e) {
