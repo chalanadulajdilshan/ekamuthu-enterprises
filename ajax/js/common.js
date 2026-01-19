@@ -315,8 +315,10 @@ jQuery(document).ready(function () {
           $("#is_company").prop("checked", data.is_company == 1);
           if (data.is_company == 1) {
             $("#company_fields").show();
+            $("#company_name").val(data.company_name || "");
           } else {
             $("#company_fields").hide();
+            $("#company_name").val("");
           }
 
           // Load image previews if they exist

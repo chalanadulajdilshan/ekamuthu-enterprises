@@ -125,9 +125,13 @@ jQuery(document).ready(function () {
 
       if (isCompany) {
         // Validation for Company
-        var companyDoc = $("#po_document_image_1").val() || $("#company_document_image_1").val();
-        if (!companyDoc) {
-          errorMsg = "Please upload Company PDF/Image";
+        if (!$("#company_name").val()) {
+          errorMsg = "Please enter Company Name";
+        } else {
+          var companyDoc = $("#po_document_image_1").val() || $("#company_document_image_1").val();
+          if (!companyDoc) {
+            errorMsg = "Please upload Company PDF/Image";
+          }
         }
 
       } else {
@@ -620,7 +624,9 @@ jQuery(document).ready(function () {
                                    data-address="${customer.address}"
                                    data-mobile="${customer.mobile_number}"
                                    data-name="${customer.name}"
-                                   data-name2="${customer.name_2 || ""}">
+                                   data-name2="${customer.name_2 || ""}"
+                                   data-is-company="${customer.is_company}"
+                                   data-company-name="${customer.company_name || ""}">
                                    ${customer.code} - ${displayName}
                                 </a>`;
             });
@@ -685,6 +691,15 @@ jQuery(document).ready(function () {
           $("#customer_address").val(customerAddress);
           $("#customer_mobile").val(customerMobile);
 
+          // Handle Company Fields
+          var isCompany = selectedItem.attr("data-is-company");
+          var companyName = selectedItem.attr("data-company-name");
+          $("#is_company").prop("checked", isCompany == 1);
+          toggleCompanyFields(); // Ensure this function is available or duplicate logic
+          if (isCompany == 1) {
+            $("#company_name").val(companyName);
+          }
+
           // Hide the customer dropdown list
           $("#customerList").hide();
 
@@ -716,6 +731,15 @@ jQuery(document).ready(function () {
     $("#name_2").val(customerName2);
     $("#customer_address").val(customerAddress);
     $("#customer_mobile").val(customerMobile);
+
+    // Handle Company Fields
+    var isCompany = $(this).attr("data-is-company");
+    var companyName = $(this).attr("data-company-name");
+    $("#is_company").prop("checked", isCompany == 1);
+    toggleCompanyFields();
+    if (isCompany == 1) {
+      $("#company_name").val(companyName);
+    }
 
     // Hide the customer list after selection
     $("#customerList").hide();

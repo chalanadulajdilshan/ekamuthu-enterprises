@@ -21,28 +21,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'add_old_outstanding_detail')
         exit;
     }
     
-    $db = Database::getInstance();
-    
-    $query = "INSERT INTO customer_old_outstanding (customer_id, invoice_no, date, amount, status) 
-              VALUES ('$customerId', '$invoiceNo', '$date', '$amount', '$status')";
-              
-    $result = $db->readQuery($query);
-    
-    if($result) {
-        // If status is Not Paid, update customer master total
-        if($status === 'Not Paid') {
-            $updateQuery = "UPDATE customer_master SET old_outstanding = old_outstanding + $amount WHERE id = $customerId";
-            $db->readQuery($updateQuery);
-        }
-        
+    $CUSTOMER = new CustomerMaster();
+    if($CUSTOMER->addOldOutstandingDetail($customerId, $invoiceNo, $date, $amount, $status)) {
         echo json_encode(['status' => 'success']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Database error']);
     }
-    
     exit;
 }
-
 
 // Get Old Outstanding Details
 if (isset($_POST['action']) && $_POST['action'] == 'get_old_outstanding_details') {
@@ -53,18 +39,84 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_old_outstanding_details'
         exit;
     }
     
-    $db = Database::getInstance();
-    $query = "SELECT * FROM customer_old_outstanding WHERE customer_id = $customerId ORDER BY date DESC";
-    $result = $db->readQuery($query);
-    
-    $data = [];
-    while($row = mysqli_fetch_assoc($result)) {
-        $data[] = $row;
-    }
+    $CUSTOMER = new CustomerMaster();
+    $data = $CUSTOMER->getOldOutstandingDetails($customerId);
     
     echo json_encode($data);
     exit;
 }
+
+// Get Old Outstanding Summary
+if (isset($_POST['action']) && $_POST['action'] == 'get_old_outstanding_summary') {
+    $customerId = $_POST['customer_id'] ?? 0;
+    
+    if(!$customerId) {
+        echo json_encode(['status' => 'error']);
+        exit;
+    }
+    
+    $CUSTOMER = new CustomerMaster();
+    $data = $CUSTOMER->getOldOutstandingSummary($customerId);
+    
+    echo json_encode($data);
+    exit;
+}
+
+// Get Pending Invoices for Payment
+if (isset($_POST['action']) && $_POST['action'] == 'get_pending_invoices') {
+    $customerId = $_POST['customer_id'] ?? 0;
+    
+    if(!$customerId) {
+        echo json_encode([]);
+        exit;
+    }
+    
+    $CUSTOMER = new CustomerMaster();
+    $data = $CUSTOMER->getPendingInvoices($customerId);
+    
+    echo json_encode($data);
+    exit;
+}
+
+// Save Old Outstanding Payment
+if (isset($_POST['action']) && $_POST['action'] == 'save_old_outstanding_payment') {
+    
+    $customerId = $_POST['pay_customer_id'] ?? 0;
+    $invoiceId = $_POST['pay_invoice_id'] ?? 0;
+    $date = $_POST['pay_date'] ?? '';
+    $amount = $_POST['pay_amount'] ?? 0;
+    $remark = $_POST['pay_remark'] ?? '';
+    
+    if(!$customerId || !$invoiceId || !$date || !$amount) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing fields']);
+        exit;
+    }
+    
+    $CUSTOMER = new CustomerMaster();
+    if($CUSTOMER->saveOldOutstandingPayment($customerId, $invoiceId, $date, $amount, $remark)) {
+        echo json_encode(['status' => 'success']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+    }
+    exit;
+}
+
+// Get Old Outstanding Payments History
+if (isset($_POST['action']) && $_POST['action'] == 'get_old_outstanding_payments') {
+    $customerId = $_POST['customer_id'] ?? 0;
+    
+    if(!$customerId) {
+        echo json_encode([]);
+        exit;
+    }
+    
+    $CUSTOMER = new CustomerMaster();
+    $data = $CUSTOMER->getOldOutstandingPayments($customerId);
+    
+    echo json_encode($data);
+    exit;
+}
+
 
 // Delete Old Outstanding Detail
 if (isset($_POST['action']) && $_POST['action'] == 'delete_old_outstanding_detail') {
@@ -75,30 +127,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete_old_outstanding_detai
         exit;
     }
     
-    $db = Database::getInstance();
-    
-    // First get the detail to check status and amount
-    $checkQuery = "SELECT * FROM customer_old_outstanding WHERE id = $id";
-    $detail = mysqli_fetch_assoc($db->readQuery($checkQuery));
-    
-    if($detail) {
-        $deleteQuery = "DELETE FROM customer_old_outstanding WHERE id = $id";
-        if($db->readQuery($deleteQuery)) {
-            
-            // If it was Not Paid, deduct from total
-            if($detail['status'] === 'Not Paid') {
-                $customerId = $detail['customer_id'];
-                $amount = $detail['amount'];
-                $updateQuery = "UPDATE customer_master SET old_outstanding = old_outstanding - $amount WHERE id = $customerId";
-                $db->readQuery($updateQuery);
-            }
-            
-            echo json_encode(['status' => 'success']);
-        } else {
-             echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
-        }
+    $CUSTOMER = new CustomerMaster();
+    if($CUSTOMER->deleteOldOutstandingDetail($id)) {
+        echo json_encode(['status' => 'success']);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Record not found']);
+         echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
     }
     exit;
 }
@@ -155,6 +188,7 @@ if (isset($_POST['create'])) {
     
     // Company fields
     $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
+    $CUSTOMER->company_name = strtoupper($_POST['company_name'] ?? '');
     $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'] ?? '';
     
     $res = $CUSTOMER->create();
@@ -298,8 +332,13 @@ if (isset($_POST['update'])) {
     
     // Company fields
     $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
+    $CUSTOMER->company_name = strtoupper($_POST['company_name'] ?? '');
     if (!empty($_POST['po_document_image_1']) || !empty($_POST['company_document_image_1'])) {
         $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'];
+    } else {
+        // If neither is provided, and company_document was previously set, it should remain unchanged
+        // or be explicitly cleared if that's the desired behavior when no new image is uploaded.
+        // For now, we assume it remains if not explicitly updated.
     }
 
     $res = $CUSTOMER->update();
