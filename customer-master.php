@@ -243,7 +243,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <div class="card-body">
                                                     <div class="row">
                                                         <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="guarantor_name" class="form-label">Guarantor Name <span class="text-danger">*</span></label>
+                                                            <label for="guarantor_name" class="form-label">Guarantor Name</label>
                                                             <div class="input-group">
                                                                 <input id="guarantor_name" name="guarantor_name" onkeyup="toUpperCaseInput(this)"
                                                                     type="text" class="form-control" placeholder="Enter guarantor name">
@@ -256,7 +256,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
 
                                                         <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="guarantor_nic" class="form-label">Guarantor NIC <span class="text-danger">*</span></label>
+                                                            <label for="guarantor_nic" class="form-label">Guarantor NIC</label>
                                                             <div class="input-group">
                                                                 <input id="guarantor_nic" name="guarantor_nic" type="text" class="form-control"
                                                                     placeholder="Enter guarantor NIC" maxlength="12"
@@ -271,7 +271,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
 
                                                         <div class="col-12 col-md-12 col-lg-6">
-                                                            <label for="guarantor_address" class="form-label">Guarantor Address <span class="text-danger">*</span></label>
+                                                            <label for="guarantor_address" class="form-label">Guarantor Address</label>
                                                             <input id="guarantor_address" name="guarantor_address" onkeyup="toUpperCaseInput(this)"
                                                                 type="text" class="form-control" placeholder="Enter guarantor address">
                                                         </div>
