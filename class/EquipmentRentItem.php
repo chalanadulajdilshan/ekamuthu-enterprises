@@ -9,6 +9,9 @@ class EquipmentRentItem
     public $rental_date;
     public $return_date;
     public $quantity;
+    public $rent_type;
+    public $duration;
+    public $amount;
     public $status;
     public $remark;
     public $created_at;
@@ -29,6 +32,9 @@ class EquipmentRentItem
                 $this->rental_date = $result['rental_date'];
                 $this->return_date = $result['return_date'];
                 $this->quantity = $result['quantity'];
+                $this->rent_type = $result['rent_type'];
+                $this->duration = $result['duration'];
+                $this->amount = $result['amount'];
                 $this->status = $result['status'];
                 $this->remark = $result['remark'];
                 $this->created_at = $result['created_at'];
@@ -40,10 +46,10 @@ class EquipmentRentItem
     public function create()
     {
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `status`, `remark`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`
         ) VALUES (
             '$this->rent_id', '$this->equipment_id', '$this->sub_equipment_id', '$this->rental_date', " .
-            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->status', '$this->remark'
+            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark'
         )";
 
         $db = Database::getInstance();
@@ -76,6 +82,9 @@ class EquipmentRentItem
             `rental_date` = '$this->rental_date', 
             `return_date` = " . ($this->return_date ? "'$this->return_date'" : "NULL") . ", 
             `quantity` = '$this->quantity',
+            `rent_type` = '$this->rent_type',
+            `duration` = '$this->duration',
+            `amount` = '$this->amount',
             `status` = '$this->status',
             `remark` = '$this->remark'
             WHERE `id` = '$this->id'";
