@@ -62,6 +62,9 @@ if (isset($_POST['create'])) {
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
+            $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
+            $RENT_ITEM->duration = $item['duration'] ?? 0;
+            $RENT_ITEM->amount = $item['amount'] ?? 0;
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
@@ -80,6 +83,9 @@ if (isset($_POST['create'])) {
         $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
+
+        // Increment document tracking ID for equipment rent
+        (new DocumentTracking(null))->incrementDocumentId('equipment_rent');
 
         echo json_encode(["status" => "success", "rent_id" => $rent_id]);
     } else {
@@ -148,6 +154,9 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
+            $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
+            $RENT_ITEM->duration = $item['duration'] ?? 0;
+            $RENT_ITEM->amount = $item['amount'] ?? 0;
             $RENT_ITEM->status = $item['status'] ?? 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->update();
@@ -160,6 +169,9 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
+            $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
+            $RENT_ITEM->duration = $item['duration'] ?? 0;
+            $RENT_ITEM->amount = $item['amount'] ?? 0;
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
@@ -313,8 +325,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
 
 // Get new code
 if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
-    $EQUIPMENT_RENT = new EquipmentRent(NULL);
-    $lastId = $EQUIPMENT_RENT->getLastID();
+    // Get bill number from document tracking table
+    $DOCUMENT_TRACKING = new DocumentTracking(1);
+    $lastId = $DOCUMENT_TRACKING->equipment_rent_id;
     $newCode = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
     echo json_encode([
@@ -378,6 +391,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
                 "code" => $EQUIPMENT->code,
                 "item_name" => $EQUIPMENT->item_name,
                 "rent_one_day" => $EQUIPMENT->rent_one_day,
+                "rent_one_month" => $EQUIPMENT->rent_one_month,
                 "deposit_one_day" => $EQUIPMENT->deposit_one_day
             ],
             "total_sub_equipment" => count($all),
@@ -500,6 +514,8 @@ if (isset($_POST['filter_equipment'])) {
             "serial_number" => $row['serial_number'],
             "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
+            "rent_one_day" => $row['rent_one_day'],
+            "rent_one_month" => $row['rent_one_month'],
             "availability_label" => $row['available_sub'] > 0
                 ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'
                 : '<span class="badge bg-soft-danger font-size-12">All Rented</span>'

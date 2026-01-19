@@ -226,6 +226,11 @@ class EquipmentRent
             $itemCountResult = mysqli_fetch_assoc($db->readQuery($itemCountSql));
             $itemCount = $itemCountResult['cnt'] ?? 0;
 
+            // Get outstanding item count
+            $outstandingCountSql = "SELECT COUNT(*) as cnt FROM equipment_rent_items WHERE rent_id = " . $row['id'] . " AND status = 'rented'";
+            $outstandingCountResult = mysqli_fetch_assoc($db->readQuery($outstandingCountSql));
+            $outstandingCount = $outstandingCountResult['cnt'] ?? 0;
+
             $nestedData = [
                 "key" => $key,
                 "id" => $row['id'],
@@ -238,6 +243,7 @@ class EquipmentRent
                 "status" => $row['status'],
                 "status_label" => $statusLabel,
                 "total_items" => $itemCount,
+                "outstanding_items" => $outstandingCount,
                 "remark" => $row['remark']
             ];
 

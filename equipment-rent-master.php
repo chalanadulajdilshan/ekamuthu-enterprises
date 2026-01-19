@@ -6,8 +6,9 @@ include 'auth.php';
 
 $EQUIPMENT_RENT = new EquipmentRent(NULL);
 
-// Get the last inserted ID
-$lastId = $EQUIPMENT_RENT->getLastID();
+// Get the bill number from document tracking table
+$DOCUMENT_TRACKING = new DocumentTracking($doc_id);
+$lastId = $DOCUMENT_TRACKING->equipment_rent_id;
 $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 ?>
 
@@ -155,7 +156,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
 
                                                 <!-- Received Date -->
-                                                <div class="col-md-3">
+                                                <div class="col-md-3" id="received_date_container" style="display: none;">
                                                     <label for="received_date" class="form-label">Received Date (All Items)</label>
                                                     <div class="mb-3">
                                                         <input id="received_date" name="received_date" type="text"
@@ -222,6 +223,27 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
+                                            <div class="col-md-2">
+                                                <label class="form-label">Rent Type</label>
+                                                <select class="form-select" id="item_rent_type">
+                                                    <option value="day">Day</option>
+                                                    <option value="month">Month</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <label class="form-label">Duration</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="item_duration" min="1" step="1" placeholder="0">
+                                                    <span class="input-group-text" id="duration_label">Days</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <label class="form-label">Amount</label>
+                                                <input type="text" class="form-control" id="item_amount" readonly placeholder="0.00">
+                                            </div>
+
                                             <!-- Item Rental Date -->
                                             <div class="col-md-2">
                                                 <label for="item_rental_date" class="form-label">Rental Date</label>
@@ -251,6 +273,9 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <th>#</th>
                                                         <th>Equipment</th>
                                                         <th>Sub Equipment Code</th>
+                                                        <th>Type</th>
+                                                        <th>Duration</th>
+                                                        <th>Amount</th>
                                                         <th>Rental Date</th>
                                                         <th>Return Date</th>
                                                         <th>Status</th>
@@ -303,6 +328,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         <th>Rental Date</th>
                                         <th>Received Date</th>
                                         <th>Items</th>
+                                        <th>Outstanding</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>

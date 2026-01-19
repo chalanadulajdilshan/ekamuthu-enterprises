@@ -17,6 +17,7 @@ class DocumentTracking
     public $payment_receipt_id;
     public $payment_receipt_supplier_id;
     public $sales_return_id;
+    public $equipment_rent_id;
     public $vat_percentage;
     public $created_at;
     public $updated_at;
@@ -143,7 +144,8 @@ class DocumentTracking
             'sales_return' => 'sales_return_id',
             'payment_receipt' => 'payment_receipt_id',
             'payment_receipt_supplier' => 'payment_receipt_supplier_id',
-            'arn' => 'arn_id'
+            'arn' => 'arn_id',
+            'equipment_rent' => 'equipment_rent_id'
         ];
 
         // Check if valid type
