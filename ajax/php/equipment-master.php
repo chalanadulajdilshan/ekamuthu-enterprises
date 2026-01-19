@@ -33,6 +33,25 @@ if (isset($_POST['create'])) {
     $EQUIPMENT->rent_one_month = $_POST['rent_one_month'] ?? 0;
     $EQUIPMENT->value = $_POST['value'] ?? 0;
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
+    $EQUIPMENT->remark = $_POST['remark'] ?? '';
+
+    // Handle image upload
+    if (isset($_FILES['equipment_image']) && !empty($_FILES['equipment_image']['name'])) {
+        $handle = new Upload($_FILES['equipment_image']);
+        if ($handle->uploaded) {
+            $handle->image_resize = true;
+            $handle->file_new_name_ext = 'jpg';
+            $handle->image_ratio_crop = 'C';
+            $handle->file_new_name_body = 'EQUIP-' . time();
+            $handle->image_x = 600;
+            $handle->image_y = 600;
+            $handle->Process('../../uploads/equipment/');
+
+            if ($handle->processed) {
+                $EQUIPMENT->image_name = $handle->file_dst_name;
+            }
+        }
+    }
 
     $res = $EQUIPMENT->create();
 
@@ -81,6 +100,31 @@ if (isset($_POST['update'])) {
     $EQUIPMENT->rent_one_month = $_POST['rent_one_month'] ?? 0;
     $EQUIPMENT->value = $_POST['value'] ?? 0;
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
+    $EQUIPMENT->remark = $_POST['remark'] ?? '';
+    $EQUIPMENT->image_name = $_POST['old_image_name'] ?? '';
+
+    // Handle image upload
+    if (isset($_FILES['equipment_image']) && !empty($_FILES['equipment_image']['name'])) {
+        $handle = new Upload($_FILES['equipment_image']);
+        if ($handle->uploaded) {
+            // Delete old image if exists
+            if (!empty($EQUIPMENT->image_name) && file_exists('../../uploads/equipment/' . $EQUIPMENT->image_name)) {
+                unlink('../../uploads/equipment/' . $EQUIPMENT->image_name);
+            }
+
+            $handle->image_resize = true;
+            $handle->file_new_name_ext = 'jpg';
+            $handle->image_ratio_crop = 'C';
+            $handle->file_new_name_body = 'EQUIP-' . time();
+            $handle->image_x = 600;
+            $handle->image_y = 600;
+            $handle->Process('../../uploads/equipment/');
+
+            if ($handle->processed) {
+                $EQUIPMENT->image_name = $handle->file_dst_name;
+            }
+        }
+    }
 
     $res = $EQUIPMENT->update();
 
@@ -183,7 +227,9 @@ if (isset($_POST['filter'])) {
             "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
             "value" => $row['value'],
-            "quantity" => $row['quantity']
+            "quantity" => $row['quantity'],
+            "image_name" => $row['image_name'],
+            "remark" => $row['remark']
         ];
 
         $data[] = $nestedData;

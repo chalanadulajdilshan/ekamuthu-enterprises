@@ -16,10 +16,10 @@ jQuery(document).ready(function () {
             $("#rentItemsTable").show();
 
             rentItems.forEach(function (item, index) {
-                var statusBadge = item.status === 'returned' 
+                var statusBadge = item.status === 'returned'
                     ? '<span class="badge bg-soft-info">Returned</span>'
                     : '<span class="badge bg-soft-warning">Rented</span>';
-                
+
                 var actionBtns = '';
                 if (item.status === 'rented') {
                     actionBtns = '<button class="btn btn-sm btn-info return-item-btn me-1" data-index="' + index + '" title="Mark as Returned"><i class="uil uil-redo"></i></button>';
@@ -82,7 +82,7 @@ jQuery(document).ready(function () {
         });
 
         updateItemsTable();
-        
+
         // Clear item inputs
         $("#item_sub_equipment_id").val("");
         $("#item_sub_equipment_display").val("");
@@ -125,8 +125,8 @@ jQuery(document).ready(function () {
                 error: function (xhr) { console.error("Server Error:", xhr.responseText); },
             },
             columns: [
-                { data: "key", title: "#ID" },
-                { data: "code", title: "Code" },
+                { data: "id", title: "#ID" },
+                { data: "bill_number", title: "Bill Number" },
                 { data: "customer_name", title: "Customer" },
                 { data: "rental_date", title: "Rental Date" },
                 { data: "received_date", title: "Received Date" },
@@ -158,7 +158,7 @@ jQuery(document).ready(function () {
                 if (result.status === "success") {
                     var rent = result.rent;
                     $("#rent_id").val(rent.id);
-                    $("#code").val(rent.code);
+                    $("#code").val(rent.bill_number);
                     $("#customer_id").val(rent.customer_id);
                     $("#customer_display").val(rent.customer_name);
                     $("#rental_date").val(rent.rental_date);
@@ -172,7 +172,7 @@ jQuery(document).ready(function () {
                             equipment_id: item.equipment_id,
                             equipment_display: (item.equipment_code || '') + ' - ' + (item.equipment_name || ''),
                             sub_equipment_id: item.sub_equipment_id,
-                            sub_equipment_display: (item.sub_equipment_code || '') + ' - ' + (item.sub_equipment_name || ''),
+                            sub_equipment_display: (item.sub_equipment_code || ''),
                             rental_date: item.rental_date,
                             return_date: item.return_date,
                             quantity: item.quantity,
@@ -210,10 +210,13 @@ jQuery(document).ready(function () {
                 dataSrc: function (json) { return json.data; },
             },
             columns: [
-                { data: "key", title: "#" },
+                { data: "id", title: "#ID" },
                 { data: "code", title: "Code" },
                 { data: "name", title: "Name" },
                 { data: "mobile_number", title: "Mobile" },
+                { data: "nic", title: "NIC" },
+                { data: "address", title: "Address" },
+                { data: "outstanding", title: "Outstanding" },
             ],
             order: [[2, "asc"]],
             pageLength: 50,
@@ -283,7 +286,7 @@ jQuery(document).ready(function () {
 
     function loadSubEquipmentTable() {
         var equipmentId = $("#item_equipment_id").val();
-        
+
         if (!equipmentId) {
             $("#noSubEquipmentMsg").show();
             if ($.fn.DataTable.isDataTable("#subEquipmentSelectTable")) {
@@ -306,21 +309,20 @@ jQuery(document).ready(function () {
             ajax: {
                 url: "ajax/php/equipment-rent-master.php",
                 type: "POST",
-                data: function (d) { 
-                    d.filter_sub_equipment = true; 
+                data: function (d) {
+                    d.filter_sub_equipment = true;
                     d.equipment_id = equipmentId;
                 },
-                dataSrc: function (json) { 
+                dataSrc: function (json) {
                     if (json.data.length === 0) {
                         $("#noSubEquipmentMsg").show();
                     }
-                    return json.data; 
+                    return json.data;
                 },
             },
             columns: [
                 { data: "key", title: "#" },
                 { data: "code", title: "Code" },
-                { data: "name", title: "Name" },
                 { data: "status_label", title: "Status" },
             ],
             order: [[1, "asc"]],
@@ -335,7 +337,7 @@ jQuery(document).ready(function () {
                     return;
                 }
                 $("#item_sub_equipment_id").val(data.id);
-                $("#item_sub_equipment_display").val(data.code + " - " + data.name);
+                $("#item_sub_equipment_display").val(data.code);
                 $("#SubEquipmentSelectModal").modal("hide");
             }
         });

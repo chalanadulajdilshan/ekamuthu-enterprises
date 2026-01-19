@@ -24,7 +24,6 @@ if (isset($_POST['create'])) {
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
-    $SUB_EQUIPMENT->name = $_POST['name'] ?? '';
 
     $res = $SUB_EQUIPMENT->create();
 
@@ -64,7 +63,6 @@ if (isset($_POST['update'])) {
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
-    $SUB_EQUIPMENT->name = $_POST['name'] ?? '';
 
     $res = $SUB_EQUIPMENT->update();
 

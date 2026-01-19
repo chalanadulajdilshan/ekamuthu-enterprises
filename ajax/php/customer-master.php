@@ -7,6 +7,102 @@ ini_set('display_errors', 0);
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
 
+// Add Old Outstanding Detail
+if (isset($_POST['action']) && $_POST['action'] == 'add_old_outstanding_detail') {
+    
+    $customerId = $_POST['detail_customer_id'] ?? 0;
+    $invoiceNo = $_POST['detail_invoice_no'] ?? '';
+    $date = $_POST['detail_date'] ?? '';
+    $amount = $_POST['detail_amount'] ?? 0;
+    $status = $_POST['detail_status'] ?? 'Not Paid';
+    
+    if(!$customerId || !$invoiceNo || !$date || !$amount) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing fields']);
+        exit;
+    }
+    
+    $db = Database::getInstance();
+    
+    $query = "INSERT INTO customer_old_outstanding (customer_id, invoice_no, date, amount, status) 
+              VALUES ('$customerId', '$invoiceNo', '$date', '$amount', '$status')";
+              
+    $result = $db->readQuery($query);
+    
+    if($result) {
+        // If status is Not Paid, update customer master total
+        if($status === 'Not Paid') {
+            $updateQuery = "UPDATE customer_master SET old_outstanding = old_outstanding + $amount WHERE id = $customerId";
+            $db->readQuery($updateQuery);
+        }
+        
+        echo json_encode(['status' => 'success']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+    }
+    
+    exit;
+}
+
+
+// Get Old Outstanding Details
+if (isset($_POST['action']) && $_POST['action'] == 'get_old_outstanding_details') {
+    $customerId = $_POST['customer_id'] ?? 0;
+    
+    if(!$customerId) {
+        echo json_encode([]);
+        exit;
+    }
+    
+    $db = Database::getInstance();
+    $query = "SELECT * FROM customer_old_outstanding WHERE customer_id = $customerId ORDER BY date DESC";
+    $result = $db->readQuery($query);
+    
+    $data = [];
+    while($row = mysqli_fetch_assoc($result)) {
+        $data[] = $row;
+    }
+    
+    echo json_encode($data);
+    exit;
+}
+
+// Delete Old Outstanding Detail
+if (isset($_POST['action']) && $_POST['action'] == 'delete_old_outstanding_detail') {
+    $id = $_POST['id'] ?? 0;
+    
+    if(!$id) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid ID']);
+        exit;
+    }
+    
+    $db = Database::getInstance();
+    
+    // First get the detail to check status and amount
+    $checkQuery = "SELECT * FROM customer_old_outstanding WHERE id = $id";
+    $detail = mysqli_fetch_assoc($db->readQuery($checkQuery));
+    
+    if($detail) {
+        $deleteQuery = "DELETE FROM customer_old_outstanding WHERE id = $id";
+        if($db->readQuery($deleteQuery)) {
+            
+            // If it was Not Paid, deduct from total
+            if($detail['status'] === 'Not Paid') {
+                $customerId = $detail['customer_id'];
+                $amount = $detail['amount'];
+                $updateQuery = "UPDATE customer_master SET old_outstanding = old_outstanding - $amount WHERE id = $customerId";
+                $db->readQuery($updateQuery);
+            }
+            
+            echo json_encode(['status' => 'success']);
+        } else {
+             echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Record not found']);
+    }
+    exit;
+}
+
 // Create a new customer
 if (isset($_POST['create'])) {
 
@@ -39,37 +135,27 @@ if (isset($_POST['create'])) {
     $CUSTOMER->name = strtoupper($_POST['name']);
     $CUSTOMER->mobile_number = $_POST['mobile_number'];
     $CUSTOMER->mobile_number_2 = $_POST['mobile_number_2'] ?? '';
-    $CUSTOMER->email = $_POST['email'] ?? '';
-    $CUSTOMER->contact_person = strtoupper($_POST['contact_person'] ?? '');
-    $CUSTOMER->contact_person_number = $_POST['contact_person_number'] ?? '';
-    $CUSTOMER->credit_limit = $_POST['credit_limit'] ?? 0;
-    $CUSTOMER->outstanding = $_POST['outstanding'] ?? 0;
     $CUSTOMER->old_outstanding = $_POST['old_outstanding'] ?? 0;
     $CUSTOMER->address = strtoupper($_POST['address'] ?? '');
     $CUSTOMER->remark = $_POST['remark'] ?? '';
-    $CUSTOMER->vat_no = $_POST['vat_no'] ?? '';
     $CUSTOMER->nic = $_POST['nic'] ?? '';
-    $CUSTOMER->water_bill_no = $_POST['water_bill_no'] ?? '';
-    $CUSTOMER->electricity_bill_no = $_POST['electricity_bill_no'] ?? '';
+    $CUSTOMER->utility_bill_no = $_POST['water_bill_no'] ?? $_POST['utility_bill_no'] ?? '';
     $CUSTOMER->workplace_address = strtoupper($_POST['workplace_address'] ?? '');
     $CUSTOMER->guarantor_name = strtoupper($_POST['guarantor_name'] ?? '');
     $CUSTOMER->guarantor_nic = $_POST['guarantor_nic'] ?? '';
     $CUSTOMER->guarantor_address = strtoupper($_POST['guarantor_address'] ?? '');
-    $CUSTOMER->category = $_POST['category'] ?? 1;
-    $CUSTOMER->is_active = isset($_POST['is_active']) ? 1 : 0;
     
     // Document image fields
     $CUSTOMER->nic_image_1 = $_POST['nic_image_1'] ?? '';
     $CUSTOMER->nic_image_2 = $_POST['nic_image_2'] ?? '';
-    $CUSTOMER->water_bill_image = $_POST['water_bill_image_1'] ?? '';
-    $CUSTOMER->electricity_bill_image = $_POST['electricity_bill_image_1'] ?? '';
+    $CUSTOMER->utility_bill_image = $_POST['water_bill_image_1'] ?? $_POST['utility_bill_image_1'] ?? '';
     $CUSTOMER->guarantor_nic_image_1 = $_POST['guarantor_nic_image_1'] ?? '';
     $CUSTOMER->guarantor_nic_image_2 = $_POST['guarantor_nic_image_2'] ?? '';
+    $CUSTOMER->guarantor_photo_image = $_POST['guarantor_photo_image_1'] ?? '';
     
     // Company fields
     $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
-    $CUSTOMER->po_document = $_POST['po_document_image_1'] ?? '';
-    $CUSTOMER->letterhead_document = $_POST['letterhead_document_image_1'] ?? '';
+    $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'] ?? '';
     
     $res = $CUSTOMER->create();
 
@@ -140,7 +226,7 @@ if (isset($_POST['create-invoice-customer'])) {
     if ($res) {
 
         $CUSTOMER = new CustomerMaster($res);
-        echo json_encode(["status" => "success", "customer_id" => $CUSTOMER->id, "customer_code" => $CUSTOMER->code, "customer_name" => trim(($CUSTOMER->name ?? '') . ' ' . ($CUSTOMER->name_2 ?? '')), "customer_address" => $CUSTOMER->address, "customer_mobile_number" => $CUSTOMER->mobile_number]);
+        echo json_encode(["status" => "success", "customer_id" => $CUSTOMER->id, "customer_code" => $CUSTOMER->code, "customer_name" => $CUSTOMER->name, "customer_address" => $CUSTOMER->address, "customer_mobile_number" => $CUSTOMER->mobile_number]);
         exit();
     } else {
         echo json_encode(["status" => "error"]);
@@ -180,24 +266,15 @@ if (isset($_POST['update'])) {
     $CUSTOMER->name = strtoupper($_POST['name']);
     $CUSTOMER->mobile_number = $_POST['mobile_number'];
     $CUSTOMER->mobile_number_2 = $_POST['mobile_number_2'];
-    $CUSTOMER->email = $_POST['email'];
-    $CUSTOMER->contact_person = strtoupper($_POST['contact_person']);
-    $CUSTOMER->contact_person_number = $_POST['contact_person_number'];
-    $CUSTOMER->credit_limit = $_POST['credit_limit'];
-    $CUSTOMER->vat_no = $_POST['vat_no'];
-    $CUSTOMER->outstanding = $_POST['outstanding'];
     $CUSTOMER->old_outstanding = $_POST['old_outstanding'];
     $CUSTOMER->address = strtoupper($_POST['address']);
     $CUSTOMER->remark = $_POST['remark'];
     $CUSTOMER->nic = $_POST['nic'] ?? '';
-    $CUSTOMER->water_bill_no = $_POST['water_bill_no'] ?? '';
-    $CUSTOMER->electricity_bill_no = $_POST['electricity_bill_no'] ?? '';
+    $CUSTOMER->utility_bill_no = $_POST['water_bill_no'] ?? $_POST['utility_bill_no'] ?? '';
     $CUSTOMER->workplace_address = strtoupper($_POST['workplace_address'] ?? '');
     $CUSTOMER->guarantor_name = strtoupper($_POST['guarantor_name'] ?? '');
     $CUSTOMER->guarantor_nic = $_POST['guarantor_nic'] ?? '';
     $CUSTOMER->guarantor_address = strtoupper($_POST['guarantor_address'] ?? '');
-    $CUSTOMER->category = $_POST['category'];
-    $CUSTOMER->is_active = isset($_POST['is_active']) ? 1 : 0;
     
     // Document image fields - only update if new data is provided
     if (!empty($_POST['nic_image_1'])) {
@@ -206,11 +283,8 @@ if (isset($_POST['update'])) {
     if (!empty($_POST['nic_image_2'])) {
         $CUSTOMER->nic_image_2 = $_POST['nic_image_2'];
     }
-    if (!empty($_POST['water_bill_image_1'])) {
-        $CUSTOMER->water_bill_image = $_POST['water_bill_image_1'];
-    }
-    if (!empty($_POST['electricity_bill_image_1'])) {
-        $CUSTOMER->electricity_bill_image = $_POST['electricity_bill_image_1'];
+    if (!empty($_POST['water_bill_image_1']) || !empty($_POST['utility_bill_image_1'])) {
+        $CUSTOMER->utility_bill_image = $_POST['water_bill_image_1'] ?? $_POST['utility_bill_image_1'];
     }
     if (!empty($_POST['guarantor_nic_image_1'])) {
         $CUSTOMER->guarantor_nic_image_1 = $_POST['guarantor_nic_image_1'];
@@ -218,14 +292,14 @@ if (isset($_POST['update'])) {
     if (!empty($_POST['guarantor_nic_image_2'])) {
         $CUSTOMER->guarantor_nic_image_2 = $_POST['guarantor_nic_image_2'];
     }
+    if (!empty($_POST['guarantor_photo_image_1'])) {
+        $CUSTOMER->guarantor_photo_image = $_POST['guarantor_photo_image_1'];
+    }
     
     // Company fields
     $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
-    if (!empty($_POST['po_document_image_1'])) {
-        $CUSTOMER->po_document = $_POST['po_document_image_1'];
-    }
-    if (!empty($_POST['letterhead_document_image_1'])) {
-        $CUSTOMER->letterhead_document = $_POST['letterhead_document_image_1'];
+    if (!empty($_POST['po_document_image_1']) || !empty($_POST['company_document_image_1'])) {
+        $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'];
     }
 
     $res = $CUSTOMER->update();
@@ -275,45 +349,10 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
 
 if (isset($_POST['filter'])) {
 
-    // Make sure category is always an array
-    $categories = isset($_POST['category']) ? (array) $_POST['category'] : [];
-
-    // Sanitize to integers
-    $categories = array_map('intval', $categories);
-
     $CUSTOMER_MASTER = new CustomerMaster();
-    $response = $CUSTOMER_MASTER->fetchForDataTable($_REQUEST, $categories);
+    $response = $CUSTOMER_MASTER->fetchForDataTable($_REQUEST, []);
 
-    // Inject raw is_vat value from customer_master for each row (batched for performance)
-    if (isset($response['data']) && is_array($response['data']) && count($response['data']) > 0) {
-        $ids = [];
-        foreach ($response['data'] as $r) {
-            if (isset($r['id'])) {
-                $ids[] = (int) $r['id'];
-            }
-        }
 
-        if (!empty($ids)) {
-            $db = Database::getInstance();
-            $idList = implode(',', $ids);
-
-            $sql = "SELECT id, is_vat FROM customer_master WHERE id IN ($idList)";
-            $res = $db->readQuery($sql);
-
-            $vatMap = [];
-            if ($res) {
-                while ($row = mysqli_fetch_assoc($res)) {
-                    $vatMap[(int) $row['id']] = (int) $row['is_vat'];
-                }
-            }
-
-            foreach ($response['data'] as &$row) {
-                $id = isset($row['id']) ? (int) $row['id'] : 0;
-                $row['is_vat'] = isset($vatMap[$id]) ? $vatMap[$id] : 0; // raw 0/1 value
-            }
-            unset($row);
-        }
-    }
 
     echo json_encode($response);
     exit;
@@ -335,96 +374,7 @@ if (isset($_POST['query'])) {
     exit;
 }
 
-// Fetch customers for DataTable
-if (isset($_POST['action']) && $_POST['action'] === 'fetch_customers') {
-    $db = Database::getInstance();
 
-    // Get request parameters
-    $draw = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
-    $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
-    $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
-    $searchValue = isset($_POST['search']['value']) ? $db->escapeString($_POST['search']['value']) : '';
-    $orderColumn = isset($_POST['order'][0]['column']) ? intval($_POST['order'][0]['column']) : 2; // Default sort by name
-    $orderDir = isset($_POST['order'][0]['dir']) ? $db->escapeString($_POST['order'][0]['dir']) : 'asc';
-
-    // Column mapping
-    $columns = [
-        0 => 'id',
-        1 => 'code',
-        2 => 'name',
-        3 => 'mobile_number',
-        4 => 'email',
-        5 => 'category_name',
-        6 => 'credit_limit',
-        7 => 'outstanding',
-        8 => 'vat_no',
-        9 => 'status_label'
-    ];
-
-    $orderBy = isset($columns[$orderColumn]) ? $columns[$orderColumn] : 'name';
-
-    try {
-        // Base query - Only fetch customers with category = 1
-        $query = "SELECT SQL_CALC_FOUND_ROWS cm.id, cm.code, cm.name, cm.mobile_number, cm.email, 
-                  cm.credit_limit, cm.outstanding, cm.is_vat, cc.name as category_name, cm.province,
-                  CASE WHEN cm.is_active = 1 THEN 'Active' ELSE 'Inactive' END as status_label 
-                  FROM customer_master cm
-                  LEFT JOIN customer_category cc ON cm.category = cc.id
-                  WHERE cm.category = 1";
-
-        // Add search condition
-        if (!empty($searchValue)) {
-            $query .= " AND (cm.name LIKE '%$searchValue%' OR cm.code LIKE '%$searchValue%' OR cm.mobile_number LIKE '%$searchValue%' OR cm.email LIKE '%$searchValue%')";
-        }
-
-        // Add status filter if provided
-        if (isset($_POST['status']) && $_POST['status'] === 'active') {
-            $query .= " AND cm.is_active = 1";
-        }
-
-        // Add ordering
-        $query .= " ORDER BY $orderBy $orderDir";
-
-        // Add pagination
-        $query .= " LIMIT $start, $length";
-
-        // Execute query
-        $result = $db->readQuery($query);
-        $data = [];
-
-        if ($result) {
-            while ($row = mysqli_fetch_assoc($result)) {
-                $data[] = $row;
-            }
-
-            // Get total records
-            $totalResult = $db->readQuery("SELECT FOUND_ROWS() as total");
-            $totalRow = mysqli_fetch_assoc($totalResult);
-            $totalRecords = $totalRow['total'];
-
-            // Prepare response
-            $response = [
-                'draw' => $draw,
-                'recordsTotal' => $totalRecords,
-                'recordsFiltered' => $totalRecords,
-                'data' => $data
-            ];
-
-            header('Content-Type: application/json');
-            echo json_encode($response);
-            exit();
-        } else {
-            throw new Exception('Database query failed: ' . mysqli_error($db->DB_CON));
-        }
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'error' => true,
-            'message' => $e->getMessage()
-        ]);
-        exit();
-    }
-}
 
 // Make sure to use isset() before accessing $_POST['action']
 if (isset($_POST['action']) && $_POST['action'] == 'get_first_customer') {
@@ -433,12 +383,10 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_first_customer') {
     $response = [
         "status" => "success",
         "customer_id" => $CUSTOMER->id,
-        "customer_name" => trim(($CUSTOMER->name ?? '') . ' ' . ($CUSTOMER->name_2 ?? '')),
+        "customer_name" => $CUSTOMER->name,
         "customer_code" => $CUSTOMER->code ?? '',
-        "vat_no" => $CUSTOMER->vat_no,
         "mobile_number" => $CUSTOMER->mobile_number,
-        "customer_address" => $CUSTOMER->address,
-        "email" => $CUSTOMER->email ?? ''
+        "customer_address" => $CUSTOMER->address
     ];
 
     echo json_encode($response);

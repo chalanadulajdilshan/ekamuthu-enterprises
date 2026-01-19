@@ -17,9 +17,7 @@ $(document).ready(function () {
             type: 'POST',
             data: function (d) {
                 d.filter = true;
-                d.category = '1'; // Filter for category = 1 only
-                d.status = 'active'; // Keep the active status filter
-                d.old_outstanding_only = true; // Add filter for old outstanding > 0
+                d.old_outstanding_only = true;
             },
             dataSrc: function (json) {
                 console.log('Server response:', json);
@@ -34,29 +32,18 @@ $(document).ready(function () {
             }
         },
         columns: [
-            { data: 'id' },
+            { data: 'key' },
             { data: 'code' },
             { data: 'name' },
             { data: 'mobile_number' },
-            { data: 'email' },
-            { data: 'category' },
-            { data: 'credit_limit' },
-            { data: 'old_outstanding' },   // Old Outstanding amount for this page
-            {
-                data: 'is_vat',
-                render: function(data) {
-                    return (data === 1 || data === '1') ? 'Yes' : 'No';
-                }
-            },
-            {
-                data: 'status_label',
-                orderable: false
-            }
+            { data: 'nic' },
+            { data: 'address' },
+            { data: 'old_outstanding' }
         ],
         order: [[0, "desc"]],
         pageLength: 100,
         responsive: true,
-        createdRow: function(row, data, index) {
+        createdRow: function (row, data, index) {
             $('td:eq(5)', row).removeClass('text-danger');
         },
         serverParams: function (data) {
@@ -209,7 +196,7 @@ $(document).ready(function () {
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Customer Name</label>
-                                    <input type="text" class="form-control" value="${customer.name}${customer.name_2 ? ' ' + customer.name_2 : ''}" readonly>
+                                    <input type="text" class="form-control" value="${customer.name}" readonly>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Old Outstanding Amount</label>
@@ -262,14 +249,14 @@ $(document).ready(function () {
         $('#settlementContainer').html(formHtml);
 
         // Update remaining amount when settlement amount changes
-        $('#settlementAmount').on('input', function() {
+        $('#settlementAmount').on('input', function () {
             const settlementAmount = parseFloat($(this).val()) || 0;
             const remaining = Math.max(0, oldOutstanding - settlementAmount);
             $('#remainingAmount').text(remaining.toFixed(2));
         });
 
         // Handle settle button click
-        $('#settleBtn').on('click', function() {
+        $('#settleBtn').on('click', function () {
             const settlementAmount = parseFloat($('#settlementAmount').val()) || 0;
             const remarks = $('#settlementRemarks').val().trim();
 
@@ -310,7 +297,7 @@ $(document).ready(function () {
         });
 
         // Handle clear button click
-        $('#clearBtn').on('click', function() {
+        $('#clearBtn').on('click', function () {
             Swal.fire({
                 title: 'Clear All Old Outstanding',
                 text: 'Are you sure you want to clear all old outstanding amount for this customer?',
@@ -340,7 +327,7 @@ $(document).ready(function () {
                 amount: amount,
                 remarks: remarks
             },
-            beforeSend: function() {
+            beforeSend: function () {
                 Swal.fire({
                     title: 'Processing...',
                     text: 'Please wait while we process the settlement',

@@ -28,13 +28,11 @@ try {
                     cm.id,
                     cm.code,
                     cm.name,
-                    cm.name_2,
                     cm.mobile_number,
                     cm.old_outstanding
                   FROM
                     customer_master cm
                   WHERE
-                    cm.is_active = 1 AND
                     cm.old_outstanding > 0";
 
         // Add customer filter if provided
@@ -56,7 +54,7 @@ try {
                 'id' => $row['id'],
                 'code' => $row['code'],
                 'name' => $row['name'],
-                'name_2' => $row['name_2'],
+
                 'mobile_number' => $row['mobile_number'],
                 'old_outstanding' => (float)$row['old_outstanding']
             ];

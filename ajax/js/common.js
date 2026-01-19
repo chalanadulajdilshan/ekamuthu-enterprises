@@ -256,7 +256,6 @@ jQuery(document).ready(function () {
         type: "POST",
         data: function (d) {
           d.filter = true;
-          d.category = [1];
         },
         dataSrc: function (json) {
           return json.data;
@@ -268,12 +267,18 @@ jQuery(document).ready(function () {
       columns: [
         { data: "key", title: "#ID" },
         { data: "code", title: "Code" },
-        { data: "display_name", title: "Name" },
+        {
+          data: "is_company",
+          title: "Type",
+          render: function (data, type, row) {
+            return data == 1 ? '<span class="badge bg-primary">Company</span>' : '<span class="badge bg-success">Individual</span>';
+          }
+        },
+        { data: "name", title: "Name" },
+        { data: "nic", title: "NIC" },
         { data: "mobile_number", title: "Mobile" },
-        { data: "email", title: "Email" },
-        { data: "credit_limit", title: "Credit Limit" },
-        { data: "vat_no", title: "Is Vat" },
-        { data: "status_label", title: "Status" },
+        { data: "address", title: "Address" },
+        { data: "old_outstanding", title: "Outstanding" },
       ],
       order: [[0, "desc"]],
       pageLength: 100,
@@ -286,51 +291,25 @@ jQuery(document).ready(function () {
         var data = $("#allCustomerTable").DataTable().row(this).data();
 
         if (data) {
+          $("#id").val(data.id || "");
           $("#customer_id").val(data.id || "");
           $("#code").val(data.code || "");
-          $("#name").val(data.name || ""); // First name
-          $("#name_2").val(data.name_2 || ""); // Last name
+          $("#name").val(data.name || "");
           $("#address").val(data.address || "");
           $("#mobile_number").val(data.mobile_number || "");
           $("#mobile_number_2").val(data.mobile_number_2 || "");
-          $("#email").val(data.email || "");
-          $("#contact_person").val(data.contact_person || "");
-          $("#contact_person_number").val(data.contact_person_number || "");
-
-          // Checkbox (is_active), assuming 1 = checked, 0 = unchecked
-          $("#is_active").prop("checked", data.status == 1);
-
-          $("#credit_limit").val(data.credit_limit || "");
-          $("#outstanding").val(data.outstanding || "");
           $("#old_outstanding").val(data.old_outstanding || "");
-          $("#overdue").val(data.overdue || "");
-          $("#vat_no").val(data.vat_no || "");
-          $("#svat_no").val(data.svat_no || "");
-
-          // For select inputs, set value and trigger change to update select2 UI if used
-          $("#category")
-            .val(data.category_id || "")
-            .trigger("change");
-          $("#province")
-            .val(data.province_id || "")
-            .trigger("change");
-          $("#district")
-            .val(data.district_id || "")
-            .trigger("change");
-          $("#vat_group")
-            .val(data.vat_group || "")
-            .trigger("change");
-
           $("#remark").val(data.remark || "");
           $("#nic").val(data.nic || "");
-          $("#water_bill_no").val(data.water_bill_no || "");
-          $("#electricity_bill_no").val(data.electricity_bill_no || "");
+          $("#water_bill_no").val(data.utility_bill_no || "");
+          $("#utility_bill_no").val(data.utility_bill_no || "");
 
           // New fields - workplace address and guarantor details
           $("#workplace_address").val(data.workplace_address || "");
           $("#guarantor_name").val(data.guarantor_name || "");
           $("#guarantor_nic").val(data.guarantor_nic || "");
           $("#guarantor_address").val(data.guarantor_address || "");
+          $("#guarantor_photo_image_1").val(data.guarantor_photo || "");
 
           // Company checkbox and fields
           $("#is_company").prop("checked", data.is_company == 1);
@@ -343,15 +322,15 @@ jQuery(document).ready(function () {
           // Load image previews if they exist
           loadImagePreview("nic", 1, data.nic_image_1);
           loadImagePreview("nic", 2, data.nic_image_2);
-          loadImagePreview("water_bill", 1, data.water_bill_image);
-          loadImagePreview("electricity_bill", 1, data.electricity_bill_image);
+          loadImagePreview("water_bill", 1, data.utility_bill_image);
           loadImagePreview("guarantor_nic", 1, data.guarantor_nic_image_1);
           loadImagePreview("guarantor_nic", 2, data.guarantor_nic_image_2);
-          loadDocumentPreview("po_document", data.po_document);
-          loadDocumentPreview("letterhead_document", data.letterhead_document);
+          loadImagePreview("guarantor_photo", 1, data.guarantor_photo);
+          loadDocumentPreview("po_document", data.company_document);
 
           $("#create").hide();
           $("#update").show();
+          $("#btnAddDescription").show(); // Show Detail Button
           // Close the modal
           $("#AllCustomerModal").modal("hide");
         }
