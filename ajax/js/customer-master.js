@@ -102,93 +102,93 @@ jQuery(document).ready(function () {
           errorMsg = "Please upload NIC Back Image";
         } else if (!($("#water_bill_image_1").val() || $("#utility_bill_image_1").val())) {
           errorMsg = "Please upload Utility Bill Image";
-
         }
-
-        if (errorMsg) {
-          $("#create").prop("disabled", false);
-          swal({
-            title: "Error!",
-            text: errorMsg,
-            type: "error",
-            timer: 3000,
-            showConfirmButton: true
-          });
-          return;
-        }
-        // -----------------------------------
-        // Show page preloader
-        $("#page-preloader").show();
-
-        var formData = new FormData($("#form-data")[0]);
-        formData.append("create", true);
-        $.ajax({
-          url: "ajax/php/customer-master.php",
-          type: "POST",
-          data: formData,
-          async: false,
-          cache: false,
-          contentType: false,
-          processData: false,
-          dataType: "JSON",
-          success: function (result) {
-            // Hide page preloader
-            $("#page-preloader").hide();
-
-            // Re-enable the button
-            $("#create").prop("disabled", false);
-
-            if (result.status === "success") {
-              swal({
-                title: "Success!",
-                text: "Customer added successfully!",
-                type: "success",
-                timer: 2000,
-                showConfirmButton: false,
-              });
-
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
-            } else if (result.status === "duplicate") {
-              swal({
-                title: "Duplicate Entry!",
-                text: result.message,
-                type: "warning",
-                showConfirmButton: true,
-              });
-            } else {
-              swal({
-                title: "Error!",
-                text: "Something went wrong.",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false,
-              });
-            }
-          },
-          error: function (xhr, status, error) {
-            // Hide page preloader
-            $("#page-preloader").hide();
-
-            // Re-enable the button
-            $("#create").prop("disabled", false);
-
-            console.error("AJAX Error:", status, error);
-            console.error("Response:", xhr.responseText);
-
-            swal({
-              title: "Error!",
-              text: "Failed to create customer. Please check the console for details.",
-              type: "error",
-              showConfirmButton: true,
-            });
-          },
-        });
       }
 
-      return false;
-    });
+      if (errorMsg) {
+        $("#create").prop("disabled", false);
+        swal({
+          title: "Error!",
+          text: errorMsg,
+          type: "error",
+          timer: 3000,
+          showConfirmButton: true
+        });
+        return;
+      }
+      // -----------------------------------
+      // Show page preloader
+      $("#page-preloader").show();
+
+      var formData = new FormData($("#form-data")[0]);
+      formData.append("create", true);
+      $.ajax({
+        url: "ajax/php/customer-master.php",
+        type: "POST",
+        data: formData,
+        async: false,
+        cache: false,
+        contentType: false,
+        processData: false,
+        dataType: "JSON",
+        success: function (result) {
+          // Hide page preloader
+          $("#page-preloader").hide();
+
+          // Re-enable the button
+          $("#create").prop("disabled", false);
+
+          if (result.status === "success") {
+            swal({
+              title: "Success!",
+              text: "Customer added successfully!",
+              type: "success",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } else if (result.status === "duplicate") {
+            swal({
+              title: "Duplicate Entry!",
+              text: result.message,
+              type: "warning",
+              showConfirmButton: true,
+            });
+          } else {
+            swal({
+              title: "Error!",
+              text: "Something went wrong.",
+              type: "error",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          }
+        },
+        error: function (xhr, status, error) {
+          // Hide page preloader
+          $("#page-preloader").hide();
+
+          // Re-enable the button
+          $("#create").prop("disabled", false);
+
+          console.error("AJAX Error:", status, error);
+          console.error("Response:", xhr.responseText);
+
+          swal({
+            title: "Error!",
+            text: "Failed to create customer. Please check the console for details.",
+            type: "error",
+            showConfirmButton: true,
+          });
+        },
+      });
+    }
+
+    return false;
+  });
 
   // New Button - Reset Form
   $("#new").click(function () {
@@ -364,6 +364,36 @@ jQuery(document).ready(function () {
         type: "error",
         timer: 3000,
         showConfirmButton: true,
+      });
+    } else if (!$("#guarantor_name").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor name",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#guarantor_nic").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor NIC",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else if (!$("#guarantor_address").val()) {
+      // Re-enable the button on validation error
+      $("#update").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Please enter guarantor address",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
       });
     } else {
       // Show page preloader
