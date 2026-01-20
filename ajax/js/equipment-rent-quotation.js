@@ -8,9 +8,10 @@ jQuery(document).ready(function () {
     function calculateRentDetails() {
         var rentType = $("#item_rent_type").val();
         var duration = parseFloat($("#item_duration").val()) || 0;
+        var qty = parseFloat($("#item_qty").val()) || 1;
         var rentalDate = $("#item_rental_date").val();
 
-        if (!rentalDate || duration <= 0) {
+        if (!rentalDate || duration < 0) {
             $("#item_amount").val("0.00");
             return;
         }
@@ -19,11 +20,11 @@ jQuery(document).ready(function () {
         var returnDate = new Date(rentalDate);
 
         if (rentType === "day") {
-            amount = currentRentOneDay * duration;
+            amount = currentRentOneDay * duration * qty;
             returnDate.setDate(returnDate.getDate() + duration);
             $("#duration_label").text("Days");
         } else {
-            amount = currentRentOneMonth * duration;
+            amount = currentRentOneMonth * duration * qty;
             returnDate.setMonth(returnDate.getMonth() + duration);
             $("#duration_label").text("Months");
         }
@@ -73,10 +74,11 @@ jQuery(document).ready(function () {
         $("#item_duration").val(duration);
 
         var amount = 0;
+        var qty = parseFloat($("#item_qty").val()) || 1;
         if (rentType === "day") {
-            amount = currentRentOneDay * duration;
+            amount = currentRentOneDay * duration * qty;
         } else {
-            amount = currentRentOneMonth * duration;
+            amount = currentRentOneMonth * duration * qty;
         }
         $("#item_amount").val(amount.toFixed(2));
     }
@@ -116,6 +118,9 @@ jQuery(document).ready(function () {
                     "</td>" +
                     "<td>" +
                     '<span class="badge ' + (item.rent_type === 'month' ? 'bg-primary' : 'bg-info') + '">' + parseFloat(item.duration).toFixed(0) + (item.rent_type === 'month' ? ' Months' : ' Days') + '</span>' +
+                    "</td>" +
+                    "<td>" +
+                    parseFloat(item.quantity || 1).toFixed(0) +
                     "</td>" +
                     "<td>" +
                     parseFloat(item.amount).toFixed(2) +
@@ -194,6 +199,7 @@ jQuery(document).ready(function () {
             return_date: returnDate,
             rent_type: $("#item_rent_type").val(),
             duration: $("#item_duration").val(),
+            quantity: $("#item_qty").val(),
             amount: $("#item_amount").val(),
             status: "pending",
             remark: "",
@@ -206,11 +212,12 @@ jQuery(document).ready(function () {
         $("#item_sub_equipment_display").val("");
         $("#item_return_date").val("");
         $("#item_duration").val("");
+        $("#item_qty").val(1);
         $("#item_amount").val("");
     });
 
     // Calculate on input changes
-    $("#item_rent_type, #item_duration, #item_rental_date").on("change keyup", function () {
+    $("#item_rent_type, #item_duration, #item_qty, #item_rental_date").on("change keyup", function () {
         calculateRentDetails();
     });
 

@@ -12,6 +12,8 @@ class EquipmentRentQuotationItem
     public $rent_type;
     public $duration;
     public $amount;
+    public $transport;
+    public $deposit;
     public $status;
     public $remark;
     public $created_at;
@@ -35,6 +37,8 @@ class EquipmentRentQuotationItem
                 $this->rent_type = $result['rent_type'];
                 $this->duration = $result['duration'];
                 $this->amount = $result['amount'];
+                $this->transport = $result['transport'] ?? 0.00;
+                $this->deposit = $result['deposit'] ?? 0.00;
                 $this->status = $result['status'];
                 $this->remark = $result['remark'];
                 $this->created_at = $result['created_at'];

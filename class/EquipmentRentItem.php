@@ -12,6 +12,7 @@ class EquipmentRentItem
     public $rent_type;
     public $duration;
     public $amount;
+    public $deposit_amount;
     public $status;
     public $remark;
     public $created_at;
@@ -35,6 +36,7 @@ class EquipmentRentItem
                 $this->rent_type = $result['rent_type'];
                 $this->duration = $result['duration'];
                 $this->amount = $result['amount'];
+                $this->deposit_amount = $result['deposit_amount'] ?? 0;
                 $this->status = $result['status'];
                 $this->remark = $result['remark'];
                 $this->created_at = $result['created_at'];
@@ -46,10 +48,10 @@ class EquipmentRentItem
     public function create()
     {
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`
         ) VALUES (
             '$this->rent_id', '$this->equipment_id', '$this->sub_equipment_id', '$this->rental_date', " .
-            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark'
+            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount'
         )";
 
         $db = Database::getInstance();
@@ -85,6 +87,7 @@ class EquipmentRentItem
             `rent_type` = '$this->rent_type',
             `duration` = '$this->duration',
             `amount` = '$this->amount',
+            `deposit_amount` = '$this->deposit_amount',
             `status` = '$this->status',
             `remark` = '$this->remark'
             WHERE `id` = '$this->id'";

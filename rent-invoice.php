@@ -38,16 +38,13 @@ $rent_items = $EQUIPMENT_RENT->getItems();
 
 // Calculate totals
 $total_amount = 0;
-$total_deposit = 0;
 foreach ($rent_items as $item) {
     $total_amount += floatval($item['amount']);
-    // Get deposit from equipment
-    $EQUIPMENT = new Equipment($item['equipment_id']);
-    $total_deposit += floatval($EQUIPMENT->deposit_one_day) * floatval($item['duration']);
 }
 
-// Transport amount (can be added to database later if needed)
-$transport_amount = 0;
+// Transport amount from record
+$transport_amount = floatval($EQUIPMENT_RENT->transport_cost);
+$total_deposit = floatval($EQUIPMENT_RENT->deposit_total);
 
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;
@@ -203,12 +200,12 @@ if (!empty($customerMobile)) {
                     <table class="table table-bordered table-centered">
                         <thead class="table-light">
                             <tr>
-                                <th style="width:40px;">No.</th>
+                                <th>No.</th>
                                 <th>Equipment Name - උපකරණ නම</th>
                                 <th>Code - කේතය</th>
                                 <th>Type</th>
                                 <th>Duration - කාල සීමාව</th>
-                                <th class="text-end">Deposit - තැන්පතුව</th>
+                                <th class="text-center">Qty - ප්‍රමාණය</th>
                                 <th class="text-end">Amount - මුදල</th>
                             </tr>
                         </thead>
@@ -217,12 +214,10 @@ if (!empty($customerMobile)) {
                             $row_num = 0;
                             foreach ($rent_items as $item):
                                 $row_num++;
-                                $EQUIPMENT = new Equipment($item['equipment_id']);
-                                $item_deposit = floatval($EQUIPMENT->deposit_one_day) * floatval($item['duration']);
                             ?>
                                 <tr>
                                     <td><?php echo str_pad($row_num, 2, '0', STR_PAD_LEFT); ?></td>
-                                    <td><?php echo htmlspecialchars($item['equipment_name'] ?? $EQUIPMENT->item_name); ?></td>
+                                    <td><?php echo htmlspecialchars($item['equipment_name'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($item['sub_equipment_code'] ?? '-'); ?></td>
                                     <td>
                                         <?php if ($item['rent_type'] === 'month'): ?>
@@ -237,7 +232,7 @@ if (!empty($customerMobile)) {
                                         echo ($item['rent_type'] === 'month') ? ' Months' : ' Days';
                                         ?>
                                     </td>
-                                    <td class="text-end"><?php echo number_format($item_deposit, 2); ?></td>
+                                    <td class="text-center"><?php echo intval($item['quantity'] ?? 1); ?></td>
                                     <td class="text-end"><?php echo number_format($item['amount'], 2); ?></td>
                                 </tr>
                             <?php endforeach; ?>
