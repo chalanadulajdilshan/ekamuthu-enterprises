@@ -623,9 +623,13 @@ jQuery(document).ready(function () {
         $("#create").prop("disabled", false);
 
         if (result.status === "success") {
+          // Open the rent invoice in a new tab
+          var billNo = $("#code").val();
+          window.open('rent-invoice.php?bill_no=' + encodeURIComponent(billNo), '_blank');
+          
           swal({
             title: "Success!",
-            text: "Equipment rent created successfully!",
+            text: "Equipment rent created successfully! Invoice opened in new tab.",
             type: "success",
             timer: 2000,
             showConfirmButton: false,
