@@ -11,7 +11,8 @@ class EquipmentRent
     public $status;
     public $quantity;
     public $remark;
-    public $total_items;
+    public $transport_cost;
+    public $deposit_total;
     public $created_at;
     public $updated_at;
 
@@ -31,6 +32,8 @@ class EquipmentRent
                 $this->received_date = $result['received_date'];
                 $this->status = $result['status'];
                 $this->quantity = $result['quantity'] ?? 0;
+                $this->transport_cost = $result['transport_cost'] ?? 0;
+                $this->deposit_total = $result['deposit_total'] ?? 0;
                 $this->remark = $result['remark'];
                 $this->total_items = $result['total_items'] ?? 0;
                 $this->created_at = $result['created_at'] ?? null;
@@ -42,10 +45,10 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
+            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
-            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items'
+            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total'
         )";
 
         $db = Database::getInstance();
@@ -67,7 +70,9 @@ class EquipmentRent
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
             `remark` = '$this->remark',
-            `total_items` = '$this->total_items'
+            `total_items` = '$this->total_items',
+            `transport_cost` = '$this->transport_cost',
+            `deposit_total` = '$this->deposit_total'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -171,6 +176,8 @@ class EquipmentRent
             $this->received_date = $result['received_date'];
             $this->status = $result['status'];
             $this->quantity = $result['quantity'];
+            $this->transport_cost = $result['transport_cost'];
+            $this->deposit_total = $result['deposit_total'];
             $this->remark = $result['remark'];
             return true;
         }

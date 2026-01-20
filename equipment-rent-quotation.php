@@ -223,7 +223,7 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <label class="form-label">Rent Type - කුලී වර්ගය</label>
                                                 <select class="form-select" id="item_rent_type">
                                                     <option value="day">Day</option>
@@ -237,6 +237,11 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <input type="number" class="form-control" id="item_duration" min="1" step="1" placeholder="0">
                                                     <span class="input-group-text" id="duration_label">Days</span>
                                                 </div>
+                                            </div>
+
+                                            <div class="col-md-1">
+                                                <label class="form-label">Qty - ප්‍රමාණය</label>
+                                                <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1">
                                             </div>
 
                                             <div class="col-md-2">
@@ -277,6 +282,7 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <th>Sub Equipment Code</th>
                                                         <th>Type</th>
                                                         <th>Duration</th>
+                                                        <th>Qty</th>
                                                         <th>Amount</th>
                                                         <th>Rental Date</th>
                                                         <th>Return Date</th>

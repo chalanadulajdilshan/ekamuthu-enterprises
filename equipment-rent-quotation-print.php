@@ -173,6 +173,7 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
                                 <th>Sub Equipment</th>
                                 <th>Rent Type</th>
                                 <th>Duration</th>
+                                <th class="text-center">Qty</th>
                                 <th>Period</th>
                                 <th class="text-end">Amount</th>
                             </tr>
@@ -201,6 +202,7 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
                                     <td><?php echo $item['sub_equipment_code']; ?></td>
                                     <td><?php echo ucfirst($item['rent_type']); ?></td>
                                     <td><?php echo (float)$item['duration'] . ' ' . ($item['rent_type'] == 'month' ? 'Months' : 'Days'); ?></td>
+                                    <td class="text-center"><?php echo intval($item['quantity'] ?? 1); ?></td>
                                     <td><?php echo $period; ?></td>
                                     <td class="text-end"><?php echo number_format($amount, 2); ?></td>
                                 </tr>

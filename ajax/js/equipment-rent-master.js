@@ -3,34 +3,37 @@ jQuery(document).ready(function () {
   var rentItems = [];
   var currentRentOneDay = 0;
   var currentRentOneMonth = 0;
-  
+  var currentDepositOneDay = 0;
+  var totalCalculatedDeposit = 0;
+
   // Calculate amount and return date
   function calculateRentDetails() {
     var rentType = $("#item_rent_type").val();
     var duration = parseFloat($("#item_duration").val()) || 0;
+    var qty = parseFloat($("#item_qty").val()) || 1;
     var rentalDate = $("#item_rental_date").val();
-    
+
     if (!rentalDate || duration <= 0) {
       $("#item_amount").val("0.00");
       return;
     }
-    
+
     var amount = 0;
     var returnDate = new Date(rentalDate);
-    
+
     if (rentType === "day") {
-      amount = currentRentOneDay * duration;
+      amount = currentRentOneDay * duration * qty;
       returnDate.setDate(returnDate.getDate() + duration);
       $("#duration_label").text("Days");
     } else {
-      amount = currentRentOneMonth * duration;
+      amount = currentRentOneMonth * duration * qty;
       returnDate.setMonth(returnDate.getMonth() + duration);
       $("#duration_label").text("Months");
     }
-    
+
     // Format amount
     $("#item_amount").val(amount.toFixed(2));
-    
+
     // Format return date YYYY-MM-DD
     var yyyy = returnDate.getFullYear();
     var mm = String(returnDate.getMonth() + 1).padStart(2, '0');
@@ -50,44 +53,44 @@ jQuery(document).ready(function () {
     var returnDate = new Date(returnDateStr);
     var duration = 0;
     var timeDiff = returnDate - rentalDate;
-    
+
     if (timeDiff <= 0) {
-        $("#item_duration").val(0);
-        $("#item_amount").val("0.00");
-        return;
+      $("#item_duration").val(0);
+      $("#item_amount").val("0.00");
+      return;
     }
 
     if (rentType === "day") {
-        // Calculate days
-        duration = Math.ceil(timeDiff / (1000 * 3600 * 24));
-        $("#duration_label").text("Days");
+      // Calculate days
+      duration = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      $("#duration_label").text("Days");
     } else {
-        // Calculate months
-        var months = (returnDate.getFullYear() - rentalDate.getFullYear()) * 12;
-        months -= rentalDate.getMonth();
-        months += returnDate.getMonth();
-        // Adjust for partial months (simple logic, can be refined)
-        if (returnDate.getDate() < rentalDate.getDate()) {
-            months--;
-        }
-        // If less than a month but positive, count as 1 or use fractional? 
-        // For simplicity allow integers for now, or use fractional months?
-        // Let's assume integers for months usually, but calculating exact duration in months involving days is tricky.
-        // Let's try to get nearest whole number or 1 decimal.
-        duration = months <= 0 ? 0 : months; 
-        
-        // Alternative simple month calc: days / 30
-        // duration = (timeDiff / (1000 * 3600 * 24 * 30)).toFixed(1);
+      // Calculate months
+      var months = (returnDate.getFullYear() - rentalDate.getFullYear()) * 12;
+      months -= rentalDate.getMonth();
+      months += returnDate.getMonth();
+      // Adjust for partial months (simple logic, can be refined)
+      if (returnDate.getDate() < rentalDate.getDate()) {
+        months--;
+      }
+      // If less than a month but positive, count as 1 or use fractional? 
+      // For simplicity allow integers for now, or use fractional months?
+      // Let's try to get nearest whole number or 1 decimal.
+      duration = months <= 0 ? 0 : months;
+
+      // Alternative simple month calc: days / 30
+      // duration = (timeDiff / (1000 * 3600 * 24 * 30)).toFixed(1);
     }
-    
+
     $("#item_duration").val(duration);
-    
+
     // Recalculate Amount only
     var amount = 0;
+    var qty = parseFloat($("#item_qty").val()) || 1;
     if (rentType === "day") {
-        amount = currentRentOneDay * duration;
+      amount = currentRentOneDay * duration * qty;
     } else {
-        amount = currentRentOneMonth * duration;
+      amount = currentRentOneMonth * duration * qty;
     }
     $("#item_amount").val(amount.toFixed(2));
   }
@@ -139,6 +142,9 @@ jQuery(document).ready(function () {
           "</td>" +
           "<td>" +
           '<span class="badge ' + (item.rent_type === 'month' ? 'bg-primary' : 'bg-info') + '">' + parseFloat(item.duration).toFixed(0) + (item.rent_type === 'month' ? ' Months' : ' Days') + '</span>' +
+          "</td>" +
+          "<td>" +
+          parseFloat(item.quantity).toFixed(0) +
           "</td>" +
           "<td>" +
           parseFloat(item.amount).toFixed(2) +
@@ -220,10 +226,24 @@ jQuery(document).ready(function () {
       return_date: returnDate,
       rent_type: $("#item_rent_type").val(),
       duration: $("#item_duration").val(),
+      quantity: $("#item_qty").val(),
       amount: $("#item_amount").val(),
+      // Store equipment deposit value for calculation
+      deposit_one_day: currentDepositOneDay,
       status: "rented",
       remark: "",
     });
+
+    // Update calculated deposit
+    totalCalculatedDeposit += (parseFloat(currentDepositOneDay || 0) * parseFloat($("#item_qty").val() || 1));
+    $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
+    $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+
+    // Auto-fill custom deposit if it's empty or matches previous calculation
+    // var currentCustom = parseFloat($("#custom_deposit").val()) || 0;
+    // if (currentCustom === 0 || currentCustom === (totalCalculatedDeposit - parseFloat(currentDepositOneDay || 0))) {
+    //     $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+    // }
 
     updateItemsTable();
 
@@ -232,22 +252,31 @@ jQuery(document).ready(function () {
     $("#item_sub_equipment_display").val("");
     $("#item_return_date").val("");
     $("#item_duration").val("");
+    $("#item_qty").val(1);
     $("#item_amount").val("");
   });
-  
+
   // Calculate on input changes
-  $("#item_rent_type, #item_duration, #item_rental_date").on("change keyup", function() {
+  $("#item_rent_type, #item_duration, #item_qty, #item_rental_date").on("change keyup", function () {
     calculateRentDetails();
   });
 
   // Calculate when return date changes
-  $("#item_return_date").on("change keyup", function() {
+  $("#item_return_date").on("change keyup", function () {
     calculateDurationFromDates();
   });
 
   // Remove item from list
   $(document).on("click", ".remove-item-btn", function () {
     var index = $(this).data("index");
+
+    // Subtract deposit
+    var removedItem = rentItems[index];
+    totalCalculatedDeposit -= (parseFloat(removedItem.deposit_one_day || 0) * parseFloat(removedItem.quantity || 1));
+    if (totalCalculatedDeposit < 0) totalCalculatedDeposit = 0;
+    $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
+    $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+
     rentItems.splice(index, 1);
     updateItemsTable();
   });
@@ -293,11 +322,11 @@ jQuery(document).ready(function () {
         { data: "rental_date", title: "Rental Date" },
         { data: "received_date", title: "Received Date" },
         { data: "total_items", title: "Items" },
-        { 
-          data: "outstanding_items", 
+        {
+          data: "outstanding_items",
           title: "Outstanding",
-          render: function(data, type, row) {
-             return data > 0 ? '<span class="text-danger fw-bold">' + data + '</span>' : '<span class="text-success">0</span>';
+          render: function (data, type, row) {
+            return data > 0 ? '<span class="text-danger fw-bold">' + data + '</span>' : '<span class="text-success">0</span>';
           }
         },
         { data: "status_label", title: "Status" },
@@ -336,9 +365,18 @@ jQuery(document).ready(function () {
           $("#received_date").val(rent.received_date || "");
           $("#received_date_container").show();
           $("#remark").val(rent.remark || "");
+          $("#transport_cost").val(rent.transport_cost || "0.00");
+          $("#custom_deposit").val(rent.deposit_total || "0.00");
+
+          // Reset calculated
+          totalCalculatedDeposit = 0;
 
           // Load items
           rentItems = result.items.map(function (item) {
+
+            // Add to calculated total (multiply by qty)
+            totalCalculatedDeposit += (parseFloat(item.equipment_deposit || 0) * parseFloat(item.quantity || 1));
+
             return {
               id: item.id,
               equipment_id: item.equipment_id,
@@ -352,21 +390,34 @@ jQuery(document).ready(function () {
               return_date: item.return_date,
               rent_type: item.rent_type,
               duration: item.duration,
-              amount: item.amount,
               quantity: item.quantity,
+              amount: item.amount,
+              deposit_one_day: item.equipment_deposit, // Store this
               status: item.status,
               remark: item.remark,
             };
           });
+
+          $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
           updateItemsTable();
 
           $("#create").hide();
           $("#update").show();
           $("#return-all").show();
+          $("#print").show();
         }
       },
     });
   }
+
+  // Print Invoice
+  $("#print").click(function (e) {
+    e.preventDefault();
+    var billNo = $("#code").val();
+    if (billNo) {
+      window.open("rent-invoice.php?bill_no=" + billNo, "_blank");
+    }
+  });
 
   // Load Customer Table
   $("#CustomerSelectModal").on("shown.bs.modal", function () {
@@ -466,15 +517,16 @@ jQuery(document).ready(function () {
           }
           $("#item_equipment_id").val(data.id);
           $("#item_equipment_display").val(data.code + " - " + data.item_name);
-          
+
           // Set rates
           currentRentOneDay = parseFloat(data.rent_one_day) || 0;
           currentRentOneMonth = parseFloat(data.rent_one_month) || 0;
-          
+          currentDepositOneDay = parseFloat(data.deposit_one_day) || 0;
+
           // Reset calculations
           $("#item_duration").val("");
           $("#item_amount").val("");
-          
+
           // Clear sub equipment when equipment changes
           $("#item_sub_equipment_id").val("");
           $("#item_sub_equipment_display").val("");
@@ -626,7 +678,7 @@ jQuery(document).ready(function () {
           // Open the rent invoice in a new tab
           var billNo = $("#code").val();
           window.open('rent-invoice.php?bill_no=' + encodeURIComponent(billNo), '_blank');
-          
+
           swal({
             title: "Success!",
             text: "Equipment rent created successfully! Invoice opened in new tab.",
@@ -753,10 +805,16 @@ jQuery(document).ready(function () {
     $("#item_equipment_display").val("");
     $("#item_sub_equipment_id").val("");
     $("#item_sub_equipment_display").val("");
+    $("#item_sub_equipment_display").val("");
+    $("#transport_cost").val("");
+    $("#custom_deposit").val("");
+    $("#calculated_deposit_display").text("0.00");
+    totalCalculatedDeposit = 0;
     rentItems = [];
     updateItemsTable();
     $("#create").show();
     $("#update").hide();
+    $("#print").hide();
     $("#return-all").hide();
     $("#received_date_container").hide();
 

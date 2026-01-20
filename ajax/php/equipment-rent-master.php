@@ -49,6 +49,8 @@ if (isset($_POST['create'])) {
     $EQUIPMENT_RENT->status = 'rented';
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT_RENT->total_items = count($items);
+    $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
+    $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
 
     $rent_id = $EQUIPMENT_RENT->create();
 
@@ -65,6 +67,7 @@ if (isset($_POST['create'])) {
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
+            $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
@@ -156,7 +159,9 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
+            $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
+            $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
             $RENT_ITEM->status = $item['status'] ?? 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->update();
@@ -172,6 +177,7 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
+            $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
@@ -184,6 +190,8 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
+    $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
+    $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
     
     // Check if all items are returned
     $allReturned = true;
@@ -297,7 +305,21 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
     
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
-        $items = $EQUIPMENT_RENT->getItems();
+        
+        // Get items with equipment deposit info
+        $db = Database::getInstance();
+        $itemsQuery = "SELECT ri.*, e.code as equipment_code, e.item_name as equipment_name, 
+                       e.deposit_one_day as equipment_deposit,
+                       se.code as sub_equipment_code 
+                       FROM equipment_rent_items ri 
+                       LEFT JOIN equipment e ON ri.equipment_id = e.id
+                       LEFT JOIN sub_equipment se ON ri.sub_equipment_id = se.id
+                       WHERE ri.rent_id = $rent_id";
+        $itemsResult = $db->readQuery($itemsQuery);
+        $items = [];
+        while ($row = mysqli_fetch_assoc($itemsResult)) {
+            $items[] = $row;
+        }
         
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
@@ -313,6 +335,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "received_date" => $EQUIPMENT_RENT->received_date,
                 "status" => $EQUIPMENT_RENT->status,
                 "remark" => $EQUIPMENT_RENT->remark,
+                "transport_cost" => $EQUIPMENT_RENT->transport_cost,
+                "deposit_total" => $EQUIPMENT_RENT->deposit_total,
                 "total_items" => $EQUIPMENT_RENT->total_items
             ],
             "items" => $items
@@ -515,6 +539,7 @@ if (isset($_POST['filter_equipment'])) {
             "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
             "rent_one_day" => $row['rent_one_day'],
+            "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
             "availability_label" => $row['available_sub'] > 0
                 ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'

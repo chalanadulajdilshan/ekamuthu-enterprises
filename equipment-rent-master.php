@@ -73,6 +73,10 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 <i class="uil uil-redo me-1"></i> Return All
                             </a>
 
+                            <a href="#" class="btn btn-dark" id="print" style="display: none;">
+                                <i class="uil uil-print me-1"></i> Print
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
@@ -154,6 +158,19 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
                                                     </div>
                                                 </div>
+                                                
+                                                <!-- Transport Cost -->
+                                                <div class="col-md-3">
+                                                    <label for="transport_cost" class="form-label">Transport Cost - ප්‍රවාහන ගාස්තු</label>
+                                                    <input type="text" class="form-control" id="transport_cost" name="transport_cost" placeholder="0.00">
+                                                </div>
+
+                                                <!-- Custom Deposit -->
+                                                <div class="col-md-3">
+                                                    <label for="custom_deposit" class="form-label">Custom Deposit - තැන්පතු</label>
+                                                    <input type="text" class="form-control" id="custom_deposit" name="custom_deposit" placeholder="0.00">
+                                                    <small class="text-muted">Calculated Total: <span id="calculated_deposit_display" class="fw-bold">0.00</span></small>
+                                                </div>
 
                                                 <!-- Received Date -->
                                                 <div class="col-md-3" id="received_date_container" style="display: none;">
@@ -165,11 +182,12 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
 
                                                 <!-- Remark Note -->
-                                                <div class="col-12">
+                                                <div class="col-md-9">
                                                     <label for="remark" class="form-label">Remark - සටහන</label>
                                                     <textarea id="remark" name="remark" class="form-control" rows="2"
                                                         placeholder="Enter any remarks or notes about the rental..."></textarea>
                                                 </div>
+                                                
                                                 <input type="hidden" id="rent_id" name="rent_id" />
                                             </div>
                                         </form>
@@ -223,7 +241,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <label class="form-label">Rent Type - කුලී වර්ගය</label>
                                                 <select class="form-select" id="item_rent_type">
                                                     <option value="day">Day</option>
@@ -239,15 +257,22 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
+                                            <div class="col-md-1">
+                                                <label class="form-label">Qty - ප්‍රමාණය</label>
+                                                <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1">
+                                            </div>
+
                                             <div class="col-md-2">
                                                 <label class="form-label">Amount - අගය</label>
                                                 <input type="text" class="form-control" id="item_amount" readonly placeholder="0.00">
                                             </div>
+
                                         </div>
 
                                         <div class="row align-items-end">
+                                            
                                             <!-- Item Rental Date -->
-                                            <div class="col-md-2">
+                                            <div class="col-md-3">
                                                 <label for="item_rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය</label>
                                                 <input id="item_rental_date" type="text" class="form-control date-picker" 
                                                     value="<?php echo date('Y-m-d'); ?>">
@@ -277,6 +302,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <th>Sub Equipment Code</th>
                                                         <th>Type</th>
                                                         <th>Duration</th>
+                                                        <th>Qty</th>
                                                         <th>Amount</th>
                                                         <th>Rental Date</th>
                                                         <th>Return Date</th>
