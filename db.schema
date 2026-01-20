@@ -1,7 +1,34 @@
-ALTER TABLE `customer_master` 
-ADD COLUMN `nic_image_1` LONGTEXT NULL,
-ADD COLUMN `nic_image_2` LONGTEXT NULL,
-ADD COLUMN `water_bill_image` LONGTEXT NULL,
-ADD COLUMN `electricity_bill_image` LONGTEXT NULL,
-ADD COLUMN `guarantor_nic_image_1` LONGTEXT NULL,
-ADD COLUMN `guarantor_nic_image_2` LONGTEXT NULL;
+CREATE TABLE `equipment_rent_quotation` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `quotation_number` varchar(50) DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `rental_date` date DEFAULT NULL,
+  `received_date` date DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `quantity` int(11) DEFAULT NULL,
+  `remark` text DEFAULT NULL,
+  `total_items` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `equipment_rent_quotation_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `quotation_id` int(11) DEFAULT NULL,
+  `equipment_id` int(11) DEFAULT NULL,
+  `sub_equipment_id` int(11) DEFAULT NULL,
+  `rental_date` date DEFAULT NULL,
+  `return_date` date DEFAULT NULL,
+  `quantity` int(11) DEFAULT NULL,
+  `rent_type` varchar(20) DEFAULT NULL,
+  `duration` float DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `remark` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `document_tracking` ADD COLUMN `equipment_rent_quotation_id` int(11) DEFAULT 0;
