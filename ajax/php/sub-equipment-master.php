@@ -24,6 +24,7 @@ if (isset($_POST['create'])) {
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
+    $SUB_EQUIPMENT->rental_status = $_POST['rental_status'] ?? 'available';
 
     $res = $SUB_EQUIPMENT->create();
 
@@ -63,6 +64,7 @@ if (isset($_POST['update'])) {
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
+    $SUB_EQUIPMENT->rental_status = $_POST['rental_status'] ?? 'available';
 
     $res = $SUB_EQUIPMENT->update();
 
@@ -114,6 +116,10 @@ if (isset($_POST['filter'])) {
     $equipment_id = isset($_POST['equipment_id']) ? $_POST['equipment_id'] : null;
     $SUB_EQUIPMENT = new SubEquipment(NULL);
     $result = $SUB_EQUIPMENT->fetchForDataTable($_REQUEST, $equipment_id);
+    
+    // Debug info (only if needed, but let's keep it safe for now)
+    $result['debug_equipment_id'] = $equipment_id;
+    
     echo json_encode($result);
     exit;
 }

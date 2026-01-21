@@ -33,6 +33,7 @@ if (isset($_POST['create'])) {
     $EQUIPMENT->rent_one_month = $_POST['rent_one_month'] ?? 0;
     $EQUIPMENT->value = $_POST['value'] ?? 0;
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
+    $EQUIPMENT->no_sub_items = $_POST['no_sub_items'] ?? 0;
     $EQUIPMENT->remark = $_POST['remark'] ?? '';
 
     // Handle image upload
@@ -100,6 +101,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT->rent_one_month = $_POST['rent_one_month'] ?? 0;
     $EQUIPMENT->value = $_POST['value'] ?? 0;
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
+    $EQUIPMENT->no_sub_items = $_POST['no_sub_items'] ?? 0;
     $EQUIPMENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT->image_name = $_POST['old_image_name'] ?? '';
 
@@ -228,6 +230,7 @@ if (isset($_POST['filter'])) {
             "rent_one_month" => $row['rent_one_month'],
             "value" => $row['value'],
             "quantity" => $row['quantity'],
+            "no_sub_items" => $row['no_sub_items'],
             "image_name" => $row['image_name'],
             "remark" => $row['remark']
         ];

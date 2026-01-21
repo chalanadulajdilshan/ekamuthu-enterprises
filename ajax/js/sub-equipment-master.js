@@ -20,6 +20,9 @@ jQuery(document).ready(function () {
                         result.code + " - " + result.item_name
                     );
                     $("#equipment_id").val(result.id);
+                    // Refresh table with new ID
+                    parentEquipmentId = result.id;
+                    loadAllSubEquipmentTable();
                 }
             },
         });
@@ -29,6 +32,9 @@ jQuery(document).ready(function () {
     $("#SubEquipmentModal").on("shown.bs.modal", function () {
         loadSubEquipmentTable();
     });
+
+    // Load main table on page load
+    loadAllSubEquipmentTable();
 
     function loadSubEquipmentTable() {
         // Destroy if already initialized
@@ -55,7 +61,32 @@ jQuery(document).ready(function () {
             },
             columns: [
                 { data: "key", title: "#ID" },
-                { data: "code", title: "Code" }
+                { data: "code", title: "Code" },
+                { 
+                    data: "rental_status", 
+                    title: "Status",
+                    render: function(data) {
+                        if (!data) return '<span class="badge bg-secondary">UNKNOWN</span>';
+                        var badgeClass = 'bg-secondary';
+                        var label = data.toUpperCase();
+                        
+                        if (data === 'available' || data === 'returned') {
+                            badgeClass = 'bg-success';
+                            label = 'AVAILABLE';
+                        } else if (data === 'rent' || data === 'rented') {
+                            badgeClass = 'bg-primary';
+                            label = 'RENTED';
+                        } else if (data === 'damage') {
+                            badgeClass = 'bg-danger';
+                            label = 'DAMAGED';
+                        } else if (data === 'repair') {
+                            badgeClass = 'bg-warning';
+                            label = 'REPAIR';
+                        }
+                        
+                        return '<span class="badge ' + badgeClass + '">' + label + '</span>';
+                    }
+                }
             ],
             order: [[0, "desc"]],
             pageLength: 100,
@@ -70,10 +101,14 @@ jQuery(document).ready(function () {
                 if (data) {
                     $("#sub_equipment_id").val(data.id || "");
                     $("#code").val(data.code || "");
+                    $("#rental_status").val(data.rental_status || "available");
 
                     // Show update button, hide create button
                     $("#create").hide();
                     $("#update").show();
+
+                    // Refresh main page table if equipment changed (though it shouldn't here)
+                    // loadAllSubEquipmentTable();
 
                     // Close the modal
                     $("#SubEquipmentModal").modal("hide");
@@ -370,9 +405,105 @@ jQuery(document).ready(function () {
         );
     });
 
+    // Handle search button click to open equipment modal from here
+    $("#equipment_search").click(function() {
+        // This page doesn't have an equipment search modal trigger usually,
+        // but if it did, we'd handle it.
+        // Actually, equipment search is usually on equipment-master.php
+    });
+
+    // If equipment_id input changes, refresh table
+    $("#equipment_id").change(function() {
+        parentEquipmentId = $(this).val();
+        loadAllSubEquipmentTable();
+    });
+
     // Back to Equipment Master button
     $("#back-to-equipment").click(function (e) {
         e.preventDefault();
         window.location.href = "equipment-master.php";
     });
+
+    function loadAllSubEquipmentTable() {
+        // if (!parentEquipmentId) return; // Allow loading all if no equipment selected? 
+        // The user says "all of the sub equipment show to main related equipment"
+        // Let's show all if no ID, or filter if ID exists.
+
+        var currentEquipmentId = parentEquipmentId || $("#equipment_id").val();
+
+        // Destroy if already initialized
+        if ($.fn.DataTable.isDataTable("#allSubEquipmentTable")) {
+            $("#allSubEquipmentTable").DataTable().destroy();
+        }
+
+        $("#allSubEquipmentTable").DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "ajax/php/sub-equipment-master.php",
+                type: "POST",
+                data: function (d) {
+                    d.filter = true;
+                    d.equipment_id = currentEquipmentId;
+                },
+                dataSrc: function (json) {
+                    return json.data;
+                },
+                error: function (xhr) {
+                    console.error("Table Load Error:", xhr.responseText);
+                }
+            },
+            columns: [
+                { data: "key" },
+                { data: "code" },
+                { 
+                    data: "rental_status",
+                    render: function(data) {
+                        if (!data) return '<span class="badge bg-secondary">UNKNOWN</span>';
+                        var badgeClass = 'bg-secondary';
+                        var label = data.toUpperCase();
+                        
+                        if (data === 'available' || data === 'returned') {
+                            badgeClass = 'bg-success';
+                            label = 'AVAILABLE';
+                        } else if (data === 'rent' || data === 'rented') {
+                            badgeClass = 'bg-primary';
+                            label = 'RENTED';
+                        } else if (data === 'damage') {
+                            badgeClass = 'bg-danger';
+                            label = 'DAMAGED';
+                        } else if (data === 'repair') {
+                            badgeClass = 'bg-warning';
+                            label = 'REPAIR';
+                        }
+                        
+                        return '<span class="badge ' + badgeClass + '">' + label + '</span>';
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data) {
+                        return '<button class="btn btn-sm btn-info edit-sub" data-id="' + data.id + '"><i class="uil uil-edit"></i></button>';
+                    }
+                }
+            ],
+            order: [[0, "desc"]],
+            pageLength: 50,
+        });
+
+        // Row click event for edit button
+        $("#allSubEquipmentTable").off("click", ".edit-sub").on("click", ".edit-sub", function(e) {
+            e.preventDefault();
+            var data = $("#allSubEquipmentTable").DataTable().row($(this).closest('tr')).data();
+            if (data) {
+                $("#sub_equipment_id").val(data.id || "");
+                $("#code").val(data.code || "");
+                $("#rental_status").val(data.rental_status || "available");
+                $("#create").hide();
+                $("#update").show();
+                // Scroll to top
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+            }
+        });
+    }
 });

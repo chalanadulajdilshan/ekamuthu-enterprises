@@ -1,8 +1,10 @@
 <?php
 
-// Suppress PHP warnings/notices from corrupting JSON output
-error_reporting(0);
+// Enable error logging to file for debugging
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/equipment-rent-debug.log');
 
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
@@ -15,9 +17,20 @@ if (isset($_POST['create'])) {
     $codeCheck = "SELECT id FROM equipment_rent WHERE bill_number = '{$_POST['code']}'";
     $existingRent = mysqli_fetch_assoc($db->readQuery($codeCheck));
 
+    $bill_number = $_POST['code'];
+
     if ($existingRent) {
-        echo json_encode(["status" => "duplicate", "message" => "Bill number already exists in the system"]);
-        exit();
+        // If bill number exists, find the absolute next available one
+        $query = "SELECT MAX(CAST(bill_number AS UNSIGNED)) as max_id FROM equipment_rent";
+        $result = $db->readQuery($query);
+        $row = mysqli_fetch_assoc($result);
+        $max_id = $row['max_id'];
+        
+        $DOC_TRACKING = new DocumentTracking(1);
+        $tracking_id = $DOC_TRACKING->equipment_rent_id;
+        
+        // Next ID is max of (existing in DB, tracking ID) + 1
+        $bill_number = max((int)$max_id, (int)$tracking_id) + 1;
     }
 
     // Parse items from JSON
@@ -30,6 +43,11 @@ if (isset($_POST['create'])) {
 
     // Validate all sub-equipment availability before creating
     foreach ($items as $item) {
+        $EQUIP_CHECK = new Equipment($item['equipment_id']);
+        if ($EQUIP_CHECK->no_sub_items == 1) {
+            continue;
+        }
+
         if (!EquipmentRentItem::isSubEquipmentAvailable($item['sub_equipment_id'])) {
             $SUB_EQ = new SubEquipment($item['sub_equipment_id']);
             echo json_encode([
@@ -42,7 +60,7 @@ if (isset($_POST['create'])) {
 
     // Create master rent record
     $EQUIPMENT_RENT = new EquipmentRent(NULL);
-    $EQUIPMENT_RENT->bill_number = $_POST['code'];
+    $EQUIPMENT_RENT->bill_number = $bill_number;
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
@@ -64,6 +82,7 @@ if (isset($_POST['create'])) {
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
+            $RENT_ITEM->returned_qty = $item['returned_qty'] ?? 0;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
@@ -87,10 +106,13 @@ if (isset($_POST['create'])) {
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
 
-        // Increment document tracking ID for equipment rent
-        (new DocumentTracking(null))->incrementDocumentId('equipment_rent');
+        // Update document tracking ID if the used bill number is greater than current tracking
+        $DOC_TRACKING = new DocumentTracking(1);
+        if ((int)$DOC_TRACKING->equipment_rent_id < (int)$bill_number) {
+            $db->readQuery("UPDATE `document_tracking` SET `equipment_rent_id` = '" . (int)$bill_number . "', `updated_at` = NOW() WHERE `id` = 1");
+        }
 
-        echo json_encode(["status" => "success", "rent_id" => $rent_id]);
+        echo json_encode(["status" => "success", "rent_id" => $rent_id, "bill_number" => $bill_number]);
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to create rent record"]);
     }
@@ -140,13 +162,30 @@ if (isset($_POST['update'])) {
         $itemId = $item['id'] ?? null;
 
         // Check availability (exclude current item if updating)
-        if (!EquipmentRentItem::isSubEquipmentAvailable($subEquipmentId, $itemId)) {
-            $SUB_EQ = new SubEquipment($subEquipmentId);
-            echo json_encode([
-                "status" => "error", 
-                "message" => "Sub equipment '{$SUB_EQ->code}' is already rented out"
-            ]);
-            exit();
+        $shouldCheck = true;
+        $isReturning = ($item['status'] ?? 'rented') === 'returned';
+
+        if ($itemId) {
+            $existingItemForCheck = new EquipmentRentItem($itemId);
+            // If sub_equipment hasn't changed, and we are not changing status from returned to rented (which is rare here),
+            // then we don't need to check availability because we already hold it.
+            if ($existingItemForCheck->sub_equipment_id == $subEquipmentId && $existingItemForCheck->status !== 'returned') {
+                $shouldCheck = false;
+            }
+        }
+        
+        if ($shouldCheck && !$isReturning) {
+            $EQUIP_CHECK = new Equipment($item['equipment_id']);
+            if ($EQUIP_CHECK->no_sub_items != 1) {
+                if (!EquipmentRentItem::isSubEquipmentAvailable($subEquipmentId, $itemId)) {
+                    $SUB_EQ = new SubEquipment($subEquipmentId);
+                    echo json_encode([
+                        "status" => "error", 
+                        "message" => "Sub equipment '{$SUB_EQ->code}' is already rented out"
+                    ]);
+                    exit();
+                }
+            }
         }
 
         if ($itemId) {
@@ -157,12 +196,18 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
+            $RENT_ITEM->returned_qty = $item['returned_qty'] ?? 0;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
             $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
-            $RENT_ITEM->status = $item['status'] ?? 'rented';
+            $status = $item['status'] ?? 'rented';
+            // Validate status to prevent empty or invalid values
+            if ($status !== 'returned' && $status !== 'rented') {
+                $status = 'rented';
+            }
+            $RENT_ITEM->status = $status;
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->update();
         } else {
@@ -174,6 +219,7 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
+            $RENT_ITEM->returned_qty = $item['returned_qty'] ?? 0;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
@@ -309,7 +355,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Get items with equipment deposit info
         $db = Database::getInstance();
         $itemsQuery = "SELECT ri.*, e.code as equipment_code, e.item_name as equipment_name, 
-                       e.deposit_one_day as equipment_deposit,
+                       e.deposit_one_day as equipment_deposit, e.no_sub_items,
                        se.code as sub_equipment_code 
                        FROM equipment_rent_items ri 
                        LEFT JOIN equipment e ON ri.equipment_id = e.id
@@ -416,7 +462,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
                 "item_name" => $EQUIPMENT->item_name,
                 "rent_one_day" => $EQUIPMENT->rent_one_day,
                 "rent_one_month" => $EQUIPMENT->rent_one_month,
-                "deposit_one_day" => $EQUIPMENT->deposit_one_day
+                "deposit_one_day" => $EQUIPMENT->deposit_one_day,
+                "no_sub_items" => $EQUIPMENT->no_sub_items,
+                "quantity" => $EQUIPMENT->quantity
             ],
             "total_sub_equipment" => count($all),
             "available_count" => count($available)
@@ -494,8 +542,8 @@ if (isset($_POST['filter_equipment'])) {
     $length = isset($_REQUEST['length']) ? (int) $_REQUEST['length'] : 100;
     $search = $_REQUEST['search']['value'] ?? '';
 
-    // Only get equipment that has sub-equipment
-    $baseWhere = "WHERE EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = e.id)";
+    // Only get equipment that has sub-equipment OR has no_sub_items enabled
+    $baseWhere = "WHERE (e.no_sub_items = 1 OR EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = e.id))";
 
     // Total records
     $totalSql = "SELECT COUNT(*) as total FROM equipment e $baseWhere";
@@ -513,10 +561,11 @@ if (isset($_POST['filter_equipment'])) {
     $filteredQuery = $db->readQuery($filteredSql);
     $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
-    // Paginated query with sub-equipment counts
+    // Paginated query with sub-equipment counts and rented counts
     $sql = "SELECT e.*, ec.name as category_name,
             (SELECT COUNT(*) FROM sub_equipment se WHERE se.equipment_id = e.id) as total_sub,
-            (SELECT COUNT(*) FROM sub_equipment se WHERE se.equipment_id = e.id AND se.rental_status = 'available') as available_sub
+            (SELECT COUNT(*) FROM sub_equipment se WHERE se.equipment_id = e.id AND se.rental_status = 'available') as available_sub,
+            (SELECT COALESCE(SUM(quantity), 0) FROM equipment_rent_items eri WHERE eri.equipment_id = e.id AND eri.status = 'rented') as rented_qty
             FROM equipment e 
             LEFT JOIN equipment_category ec ON e.category = ec.id
             $where ORDER BY e.item_name ASC LIMIT $start, $length";
@@ -528,6 +577,18 @@ if (isset($_POST['filter_equipment'])) {
     while ($row = mysqli_fetch_assoc($dataQuery)) {
         $categoryLabel = $row['category_name'] ?: ($row['category'] ?: '-');
 
+        $statusLabel = '';
+        if ($row['no_sub_items'] == 1) {
+            $available = max(0, $row['quantity'] - $row['rented_qty']);
+            $statusLabel = $available > 0
+                ? '<span class="badge bg-soft-success font-size-12">' . $available . ' / ' . $row['quantity'] . ' Available</span>'
+                : '<span class="badge bg-soft-danger font-size-12">Out of Stock</span>';
+        } else {
+            $statusLabel = $row['available_sub'] > 0
+                ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'
+                : '<span class="badge bg-soft-danger font-size-12">All Rented</span>';
+        }
+
         $nestedData = [
             "key" => $key,
             "id" => $row['id'],
@@ -538,12 +599,13 @@ if (isset($_POST['filter_equipment'])) {
             "serial_number" => $row['serial_number'],
             "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
+            "rented_qty" => $row['rented_qty'],
             "rent_one_day" => $row['rent_one_day'],
             "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
-            "availability_label" => $row['available_sub'] > 0
-                ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'
-                : '<span class="badge bg-soft-danger font-size-12">All Rented</span>'
+            "no_sub_items" => $row['no_sub_items'],
+            "total_quantity" => $row['quantity'],
+            "availability_label" => $statusLabel
         ];
 
         $data[] = $nestedData;

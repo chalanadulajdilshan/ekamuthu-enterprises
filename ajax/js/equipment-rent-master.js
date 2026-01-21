@@ -119,6 +119,11 @@ jQuery(document).ready(function () {
             '<button class="btn btn-sm btn-info return-item-btn me-1" data-index="' +
             index +
             '" title="Mark as Returned"><i class="uil uil-redo"></i></button>';
+        } else if (item.status === "returned") {
+          actionBtns =
+            '<button class="btn btn-sm btn-warning undo-return-item-btn me-1" data-index="' +
+            index +
+            '" title="Undo Return"><i class="uil uil-history"></i></button>';
         }
         actionBtns +=
           '<button class="btn btn-sm btn-danger remove-item-btn" data-index="' +
@@ -134,7 +139,7 @@ jQuery(document).ready(function () {
           item.equipment_display +
           "</td>" +
           "<td>" +
-          item.sub_equipment_display +
+          (item.sub_equipment_display || "-") +
           "</td>" +
           "<td>" +
           (item.rent_type === "month" ? "Month" : "Day") +
@@ -149,6 +154,11 @@ jQuery(document).ready(function () {
           "</td>" +
           "<td>" +
           parseFloat(item.quantity).toFixed(0) +
+          "</td>" +
+          "<td>" +
+          (item.no_sub_items == 1 
+            ? '<input type="number" class="form-control form-control-sm returned-qty-input" data-index="' + index + '" value="' + (item.returned_qty || 0) + '" min="0" max="' + item.quantity + '" style="width: 80px;">'
+            : (item.returned_qty ? parseFloat(item.returned_qty).toFixed(0) : "0")) +
           "</td>" +
           "<td>" +
           parseFloat(item.amount).toFixed(2) +
@@ -175,6 +185,28 @@ jQuery(document).ready(function () {
 
     // Update totals summary
     updateTotalsSummary();
+    
+    // Bind returned qty input change event
+    $(".returned-qty-input").off("change").on("change", function() {
+        var index = $(this).data("index");
+        var val = parseFloat($(this).val()) || 0;
+        var max = parseFloat($(this).attr("max")) || 1;
+        
+        if (val < 0) val = 0;
+        if (val > max) {
+             swal({
+                title: "Error!",
+                text: "Returned Qty cannot be greater than Rented Qty",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+              val = max;
+              $(this).val(val);
+        }
+        
+        rentItems[index].returned_qty = val;
+    });
   }
 
   // Check if sub-equipment already added
@@ -205,7 +237,9 @@ jQuery(document).ready(function () {
       });
       return;
     }
-    if (!subEquipmentId) {
+    var noSubItems = $("#item_equipment_id").data("no_sub_items") == 1;
+
+    if (!subEquipmentId && !noSubItems) {
       swal({
         title: "Error!",
         text: "Please select a sub equipment (unit code)",
@@ -215,11 +249,25 @@ jQuery(document).ready(function () {
       });
       return;
     }
-    if (isSubEquipmentAlreadyAdded(subEquipmentId)) {
+    if (!noSubItems && isSubEquipmentAlreadyAdded(subEquipmentId)) {
       swal({
         title: "Error!",
         text: "This sub equipment is already added to the list",
         type: "warning",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    var qty = parseFloat($("#item_qty").val()) || 1;
+    var returnedQty = parseFloat($("#item_returned_qty").val()) || 0;
+
+    if (returnedQty > qty) {
+      swal({
+        title: "Error!",
+        text: "Returned Qty cannot be greater than Rented Qty",
+        type: "error",
         timer: 2000,
         showConfirmButton: false,
       });
@@ -237,11 +285,13 @@ jQuery(document).ready(function () {
       rent_type: $("#item_rent_type").val(),
       duration: $("#item_duration").val(),
       quantity: $("#item_qty").val(),
+      returned_qty: $("#item_returned_qty").val() || 0,
       amount: $("#item_amount").val(),
       // Store equipment deposit value for calculation
       deposit_one_day: currentDepositOneDay,
       status: "rented",
       remark: "",
+      no_sub_items: noSubItems ? 1 : 0
     });
 
     // Update calculated deposit
@@ -265,6 +315,7 @@ jQuery(document).ready(function () {
     $("#item_return_date").val("");
     $("#item_duration").val("");
     $("#item_qty").val(1);
+    $("#item_returned_qty").val(0);
     $("#item_amount").val("");
   });
 
@@ -316,8 +367,29 @@ jQuery(document).ready(function () {
   // Mark item as returned (in memory)
   $(document).on("click", ".return-item-btn", function () {
     var index = $(this).data("index");
-    rentItems[index].status = "returned";
-    rentItems[index].return_date = new Date().toISOString().split("T")[0];
+    swal(
+      {
+        title: "Mark as Returned?",
+        text: "This will mark the item as returned. Changes will be saved when you click 'Update'.",
+        type: "info",
+        showCancelButton: true,
+        confirmButtonText: "Yes, mark it!",
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          rentItems[index].status = "returned";
+          rentItems[index].return_date = new Date().toISOString().split("T")[0];
+          updateItemsTable();
+        }
+      },
+    );
+  });
+
+  // Undo return (in memory)
+  $(document).on("click", ".undo-return-item-btn", function () {
+    var index = $(this).data("index");
+    rentItems[index].status = "rented";
+    rentItems[index].return_date = null;
     updateItemsTable();
   });
 
@@ -426,10 +498,12 @@ jQuery(document).ready(function () {
               rent_type: item.rent_type,
               duration: item.duration,
               quantity: item.quantity,
+              returned_qty: item.returned_qty || 0,
               amount: item.amount,
               deposit_one_day: item.equipment_deposit, // Store this
               status: item.status,
               remark: item.remark,
+              no_sub_items: item.no_sub_items == 1 ? 1 : ((!item.sub_equipment_id || item.sub_equipment_id == 0) ? 1 : 0)
             };
           });
 
@@ -543,7 +617,16 @@ jQuery(document).ready(function () {
       .on("click", "tr", function () {
         var data = $("#equipmentSelectTable").DataTable().row(this).data();
         if (data) {
-          if (data.available_sub <= 0) {
+          // Check availability
+          var isAvailable = false;
+          if (data.no_sub_items == 1) {
+              var availableStock = (parseFloat(data.total_quantity) || 0) - (parseFloat(data.rented_qty) || 0);
+              if (availableStock > 0) isAvailable = true;
+          } else {
+              if (data.available_sub > 0) isAvailable = true;
+          }
+
+          if (!isAvailable) {
             swal({
               title: "Not Available!",
               text: "All units of this equipment are currently rented out.",
@@ -567,6 +650,24 @@ jQuery(document).ready(function () {
           // Clear sub equipment when equipment changes
           $("#item_sub_equipment_id").val("");
           $("#item_sub_equipment_display").val("");
+
+          // Handle No Sub-Items logic
+          if (data.no_sub_items == 1) {
+              $("#item_qty").prop("readonly", false); // Enable Qty
+              $("#item_sub_equipment_display").prop("disabled", true).attr("placeholder", "Not Required");
+              $("#btn-select-sub-equipment").prop("disabled", true); 
+              $("#returned_qty_container").show(); // Show returned qty field
+              // Store flag
+              $("#item_equipment_id").data("no_sub_items", 1);
+          } else {
+              $("#item_qty").prop("readonly", true).val(1); // Disable Qty and reset to 1
+              $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select sub equipment");
+              $("#btn-select-sub-equipment").prop("disabled", false);
+              $("#returned_qty_container").hide(); // Hide returned qty field
+              $("#item_returned_qty").val(0);
+               $("#item_equipment_id").data("no_sub_items", 0);
+          }
+
           $("#EquipmentSelectModal").modal("hide");
         }
       });
@@ -715,7 +816,11 @@ jQuery(document).ready(function () {
 
         if (result.status === "success") {
           // Open the rent invoice in a new tab
-          var billNo = $("#code").val();
+          var billNo = result.bill_number || $("#code").val();
+          
+          // Update the UI with the actual bill number used
+          $("#code").val(billNo);
+          
           window.open(
             "rent-invoice.php?bill_no=" + encodeURIComponent(billNo),
             "_blank",

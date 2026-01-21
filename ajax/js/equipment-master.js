@@ -110,6 +110,7 @@ jQuery(document).ready(function () {
           $("#rent_one_month").val(data.rent_one_month || "0");
           $("#value").val(data.value || "0");
           $("#quantity").val(data.quantity || "0");
+          $("#no_sub_items").prop("checked", data.no_sub_items == 1);
           $("#remark").val(data.remark || "");
           $("#old_image_name").val(data.image_name || "");
 
@@ -163,6 +164,7 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
+      formData.append("no_sub_items", $("#no_sub_items").is(":checked") ? 1 : 0);
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -262,6 +264,7 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
+      formData.append("no_sub_items", $("#no_sub_items").is(":checked") ? 1 : 0);
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -341,6 +344,7 @@ jQuery(document).ready(function () {
     e.preventDefault();
     $("#form-data")[0].reset();
     $("#equipment_id").val("");
+    $("#no_sub_items").prop("checked", false);
     $("#old_image_name").val("");
     $("#image_preview").attr("src", "assets/images/no-image.png");
     $("#update").hide();

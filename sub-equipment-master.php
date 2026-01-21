@@ -151,6 +151,17 @@ if ($parent_equipment_id) {
                                                     </div>
                                                 </div>
 
+                                                <!-- Rental Status -->
+                                                <div class="col-md-2">
+                                                    <label for="rental_status" class="form-label">Status</label>
+                                                    <select class="form-select" id="rental_status" name="rental_status">
+                                                        <option value="available">Available</option>
+                                                        <option value="rent">Rent</option>
+                                                        <option value="damage">Damage</option>
+                                                        <option value="repair">Repair</option>
+                                                    </select>
+                                                </div>
+
                                                 <input type="hidden" id="sub_equipment_id" name="sub_equipment_id" />
 
                                             </div>
@@ -158,6 +169,28 @@ if ($parent_equipment_id) {
                                     </div>
                                 </div>
 
+                                <div class="card mt-4">
+                                    <div class="card-header border-bottom-0">
+                                        <h5 class="card-title">All Sub Equipments</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table id="allSubEquipmentTable" class="table table-bordered dt-responsive nowrap w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#ID</th>
+                                                        <th>Code</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Loaded via AJAX -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -188,6 +221,7 @@ if ($parent_equipment_id) {
                                     <tr>
                                         <th>#ID</th>
                                         <th>Code</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -201,13 +235,10 @@ if ($parent_equipment_id) {
     <!-- Right bar overlay-->
     <div class="rightbar-overlay"></div>
 
-    <!-- JAVASCRIPT -->
-    <script src="assets/libs/jquery/jquery.min.js"></script>
-    <!-- /////////////////////////// -->
-    <script src="ajax/js/sub-equipment-master.js"></script>
-
     <!-- include main js  -->
     <?php include 'main-js.php' ?>
+
+    <script src="ajax/js/sub-equipment-master.js"></script>
 
     <!-- Page Preloader Script -->
     <script>
