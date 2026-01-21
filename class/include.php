@@ -85,6 +85,10 @@ include_once(dirname(__FILE__) . '/SubEquipment.php');
 include_once(dirname(__FILE__) . '/EquipmentCategory.php');
 include_once(dirname(__FILE__) . '/EquipmentRentQuotation.php');
 include_once(dirname(__FILE__) . '/EquipmentRentQuotationItem.php');
+include_once(dirname(__FILE__) . '/RepairJob.php');
+include_once(dirname(__FILE__) . '/RepairJobItem.php');
+include_once(dirname(__FILE__) . '/IssueNote.php');
+include_once(dirname(__FILE__) . '/IssueNoteItem.php');
 
 
 // Initialize session if not already started

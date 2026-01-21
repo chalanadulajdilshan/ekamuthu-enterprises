@@ -340,6 +340,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 // Filter for DataTable
 if (isset($_POST['filter'])) {
     $EQUIPMENT_RENT = new EquipmentRent(NULL);
+    
+    // Add custom filter for Issue Note page (exclude already issued invoices)
+    if (isset($_POST['exclude_issued']) && $_POST['exclude_issued'] == 'true') {
+        $_REQUEST['custom_where'] = "AND er.id NOT IN (SELECT rent_invoice_id FROM issue_notes WHERE issue_status != 'cancelled')";
+    }
+    
     $result = $EQUIPMENT_RENT->fetchForDataTable($_REQUEST);
     echo json_encode($result);
     exit;

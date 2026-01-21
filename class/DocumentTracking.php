@@ -19,6 +19,8 @@ class DocumentTracking
     public $sales_return_id;
     public $equipment_rent_id;
     public $equipment_rent_quotation_id;
+    public $repair_job_id;
+    public $issue_note_id;
     public $vat_percentage;
     public $created_at;
     public $updated_at;
@@ -155,7 +157,9 @@ class DocumentTracking
             'payment_receipt_supplier' => 'payment_receipt_supplier_id',
             'arn' => 'arn_id',
             'equipment_rent' => 'equipment_rent_id',
-            'equipment_rent_quotation' => 'equipment_rent_quotation_id'
+            'equipment_rent_quotation' => 'equipment_rent_quotation_id',
+            'repair_job' => 'repair_job_id',
+            'issue_note' => 'issue_note_id'
         ];
 
         // Check if valid type
