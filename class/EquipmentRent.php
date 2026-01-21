@@ -203,6 +203,10 @@ class EquipmentRent
             $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
         }
 
+        if (isset($request['custom_where']) && !empty($request['custom_where'])) {
+            $where .= " " . $request['custom_where'];
+        }
+
         // Filtered records
         $filteredSql = "SELECT COUNT(*) as filtered FROM equipment_rent er 
                         LEFT JOIN customer_master cm ON er.customer_id = cm.id $where";
