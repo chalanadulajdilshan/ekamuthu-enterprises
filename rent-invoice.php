@@ -140,7 +140,7 @@ if (!empty($customerMobile)) {
 
 <div class="container mt-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 no-print gap-2">
-        <h4 class="mb-0">Equipment Rent Invoice - උපකරණ කුලී ඉන්වොයිසිය</h4>
+        <h4 class="mb-0">උපකරණ කුලී ඉන්වොයිසිය</h4>
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <button onclick="window.print()" class="btn btn-success ms-2">Print</button>
             <button onclick="downloadPDF()" class="btn btn-primary ms-2">PDF</button>
@@ -171,7 +171,7 @@ if (!empty($customerMobile)) {
                         <p class="mb-1" style="font-size:13px;">VAT Registration No: <?php echo htmlspecialchars($COMPANY_PROFILE->vat_number); ?></p>
                     </div>
                     <div class="col-md-4 text-sm-start text-md-start">
-                        <h3 style="font-weight:bold;font-size:18px;">EQUIPMENT RENT INVOICE<br>උපකරණ කුලී ඉන්වොයිසිය</h3>
+                        <h3 style="font-weight:bold;font-size:18px;">උපකරණ කුලී ඉන්වොයිසිය</h3>
                         <p class="mb-1 text-muted" style="font-size:14px;"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
                         <p class="mb-1 text-muted" style="font-size:14px;"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
                         <p class="mb-1 text-muted" style="font-size:14px;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
@@ -201,12 +201,12 @@ if (!empty($customerMobile)) {
                         <thead class="table-light">
                             <tr>
                                 <th>No.</th>
-                                <th>Equipment Name - උපකරණ නම</th>
-                                <th>Code - කේතය</th>
-                                <th>Type</th>
-                                <th>Duration - කාල සීමාව</th>
-                                <th class="text-center">Qty - ප්‍රමාණය</th>
-                                <th class="text-end">Amount - මුදල</th>
+                                <th>උපකරණ නම</th>
+                                <th>කේතය</th>
+                                <th>වර්ගය</th>
+                                <th>කාල සීමාව</th>
+                                <th class="text-center">ප්‍රමාණය</th>
+                                <th class="text-end">මුදල</th>
                             </tr>
                         </thead>
                         <tbody style="font-size:13px;">
@@ -274,23 +274,23 @@ if (!empty($customerMobile)) {
                     <div class="col-md-6">
                         <table class="summary-table" style="width:100%;">
                             <tr>
-                                <td class="summary-label">Total Hire Amount - මුළු කුලී මුදල:</td>
+                                <td class="summary-label">මුළු කුලී මුදල:</td>
                                 <td class="summary-value"><?php echo number_format($hire_amount, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">Deposit Amount - තැන්පතු මුදල:</td>
+                                <td class="summary-label">තැන්පතු මුදල:</td>
                                 <td class="summary-value"><?php echo number_format($total_deposit, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">Transport - ප්‍රවාහනය:</td>
+                                <td class="summary-label">ප්‍රවාහනය:</td>
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
                             </tr>
                             <tr style="border-top:2px solid #333;">
-                                <td class="summary-label" style="font-size:16px;"><strong>Net Amount - ශුද්ධ මුදල:</strong></td>
+                                <td class="summary-label" style="font-size:16px;"><strong>ශුද්ධ මුදල:</strong></td>
                                 <td class="summary-value" style="font-size:16px;"><strong><?php echo number_format($net_amount, 2); ?></strong></td>
                             </tr>
                             <tr>
-                                <td class="summary-label text-danger">Total Outstanding - මුළු හිඟ මුදල:</td>
+                                <td class="summary-label text-danger">මුළු හිඟ මුදල:</td>
                                 <td class="summary-value text-danger"><strong><?php echo number_format($total_outstanding, 2); ?></strong></td>
                             </tr>
                         </table>
@@ -302,9 +302,9 @@ if (!empty($customerMobile)) {
                     <div class="col-12">
                         <table style="width:100%;">
                             <tr>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Prepared By - සකස් කළේ</strong></td>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Approved By - අනුමත කළේ</strong></td>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Customer Signature - පාරිභෝගික අත්සන</strong></td>
+                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>සකස් කළේ</strong></td>
+                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>අනුමත කළේ</strong></td>
+                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>පාරිභෝගික අත්සන</strong></td>
                             </tr>
                         </table>
                     </div>
