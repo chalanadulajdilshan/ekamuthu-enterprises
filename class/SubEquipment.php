@@ -18,6 +18,7 @@ class SubEquipment
                 $this->id = $result['id'];
                 $this->equipment_id = $result['equipment_id'];
                 $this->code = $result['code'];
+                $this->rental_status = $result['rental_status'];
             }
         }
     }
@@ -25,9 +26,9 @@ class SubEquipment
     public function create()
     {
         $query = "INSERT INTO `sub_equipment` (
-            `equipment_id`, `code`
+            `equipment_id`, `code`, `rental_status`
         ) VALUES (
-            '$this->equipment_id', '$this->code'
+            '$this->equipment_id', '$this->code', '$this->rental_status'
         )";
 
         $db = Database::getInstance();
@@ -44,7 +45,8 @@ class SubEquipment
     {
         $query = "UPDATE `sub_equipment` SET 
             `equipment_id` = '$this->equipment_id', 
-            `code` = '$this->code'
+            `code` = '$this->code',
+            `rental_status` = '$this->rental_status'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -69,6 +71,7 @@ class SubEquipment
             $this->id = $result['id'];
             $this->equipment_id = $result['equipment_id'];
             $this->code = $result['code'];
+            $this->rental_status = $result['rental_status'];
             return true;
         }
         return false;
@@ -121,6 +124,7 @@ class SubEquipment
                 "equipment_id" => $row['equipment_id'],
                 "equipment_name" => ($row['equipment_code'] ?? '') . ' - ' . ($row['equipment_name'] ?? ''),
                 "code" => $row['code'],
+                "rental_status" => $row['rental_status'],
             ];
 
             $data[] = $nestedData;

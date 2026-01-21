@@ -14,6 +14,7 @@ class Equipment
     public $rent_one_month;
     public $value;
     public $quantity;
+    public $no_sub_items;
     public $image_name;
     public $remark;
 
@@ -37,6 +38,7 @@ class Equipment
                 $this->rent_one_month = $result['rent_one_month'];
                 $this->value = $result['value'];
                 $this->quantity = $result['quantity'];
+                $this->no_sub_items = $result['no_sub_items'];
                 $this->image_name = $result['image_name'];
                 $this->remark = $result['remark'];
             }
@@ -46,9 +48,9 @@ class Equipment
     public function create()
     {
         $query = "INSERT INTO `equipment` (
-            `code`, `item_name`, `category`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`, `image_name`, `remark`
+            `code`, `item_name`, `category`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`, `no_sub_items`, `image_name`, `remark`
         ) VALUES (
-            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity', '$this->image_name', '$this->remark'
+            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity', '$this->no_sub_items', '$this->image_name', '$this->remark'
         )";
 
         $db = Database::getInstance();
@@ -75,6 +77,7 @@ class Equipment
             `rent_one_month` = '$this->rent_one_month',
             `value` = '$this->value',
             `quantity` = '$this->quantity',
+            `no_sub_items` = '$this->no_sub_items',
             `image_name` = '$this->image_name',
             `remark` = '$this->remark'
             WHERE `id` = '$this->id'";
@@ -137,6 +140,7 @@ class Equipment
             $this->rent_one_month = $result['rent_one_month'];
             $this->value = $result['value'];
             $this->quantity = $result['quantity'];
+            $this->no_sub_items = $result['no_sub_items'];
             $this->image_name = $result['image_name'];
             $this->remark = $result['remark'];
             return true;
@@ -190,6 +194,7 @@ class Equipment
                 "rent_one_month" => $row['rent_one_month'],
                 "value" => $row['value'],
                 "quantity" => $row['quantity'],
+                "no_sub_items" => $row['no_sub_items'],
                 "image_name" => $row['image_name'],
                 "remark" => $row['remark']
             ];

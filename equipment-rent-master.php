@@ -246,7 +246,12 @@ $bill_number = $lastId + 1;
 
                                             <div class="col-md-1">
                                                 <label class="form-label">Qty - ප්‍රමාණය</label>
-                                                <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1">
+                                                <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1" readonly>
+                                            </div>
+
+                                            <div class="col-md-1" id="returned_qty_container" style="display: none;">
+                                                <label class="form-label">Returned</label>
+                                                <input type="number" class="form-control" id="item_returned_qty" min="0" step="1" value="0">
                                             </div>
 
                                             <div class="col-md-2">
@@ -290,6 +295,7 @@ $bill_number = $lastId + 1;
                                                         <th>Type</th>
                                                         <th>Duration</th>
                                                         <th>Qty</th>
+                                                        <th>Returned</th>
                                                         <th>Amount</th>
                                                         <th>Deposit</th>
                                                         <th>Rental Date</th>

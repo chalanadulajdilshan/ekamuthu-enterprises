@@ -9,6 +9,7 @@ class EquipmentRentItem
     public $rental_date;
     public $return_date;
     public $quantity;
+    public $returned_qty;
     public $rent_type;
     public $duration;
     public $amount;
@@ -33,6 +34,7 @@ class EquipmentRentItem
                 $this->rental_date = $result['rental_date'];
                 $this->return_date = $result['return_date'];
                 $this->quantity = $result['quantity'];
+                $this->returned_qty = $result['returned_qty'] ?? 0;
                 $this->rent_type = $result['rent_type'];
                 $this->duration = $result['duration'];
                 $this->amount = $result['amount'];
@@ -47,11 +49,16 @@ class EquipmentRentItem
 
     public function create()
     {
+        // Handle NULL sub_equipment_id for "No Sub-Items" equipment
+        $subEquipmentValue = (!empty($this->sub_equipment_id) && $this->sub_equipment_id != '0') 
+            ? "'{$this->sub_equipment_id}'" 
+            : "NULL";
+        
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `returned_qty`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`
         ) VALUES (
-            '$this->rent_id', '$this->equipment_id', '$this->sub_equipment_id', '$this->rental_date', " .
-            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount'
+            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', " .
+            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '" . ($this->returned_qty ?? 0) . "', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount'
         )";
 
         $db = Database::getInstance();
@@ -78,12 +85,33 @@ class EquipmentRentItem
         $oldSubEquipmentId = $oldItem->sub_equipment_id;
         $oldStatus = $oldItem->status;
 
+        // Handle NULL sub_equipment_id for "No Sub-Items" equipment
+        $subEquipmentValue = (!empty($this->sub_equipment_id) && $this->sub_equipment_id != '0') 
+            ? "'{$this->sub_equipment_id}'" 
+            : "NULL";
+
+        // Subtract returned_qty from quantity and reset returned_qty to 0
+        // This ensures the displayed quantity reflects the remaining quantity
+        if ($this->returned_qty > 0) {
+            if ($this->returned_qty <= $this->quantity) {
+                // Calculate original unit price to update amount
+                $unitPrice = ($this->quantity > 0) ? ($this->amount / $this->quantity) : 0;
+                
+                $this->quantity = $this->quantity - $this->returned_qty;
+                
+                // Recalculate amount based on new quantity
+                $this->amount = $unitPrice * $this->quantity;
+            }
+            $this->returned_qty = 0;
+        }
+
         $query = "UPDATE `equipment_rent_items` SET 
             `equipment_id` = '$this->equipment_id', 
-            `sub_equipment_id` = '$this->sub_equipment_id',
+            `sub_equipment_id` = $subEquipmentValue,
             `rental_date` = '$this->rental_date', 
             `return_date` = " . ($this->return_date ? "'$this->return_date'" : "NULL") . ", 
             `quantity` = '$this->quantity',
+            `returned_qty` = '0',
             `rent_type` = '$this->rent_type',
             `duration` = '$this->duration',
             `amount` = '$this->amount',
