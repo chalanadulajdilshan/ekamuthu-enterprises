@@ -9,7 +9,7 @@ $EQUIPMENT_RENT = new EquipmentRent(NULL);
 // Get the bill number from document tracking table
 $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
 $lastId = $DOCUMENT_TRACKING->equipment_rent_id;
-$bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+$bill_number = $lastId + 1;
 ?>
 
 <head>
@@ -158,19 +158,6 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
                                                     </div>
                                                 </div>
-                                                
-                                                <!-- Transport Cost -->
-                                                <div class="col-md-3">
-                                                    <label for="transport_cost" class="form-label">Transport Cost - ප්‍රවාහන ගාස්තු</label>
-                                                    <input type="text" class="form-control" id="transport_cost" name="transport_cost" placeholder="0.00">
-                                                </div>
-
-                                                <!-- Custom Deposit -->
-                                                <div class="col-md-3">
-                                                    <label for="custom_deposit" class="form-label">Custom Deposit - තැන්පතු</label>
-                                                    <input type="text" class="form-control" id="custom_deposit" name="custom_deposit" placeholder="0.00">
-                                                    <small class="text-muted">Calculated Total: <span id="calculated_deposit_display" class="fw-bold">0.00</span></small>
-                                                </div>
 
                                                 <!-- Received Date -->
                                                 <div class="col-md-3" id="received_date_container" style="display: none;">
@@ -182,7 +169,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
 
                                                 <!-- Remark Note -->
-                                                <div class="col-md-9">
+                                                <div class="col-md-6">
                                                     <label for="remark" class="form-label">Remark - සටහන</label>
                                                     <textarea id="remark" name="remark" class="form-control" rows="2"
                                                         placeholder="Enter any remarks or notes about the rental..."></textarea>
@@ -304,6 +291,7 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <th>Duration</th>
                                                         <th>Qty</th>
                                                         <th>Amount</th>
+                                                        <th>Deposit</th>
                                                         <th>Rental Date</th>
                                                         <th>Return Date</th>
                                                         <th>Status</th>
@@ -318,6 +306,37 @@ $bill_number = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         <div class="text-center text-muted py-3" id="noItemsMessage">
                                             <i class="uil uil-box font-size-24"></i>
                                             <p class="mb-0">No equipment items added yet. Select equipment and sub-equipment above to add items.</p>
+                                        </div>
+
+                                        <!-- Totals Summary Section -->
+                                        <div class="row justify-content-end mt-4" id="totalsSummarySection">
+                                            <div class="col-md-5">
+                                                <div class="card border shadow-sm">
+                                                    <div class="card-body">
+                                                        <table class="table table-borderless mb-0">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Sub Total:</td>
+                                                                    <td class="text-end" id="summary_sub_total">0.00</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Transport Cost:</td>
+                                                                    <td class="text-end">
+                                                                        <input type="text" class="form-control form-control-sm text-end" id="transport_cost" name="transport_cost" placeholder="0.00" style="max-width: 120px; display: inline-block;">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Customer Deposit:</td>
+                                                                    <td class="text-end">
+                                                                        <input type="text" class="form-control form-control-sm text-end" id="custom_deposit" name="custom_deposit" placeholder="0.00" style="max-width: 120px; display: inline-block;">
+                                                                        <br><small class="text-muted">Calculated: <span id="calculated_deposit_display" class="fw-bold">0.00</span></small>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

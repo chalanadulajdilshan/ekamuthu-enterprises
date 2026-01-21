@@ -10,20 +10,16 @@ $bill_param = $_GET['bill_no'] ?? '';
 $US = new User($_SESSION['id']);
 $COMPANY_PROFILE = new CompanyProfile($US->company_id);
 
-// Handle both rent ID and bill number
-if (is_numeric($bill_param)) {
-    // It's an ID - use it directly
+// Always try to find by bill number first, as bill numbers are now numeric
+$EQUIPMENT_RENT = new EquipmentRent(null);
+if ($EQUIPMENT_RENT->getByBillNumber($bill_param)) {
+    $rent_id = $EQUIPMENT_RENT->id;
+} elseif (is_numeric($bill_param)) {
+    // If not found by bill number, try as an ID
     $EQUIPMENT_RENT = new EquipmentRent($bill_param);
     $rent_id = $bill_param;
 } else {
-    // It's a bill number - look it up
-    $EQUIPMENT_RENT_TEMP = new EquipmentRent(null);
-    if ($EQUIPMENT_RENT_TEMP->getByBillNumber($bill_param)) {
-        $EQUIPMENT_RENT = $EQUIPMENT_RENT_TEMP;
-        $rent_id = $EQUIPMENT_RENT->id;
-    } else {
-        die('Rent record not found: ' . htmlspecialchars($bill_param));
-    }
+    die('Rent record not found: ' . htmlspecialchars($bill_param));
 }
 
 // Verify rent exists
@@ -207,6 +203,7 @@ if (!empty($customerMobile)) {
                                 <th>කාල සීමාව</th>
                                 <th class="text-center">ප්‍රමාණය</th>
                                 <th class="text-end">මුදල</th>
+                                <th class="text-end">තැන්පතු</th>
                             </tr>
                         </thead>
                         <tbody style="font-size:13px;">
@@ -234,12 +231,14 @@ if (!empty($customerMobile)) {
                                     </td>
                                     <td class="text-center"><?php echo intval($item['quantity'] ?? 1); ?></td>
                                     <td class="text-end"><?php echo number_format($item['amount'], 2); ?></td>
+                                    <td class="text-end"><?php echo number_format(floatval($item['deposit_amount'] ?? 0), 2); ?></td>
                                 </tr>
                             <?php endforeach; ?>
 
                             <!-- Empty rows for writing additional items -->
                             <?php for ($i = count($rent_items); $i < 5; $i++): ?>
                                 <tr>
+                                    <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
@@ -284,14 +283,6 @@ if (!empty($customerMobile)) {
                             <tr>
                                 <td class="summary-label">ප්‍රවාහනය:</td>
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
-                            </tr>
-                            <tr style="border-top:2px solid #333;">
-                                <td class="summary-label" style="font-size:16px;"><strong>ශුද්ධ මුදල:</strong></td>
-                                <td class="summary-value" style="font-size:16px;"><strong><?php echo number_format($net_amount, 2); ?></strong></td>
-                            </tr>
-                            <tr>
-                                <td class="summary-label text-danger">මුළු හිඟ මුදල:</td>
-                                <td class="summary-value text-danger"><strong><?php echo number_format($total_outstanding, 2); ?></strong></td>
                             </tr>
                         </table>
                     </div>

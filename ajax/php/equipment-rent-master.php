@@ -352,7 +352,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     // Get bill number from document tracking table
     $DOCUMENT_TRACKING = new DocumentTracking(1);
     $lastId = $DOCUMENT_TRACKING->equipment_rent_id;
-    $newCode = 'ER/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+    $newCode = $lastId + 1;
 
     echo json_encode([
         "status" => "success",
