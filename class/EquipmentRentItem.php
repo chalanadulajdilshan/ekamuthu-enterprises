@@ -197,7 +197,7 @@ class EquipmentRentItem
     {
         $query = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name,
                   CASE WHEN se.rental_status = 'rented' THEN 
-                    (SELECT CONCAT(er.code, ' - ', cm.name) 
+                    (SELECT CONCAT(er.bill_number, ' - ', cm.name) 
                      FROM equipment_rent_items eri 
                      JOIN equipment_rent er ON eri.rent_id = er.id
                      LEFT JOIN customer_master cm ON er.customer_id = cm.id

@@ -13,6 +13,7 @@ class EquipmentRent
     public $remark;
     public $transport_cost;
     public $deposit_total;
+    public $total_items;
     public $created_at;
     public $updated_at;
 

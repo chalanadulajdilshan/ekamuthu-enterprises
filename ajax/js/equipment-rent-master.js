@@ -36,8 +36,8 @@ jQuery(document).ready(function () {
 
     // Format return date YYYY-MM-DD
     var yyyy = returnDate.getFullYear();
-    var mm = String(returnDate.getMonth() + 1).padStart(2, '0');
-    var dd = String(returnDate.getDate()).padStart(2, '0');
+    var mm = String(returnDate.getMonth() + 1).padStart(2, "0");
+    var dd = String(returnDate.getDate()).padStart(2, "0");
     $("#item_return_date").val(yyyy + "-" + mm + "-" + dd);
   }
 
@@ -73,7 +73,7 @@ jQuery(document).ready(function () {
       if (returnDate.getDate() < rentalDate.getDate()) {
         months--;
       }
-      // If less than a month but positive, count as 1 or use fractional? 
+      // If less than a month but positive, count as 1 or use fractional?
       // For simplicity allow integers for now, or use fractional months?
       // Let's try to get nearest whole number or 1 decimal.
       duration = months <= 0 ? 0 : months;
@@ -133,21 +133,28 @@ jQuery(document).ready(function () {
           "<td>" +
           item.equipment_display +
           "</td>" +
-
           "<td>" +
           item.sub_equipment_display +
           "</td>" +
           "<td>" +
-          (item.rent_type === 'month' ? 'Month' : 'Day') +
+          (item.rent_type === "month" ? "Month" : "Day") +
           "</td>" +
           "<td>" +
-          '<span class="badge ' + (item.rent_type === 'month' ? 'bg-primary' : 'bg-info') + '">' + parseFloat(item.duration).toFixed(0) + (item.rent_type === 'month' ? ' Months' : ' Days') + '</span>' +
+          '<span class="badge ' +
+          (item.rent_type === "month" ? "bg-primary" : "bg-info") +
+          '">' +
+          parseFloat(item.duration).toFixed(0) +
+          (item.rent_type === "month" ? " Months" : " Days") +
+          "</span>" +
           "</td>" +
           "<td>" +
           parseFloat(item.quantity).toFixed(0) +
           "</td>" +
           "<td>" +
           parseFloat(item.amount).toFixed(2) +
+          "</td>" +
+          "<td>" +
+          (parseFloat(item.deposit_one_day || 0) * parseFloat(item.quantity || 1)).toFixed(2) +
           "</td>" +
           "<td>" +
           item.rental_date +
@@ -165,6 +172,9 @@ jQuery(document).ready(function () {
         tbody.append(row);
       });
     }
+
+    // Update totals summary
+    updateTotalsSummary();
   }
 
   // Check if sub-equipment already added
@@ -235,7 +245,9 @@ jQuery(document).ready(function () {
     });
 
     // Update calculated deposit
-    totalCalculatedDeposit += (parseFloat(currentDepositOneDay || 0) * parseFloat($("#item_qty").val() || 1));
+    totalCalculatedDeposit +=
+      parseFloat(currentDepositOneDay || 0) *
+      parseFloat($("#item_qty").val() || 1);
     $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
     $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
 
@@ -257,9 +269,12 @@ jQuery(document).ready(function () {
   });
 
   // Calculate on input changes
-  $("#item_rent_type, #item_duration, #item_qty, #item_rental_date").on("change keyup", function () {
-    calculateRentDetails();
-  });
+  $("#item_rent_type, #item_duration, #item_qty, #item_rental_date").on(
+    "change keyup",
+    function () {
+      calculateRentDetails();
+    },
+  );
 
   // Calculate when return date changes
   $("#item_return_date").on("change keyup", function () {
@@ -272,13 +287,30 @@ jQuery(document).ready(function () {
 
     // Subtract deposit
     var removedItem = rentItems[index];
-    totalCalculatedDeposit -= (parseFloat(removedItem.deposit_one_day || 0) * parseFloat(removedItem.quantity || 1));
+    totalCalculatedDeposit -=
+      parseFloat(removedItem.deposit_one_day || 0) *
+      parseFloat(removedItem.quantity || 1);
     if (totalCalculatedDeposit < 0) totalCalculatedDeposit = 0;
     $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
     $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
 
     rentItems.splice(index, 1);
     updateItemsTable();
+  });
+
+  // Update totals summary section
+  function updateTotalsSummary() {
+    var subTotal = 0;
+    rentItems.forEach(function (item) {
+      subTotal += parseFloat(item.amount) || 0;
+    });
+
+    $("#summary_sub_total").text(subTotal.toFixed(2));
+  }
+
+  // Update totals when transport cost or deposit changes
+  $("#transport_cost, #custom_deposit").on("change keyup", function () {
+    updateTotalsSummary();
   });
 
   // Mark item as returned (in memory)
@@ -326,8 +358,10 @@ jQuery(document).ready(function () {
           data: "outstanding_items",
           title: "Outstanding",
           render: function (data, type, row) {
-            return data > 0 ? '<span class="text-danger fw-bold">' + data + '</span>' : '<span class="text-success">0</span>';
-          }
+            return data > 0
+              ? '<span class="text-danger fw-bold">' + data + "</span>"
+              : '<span class="text-success">0</span>';
+          },
         },
         { data: "status_label", title: "Status" },
       ],
@@ -373,9 +407,10 @@ jQuery(document).ready(function () {
 
           // Load items
           rentItems = result.items.map(function (item) {
-
             // Add to calculated total (multiply by qty)
-            totalCalculatedDeposit += (parseFloat(item.equipment_deposit || 0) * parseFloat(item.quantity || 1));
+            totalCalculatedDeposit +=
+              parseFloat(item.equipment_deposit || 0) *
+              parseFloat(item.quantity || 1);
 
             return {
               id: item.id,
@@ -398,7 +433,9 @@ jQuery(document).ready(function () {
             };
           });
 
-          $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
+          $("#calculated_deposit_display").text(
+            totalCalculatedDeposit.toFixed(2),
+          );
           updateItemsTable();
 
           $("#create").hide();
@@ -661,6 +698,8 @@ jQuery(document).ready(function () {
     var formData = new FormData($("#form-data")[0]);
     formData.append("create", true);
     formData.append("items", JSON.stringify(rentItems));
+    formData.append("transport_cost", $("#transport_cost").val() || 0);
+    formData.append("custom_deposit", $("#custom_deposit").val() || 0);
 
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
@@ -677,7 +716,10 @@ jQuery(document).ready(function () {
         if (result.status === "success") {
           // Open the rent invoice in a new tab
           var billNo = $("#code").val();
-          window.open('rent-invoice.php?bill_no=' + encodeURIComponent(billNo), '_blank');
+          window.open(
+            "rent-invoice.php?bill_no=" + encodeURIComponent(billNo),
+            "_blank",
+          );
 
           swal({
             title: "Success!",
@@ -746,6 +788,8 @@ jQuery(document).ready(function () {
     var formData = new FormData($("#form-data")[0]);
     formData.append("update", true);
     formData.append("items", JSON.stringify(rentItems));
+    formData.append("transport_cost", $("#transport_cost").val() || 0);
+    formData.append("custom_deposit", $("#custom_deposit").val() || 0);
 
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
