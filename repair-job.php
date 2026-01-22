@@ -160,27 +160,20 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <option value="cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</option>
                                                     </select>
                                                 </div>
-                                            </div>
+                                            </div> 
+ 
 
-                                            <!-- Machine Code (visible only for Company Items) -->
-                                            <div class="row" id="machine_code_section" style="display: none;">
-                                                <div class="col-md-4">
-                                                    <label for="machine_code" class="form-label">Machine Code - යන්ත්‍ර කේතය</label>
-                                                    <input id="machine_code" name="machine_code" type="text" class="form-control mb-3" placeholder="Enter machine code">
-                                                </div>
-                                            </div>
-
-                                            <!-- Machine Name (always visible) -->
                                             <div class="row">
-                                                <div class="col-md-6">
+                                                <div class="col-md-3">
                                                     <label for="machine_name" class="form-label">Machine/Item Name - යන්ත්‍ර/අයිතම නම</label>
                                                     <input id="machine_name" name="machine_name" type="text" class="form-control mb-3" placeholder="Enter machine/item name for repair">
                                                 </div>
-                                            </div>
-
-                                            <div class="row">
+                                                <div class="col-md-3"  id="machine_code_section" style="display: none;">
+                                                    <label for="machine_code" class="form-label">Machine Code - යන්ත්‍ර කේතය</label>
+                                                    <input id="machine_code" name="machine_code" type="text" class="form-control mb-3" placeholder="Enter machine code">
+                                                </div>
                                                 <!-- Customer Name -->
-                                                <div class="col-md-4">
+                                                <div class="col-md-3">
                                                     <label for="customer_name" class="form-label">Customer Name - පාරිභෝගික නම</label>
                                                     <input id="customer_name" name="customer_name" type="text" class="form-control mb-3" placeholder="Enter customer name">
                                                 </div>
@@ -191,24 +184,9 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <input id="customer_phone" name="customer_phone" type="text" class="form-control mb-3" placeholder="Enter phone number">
                                                 </div>
 
-                                                <!-- Repair Feasibility -->
-                                                <div class="col-md-2">
-                                                    <label for="repair_feasibility" class="form-label">Repair Feasibility</label>
-                                                    <select class="form-select mb-3" id="repair_feasibility" name="repair_feasibility">
-                                                        <option value="pending">Pending</option>
-                                                        <option value="can_repair">Can Repair</option>
-                                                        <option value="cannot_repair">Cannot Repair</option>
-                                                    </select>
-                                                </div>
 
-                                                <!-- Total Cost Display -->
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Total Repair Cost - මුළු පිරිවැය</label>
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text">Rs.</span>
-                                                        <input type="text" class="form-control fw-bold text-end" id="total_cost_display" readonly value="0.00">
-                                                    </div>
-                                                </div>
+
+
                                             </div>
 
                                             <div class="row">
@@ -229,9 +207,11 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <!-- Remark -->
                                                 <div class="col-md-12">
                                                     <label for="remark" class="form-label">Remark - සටහන</label>
-                                                    <textarea id="remark" name="remark" class="form-control" rows="2" placeholder="Additional notes..."></textarea>
+                                                    <textarea id="remark" name="remark" class="form-control mb-3" rows="2" placeholder="Additional notes..."></textarea>
                                                 </div>
                                             </div>
+
+
 
                                             <input type="hidden" id="job_id" name="job_id" />
                                         </form>
@@ -314,6 +294,50 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                     </div>
                                 </div>
 
+                            </div>
+                            
+                            <!-- Cost Summary Card (Always Visible) -->
+                            <div class="card">
+                                <div class="p-4">
+                                    <h5 class="font-size-16 mb-3">Cost Summary - පිරිවැය සාරාංශය</h5>
+                                    <div class="row">
+                                        <!-- Repair Charge (Manual) -->
+                                        <div class="col-md-3">
+                                            <label class="form-label">Repair Charge - අලුත්වැඩියා ගාස්තුව</label>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Rs.</span>
+                                                <input type="number" class="form-control fw-bold text-end" id="repair_charge" name="repair_charge" value="0.00" min="0" step="0.01">
+                                            </div>
+                                        </div>
+
+                                        <!-- Commission Percentage -->
+                                        <div class="col-md-3">
+                                            <label class="form-label">Commission %</label>
+                                            <div class="input-group mb-3">
+                                                <input type="number" class="form-control fw-bold text-end" id="commission_percentage" name="commission_percentage" value="15" min="0" max="100" step="0.01">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Commission Amount Display -->
+                                        <div class="col-md-3">
+                                            <label class="form-label">Commission Amount</label>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Rs.</span>
+                                                <input type="text" class="form-control fw-bold text-end" id="commission_amount" readonly value="0.00">
+                                            </div>
+                                        </div>
+
+                                        <!-- Total Cost Display (Calculated) -->
+                                        <div class="col-md-3">
+                                            <label class="form-label">Total Repair Cost - මුළු පිරිවැය</label>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Rs.</span>
+                                                <input type="text" class="form-control fw-bold text-end" id="total_cost_display" readonly value="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
