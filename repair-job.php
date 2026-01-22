@@ -57,11 +57,9 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 </a>
                             <?php endif; ?>
 
-                            <?php if ($PERMISSIONS['edit_page']): ?>
-                                <a href="#" class="btn btn-warning" id="update" style="display: none;">
-                                    <i class="uil uil-edit me-1"></i> Update
-                                </a>
-                            <?php endif; ?>
+                            <a href="#" class="btn btn-warning" id="update" style="display: none;">
+                                <i class="uil uil-edit me-1"></i> Update
+                            </a>
 
                             <?php if ($PERMISSIONS['delete_page']): ?>
                                 <a href="#" class="btn btn-danger delete-job" style="display: none;">
@@ -392,7 +390,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
     <!-- include main js  -->
     <?php include 'main-js.php' ?>
 
-    <script src="ajax/js/repair-job.js"></script>
+    <script src="ajax/js/repair-job.js?v=<?php echo time(); ?>"></script>
 
     <!-- Page Preloader Script -->
     <script>
@@ -401,8 +399,22 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 $(this).remove();
             });
         });
+        
+        $(document).ready(function() {
+            // Check for job_id in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const jobId = urlParams.get('job_id');
+            if (jobId) {
+                // Using a small timeout to ensure repair-job.js has executed and exposed the function
+                setTimeout(function() {
+                     if (typeof window.loadJobDetails === 'function') {
+                        window.loadJobDetails(jobId);
+                     } else {
+                        console.error("window.loadJobDetails function not found");
+                     }
+                }, 100);
+            }
+        });
     </script>
-
 </body>
-
 </html>

@@ -31,11 +31,7 @@ $issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
                 <div class="container-fluid">
                     <!-- Page Header -->
                     <div class="row mb-4">
-                        <div class="col-md-8">
-                            <h4 class="mb-0">Warehouse Issue Note</h4>
-                            <p class="text-muted">Issue items based on confirmed Rent Invoices</p>
-                        </div>
-                        <div class="col-md-4 text-end">
+                        <div class="col-md-8 d-flex align-items-center flex-wrap gap-2">
                             <a href="#" class="btn btn-success" id="new_note">
                                 <i class="uil uil-plus me-1"></i> New Note
                             </a>
@@ -46,6 +42,12 @@ $issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
                                 <i class="uil uil-print me-1"></i> Print
                             </button>
                         </div>
+                        <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
+                             <ol class="breadcrumb m-0 justify-content-md-end">
+                                <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
+                                <li class="breadcrumb-item active">Warehouse Issue Note</li>
+                            </ol>
+                        </div>
                     </div>
 
                     <!-- Main Form -->
@@ -53,6 +55,25 @@ $issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-body">
+                                    <div class="p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="avatar-xs">
+                                                    <div class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                        01
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center flex-grow-1">
+                                                <div class="me-3">
+                                                    <h5 class="font-size-16 mb-1">Warehouse Issue Note</h5>
+                                                    <p class="text-muted text-truncate mb-0">Issue items based on confirmed Rent Invoices</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="p-4">
                                     <form id="issue_note_form">
                                         <div class="row mb-4">
                                             <div class="col-md-3">
@@ -131,6 +152,7 @@ $issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
                                             </div>
                                         </div>
                                     </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
