@@ -16,9 +16,19 @@ jQuery(document).ready(function () {
         repairItems.forEach(function (item) {
             total += parseFloat(item.total_price) || 0;
         });
+
+        // Add repair charge
+        var repairCharge = parseFloat($("#repair_charge").val()) || 0;
+        var grandTotal = total + repairCharge;
+
+        // Calculate commission
+        var commissionPercentage = parseFloat($("#commission_percentage").val()) || 0;
+        var commissionAmount = repairCharge * (commissionPercentage / 100);
+
+        $("#commission_amount").val(commissionAmount.toFixed(2));
         $("#grand_total").text(total.toFixed(2));
-        $("#total_cost_display").val(total.toFixed(2));
-        return total;
+        $("#total_cost_display").val(grandTotal.toFixed(2));
+        return grandTotal;
     }
 
     // Update repair items table
@@ -73,6 +83,11 @@ jQuery(document).ready(function () {
     // Event: Calculate item total on input change
     $("#repair_item_qty, #repair_item_price").on("change keyup", function () {
         calculateItemTotal();
+    });
+
+    // Event: Calculate grand total on repair charge or commission change
+    $("#repair_charge, #commission_percentage").on("change keyup", function () {
+        calculateGrandTotal();
     });
 
     // Event: Toggle repair items section on status change
@@ -204,7 +219,9 @@ jQuery(document).ready(function () {
                     $("#item_breakdown_date").val(job.item_breakdown_date || "");
                     $("#technical_issue").val(job.technical_issue || "");
                     $("#job_status").val(job.job_status || "pending");
-                    $("#repair_feasibility").val(job.repair_feasibility || "pending");
+                    $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2));
+                    $("#commission_percentage").val(parseFloat(job.commission_percentage || 15).toFixed(2));
+                    $("#commission_amount").val(parseFloat(job.commission_amount || 0).toFixed(2));
                     $("#remark").val(job.remark || "");
                     $("#total_cost_display").val(parseFloat(job.total_cost || 0).toFixed(2));
 
@@ -232,9 +249,56 @@ jQuery(document).ready(function () {
         });
     }
 
+    // Validate Form
+    function validateForm() {
+        var isValid = true;
+        var errorMessage = "";
+
+        // Check required fields
+        if ($("#machine_name").val().trim() === "") {
+            errorMessage = "Machine/Item Name is required";
+            isValid = false;
+        } else if ($("#customer_name").val().trim() === "") {
+            errorMessage = "Customer Name is required";
+            isValid = false;
+        } else if ($("#customer_phone").val().trim() === "") {
+            errorMessage = "Customer Phone is required";
+            isValid = false;
+        } else if ($("#customer_address").val().trim() === "") {
+            errorMessage = "Customer Address is required";
+            isValid = false;
+        } else if ($("#technical_issue").val().trim() === "") {
+            errorMessage = "Technical Issue Details are required";
+            isValid = false;
+        } else if ($("#item_breakdown_date").val().trim() === "") {
+            errorMessage = "Item Breakdown Date is required";
+            isValid = false;
+        } else if (parseFloat($("#repair_charge").val()) < 0) {
+            errorMessage = "Repair Charge cannot be negative";
+            isValid = false;
+        } else if (parseFloat($("#commission_percentage").val()) < 0) {
+            errorMessage = "Commission Percentage cannot be negative";
+            isValid = false;
+        }
+
+        if (!isValid) {
+            swal({
+                title: "Error!",
+                text: errorMessage,
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+
+        return isValid;
+    }
+
     // Create new job
     $("#create").click(function (e) {
         e.preventDefault();
+
+        if (!validateForm()) return;
 
         var formData = {
             create: true,
@@ -248,7 +312,7 @@ jQuery(document).ready(function () {
             item_breakdown_date: $("#item_breakdown_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
-            repair_feasibility: $("#repair_feasibility").val(),
+            repair_charge: $("#repair_charge").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -297,6 +361,8 @@ jQuery(document).ready(function () {
     $("#update").click(function (e) {
         e.preventDefault();
 
+        if (!validateForm()) return;
+
         var formData = {
             update: true,
             job_id: $("#job_id").val(),
@@ -310,7 +376,7 @@ jQuery(document).ready(function () {
             item_breakdown_date: $("#item_breakdown_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
-            repair_feasibility: $("#repair_feasibility").val(),
+            repair_charge: $("#repair_charge").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -392,9 +458,12 @@ jQuery(document).ready(function () {
         $("#job_id").val("");
         $("input[name='item_type'][value='customer']").prop("checked", true);
         $("#job_status").val("pending");
-        $("#repair_feasibility").val("pending");
         $("#machine_code").val("");
         $("#machine_name").val("");
+        $("#repair_charge").val("0.00");
+        $("#commission_percentage").val("15");
+        $("#commission_amount").val("0.00");
+        $("#total_cost_display").val("0.00");
         repairItems = [];
         updateRepairItemsTable();
         toggleRepairItemsSection();

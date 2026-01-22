@@ -13,7 +13,9 @@ class RepairJob
     public $item_breakdown_date;
     public $technical_issue;
     public $job_status;
-    public $repair_feasibility;
+    public $repair_charge;
+    public $commission_percentage;
+    public $commission_amount;
     public $total_cost;
     public $remark;
     public $created_at;
@@ -38,7 +40,9 @@ class RepairJob
                 $this->item_breakdown_date = $result['item_breakdown_date'];
                 $this->technical_issue = $result['technical_issue'];
                 $this->job_status = $result['job_status'];
-                $this->repair_feasibility = $result['repair_feasibility'];
+                $this->repair_charge = $result['repair_charge'];
+                $this->commission_percentage = $result['commission_percentage'];
+                $this->commission_amount = $result['commission_amount'];
                 $this->total_cost = $result['total_cost'];
                 $this->remark = $result['remark'];
                 $this->created_at = $result['created_at'];
@@ -52,7 +56,7 @@ class RepairJob
         $db = Database::getInstance();
         $query = "INSERT INTO `repair_jobs` (
             `job_code`, `item_type`, `machine_code`, `machine_name`, `customer_name`, `customer_address`, `customer_phone`,
-            `item_breakdown_date`, `technical_issue`, `job_status`, `repair_feasibility`, `total_cost`, `remark`
+            `item_breakdown_date`, `technical_issue`, `job_status`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`
         ) VALUES (
             '" . $db->escapeString($this->job_code) . "',
             '" . $db->escapeString($this->item_type) . "',
@@ -64,7 +68,9 @@ class RepairJob
             " . ($this->item_breakdown_date ? "'" . $db->escapeString($this->item_breakdown_date) . "'" : "NULL") . ",
             '" . $db->escapeString($this->technical_issue) . "',
             '" . $db->escapeString($this->job_status) . "',
-            '" . $db->escapeString($this->repair_feasibility) . "',
+            '" . floatval($this->repair_charge) . "',
+            '" . floatval($this->commission_percentage) . "',
+            '" . floatval($this->commission_amount) . "',
             '" . floatval($this->total_cost) . "',
             '" . $db->escapeString($this->remark) . "'
         )";
@@ -92,7 +98,9 @@ class RepairJob
             `item_breakdown_date` = " . ($this->item_breakdown_date ? "'" . $db->escapeString($this->item_breakdown_date) . "'" : "NULL") . ",
             `technical_issue` = '" . $db->escapeString($this->technical_issue) . "',
             `job_status` = '" . $db->escapeString($this->job_status) . "',
-            `repair_feasibility` = '" . $db->escapeString($this->repair_feasibility) . "',
+            `repair_charge` = '" . floatval($this->repair_charge) . "',
+            `commission_percentage` = '" . floatval($this->commission_percentage) . "',
+            `commission_amount` = '" . floatval($this->commission_amount) . "',
             `total_cost` = '" . floatval($this->total_cost) . "',
             `remark` = '" . $db->escapeString($this->remark) . "'
             WHERE `id` = " . (int) $this->id;
@@ -120,7 +128,7 @@ class RepairJob
     public function updateTotalCost()
     {
         $query = "UPDATE `repair_jobs` SET `total_cost` = (
-            SELECT COALESCE(SUM(`total_price`), 0) FROM `repair_job_items` WHERE `job_id` = " . (int) $this->id . "
+            (SELECT COALESCE(SUM(`total_price`), 0) FROM `repair_job_items` WHERE `job_id` = " . (int) $this->id . ") + `repair_charge`
         ) WHERE `id` = " . (int) $this->id;
         $db = Database::getInstance();
         return $db->readQuery($query);
@@ -144,7 +152,9 @@ class RepairJob
             $this->item_breakdown_date = $result['item_breakdown_date'];
             $this->technical_issue = $result['technical_issue'];
             $this->job_status = $result['job_status'];
-            $this->repair_feasibility = $result['repair_feasibility'];
+            $this->repair_charge = $result['repair_charge'];
+            $this->commission_percentage = $result['commission_percentage'];
+            $this->commission_amount = $result['commission_amount'];
             $this->total_cost = $result['total_cost'];
             $this->remark = $result['remark'];
             return true;

@@ -31,7 +31,9 @@ if (isset($_POST['create'])) {
     $JOB->item_breakdown_date = !empty($_POST['item_breakdown_date']) ? $_POST['item_breakdown_date'] : null;
     $JOB->technical_issue = $_POST['technical_issue'] ?? '';
     $JOB->job_status = $_POST['job_status'] ?? 'pending';
-    $JOB->repair_feasibility = $_POST['repair_feasibility'] ?? 'pending';
+    $JOB->repair_charge = $_POST['repair_charge'] ?? 0;
+    $JOB->commission_percentage = $_POST['commission_percentage'] ?? 15;
+    $JOB->commission_amount = $_POST['commission_amount'] ?? 0;
     $JOB->total_cost = 0;
     $JOB->remark = $_POST['remark'] ?? '';
 
@@ -93,7 +95,9 @@ if (isset($_POST['update'])) {
     $JOB->item_breakdown_date = !empty($_POST['item_breakdown_date']) ? $_POST['item_breakdown_date'] : null;
     $JOB->technical_issue = $_POST['technical_issue'] ?? '';
     $JOB->job_status = $_POST['job_status'] ?? 'pending';
-    $JOB->repair_feasibility = $_POST['repair_feasibility'] ?? 'pending';
+    $JOB->repair_charge = $_POST['repair_charge'] ?? 0;
+    $JOB->commission_percentage = $_POST['commission_percentage'] ?? 15;
+    $JOB->commission_amount = $_POST['commission_amount'] ?? 0;
     $JOB->remark = $_POST['remark'] ?? '';
 
     $res = $JOB->update();
@@ -187,7 +191,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_job_details') {
                 "item_breakdown_date" => $JOB->item_breakdown_date,
                 "technical_issue" => $JOB->technical_issue,
                 "job_status" => $JOB->job_status,
-                "repair_feasibility" => $JOB->repair_feasibility,
+                "repair_charge" => $JOB->repair_charge,
+                "commission_percentage" => $JOB->commission_percentage,
+                "commission_amount" => $JOB->commission_amount,
                 "total_cost" => $JOB->total_cost,
                 "remark" => $JOB->remark
             ],
