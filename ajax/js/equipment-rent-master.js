@@ -114,16 +114,19 @@ jQuery(document).ready(function () {
             : '<span class="badge bg-soft-warning">Rented</span>';
 
         var actionBtns = "";
-        if (item.status === "rented") {
+        if (item.status === "rented" || (item.pending_qty && item.pending_qty > 0)) {
           actionBtns =
-            '<button class="btn btn-sm btn-info return-item-btn me-1" data-index="' +
+            '<button class="btn btn-sm btn-success process-return-btn me-1" data-item-id="' +
+            (item.id || '') +
+            '" data-index="' +
             index +
-            '" title="Mark as Returned"><i class="uil uil-redo"></i></button>';
-        } else if (item.status === "returned") {
-          actionBtns =
-            '<button class="btn btn-sm btn-warning undo-return-item-btn me-1" data-index="' +
-            index +
-            '" title="Undo Return"><i class="uil uil-history"></i></button>';
+            '" title="Process Return"><i class="uil uil-redo"></i></button>';
+        }
+        if (item.id && (item.total_returned_qty > 0 || item.status === "returned")) {
+          actionBtns +=
+            '<button class="btn btn-sm btn-info view-returns-btn me-1" data-item-id="' +
+            item.id +
+            '" title="View Returns History"><i class="uil uil-history"></i></button>';
         }
         actionBtns +=
           '<button class="btn btn-sm btn-danger remove-item-btn" data-index="' +
@@ -156,9 +159,8 @@ jQuery(document).ready(function () {
           parseFloat(item.quantity).toFixed(0) +
           "</td>" +
           "<td>" +
-          (item.no_sub_items == 1 
-            ? '<input type="number" class="form-control form-control-sm returned-qty-input" data-index="' + index + '" value="' + (item.returned_qty || 0) + '" min="0" max="' + item.quantity + '" style="width: 80px;">'
-            : (item.returned_qty ? parseFloat(item.returned_qty).toFixed(0) : "0")) +
+          '<span class="badge bg-soft-success">' + (item.total_returned_qty || 0) + '</span> / ' +
+          '<span class="badge bg-soft-warning">' + (item.pending_qty !== undefined ? item.pending_qty : item.quantity) + ' pending</span>' +
           "</td>" +
           "<td>" +
           parseFloat(item.amount).toFixed(2) +
@@ -186,26 +188,30 @@ jQuery(document).ready(function () {
     // Update totals summary
     updateTotalsSummary();
     
-    // Bind returned qty input change event
-    $(".returned-qty-input").off("change").on("change", function() {
+    // Bind process return button event
+    $(".process-return-btn").off("click").on("click", function() {
+        var itemId = $(this).data("item-id");
         var index = $(this).data("index");
-        var val = parseFloat($(this).val()) || 0;
-        var max = parseFloat($(this).attr("max")) || 1;
         
-        if (val < 0) val = 0;
-        if (val > max) {
-             swal({
+        if (itemId) {
+            // If item is saved, open return modal
+            openReturnModal(itemId);
+        } else {
+            // If item is not saved yet
+            swal({
                 title: "Error!",
-                text: "Returned Qty cannot be greater than Rented Qty",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false,
-              });
-              val = max;
-              $(this).val(val);
+                text: "Please save the rental record first before processing returns",
+                type: "warning",
+                timer: 3000,
+                showConfirmButton: false
+            });
         }
-        
-        rentItems[index].returned_qty = val;
+    });
+    
+    // Bind view returns history button event
+    $(".view-returns-btn").off("click").on("click", function() {
+        var itemId = $(this).data("item-id");
+        viewReturnsHistory(itemId);
     });
   }
 
@@ -498,7 +504,12 @@ jQuery(document).ready(function () {
               rent_type: item.rent_type,
               duration: item.duration,
               quantity: item.quantity,
-              returned_qty: item.returned_qty || 0,
+              // use aggregated values from returns table
+              total_returned_qty: item.total_returned_qty || 0,
+              pending_qty:
+                item.pending_qty !== undefined
+                  ? item.pending_qty
+                  : item.quantity,
               amount: item.amount,
               deposit_one_day: item.equipment_deposit, // Store this
               status: item.status,

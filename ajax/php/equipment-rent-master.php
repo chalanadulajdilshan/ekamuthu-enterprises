@@ -75,18 +75,19 @@ if (isset($_POST['create'])) {
     if ($rent_id) {
         // Create rent items
         foreach ($items as $item) {
+            // Deposit sent from UI as per-day value; multiply by qty to store total for the item
+            $itemDeposit = $item['deposit_one_day'] ?? ($item['deposit'] ?? 0);
+            $itemDepositTotal = ($item['quantity'] ?? 1) * $itemDeposit;
             $RENT_ITEM = new EquipmentRentItem(NULL);
             $RENT_ITEM->rent_id = $rent_id;
             $RENT_ITEM->equipment_id = $item['equipment_id'];
             $RENT_ITEM->sub_equipment_id = $item['sub_equipment_id'];
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
-            $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
-            $RENT_ITEM->returned_qty = $item['returned_qty'] ?? 0;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
-            $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
+            $RENT_ITEM->deposit_amount = $itemDepositTotal;
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
@@ -158,6 +159,9 @@ if (isset($_POST['update'])) {
 
     // Validate and update/create items
     foreach ($items as $item) {
+        // Deposit sent from UI as per-day value; multiply by qty to store total for the item
+        $itemDeposit = $item['deposit_one_day'] ?? ($item['deposit'] ?? 0);
+        $itemDepositTotal = ($item['quantity'] ?? 1) * $itemDeposit;
         $subEquipmentId = $item['sub_equipment_id'];
         $itemId = $item['id'] ?? null;
 
@@ -194,14 +198,11 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->equipment_id = $item['equipment_id'];
             $RENT_ITEM->sub_equipment_id = $subEquipmentId;
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
-            $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
-            $RENT_ITEM->returned_qty = $item['returned_qty'] ?? 0;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
-            $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
-            $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
+            $RENT_ITEM->deposit_amount = $itemDepositTotal;
             $status = $item['status'] ?? 'rented';
             // Validate status to prevent empty or invalid values
             if ($status !== 'returned' && $status !== 'rented') {
@@ -217,13 +218,11 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->equipment_id = $item['equipment_id'];
             $RENT_ITEM->sub_equipment_id = $subEquipmentId;
             $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
-            $RENT_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
-            $RENT_ITEM->returned_qty = $item['returned_qty'] ?? 0;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
             $RENT_ITEM->amount = $item['amount'] ?? 0;
-            $RENT_ITEM->deposit_amount = $item['deposit'] ?? 0;
+            $RENT_ITEM->deposit_amount = $itemDepositTotal;
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();

@@ -7,9 +7,9 @@ class EquipmentRentItem
     public $equipment_id;
     public $sub_equipment_id;
     public $rental_date;
-    public $return_date;
     public $quantity;
-    public $returned_qty;
+    public $total_returned_qty;
+    public $pending_qty;
     public $rent_type;
     public $duration;
     public $amount;
@@ -32,9 +32,9 @@ class EquipmentRentItem
                 $this->equipment_id = $result['equipment_id'];
                 $this->sub_equipment_id = $result['sub_equipment_id'];
                 $this->rental_date = $result['rental_date'];
-                $this->return_date = $result['return_date'];
                 $this->quantity = $result['quantity'];
-                $this->returned_qty = $result['returned_qty'] ?? 0;
+                $this->total_returned_qty = $result['total_returned_qty'] ?? 0;
+                $this->pending_qty = $result['pending_qty'] ?? $result['quantity'];
                 $this->rent_type = $result['rent_type'];
                 $this->duration = $result['duration'];
                 $this->amount = $result['amount'];
@@ -55,10 +55,9 @@ class EquipmentRentItem
             : "NULL";
         
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `returned_qty`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`
         ) VALUES (
-            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', " .
-            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '" . ($this->returned_qty ?? 0) . "', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount'
+            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity'
         )";
 
         $db = Database::getInstance();
@@ -90,28 +89,11 @@ class EquipmentRentItem
             ? "'{$this->sub_equipment_id}'" 
             : "NULL";
 
-        // Subtract returned_qty from quantity and reset returned_qty to 0
-        // This ensures the displayed quantity reflects the remaining quantity
-        if ($this->returned_qty > 0) {
-            if ($this->returned_qty <= $this->quantity) {
-                // Calculate original unit price to update amount
-                $unitPrice = ($this->quantity > 0) ? ($this->amount / $this->quantity) : 0;
-                
-                $this->quantity = $this->quantity - $this->returned_qty;
-                
-                // Recalculate amount based on new quantity
-                $this->amount = $unitPrice * $this->quantity;
-            }
-            $this->returned_qty = 0;
-        }
-
         $query = "UPDATE `equipment_rent_items` SET 
             `equipment_id` = '$this->equipment_id', 
             `sub_equipment_id` = $subEquipmentValue,
             `rental_date` = '$this->rental_date', 
-            `return_date` = " . ($this->return_date ? "'$this->return_date'" : "NULL") . ", 
             `quantity` = '$this->quantity',
-            `returned_qty` = '0',
             `rent_type` = '$this->rent_type',
             `duration` = '$this->duration',
             `amount` = '$this->amount',
@@ -160,8 +142,9 @@ class EquipmentRentItem
     public function getByRentId($rent_id)
     {
         $query = "SELECT eri.*, 
-                  e.code as equipment_code, e.item_name as equipment_name,
-                  se.code as sub_equipment_code
+                  e.code as equipment_code, e.item_name as equipment_name, e.no_sub_items,
+                  se.code as sub_equipment_code,
+                  eri.quantity - COALESCE(eri.total_returned_qty, 0) as pending_qty
                   FROM `equipment_rent_items` eri
                   LEFT JOIN `equipment` e ON eri.equipment_id = e.id
                   LEFT JOIN `sub_equipment` se ON eri.sub_equipment_id = se.id
@@ -274,11 +257,39 @@ class EquipmentRentItem
     public function markAsReturned()
     {
         $this->status = 'returned';
-        $this->return_date = date('Y-m-d');
         
         if ($this->update()) {
             return true;
         }
         return false;
+    }
+
+    public function getReturns()
+    {
+        $db = Database::getInstance();
+        $query = "SELECT err.*, u.name as created_by_name
+                  FROM equipment_rent_returns err
+                  LEFT JOIN user u ON err.created_by = u.id
+                  WHERE err.rent_item_id = " . (int) $this->id . "
+                  ORDER BY err.return_date DESC, err.id DESC";
+        
+        $result = $db->readQuery($query);
+        $returns = [];
+        
+        while ($row = mysqli_fetch_assoc($result)) {
+            $returns[] = $row;
+        }
+        
+        return $returns;
+    }
+
+    public function getPendingQty()
+    {
+        return max(0, $this->quantity - ($this->total_returned_qty ?? 0));
+    }
+
+    public function isFullyReturned()
+    {
+        return $this->getPendingQty() <= 0;
     }
 }
