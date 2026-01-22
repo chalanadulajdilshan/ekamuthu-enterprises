@@ -328,6 +328,7 @@ jQuery(document).ready(function () {
           loadImagePreview("guarantor_nic", 1, data.guarantor_nic_image_1);
           loadImagePreview("guarantor_nic", 2, data.guarantor_nic_image_2);
           loadImagePreview("guarantor_photo", 1, data.guarantor_photo);
+          loadImagePreview("customer_photo", 1, data.customer_photo);
           loadDocumentPreview("po_document", data.company_document);
 
           $("#create").hide();

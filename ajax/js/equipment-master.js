@@ -59,6 +59,15 @@ jQuery(document).ready(function () {
 
       columns: [
         { data: "key", title: "#ID" },
+        {
+          data: "image_name",
+          title: "Image",
+          orderable: false,
+          render: function (data, type, row) {
+            var imgSrc = data ? "uploads/equipment/" + data : "assets/images/no-image.png";
+            return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
+          },
+        },
         { data: "code", title: "Code" },
         {
           data: "item_name",
@@ -67,17 +76,16 @@ jQuery(document).ready(function () {
             return `
         <div class="fw-bold">${data}</div>
         <div class="text-muted small">
-         <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || '-'}</span> |
-         <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || '0.00'}</span> |
+         <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || "-"}</span> |
+         <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || "0.00"}</span> |
           <span class="fw-bold text-primary">Qty -</span> <span class="badge bg-info">${row.quantity || 0}</span> |
-           <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || '-'}</span>  
+           <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span>  
         </div>
       `;
-          }
+          },
         },
-        { data: "category_label", title: "Category" }
+        { data: "category_label", title: "Category" },
       ],
-
 
       order: [[0, "desc"]],
       pageLength: 100,
@@ -115,7 +123,10 @@ jQuery(document).ready(function () {
           $("#old_image_name").val(data.image_name || "");
 
           if (data.image_name) {
-            $("#image_preview").attr("src", "uploads/equipment/" + data.image_name);
+            $("#image_preview").attr(
+              "src",
+              "uploads/equipment/" + data.image_name,
+            );
             $("#preview_text").hide();
           } else {
             $("#image_preview").attr("src", "assets/images/no-image.png");
@@ -164,7 +175,10 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
-      formData.append("no_sub_items", $("#no_sub_items").is(":checked") ? 1 : 0);
+      formData.append(
+        "no_sub_items",
+        $("#no_sub_items").is(":checked") ? 1 : 0,
+      );
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -264,7 +278,10 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
-      formData.append("no_sub_items", $("#no_sub_items").is(":checked") ? 1 : 0);
+      formData.append(
+        "no_sub_items",
+        $("#no_sub_items").is(":checked") ? 1 : 0,
+      );
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -480,7 +497,7 @@ jQuery(document).ready(function () {
           // Re-enable the button if user cancels
           $(".delete-equipment").prop("disabled", false);
         }
-      }
+      },
     );
   });
 
@@ -505,18 +522,20 @@ jQuery(document).ready(function () {
     }
   });
 
-  $("#cropModal").on("shown.bs.modal", function () {
-    cropper = new Cropper(document.getElementById("image-to-crop"), {
-      aspectRatio: 1,
-      viewMode: 1,
-      autoCropArea: 1,
+  $("#cropModal")
+    .on("shown.bs.modal", function () {
+      cropper = new Cropper(document.getElementById("image-to-crop"), {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 1,
+      });
+    })
+    .on("hidden.bs.modal", function () {
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
     });
-  }).on("hidden.bs.modal", function () {
-    if (cropper) {
-      cropper.destroy();
-      cropper = null;
-    }
-  });
 
   $("#crop-button").click(function () {
     if (cropper) {

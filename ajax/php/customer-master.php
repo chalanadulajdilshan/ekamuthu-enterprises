@@ -185,6 +185,7 @@ if (isset($_POST['create'])) {
     $CUSTOMER->guarantor_nic_image_1 = $_POST['guarantor_nic_image_1'] ?? '';
     $CUSTOMER->guarantor_nic_image_2 = $_POST['guarantor_nic_image_2'] ?? '';
     $CUSTOMER->guarantor_photo_image = $_POST['guarantor_photo_image_1'] ?? '';
+    $CUSTOMER->customer_photo_image = $_POST['customer_photo_image_1'] ?? '';
     
     // Company fields
     $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
@@ -328,6 +329,9 @@ if (isset($_POST['update'])) {
     }
     if (!empty($_POST['guarantor_photo_image_1'])) {
         $CUSTOMER->guarantor_photo_image = $_POST['guarantor_photo_image_1'];
+    }
+    if (!empty($_POST['customer_photo_image_1'])) {
+        $CUSTOMER->customer_photo_image = $_POST['customer_photo_image_1'];
     }
     
     // Company fields
