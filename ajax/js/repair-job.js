@@ -210,7 +210,7 @@ jQuery(document).ready(function () {
                     var job = result.job;
                     $("#job_id").val(job.id);
                     $("#job_code").val(job.job_code);
-                    $("input[name='item_type'][value='" + job.item_type + "']").prop("checked", true);
+                    $("input[name='item_type'][value='" + job.item_type + "']").prop("checked", true).trigger('change');
                     $("#machine_code").val(job.machine_code || "");
                     $("#machine_name").val(job.machine_name || "");
                     $("#customer_name").val(job.customer_name || "");
@@ -218,9 +218,9 @@ jQuery(document).ready(function () {
                     $("#customer_phone").val(job.customer_phone || "");
                     $("#item_breakdown_date").val(job.item_breakdown_date || "");
                     $("#technical_issue").val(job.technical_issue || "");
-                    $("#job_status").val(job.job_status || "pending");
-                    $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2));
-                    $("#commission_percentage").val(parseFloat(job.commission_percentage || 15).toFixed(2));
+                    $("#job_status").val(job.job_status || "pending").trigger('change');
+                    $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2)).trigger('change');
+                    $("#commission_percentage").val(parseFloat(job.commission_percentage || 15).toFixed(2)).trigger('change');
                     $("#commission_amount").val(parseFloat(job.commission_amount || 0).toFixed(2));
                     $("#remark").val(job.remark || "");
                     $("#total_cost_display").val(parseFloat(job.total_cost || 0).toFixed(2));
@@ -244,10 +244,26 @@ jQuery(document).ready(function () {
                     $("#create").hide();
                     $("#update").show();
                     $(".delete-job").show();
+                } else {
+                    swal({
+                        title: "Error!",
+                        text: result.message || "Failed to load job details",
+                        type: "error"
+                    });
                 }
+            },
+            error: function () {
+                swal({
+                    title: "Error!",
+                    text: "Failed to load job details",
+                    type: "error"
+                });
             }
         });
     }
+
+    // Expose loadJobDetails globally
+    window.loadJobDetails = loadJobDetails;
 
     // Validate Form
     function validateForm() {
@@ -312,7 +328,11 @@ jQuery(document).ready(function () {
             item_breakdown_date: $("#item_breakdown_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
+            job_status: $("#job_status").val(),
             repair_charge: $("#repair_charge").val(),
+            commission_percentage: $("#commission_percentage").val(),
+            commission_amount: $("#commission_amount").val(),
+            remark: $("#remark").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -331,8 +351,8 @@ jQuery(document).ready(function () {
                         timer: 2000,
                         showConfirmButton: false
                     });
-                    // Load the created job
-                    loadJobDetails(result.job_id);
+                    // Reset page
+                    $("#new").click();
                 } else if (result.status === "duplicate") {
                     swal({
                         title: "Error!",
@@ -376,7 +396,11 @@ jQuery(document).ready(function () {
             item_breakdown_date: $("#item_breakdown_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
+            job_status: $("#job_status").val(),
             repair_charge: $("#repair_charge").val(),
+            commission_percentage: $("#commission_percentage").val(),
+            commission_amount: $("#commission_amount").val(),
+            remark: $("#remark").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -395,6 +419,8 @@ jQuery(document).ready(function () {
                         timer: 2000,
                         showConfirmButton: false
                     });
+                    // Reset page
+                    $("#new").click();
                 } else {
                     swal({
                         title: "Error!",
@@ -404,6 +430,7 @@ jQuery(document).ready(function () {
                 }
             },
             error: function () {
+
                 swal({
                     title: "Error!",
                     text: "Server error occurred",
