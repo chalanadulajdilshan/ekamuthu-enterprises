@@ -78,7 +78,9 @@ class CustomerMaster
     private function saveCustomerImages($customerId)
     {
         $db = Database::getInstance();
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/ekamuthu-enterprises/uploads/customers/' . $customerId . '/';
+        // Use relative path from class directory to work on both local and live servers
+        $baseDir = dirname(__DIR__); // Goes up from /class to project root
+        $uploadDir = $baseDir . '/uploads/customers/' . $customerId . '/';
         
         // Create customer directory if it doesn't exist
         if (!file_exists($uploadDir)) {
