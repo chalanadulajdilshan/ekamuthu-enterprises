@@ -249,10 +249,6 @@ $bill_number = $lastId + 1;
                                                 <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1" readonly>
                                             </div>
 
-                                            <div class="col-md-1" id="returned_qty_container" style="display: none;">
-                                                <label class="form-label">Returned</label>
-                                                <input type="number" class="form-control" id="item_returned_qty" min="0" step="1" value="0">
-                                            </div>
 
                                             <div class="col-md-2">
                                                 <label class="form-label">Amount - අගය</label>
@@ -490,6 +486,66 @@ $bill_number = $lastId + 1;
         </div>
     </div>
 
+    <!-- Equipment Return Modal -->
+    <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="returnModalLabel">Process Equipment Return</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="returnItemInfo"></div>
+                    
+                    <form id="returnForm">
+                        <input type="hidden" id="return_rent_item_id">
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="return_date" class="form-label">Return Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="return_date" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="return_qty" class="form-label">Return Quantity <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="return_qty" min="1" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="damage_amount" class="form-label">Damage Amount (Rs.)</label>
+                                    <input type="number" class="form-control" id="damage_amount" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="return_remark" class="form-label">Remark</label>
+                                    <textarea class="form-control" id="return_remark" rows="2" placeholder="Enter any notes about this return..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="settlementPreview" style="display: none;"></div>
+                        <div id="previousReturns" style="display: none;"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveReturnBtn">
+                        <i class="uil uil-check me-1"></i> Process Return
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Right bar overlay-->
     <div class="rightbar-overlay"></div>
 
@@ -500,6 +556,7 @@ $bill_number = $lastId + 1;
     <?php include 'main-js.php' ?>
 
     <script src="ajax/js/equipment-rent-master.js"></script>
+    <script src="ajax/js/equipment-rent-return.js"></script>
 
     <!-- Page Preloader Script -->
     <script>

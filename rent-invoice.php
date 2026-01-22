@@ -32,6 +32,20 @@ $CUSTOMER_MASTER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 // Get rent items
 $rent_items = $EQUIPMENT_RENT->getItems();
 
+// Collect return rows across items for print
+$return_rows = [];
+foreach ($rent_items as $ritem) {
+    if (empty($ritem['id'])) continue;
+    $itemReturns = EquipmentRentReturn::getByRentItemId($ritem['id']);
+    foreach ($itemReturns as $ret) {
+        $return_rows[] = array_merge($ret, [
+            'equipment_name' => $ritem['equipment_name'] ?? '-',
+            'equipment_code' => $ritem['equipment_code'] ?? '-',
+            'sub_equipment_code' => $ritem['sub_equipment_code'] ?? '-',
+        ]);
+    }
+}
+
 // Calculate totals
 $total_amount = 0;
 foreach ($rent_items as $item) {
@@ -251,6 +265,45 @@ if (!empty($customerMobile)) {
                         </tbody>
                     </table>
                 </div>
+
+                <?php if (!empty($return_rows)): ?>
+                <!-- Returns Table -->
+                <div class="table-responsive mt-3">
+                    <h5 class="mt-3 mb-2">Returns</h5>
+                    <table class="table table-bordered table-centered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Equipment</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Rental</th>
+                                <th class="text-end">Damage</th>
+                                <th class="text-end">Settlement</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size:13px;">
+                            <?php foreach ($return_rows as $ret): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($ret['return_date']); ?></td>
+                                    <td><?php echo htmlspecialchars($ret['equipment_name'] ?? '-'); ?></td>
+                                    <td class="text-center"><?php echo intval($ret['return_qty'] ?? 0); ?></td>
+                                    <td class="text-end"><?php echo number_format(floatval($ret['rental_amount'] ?? 0), 2); ?></td>
+                                    <td class="text-end"><?php echo number_format(floatval($ret['damage_amount'] ?? 0), 2); ?></td>
+                                    <td class="text-end">
+                                        <?php if (!empty($ret['additional_payment']) && floatval($ret['additional_payment']) > 0): ?>
+                                            <span class="text-danger">Pay: Rs. <?php echo number_format(floatval($ret['additional_payment']), 2); ?></span>
+                                        <?php elseif (!empty($ret['refund_amount']) && floatval($ret['refund_amount']) > 0): ?>
+                                            <span class="text-success">Refund: Rs. <?php echo number_format(floatval($ret['refund_amount']), 2); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted">No charge</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
 
                 <!-- Summary Section -->
                 <div class="row mt-3">
