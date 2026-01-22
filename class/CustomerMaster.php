@@ -24,6 +24,7 @@ class CustomerMaster
     public $guarantor_nic_image_1;
     public $guarantor_nic_image_2;
     public $guarantor_photo_image;
+    public $customer_photo_image;
     
     // Company fields
     public $is_company;
@@ -110,6 +111,10 @@ class CustomerMaster
         if (!empty($this->guarantor_photo_image)) {
             $path = $this->saveBase64ToFile($this->guarantor_photo_image, $uploadDir, 'guarantor_photo');
             if ($path) $updates[] = "`guarantor_photo` = '$path'";
+        }
+        if (!empty($this->customer_photo_image)) {
+            $path = $this->saveBase64ToFile($this->customer_photo_image, $uploadDir, 'customer_photo');
+            if ($path) $updates[] = "`customer_photo` = '$path'";
         }
         if (!empty($this->company_document)) {
             $path = $this->saveBase64ToFile($this->company_document, $uploadDir, 'company_document');
@@ -316,6 +321,7 @@ class CustomerMaster
                 "utility_bill_image" => $row['utility_bill_image'] ?? '',
                 "guarantor_nic_image_1" => $row['guarantor_nic_image_1'] ?? '',
                 "guarantor_nic_image_2" => $row['guarantor_nic_image_2'] ?? '',
+                "customer_photo" => $row['customer_photo'] ?? '',
                 "is_company" => $row['is_company'] ?? 0,
                 "company_name" => $row['company_name'] ?? '', // Added company_name to fetchForDataTable
                 "company_document" => $row['company_document'] ?? ''

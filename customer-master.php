@@ -110,8 +110,19 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                         <div class="col-12 col-md-8 col-lg-3">
                                                             <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
-                                                            <input id="name" name="name" onkeyup="toUpperCaseInput(this)"
-                                                                type="text" class="form-control" placeholder="Enter full name">
+                                                            <div class="input-group">
+                                                                <input id="name" name="name" onkeyup="toUpperCaseInput(this)"
+                                                                    type="text" class="form-control" placeholder="Enter full name">
+                                                                <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('customer_photo', 1)" title="Capture Customer Photo">
+                                                                    <i class="uil uil-camera"></i>
+                                                                </button>
+                                                                <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('customer_photo', 1)" title="Upload Photo">
+                                                                    <i class="uil uil-file-upload"></i>
+                                                                </button>
+                                                            </div>
+                                                            <input type="hidden" id="customer_photo_image_1" name="customer_photo_image_1">
+                                                            <input type="file" id="customer_photo_file_1" name="customer_photo_file_1" accept="image/*" style="display:none;" onchange="handleFileUpload('customer_photo', this, 1)">
+                                                            <div id="customer_photo_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
 
                                                         <div class="col-12 col-md-6 col-lg-3">
@@ -121,24 +132,8 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                     placeholder="Enter NIC number" maxlength="12"
                                                                     oninput="validateNIC(this)">
                                                                 <span class="input-group-text" id="nic-status"></span>
-                                                                <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('nic', 2)" title="Upload NIC Images">
-                                                                    <i class="uil uil-camera"></i>
-                                                                </button>
-                                                                <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('nic', 1)" title="Upload Front">
-                                                                    <i class="uil uil-file-upload"></i> F
-                                                                </button>
-                                                                <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('nic', 2)" title="Upload Back">
-                                                                    <i class="uil uil-file-upload"></i> B
-                                                                </button>
                                                             </div>
                                                             <small id="nic-error" class="text-danger" style="display: none;"></small>
-                                                            <input type="hidden" id="nic_image_1" name="nic_image_1">
-                                                            <input type="hidden" id="nic_image_2" name="nic_image_2">
-                                                            <!-- File Inputs -->
-                                                            <input type="file" id="nic_file_1" name="nic_file_1" accept="image/*" style="display:none;" onchange="handleFileUpload('nic', this, 1)">
-                                                            <input type="file" id="nic_file_2" name="nic_file_2" accept="image/*" style="display:none;" onchange="handleFileUpload('nic', this, 2)">
-                                                            
-                                                            <div id="nic_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
 
                                                         <div class="col-12 col-md-3 col-lg-2">

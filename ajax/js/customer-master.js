@@ -93,16 +93,6 @@ jQuery(document).ready(function () {
             errorMsg = "Please upload Company PDF/Image";
           }
         }
-
-      } else {
-        // Validation for Individual
-        if (!$("#nic_image_1").val()) {
-          errorMsg = "Please upload NIC Front Image";
-        } else if (!$("#nic_image_2").val()) {
-          errorMsg = "Please upload NIC Back Image";
-        } else if (!($("#water_bill_image_1").val() || $("#utility_bill_image_1").val())) {
-          errorMsg = "Please upload Utility Bill Image";
-        }
       }
 
       if (errorMsg) {
@@ -364,36 +354,6 @@ jQuery(document).ready(function () {
         type: "error",
         timer: 3000,
         showConfirmButton: true,
-      });
-    } else if (!$("#guarantor_name").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor name",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_nic").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor NIC",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#guarantor_address").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter guarantor address",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
       });
     } else {
       // Show page preloader

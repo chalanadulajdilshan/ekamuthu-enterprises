@@ -298,6 +298,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                 <thead>
                                     <tr>
                                         <th>#ID</th>
+                                        <th style="width: 60px;">Image</th>
                                         <th>Code</th>
                                         <th>Item Name</th>
                                         <th>Category</th>
@@ -349,8 +350,8 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
     <!-- Page Preloader Script -->
     <script>
-        $(window).on('load', function () {
-            $('#page-preloader').fadeOut('slow', function () {
+        $(window).on('load', function() {
+            $('#page-preloader').fadeOut('slow', function() {
                 $(this).remove();
             });
         });
