@@ -190,21 +190,21 @@ if (!empty($customerMobile)) {
                         return $number;
                     }
                     ?>
-                    <div class="col-md-4 text-muted">
+                    <div class="col-md-3 text-muted">
                         <p class="mb-1" style="font-weight:bold;font-size:18px;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
                         <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
                         <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
                         <p class="mb-1" style="font-size:13px;">VAT Registration No: <?php echo htmlspecialchars($COMPANY_PROFILE->vat_number); ?></p>
                     </div>
-                    <div class="col-md-5 text-sm-start text-md-start">
-                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:10px; display:inline-block;">උපකරණ කුලී ඉන්වොයිසිය</h3>
-                        <div>
-                            <p class="mb-1" style="font-size:14px;"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Workplace Address:</strong> <?php echo !empty($CUSTOMER_MASTER->workplace_address) ? htmlspecialchars($CUSTOMER_MASTER->workplace_address) : '.................................'; ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Guarantor Address:</strong> <?php echo !empty($CUSTOMER_MASTER->guarantor_address) ? htmlspecialchars($CUSTOMER_MASTER->guarantor_address) : '.................................'; ?></p>
+                    <div class="col-md-6 text-sm-start text-md-start">
+                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:10px; display:inline-block; margin-left:100px;">උපකරණ කුලී ඉන්වොයිසිය</h3>
+                        <div style="font-size:15px; line-height:1.6; margin-left:40px;">
+                            <p class="mb-1"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
+                            <p class="mb-1"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Workplace Address:</strong> <?php echo !empty($CUSTOMER_MASTER->workplace_address) ? htmlspecialchars($CUSTOMER_MASTER->workplace_address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo !empty($CUSTOMER_MASTER->guarantor_address) ? htmlspecialchars($CUSTOMER_MASTER->guarantor_address) : '.................................'; ?></p>
                         </div>
                     </div>
 
