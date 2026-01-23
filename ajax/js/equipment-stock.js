@@ -124,6 +124,7 @@ jQuery(document).ready(function () {
             "<th>ID</th>" +
             "<th>Equipment ID</th>" +
             "<th>Sub Equipment Code</th>" +
+            "<th>Status</th>" +
             "</tr></thead><tbody>";
 
         subEquipments.forEach(function (item, index) {
@@ -132,10 +133,36 @@ jQuery(document).ready(function () {
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + (item.code || "-") + "</td>" +
+                "<td>" + renderStatusBadge(item.rental_status) + "</td>" +
                 "</tr>";
         });
         html += "</tbody></table></div>";
         return html;
+    }
+
+    // Map status to colored badges
+    function renderStatusBadge(status) {
+        if (!status) return '<span class="badge bg-secondary">UNKNOWN</span>';
+
+        const normalized = status.toLowerCase();
+        let badgeClass = "bg-secondary";
+        let label = normalized.toUpperCase();
+
+        if (normalized === "available" || normalized === "returned") {
+            badgeClass = "bg-success";
+            label = "AVAILABLE";
+        } else if (normalized === "rent" || normalized === "rented") {
+            badgeClass = "bg-primary";
+            label = "RENTED";
+        } else if (normalized === "damage" || normalized === "damaged") {
+            badgeClass = "bg-danger";
+            label = "DAMAGED";
+        } else if (normalized === "repair" || normalized === "maintenance") {
+            badgeClass = "bg-warning";
+            label = "REPAIR";
+        }
+
+        return '<span class="badge ' + badgeClass + '">' + label + "</span>";
     }
 
     // Toggle details on row click

@@ -65,12 +65,14 @@ class EquipmentRentItem
 
         if ($result) {
             $this->id = mysqli_insert_id($db->DB_CON);
-            
-            // Update sub_equipment rental status to 'rented'
-            if ($this->status === 'rented' && $this->sub_equipment_id) {
-                $this->updateSubEquipmentStatus($this->sub_equipment_id, 'rented');
+
+            // Always update sub_equipment rental status when a unit is attached
+            if ($this->sub_equipment_id) {
+                // Default to rent unless explicitly returned
+                $newStatus = ($this->status === 'returned') ? 'available' : 'rent';
+                $this->updateSubEquipmentStatus($this->sub_equipment_id, $newStatus);
             }
-            
+
             return $this->id;
         } else {
             return false;
@@ -113,11 +115,11 @@ class EquipmentRentItem
                     $this->updateSubEquipmentStatus($oldSubEquipmentId, 'available');
                 }
                 if ($this->sub_equipment_id && $this->status === 'rented') {
-                    $this->updateSubEquipmentStatus($this->sub_equipment_id, 'rented');
+                    $this->updateSubEquipmentStatus($this->sub_equipment_id, 'rent');
                 }
             } elseif ($oldStatus !== $this->status) {
                 // Same sub equipment but status changed
-                $newRentalStatus = ($this->status === 'returned') ? 'available' : 'rented';
+                $newRentalStatus = ($this->status === 'returned') ? 'available' : 'rent';
                 $this->updateSubEquipmentStatus($this->sub_equipment_id, $newRentalStatus);
             }
             
@@ -207,7 +209,7 @@ class EquipmentRentItem
     public static function getAllSubEquipmentWithStatus($equipment_id)
     {
         $query = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name,
-                  CASE WHEN se.rental_status = 'rented' THEN 
+                  CASE WHEN se.rental_status = 'rent' THEN 
                     (SELECT CONCAT(er.bill_number, ' - ', cm.name) 
                      FROM equipment_rent_items eri 
                      JOIN equipment_rent er ON eri.rent_id = er.id
@@ -242,7 +244,7 @@ class EquipmentRentItem
         }
         
         // If excluding an item (for updates), check if this sub_equipment is only rented by that item
-        if ($exclude_item_id && $result['rental_status'] === 'rented') {
+        if ($exclude_item_id && $result['rental_status'] === 'rent') {
             $checkQuery = "SELECT id FROM `equipment_rent_items` 
                           WHERE `sub_equipment_id` = " . (int) $sub_equipment_id . " 
                           AND `status` = 'rented' 
