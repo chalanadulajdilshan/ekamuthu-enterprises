@@ -139,6 +139,19 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete_old_outstanding_detai
 // Create a new customer
 if (isset($_POST['create'])) {
 
+    // Check if NIC already exists
+    if (!empty($_POST['nic'])) {
+        $db = Database::getInstance();
+        $nic = strtoupper($_POST['nic']);
+        $nicCheck = "SELECT id FROM customer_master WHERE nic = '$nic'";
+        $existingNicCustomer = mysqli_fetch_assoc($db->readQuery($nicCheck));
+
+        if ($existingNicCustomer) {
+            echo json_encode(["status" => "duplicate", "message" => "NIC number already exists in the system"]);
+            exit();
+        }
+    }
+
     // Check if mobile number already exists (check both mobile fields)
     $db = Database::getInstance();
     $conditions = [];
@@ -171,7 +184,7 @@ if (isset($_POST['create'])) {
     $CUSTOMER->old_outstanding = $_POST['old_outstanding'] ?? 0;
     $CUSTOMER->address = strtoupper($_POST['address'] ?? '');
     $CUSTOMER->remark = $_POST['remark'] ?? '';
-    $CUSTOMER->nic = $_POST['nic'] ?? '';
+    $CUSTOMER->nic = strtoupper($_POST['nic'] ?? '');
     $CUSTOMER->utility_bill_no = $_POST['water_bill_no'] ?? $_POST['utility_bill_no'] ?? '';
     $CUSTOMER->workplace_address = strtoupper($_POST['workplace_address'] ?? '');
     $CUSTOMER->guarantor_name = strtoupper($_POST['guarantor_name'] ?? '');

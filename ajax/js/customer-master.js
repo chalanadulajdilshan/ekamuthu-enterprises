@@ -6,6 +6,8 @@ jQuery(document).ready(function () {
     // Disable the button to prevent multiple submissions
     $("#create").prop("disabled", true);
 
+    var isCompany = $("#is_company").is(":checked");
+
     // Validation
     if (!$("#code").val()) {
       // Re-enable the button on validation error
@@ -67,7 +69,7 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#water_bill_no").val()) {
+    } else if (!isCompany && !$("#water_bill_no").val()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
       swal({
@@ -80,7 +82,6 @@ jQuery(document).ready(function () {
     } else {
 
       // --- DOCUMENT & IMAGE VALIDATION ---
-      var isCompany = $("#is_company").is(":checked");
       var errorMsg = "";
 
       if (isCompany) {
