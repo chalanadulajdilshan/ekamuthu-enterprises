@@ -413,17 +413,17 @@ class CustomerMaster
     {
         $db = Database::getInstance();
         
-        // Total
+        // Total - sum of all original outstanding amounts
         $qTotal = "SELECT SUM(amount) as total FROM customer_old_outstanding WHERE customer_id = $customerId";
         $rTotal = mysqli_fetch_assoc($db->readQuery($qTotal));
         $total = $rTotal['total'] ?? 0;
         
-        // Paid
-        $qPaid = "SELECT SUM(amount) as paid FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Paid'";
+        // Paid - sum of all payments from collection table
+        $qPaid = "SELECT SUM(amount) as paid FROM `old-outstanding-collection` WHERE customer_id = $customerId";
         $rPaid = mysqli_fetch_assoc($db->readQuery($qPaid));
         $paid = $rPaid['paid'] ?? 0;
         
-        // Payable
+        // Payable - sum of remaining amounts (Not Paid status)
         $qPayable = "SELECT SUM(amount) as payable FROM customer_old_outstanding WHERE customer_id = $customerId AND status = 'Not Paid'";
         $rPayable = mysqli_fetch_assoc($db->readQuery($qPayable));
         $payable = $rPayable['payable'] ?? 0;
