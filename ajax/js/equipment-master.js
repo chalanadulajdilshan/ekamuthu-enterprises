@@ -79,12 +79,12 @@ jQuery(document).ready(function () {
          <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || "-"}</span> |
          <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || "0.00"}</span> |
           <span class="fw-bold text-primary">Qty -</span> <span class="badge bg-info">${row.quantity || 0}</span> |
-           <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span>  
+           <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span> |
+           <span class="fw-bold text-primary">Category -</span> <span class="text-danger">${row.category_label || "-"}</span>
         </div>
       `;
           },
         },
-        { data: "category_label", title: "Category" },
       ],
 
       order: [[0, "desc"]],
