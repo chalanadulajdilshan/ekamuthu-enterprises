@@ -124,7 +124,6 @@ jQuery(document).ready(function () {
             "<th>ID</th>" +
             "<th>Equipment ID</th>" +
             "<th>Sub Equipment Code</th>" +
-            "<th>Sub Equipment Name</th>" +
             "</tr></thead><tbody>";
 
         subEquipments.forEach(function (item, index) {
@@ -133,7 +132,6 @@ jQuery(document).ready(function () {
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + (item.code || "-") + "</td>" +
-                "<td>" + (item.name || "-") + "</td>" +
                 "</tr>";
         });
         html += "</tbody></table></div>";
