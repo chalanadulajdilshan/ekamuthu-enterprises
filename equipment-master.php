@@ -77,7 +77,8 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                 </a>
                             <?php endif; ?>
 
-                            <a href="#" class="btn btn-outline-success d-none" id="add-sub-equipment" title="Add sub equipment for selected equipment">
+                            <a href="#" class="btn btn-outline-success d-none" id="add-sub-equipment"
+                                title="Add sub equipment for selected equipment">
                                 <i class="uil uil-plus me-1"></i> Add Sub Equipment
                             </a>
 
@@ -197,26 +198,29 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 <div class="col-md-2">
                                                     <label for="rent_one_day" class="form-label">One Day's Rent <span
                                                             class="text-danger">*</span></label>
-                                                    <input id="rent_one_day" name="rent_one_day" type="number" step="0.01"
-                                                        class="form-control" placeholder="0.00" min="0" required>
+                                                    <input id="rent_one_day" name="rent_one_day" type="number"
+                                                        step="0.01" class="form-control" placeholder="0.00" min="0"
+                                                        required>
 
                                                 </div>
 
                                                 <!-- One Day's Deposit -->
                                                 <div class="col-md-2">
-                                                    <label for="deposit_one_day" class="form-label">One Day's Deposit <span
-                                                            class="text-danger">*</span></label>
-                                                    <input id="deposit_one_day" name="deposit_one_day" type="number" step="0.01"
-                                                        class="form-control" placeholder="0.00" min="0" required>
+                                                    <label for="deposit_one_day" class="form-label">One Day's Deposit
+                                                        <span class="text-danger">*</span></label>
+                                                    <input id="deposit_one_day" name="deposit_one_day" type="number"
+                                                        step="0.01" class="form-control" placeholder="0.00" min="0"
+                                                        required>
 
                                                 </div>
 
                                                 <!-- One Month's Rent -->
                                                 <div class="col-md-2">
-                                                    <label for="rent_one_month" class="form-label">One Month's Rent <span
-                                                            class="text-danger">*</span></label>
-                                                    <input id="rent_one_month" name="rent_one_month" type="number" step="0.01"
-                                                        class="form-control" placeholder="0.00" min="0" required>
+                                                    <label for="rent_one_month" class="form-label">One Month's Rent
+                                                        <span class="text-danger">*</span></label>
+                                                    <input id="rent_one_month" name="rent_one_month" type="number"
+                                                        step="0.01" class="form-control" placeholder="0.00" min="0"
+                                                        required>
 
                                                 </div>
 
@@ -224,8 +228,8 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 <div class="col-md-2">
                                                     <label for="value" class="form-label">Value <span
                                                             class="text-danger">*</span></label>
-                                                    <input id="value" name="value" type="number" step="0.01" class="form-control"
-                                                        placeholder="0.00" min="0" required>
+                                                    <input id="value" name="value" type="number" step="0.01"
+                                                        class="form-control" placeholder="0.00" min="0" required>
 
                                                 </div>
 
@@ -240,30 +244,41 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 <!-- No Sub-Items -->
                                                 <div class="col-md-2 mt-4 pt-2">
                                                     <div class="form-check form-check-inline">
-                                                        <input class="form-check-input" type="checkbox" id="no_sub_items" name="no_sub_items" value="1">
-                                                        <label class="form-check-label" for="no_sub_items">No Sub-Items</label>
+                                                        <input class="form-check-input" type="checkbox"
+                                                            id="no_sub_items" name="no_sub_items" value="1">
+                                                        <label class="form-check-label" for="no_sub_items">No
+                                                            Sub-Items</label>
                                                     </div>
                                                 </div>
 
                                                 <!-- Image Upload -->
                                                 <div class="col-md-4 mt-3">
-                                                    <label for="equipment_image" class="form-label">Equipment Image (600x600)</label>
-                                                    <input type="file" id="equipment_image" name="equipment_image" class="form-control" accept="image/*">
-                                                    <div id="image_preview_container" class="mt-2 text-center border rounded p-2" style="min-height: 150px; background: #f8f9fa;">
-                                                        <img id="image_preview" src="assets/images/no-image.png" alt="Preview" style="max-width: 100%; max-height: 200px; display: block; margin: 0 auto;">
-                                                        <p id="preview_text" class="text-muted mt-2 small">600 x 600 Recommended</p>
+                                                    <label for="equipment_image" class="form-label">Equipment Image
+                                                        (600x600)</label>
+                                                    <input type="file" id="equipment_image" name="equipment_image"
+                                                        class="form-control" accept="image/*">
+                                                    <div id="image_preview_container"
+                                                        class="mt-2 text-center border rounded p-2"
+                                                        style="min-height: 150px; background: #f8f9fa;">
+                                                        <img id="image_preview" src="assets/images/no-image.png"
+                                                            alt="Preview"
+                                                            style="max-width: 100%; max-height: 200px; display: block; margin: 0 auto;">
+                                                        <p id="preview_text" class="text-muted mt-2 small">600 x 600
+                                                            Recommended</p>
                                                     </div>
                                                 </div>
 
                                                 <!-- Remark -->
                                                 <div class="col-md-8 mt-3">
                                                     <label for="remark" class="form-label">Remark</label>
-                                                    <textarea id="remark" name="remark" class="form-control" rows="8" placeholder="Enter any additional remarks or notes..."></textarea>
+                                                    <textarea id="remark" name="remark" class="form-control" rows="8"
+                                                        placeholder="Enter any additional remarks or notes..."></textarea>
                                                 </div>
 
                                                 <input type="hidden" id="equipment_id" name="equipment_id" />
                                                 <input type="hidden" id="old_image_name" name="old_image_name" />
-                                                <input type="hidden" id="cropped_image_data" name="cropped_image_data" />
+                                                <input type="hidden" id="cropped_image_data"
+                                                    name="cropped_image_data" />
                                             </div>
                                         </form>
                                     </div>
@@ -301,7 +316,6 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                         <th style="width: 60px;">Image</th>
                                         <th>Code</th>
                                         <th>Item Name</th>
-                                        <th>Category</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -313,7 +327,8 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
     </div>
 
     <!-- Cropping Modal -->
-    <div class="modal fade" id="cropModal" tabindex="-1" role="dialog" aria-labelledby="cropModalLabel" aria-hidden="true">
+    <div class="modal fade" id="cropModal" tabindex="-1" role="dialog" aria-labelledby="cropModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -350,8 +365,8 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
     <!-- Page Preloader Script -->
     <script>
-        $(window).on('load', function() {
-            $('#page-preloader').fadeOut('slow', function() {
+        $(window).on('load', function () {
+            $('#page-preloader').fadeOut('slow', function () {
                 $(this).remove();
             });
         });
