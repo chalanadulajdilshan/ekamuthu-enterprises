@@ -480,6 +480,9 @@ jQuery(document).ready(function () {
           $("#transport_cost").val(rent.transport_cost || "0.00");
           $("#custom_deposit").val(rent.deposit_total || "0.00");
 
+          // Lock manual edits when loading an existing rent
+          $("#transport_cost, #custom_deposit").prop("readonly", true);
+
           // Reset calculated
           totalCalculatedDeposit = 0;
 

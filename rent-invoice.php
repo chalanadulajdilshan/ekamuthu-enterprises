@@ -237,7 +237,7 @@ if (!empty($customerMobile)) {
                                 <th>කාල සීමාව</th>
                                 <th class="text-center">ප්‍රමාණය</th>
                                 <th class="text-end">මුදල</th>
-                                <th class="text-end">තැන්පතු</th>
+                                <th class="text-end">තැන්පත් කල යුතු මුදල</th>
                             </tr>
                         </thead>
                         <tbody style="font-size:13px;">
@@ -269,19 +269,6 @@ if (!empty($customerMobile)) {
                                 </tr>
                             <?php endforeach; ?>
 
-                            <!-- Empty rows for writing additional items -->
-                            <?php for ($i = count($rent_items); $i < 5; $i++): ?>
-                                <tr>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                            <?php endfor; ?>
                         </tbody>
                     </table>
                 </div>
@@ -350,7 +337,7 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($hire_amount, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">තැන්පතු මුදල:</td>
+                                <td class="summary-label">තැන්පත් කල මුදල:</td>
                                 <td class="summary-value"><?php echo number_format($total_deposit, 2); ?></td>
                             </tr>
                             <tr>

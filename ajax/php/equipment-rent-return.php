@@ -248,6 +248,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_details') {
               e.damage as equipment_damage,
               se.code as sub_equipment_code,
               er.bill_number,
+              er.deposit_total as customer_deposit,
               cm.name as customer_name
               FROM equipment_rent_items eri
               LEFT JOIN equipment e ON eri.equipment_id = e.id

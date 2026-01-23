@@ -35,15 +35,25 @@ $(document).ready(function() {
                     
                     // Display item information
                     $("#returnItemInfo").html(`
-                        <div class="alert alert-info">
-                            <strong>Equipment:</strong> ${data.equipment_name} (${data.equipment_code})<br>
-                            ${data.sub_equipment_code ? `<strong>Unit Code:</strong> ${data.sub_equipment_code}<br>` : ''}
-                            <strong>Total Qty:</strong> ${data.quantity}<br>
-                            <strong>Already Returned:</strong> ${data.total_returned}<br>
-                            <strong>Pending Qty:</strong> ${data.pending_qty}<br>
-                            <strong>Deposit (Total):</strong> Rs. ${parseFloat(data.deposit_amount).toFixed(2)}<br>
-                            <strong>Deposit Per Unit:</strong> Rs. ${(parseFloat(data.deposit_amount) / parseFloat(data.quantity)).toFixed(2)}<br>
-                            <strong class="text-danger">Equipment Damage (catalog):</strong> <span class="text-danger">Rs. ${parseFloat(data.equipment_damage || 0).toFixed(2)}</span>
+                        <div class="alert alert-info mb-3">
+                            <div class="text-center mb-2">
+                                <h6 class="mb-0 fw-bold">Equipment Summary</h6>
+                                <small class="text-muted">${data.equipment_name} (${data.equipment_code})</small>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <div><strong>Unit Code:</strong> ${data.sub_equipment_code || '-'}</div>
+                                    <div><strong>Total Qty:</strong> ${data.quantity}</div>
+                                    <div><strong>Already Returned:</strong> ${data.total_returned}</div>
+                                    <div><strong>Pending Qty:</strong> ${data.pending_qty}</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div><strong>Customer Deposit:</strong> Rs. ${parseFloat(data.customer_deposit || 0).toFixed(2)}</div>
+                                    <div><strong>Deposit (Total):</strong> Rs. ${parseFloat(data.deposit_amount).toFixed(2)}</div>
+                                    <div><strong>Deposit Per Unit:</strong> Rs. ${(parseFloat(data.deposit_amount) / parseFloat(data.quantity)).toFixed(2)}</div>
+                                    <div><strong class="text-danger">Equipment Damage (catalog):</strong> <span class="text-danger">Rs. ${parseFloat(data.equipment_damage || 0).toFixed(2)}</span></div>
+                                </div>
+                            </div>
                         </div>
                     `);
                     
