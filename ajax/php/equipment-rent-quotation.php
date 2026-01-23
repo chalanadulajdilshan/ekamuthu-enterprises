@@ -22,7 +22,7 @@ if (isset($_POST['create'])) {
 
     // Parse items from JSON
     $items = json_decode($_POST['items'] ?? '[]', true);
-    
+
     if (empty($items)) {
         echo json_encode(["status" => "error", "message" => "Please add at least one equipment item"]);
         exit();
@@ -96,10 +96,10 @@ if (isset($_POST['update'])) {
     }
 
     $QUOTATION = new EquipmentRentQuotation($_POST['quotation_id']);
-    
+
     // Parse items from JSON
     $items = json_decode($_POST['items'] ?? '[]', true);
-    
+
     if (empty($items)) {
         echo json_encode(["status" => "error", "message" => "Please add at least one equipment item"]);
         exit();
@@ -162,7 +162,7 @@ if (isset($_POST['update'])) {
     $QUOTATION->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $QUOTATION->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $QUOTATION->remark = $_POST['remark'] ?? '';
-    
+
     $res = $QUOTATION->update();
     $QUOTATION->updateTotalItems();
 
@@ -219,14 +219,14 @@ if (isset($_POST['filter'])) {
 // Get quotation details with items
 if (isset($_POST['action']) && $_POST['action'] === 'get_quotation_details') {
     $quotation_id = $_POST['quotation_id'] ?? 0;
-    
+
     if ($quotation_id) {
         $QUOTATION = new EquipmentRentQuotation($quotation_id);
         $items = $QUOTATION->getItems();
-        
+
         // Get customer details
         $CUSTOMER = new CustomerMaster($QUOTATION->customer_id);
-        
+
         echo json_encode([
             "status" => "success",
             "quotation" => [
@@ -365,12 +365,16 @@ if (isset($_POST['filter_equipment'])) {
             "id" => $row['id'],
             "code" => $row['code'],
             "item_name" => $row['item_name'],
+            "image_name" => $row['image_name'],
             "category" => $row['category'],
             "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
+            "size" => $row['size'],
+            "value" => $row['value'],
             "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
             "rent_one_day" => $row['rent_one_day'],
+            "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
             "availability_label" => $row['available_sub'] > 0
                 ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'

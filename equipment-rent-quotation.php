@@ -68,7 +68,7 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                     <i class="uil uil-trash-alt me-1"></i> Delete
                                 </a>
                             <?php endif; ?>
-                            
+
                             <a href="#" class="btn btn-info" id="print" style="display: none;">
                                 <i class="uil uil-print me-1"></i> Print
                             </a>
@@ -96,14 +96,16 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="avatar-xs">
-                                                        <div class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                        <div
+                                                            class="avatar-title rounded-circle bg-soft-primary text-primary">
                                                             01
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <h5 class="font-size-16 mb-1">Equipment Rent Quotation</h5>
-                                                    <p class="text-muted text-truncate mb-0">Create quotations for equipment rentals</p>
+                                                    <p class="text-muted text-truncate mb-0">Create quotations for
+                                                        equipment rentals</p>
                                                 </div>
                                                 <div class="flex-shrink-0">
                                                     <i class="mdi mdi-chevron-up accor-down-icon font-size-24"></i>
@@ -117,13 +119,14 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div class="row">
                                                 <!-- Quotation Number -->
                                                 <div class="col-md-3">
-                                                    <label for="quotation_number" class="form-label">Quotation Number</label>
+                                                    <label for="quotation_number" class="form-label">Quotation
+                                                        Number</label>
                                                     <div class="input-group mb-3">
-                                                        <input id="quotation_number" name="quotation_number" type="text" class="form-control"
-                                                            value="<?php echo $quotation_number ?>" readonly>
+                                                        <input id="quotation_number" name="quotation_number" type="text"
+                                                            class="form-control" value="<?php echo $quotation_number ?>"
+                                                            readonly>
                                                         <button class="btn btn-info" type="button"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#QuotationModal"><i
+                                                            data-bs-toggle="modal" data-bs-target="#QuotationModal"><i
                                                                 class="uil uil-search me-1"></i>
                                                         </button>
                                                     </div>
@@ -131,8 +134,8 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Customer Selection -->
                                                 <div class="col-md-4">
-                                                    <label for="customer_display" class="form-label">Customer - පාරිභෝගිකයා<span
-                                                            class="text-danger">*</span></label>
+                                                    <label for="customer_display" class="form-label">Customer -
+                                                        පාරිභෝගිකයා<span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="customer_display" name="customer_display" type="text"
                                                             class="form-control" placeholder="Select customer" readonly>
@@ -147,17 +150,20 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Rental Date -->
                                                 <div class="col-md-2">
-                                                    <label for="rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය<span
-                                                            class="text-danger">*</span></label>
+                                                    <label for="rental_date" class="form-label">Rental Date - කුලියට ගත්
+                                                        දිනය<span class="text-danger">*</span></label>
                                                     <div class="mb-3">
                                                         <input id="rental_date" name="rental_date" type="text"
-                                                            class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
+                                                            class="form-control date-picker"
+                                                            value="<?php echo date('Y-m-d'); ?>">
                                                     </div>
                                                 </div>
 
                                                 <!-- Received Date (Hidden for Quotation usually, but keeping structure) -->
-                                                <div class="col-md-3" id="received_date_container" style="display: none;">
-                                                    <label for="received_date" class="form-label">Received Date (All Items)</label>
+                                                <div class="col-md-3" id="received_date_container"
+                                                    style="display: none;">
+                                                    <label for="received_date" class="form-label">Received Date (All
+                                                        Items)</label>
                                                     <div class="mb-3">
                                                         <input id="received_date" name="received_date" type="text"
                                                             class="form-control date-picker-date">
@@ -182,7 +188,8 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="avatar-xs">
-                                                    <div class="avatar-title rounded-circle bg-soft-success text-success">
+                                                    <div
+                                                        class="avatar-title rounded-circle bg-soft-success text-success">
                                                         02
                                                     </div>
                                                 </div>
@@ -191,17 +198,17 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <h5 class="font-size-16 mb-0">Add Equipment Items</h5>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="row align-items-end mb-3">
                                             <!-- Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_equipment_display" class="form-label">Equipment - උපකරණ</label>
+                                                <label for="item_equipment_display" class="form-label">Equipment -
+                                                    උපකරණ</label>
                                                 <div class="input-group">
                                                     <input id="item_equipment_display" type="text" class="form-control"
                                                         placeholder="Select equipment" readonly>
                                                     <input type="hidden" id="item_equipment_id">
-                                                    <button class="btn btn-info" type="button"
-                                                        data-bs-toggle="modal"
+                                                    <button class="btn btn-info" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#EquipmentSelectModal"><i
                                                             class="uil uil-search"></i>
                                                     </button>
@@ -210,13 +217,15 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                             <!-- Sub Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment (Code) - උප උපකරණ (කේතය)</label>
+                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment
+                                                    (Code) - උප උපකරණ (කේතය)</label>
                                                 <div class="input-group">
-                                                    <input id="item_sub_equipment_display" type="text" class="form-control"
-                                                        placeholder="Select sub equipment" readonly>
+                                                    <input id="item_sub_equipment_display" type="text"
+                                                        class="form-control" placeholder="Select sub equipment"
+                                                        readonly>
                                                     <input type="hidden" id="item_sub_equipment_id">
-                                                    <button class="btn btn-info" type="button" id="btn-select-sub-equipment"
-                                                        data-bs-toggle="modal"
+                                                    <button class="btn btn-info" type="button"
+                                                        id="btn-select-sub-equipment" data-bs-toggle="modal"
                                                         data-bs-target="#SubEquipmentSelectModal"><i
                                                             class="uil uil-search"></i>
                                                     </button>
@@ -234,34 +243,41 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div class="col-md-2">
                                                 <label class="form-label">Duration - කාල සීමාව</label>
                                                 <div class="input-group">
-                                                    <input type="number" class="form-control" id="item_duration" min="1" step="1" placeholder="0">
+                                                    <input type="number" class="form-control" id="item_duration" min="1"
+                                                        step="1" placeholder="0">
                                                     <span class="input-group-text" id="duration_label">Days</span>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-1">
                                                 <label class="form-label">Qty - ප්‍රමාණය</label>
-                                                <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1">
+                                                <input type="number" class="form-control" id="item_qty" min="1" step="1"
+                                                    value="1">
                                             </div>
 
                                             <div class="col-md-2">
                                                 <label class="form-label">Amount - අගය</label>
-                                                <input type="text" class="form-control" id="item_amount" readonly placeholder="0.00">
+                                                <input type="text" class="form-control" id="item_amount" readonly
+                                                    placeholder="0.00">
                                             </div>
                                         </div>
 
                                         <div class="row align-items-end">
                                             <!-- Item Rental Date -->
                                             <div class="col-md-2">
-                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය</label>
-                                                <input id="item_rental_date" type="text" class="form-control date-picker" 
+                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට
+                                                    ගත් දිනය</label>
+                                                <input id="item_rental_date" type="text"
+                                                    class="form-control date-picker"
                                                     value="<?php echo date('Y-m-d'); ?>">
                                             </div>
 
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
-                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන් දිනය</label>
-                                                <input id="item_return_date" type="text" class="form-control date-picker-date">
+                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන්
+                                                    දිනය</label>
+                                                <input id="item_return_date" type="text"
+                                                    class="form-control date-picker-date">
                                             </div>
 
                                             <!-- Add Button -->
@@ -296,7 +312,8 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         </div>
                                         <div class="text-center text-muted py-3" id="noItemsMessage">
                                             <i class="uil uil-box font-size-24"></i>
-                                            <p class="mb-0">No equipment items added yet. Select equipment and sub-equipment above to add items.</p>
+                                            <p class="mb-0">No equipment items added yet. Select equipment and
+                                                sub-equipment above to add items.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -394,11 +411,11 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                             <table id="equipmentSelectTable" class="table table-bordered dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
+                                        <th style="width: 30px;"></th>
                                         <th>#</th>
+                                        <th style="width: 60px;">Image</th>
                                         <th>Code</th>
                                         <th>Item Name</th>
-                                        <th>Category</th>
-                                        <th>Availability</th>
                                     </tr>
                                 </thead>
                             </table>
