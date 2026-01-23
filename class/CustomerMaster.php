@@ -28,6 +28,7 @@ class CustomerMaster
     
     // Company fields
     public $is_company;
+    public $company_name;
     public $company_document;
 
     // Constructor
