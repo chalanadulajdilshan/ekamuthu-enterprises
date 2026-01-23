@@ -187,31 +187,31 @@ jQuery(document).ready(function () {
 
     // Update totals summary
     updateTotalsSummary();
-    
+
     // Bind process return button event
-    $(".process-return-btn").off("click").on("click", function() {
-        var itemId = $(this).data("item-id");
-        var index = $(this).data("index");
-        
-        if (itemId) {
-            // If item is saved, open return modal
-            openReturnModal(itemId);
-        } else {
-            // If item is not saved yet
-            swal({
-                title: "Error!",
-                text: "Please save the rental record first before processing returns",
-                type: "warning",
-                timer: 3000,
-                showConfirmButton: false
-            });
-        }
+    $(".process-return-btn").off("click").on("click", function () {
+      var itemId = $(this).data("item-id");
+      var index = $(this).data("index");
+
+      if (itemId) {
+        // If item is saved, open return modal
+        openReturnModal(itemId);
+      } else {
+        // If item is not saved yet
+        swal({
+          title: "Error!",
+          text: "Please save the rental record first before processing returns",
+          type: "warning",
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
     });
-    
+
     // Bind view returns history button event
-    $(".view-returns-btn").off("click").on("click", function() {
-        var itemId = $(this).data("item-id");
-        viewReturnsHistory(itemId);
+    $(".view-returns-btn").off("click").on("click", function () {
+      var itemId = $(this).data("item-id");
+      viewReturnsHistory(itemId);
     });
   }
 
@@ -599,7 +599,7 @@ jQuery(document).ready(function () {
       $("#equipmentSelectTable").DataTable().destroy();
     }
 
-    $("#equipmentSelectTable").DataTable({
+    var equipmentTable = $("#equipmentSelectTable").DataTable({
       processing: true,
       serverSide: true,
       ajax: {
@@ -613,28 +613,127 @@ jQuery(document).ready(function () {
         },
       },
       columns: [
+        {
+          data: null,
+          title: "",
+          className: "details-control",
+          orderable: false,
+          defaultContent:
+            '<span class="mdi mdi-plus-circle-outline text-primary" style="font-size:18px; cursor:pointer;"></span>',
+          width: "30px",
+        },
         { data: "key", title: "#" },
+        {
+          data: "image_name",
+          title: "Image",
+          orderable: false,
+          render: function (data, type, row) {
+            var imgSrc = data ? "uploads/equipment/" + data : "assets/images/no-image.png";
+            return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
+          },
+        },
         { data: "code", title: "Code" },
-        { data: "item_name", title: "Item Name" },
-        { data: "category_label", title: "Category" },
-        { data: "availability_label", title: "Availability" },
+        {
+          data: "item_name",
+          title: "Item Name",
+          render: function (data, type, row) {
+            return `
+              <div class="fw-bold">${data}</div>
+              <div class="text-muted small">
+                <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || "-"}</span> |
+                <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || "0.00"}</span> |
+                <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span> |
+                <span class="fw-bold text-primary">Category -</span> <span class="text-danger">${row.category_label || "-"}</span>
+              </div>
+            `;
+          },
+        },
       ],
-      order: [[2, "asc"]],
+      order: [[3, "asc"]],
       pageLength: 50,
     });
 
+    // Function to format expandable row details
+    function formatEquipmentDetails(row) {
+      var d = row.data();
+      var availabilityBadge = '';
+      if (d.no_sub_items == 1) {
+        var availableStock = (parseFloat(d.total_quantity) || 0) - (parseFloat(d.rented_qty) || 0);
+        if (availableStock > 0) {
+          availabilityBadge = '<span class="badge bg-success">' + availableStock + ' Available</span>';
+        } else {
+          availabilityBadge = '<span class="badge bg-danger">Not Available</span>';
+        }
+      } else {
+        if (d.available_sub > 0) {
+          availabilityBadge = '<span class="badge bg-success">' + d.available_sub + '/' + d.total_sub + ' Available</span>';
+        } else {
+          availabilityBadge = '<span class="badge bg-danger">All Rented</span>';
+        }
+      }
+
+      return `
+        <div class="p-3 bg-light">
+          <div class="row">
+            <div class="col-md-6">
+              <table class="table table-sm table-borderless mb-0">
+                <tr><td class="fw-bold" style="width: 140px;">Serial Number:</td><td>${d.serial_number || '-'}</td></tr>
+                <tr><td class="fw-bold">Size:</td><td>${d.size || '-'}</td></tr>
+                <tr><td class="fw-bold">Category:</td><td>${d.category_label || '-'}</td></tr>
+                <tr><td class="fw-bold">Availability:</td><td>${availabilityBadge}</td></tr>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <table class="table table-sm table-borderless mb-0">
+                <tr><td class="fw-bold" style="width: 140px;">Rent (1 Day):</td><td>Rs. ${parseFloat(d.rent_one_day || 0).toFixed(2)}</td></tr>
+                <tr><td class="fw-bold">Rent (1 Month):</td><td>Rs. ${parseFloat(d.rent_one_month || 0).toFixed(2)}</td></tr>
+                <tr><td class="fw-bold">Deposit:</td><td>Rs. ${parseFloat(d.deposit_one_day || 0).toFixed(2)}</td></tr>
+                <tr><td class="fw-bold">Value:</td><td>Rs. ${parseFloat(d.value || 0).toFixed(2)}</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Handle expand/collapse on + icon click
+    $("#equipmentSelectTable tbody").off("click", "td.details-control").on("click", "td.details-control", function (e) {
+      e.stopPropagation(); // Prevent row click from firing
+      var tr = $(this).closest("tr");
+      var row = equipmentTable.row(tr);
+      var icon = tr.find("td.details-control span.mdi");
+
+      if (row.child.isShown()) {
+        // Close
+        row.child.hide();
+        tr.removeClass("shown");
+        icon.removeClass("mdi-minus-circle-outline").addClass("mdi-plus-circle-outline");
+      } else {
+        // Open
+        row.child(formatEquipmentDetails(row)).show();
+        tr.addClass("shown");
+        icon.removeClass("mdi-plus-circle-outline").addClass("mdi-minus-circle-outline");
+      }
+    });
+
+    // Handle row click to select equipment (exclude details-control column)
     $("#equipmentSelectTable tbody")
-      .off("click")
-      .on("click", "tr", function () {
-        var data = $("#equipmentSelectTable").DataTable().row(this).data();
+      .off("click", "tr")
+      .on("click", "tr", function (e) {
+        // Skip if clicked on expand/collapse icon
+        if ($(e.target).closest("td.details-control").length) {
+          return;
+        }
+
+        var data = equipmentTable.row(this).data();
         if (data) {
           // Check availability
           var isAvailable = false;
           if (data.no_sub_items == 1) {
-              var availableStock = (parseFloat(data.total_quantity) || 0) - (parseFloat(data.rented_qty) || 0);
-              if (availableStock > 0) isAvailable = true;
+            var availableStock = (parseFloat(data.total_quantity) || 0) - (parseFloat(data.rented_qty) || 0);
+            if (availableStock > 0) isAvailable = true;
           } else {
-              if (data.available_sub > 0) isAvailable = true;
+            if (data.available_sub > 0) isAvailable = true;
           }
 
           if (!isAvailable) {
@@ -664,19 +763,19 @@ jQuery(document).ready(function () {
 
           // Handle No Sub-Items logic
           if (data.no_sub_items == 1) {
-              $("#item_qty").prop("readonly", false); // Enable Qty
-              $("#item_sub_equipment_display").prop("disabled", true).attr("placeholder", "Not Required");
-              $("#btn-select-sub-equipment").prop("disabled", true); 
-              $("#returned_qty_container").show(); // Show returned qty field
-              // Store flag
-              $("#item_equipment_id").data("no_sub_items", 1);
+            $("#item_qty").prop("readonly", false); // Enable Qty
+            $("#item_sub_equipment_display").prop("disabled", true).attr("placeholder", "Not Required");
+            $("#btn-select-sub-equipment").prop("disabled", true);
+            $("#returned_qty_container").show(); // Show returned qty field
+            // Store flag
+            $("#item_equipment_id").data("no_sub_items", 1);
           } else {
-              $("#item_qty").prop("readonly", true).val(1); // Disable Qty and reset to 1
-              $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select sub equipment");
-              $("#btn-select-sub-equipment").prop("disabled", false);
-              $("#returned_qty_container").hide(); // Hide returned qty field
-              $("#item_returned_qty").val(0);
-               $("#item_equipment_id").data("no_sub_items", 0);
+            $("#item_qty").prop("readonly", true).val(1); // Disable Qty and reset to 1
+            $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select sub equipment");
+            $("#btn-select-sub-equipment").prop("disabled", false);
+            $("#returned_qty_container").hide(); // Hide returned qty field
+            $("#item_returned_qty").val(0);
+            $("#item_equipment_id").data("no_sub_items", 0);
           }
 
           $("#EquipmentSelectModal").modal("hide");
@@ -828,10 +927,10 @@ jQuery(document).ready(function () {
         if (result.status === "success") {
           // Open the rent invoice in a new tab
           var billNo = result.bill_number || $("#code").val();
-          
+
           // Update the UI with the actual bill number used
           $("#code").val(billNo);
-          
+
           window.open(
             "rent-invoice.php?bill_no=" + encodeURIComponent(billNo),
             "_blank",

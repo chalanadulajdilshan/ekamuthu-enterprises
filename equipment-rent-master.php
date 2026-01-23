@@ -100,14 +100,16 @@ $bill_number = $lastId + 1;
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="avatar-xs">
-                                                        <div class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                        <div
+                                                            class="avatar-title rounded-circle bg-soft-primary text-primary">
                                                             01
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <h5 class="font-size-16 mb-1">Equipment Rent</h5>
-                                                    <p class="text-muted text-truncate mb-0">Rent multiple equipment items to a customer</p>
+                                                    <p class="text-muted text-truncate mb-0">Rent multiple equipment
+                                                        items to a customer</p>
                                                 </div>
                                                 <div class="flex-shrink-0">
                                                     <i class="mdi mdi-chevron-up accor-down-icon font-size-24"></i>
@@ -121,7 +123,8 @@ $bill_number = $lastId + 1;
                                             <div class="row">
                                                 <!-- Bill Number -->
                                                 <div class="col-md-3">
-                                                    <label for="code" class="form-label">Bill Number - බිල්පත් අංකය</label>
+                                                    <label for="code" class="form-label">Bill Number - බිල්පත්
+                                                        අංකය</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
                                                             value="<?php echo $bill_number ?>" readonly>
@@ -135,8 +138,8 @@ $bill_number = $lastId + 1;
 
                                                 <!-- Customer Selection -->
                                                 <div class="col-md-4">
-                                                    <label for="customer_display" class="form-label">Customer - පාරිභෝගිකයා<span
-                                                            class="text-danger">*</span></label>
+                                                    <label for="customer_display" class="form-label">Customer -
+                                                        පාරිභෝගිකයා<span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="customer_display" name="customer_display" type="text"
                                                             class="form-control" placeholder="Select customer" readonly>
@@ -151,17 +154,20 @@ $bill_number = $lastId + 1;
 
                                                 <!-- Rental Date -->
                                                 <div class="col-md-2">
-                                                    <label for="rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය<span
-                                                            class="text-danger">*</span></label>
+                                                    <label for="rental_date" class="form-label">Rental Date - කුලියට ගත්
+                                                        දිනය<span class="text-danger">*</span></label>
                                                     <div class="mb-3">
                                                         <input id="rental_date" name="rental_date" type="text"
-                                                            class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
+                                                            class="form-control date-picker"
+                                                            value="<?php echo date('Y-m-d'); ?>">
                                                     </div>
                                                 </div>
 
                                                 <!-- Received Date -->
-                                                <div class="col-md-3" id="received_date_container" style="display: none;">
-                                                    <label for="received_date" class="form-label">Received Date (All Items) - ලැබුණු දිනය (සියලුම අයිතම)</label>
+                                                <div class="col-md-3" id="received_date_container"
+                                                    style="display: none;">
+                                                    <label for="received_date" class="form-label">Received Date (All
+                                                        Items) - ලැබුණු දිනය (සියලුම අයිතම)</label>
                                                     <div class="mb-3">
                                                         <input id="received_date" name="received_date" type="text"
                                                             class="form-control date-picker-date">
@@ -174,7 +180,7 @@ $bill_number = $lastId + 1;
                                                     <textarea id="remark" name="remark" class="form-control" rows="2"
                                                         placeholder="Enter any remarks or notes about the rental..."></textarea>
                                                 </div>
-                                                
+
                                                 <input type="hidden" id="rent_id" name="rent_id" />
                                             </div>
                                         </form>
@@ -187,7 +193,8 @@ $bill_number = $lastId + 1;
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="avatar-xs">
-                                                    <div class="avatar-title rounded-circle bg-soft-success text-success">
+                                                    <div
+                                                        class="avatar-title rounded-circle bg-soft-success text-success">
                                                         02
                                                     </div>
                                                 </div>
@@ -196,17 +203,17 @@ $bill_number = $lastId + 1;
                                                 <h5 class="font-size-16 mb-0">Add Equipment Items</h5>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="row align-items-end mb-3">
                                             <!-- Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_equipment_display" class="form-label">Equipment - උපකරණ</label>
+                                                <label for="item_equipment_display" class="form-label">Equipment -
+                                                    උපකරණ</label>
                                                 <div class="input-group">
                                                     <input id="item_equipment_display" type="text" class="form-control"
                                                         placeholder="Select equipment" readonly>
                                                     <input type="hidden" id="item_equipment_id">
-                                                    <button class="btn btn-info" type="button"
-                                                        data-bs-toggle="modal"
+                                                    <button class="btn btn-info" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#EquipmentSelectModal"><i
                                                             class="uil uil-search"></i>
                                                     </button>
@@ -215,13 +222,15 @@ $bill_number = $lastId + 1;
 
                                             <!-- Sub Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment (Code) - උප උපකරණ (කේතය)</label>
+                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment
+                                                    (Code) - උප උපකරණ (කේතය)</label>
                                                 <div class="input-group">
-                                                    <input id="item_sub_equipment_display" type="text" class="form-control"
-                                                        placeholder="Select sub equipment" readonly>
+                                                    <input id="item_sub_equipment_display" type="text"
+                                                        class="form-control" placeholder="Select sub equipment"
+                                                        readonly>
                                                     <input type="hidden" id="item_sub_equipment_id">
-                                                    <button class="btn btn-info" type="button" id="btn-select-sub-equipment"
-                                                        data-bs-toggle="modal"
+                                                    <button class="btn btn-info" type="button"
+                                                        id="btn-select-sub-equipment" data-bs-toggle="modal"
                                                         data-bs-target="#SubEquipmentSelectModal"><i
                                                             class="uil uil-search"></i>
                                                     </button>
@@ -239,37 +248,44 @@ $bill_number = $lastId + 1;
                                             <div class="col-md-2">
                                                 <label class="form-label">Duration - කාල සීමාව</label>
                                                 <div class="input-group">
-                                                    <input type="number" class="form-control" id="item_duration" min="1" step="1" placeholder="0">
+                                                    <input type="number" class="form-control" id="item_duration" min="1"
+                                                        step="1" placeholder="0">
                                                     <span class="input-group-text" id="duration_label">Days</span>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-1">
                                                 <label class="form-label">Qty - ප්‍රමාණය</label>
-                                                <input type="number" class="form-control" id="item_qty" min="1" step="1" value="1" readonly>
+                                                <input type="number" class="form-control" id="item_qty" min="1" step="1"
+                                                    value="1" readonly>
                                             </div>
 
 
                                             <div class="col-md-2">
                                                 <label class="form-label">Amount - අගය</label>
-                                                <input type="text" class="form-control" id="item_amount" readonly placeholder="0.00">
+                                                <input type="text" class="form-control" id="item_amount" readonly
+                                                    placeholder="0.00">
                                             </div>
 
                                         </div>
 
                                         <div class="row align-items-end">
-                                            
+
                                             <!-- Item Rental Date -->
                                             <div class="col-md-3">
-                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට ගත් දිනය</label>
-                                                <input id="item_rental_date" type="text" class="form-control date-picker" 
+                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට
+                                                    ගත් දිනය</label>
+                                                <input id="item_rental_date" type="text"
+                                                    class="form-control date-picker"
                                                     value="<?php echo date('Y-m-d'); ?>">
                                             </div>
 
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
-                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන් දිනය</label>
-                                                <input id="item_return_date" type="text" class="form-control date-picker-date">
+                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන්
+                                                    දිනය</label>
+                                                <input id="item_return_date" type="text"
+                                                    class="form-control date-picker-date">
                                             </div>
 
                                             <!-- Add Button -->
@@ -307,7 +323,8 @@ $bill_number = $lastId + 1;
                                         </div>
                                         <div class="text-center text-muted py-3" id="noItemsMessage">
                                             <i class="uil uil-box font-size-24"></i>
-                                            <p class="mb-0">No equipment items added yet. Select equipment and sub-equipment above to add items.</p>
+                                            <p class="mb-0">No equipment items added yet. Select equipment and
+                                                sub-equipment above to add items.</p>
                                         </div>
 
                                         <!-- Totals Summary Section -->
@@ -319,19 +336,32 @@ $bill_number = $lastId + 1;
                                                             <tbody>
                                                                 <tr>
                                                                     <td class="text-start fw-medium">Sub Total:</td>
-                                                                    <td class="text-end" id="summary_sub_total">0.00</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-start fw-medium">Transport Cost:</td>
-                                                                    <td class="text-end">
-                                                                        <input type="text" class="form-control form-control-sm text-end" id="transport_cost" name="transport_cost" placeholder="0.00" style="max-width: 120px; display: inline-block;">
+                                                                    <td class="text-end" id="summary_sub_total">0.00
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td class="text-start fw-medium">Customer Deposit:</td>
+                                                                    <td class="text-start fw-medium">Transport Cost:
+                                                                    </td>
                                                                     <td class="text-end">
-                                                                        <input type="text" class="form-control form-control-sm text-end" id="custom_deposit" name="custom_deposit" placeholder="0.00" style="max-width: 120px; display: inline-block;">
-                                                                        <br><small class="text-muted">Calculated: <span id="calculated_deposit_display" class="fw-bold">0.00</span></small>
+                                                                        <input type="text"
+                                                                            class="form-control form-control-sm text-end"
+                                                                            id="transport_cost" name="transport_cost"
+                                                                            placeholder="0.00"
+                                                                            style="max-width: 120px; display: inline-block;">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Customer Deposit:
+                                                                    </td>
+                                                                    <td class="text-end">
+                                                                        <input type="text"
+                                                                            class="form-control form-control-sm text-end"
+                                                                            id="custom_deposit" name="custom_deposit"
+                                                                            placeholder="0.00"
+                                                                            style="max-width: 120px; display: inline-block;">
+                                                                        <br><small class="text-muted">Calculated: <span
+                                                                                id="calculated_deposit_display"
+                                                                                class="fw-bold">0.00</span></small>
                                                                     </td>
                                                                 </tr>
                                                             </tbody>
@@ -438,11 +468,11 @@ $bill_number = $lastId + 1;
                             <table id="equipmentSelectTable" class="table table-bordered dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
+                                        <th style="width: 30px;"></th>
                                         <th>#</th>
+                                        <th style="width: 60px;">Image</th>
                                         <th>Code</th>
                                         <th>Item Name</th>
-                                        <th>Category</th>
-                                        <th>Availability</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -487,7 +517,8 @@ $bill_number = $lastId + 1;
     </div>
 
     <!-- Equipment Return Modal -->
-    <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -496,42 +527,46 @@ $bill_number = $lastId + 1;
                 </div>
                 <div class="modal-body">
                     <div id="returnItemInfo"></div>
-                    
+
                     <form id="returnForm">
                         <input type="hidden" id="return_rent_item_id">
-                        
+
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="return_date" class="form-label">Return Date <span class="text-danger">*</span></label>
+                                    <label for="return_date" class="form-label">Return Date <span
+                                            class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="return_date" required>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="return_qty" class="form-label">Return Quantity <span class="text-danger">*</span></label>
+                                    <label for="return_qty" class="form-label">Return Quantity <span
+                                            class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="return_qty" min="1" required>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="damage_amount" class="form-label">Damage Amount (Rs.)</label>
-                                    <input type="number" class="form-control" id="damage_amount" min="0" step="0.01" value="0">
+                                    <input type="number" class="form-control" id="damage_amount" min="0" step="0.01"
+                                        value="0">
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label for="return_remark" class="form-label">Remark</label>
-                                    <textarea class="form-control" id="return_remark" rows="2" placeholder="Enter any notes about this return..."></textarea>
+                                    <textarea class="form-control" id="return_remark" rows="2"
+                                        placeholder="Enter any notes about this return..."></textarea>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div id="settlementPreview" style="display: none;"></div>
                         <div id="previousReturns" style="display: none;"></div>
                     </form>

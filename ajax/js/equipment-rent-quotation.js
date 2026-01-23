@@ -389,7 +389,7 @@ jQuery(document).ready(function () {
             $("#equipmentSelectTable").DataTable().destroy();
         }
 
-        $("#equipmentSelectTable").DataTable({
+        var equipmentTable = $("#equipmentSelectTable").DataTable({
             processing: true,
             serverSide: true,
             ajax: {
@@ -403,24 +403,112 @@ jQuery(document).ready(function () {
                 },
             },
             columns: [
+                {
+                    data: null,
+                    title: "",
+                    className: "details-control",
+                    orderable: false,
+                    defaultContent:
+                        '<span class="mdi mdi-plus-circle-outline text-primary" style="font-size:18px; cursor:pointer;"></span>',
+                    width: "30px",
+                },
                 { data: "key", title: "#" },
+                {
+                    data: "image_name",
+                    title: "Image",
+                    orderable: false,
+                    render: function (data, type, row) {
+                        var imgSrc = data ? "uploads/equipment/" + data : "assets/images/no-image.png";
+                        return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
+                    },
+                },
                 { data: "code", title: "Code" },
-                { data: "item_name", title: "Item Name" },
-                { data: "category_label", title: "Category" },
-                { data: "availability_label", title: "Availability" },
+                {
+                    data: "item_name",
+                    title: "Item Name",
+                    render: function (data, type, row) {
+                        return `
+                            <div class="fw-bold">${data}</div>
+                            <div class="text-muted small">
+                                <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || "-"}</span> |
+                                <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || "0.00"}</span> |
+                                <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span> |
+                                <span class="fw-bold text-primary">Category -</span> <span class="text-danger">${row.category_label || "-"}</span>
+                            </div>
+                        `;
+                    },
+                },
             ],
-            order: [[2, "asc"]],
+            order: [[3, "asc"]],
             pageLength: 50,
         });
 
+        // Function to format expandable row details
+        function formatEquipmentDetails(row) {
+            var d = row.data();
+            var availabilityBadge = '';
+            if (d.available_sub > 0) {
+                availabilityBadge = '<span class="badge bg-success">' + d.available_sub + '/' + d.total_sub + ' Available</span>';
+            } else {
+                availabilityBadge = '<span class="badge bg-danger">All Rented</span>';
+            }
+
+            return `
+                <div class="p-3 bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr><td class="fw-bold" style="width: 140px;">Serial Number:</td><td>${d.serial_number || '-'}</td></tr>
+                                <tr><td class="fw-bold">Size:</td><td>${d.size || '-'}</td></tr>
+                                <tr><td class="fw-bold">Category:</td><td>${d.category_label || '-'}</td></tr>
+                                <tr><td class="fw-bold">Availability:</td><td>${availabilityBadge}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr><td class="fw-bold" style="width: 140px;">Rent (1 Day):</td><td>Rs. ${parseFloat(d.rent_one_day || 0).toFixed(2)}</td></tr>
+                                <tr><td class="fw-bold">Rent (1 Month):</td><td>Rs. ${parseFloat(d.rent_one_month || 0).toFixed(2)}</td></tr>
+                                <tr><td class="fw-bold">Deposit:</td><td>Rs. ${parseFloat(d.deposit_one_day || 0).toFixed(2)}</td></tr>
+                                <tr><td class="fw-bold">Value:</td><td>Rs. ${parseFloat(d.value || 0).toFixed(2)}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handle expand/collapse on + icon click
+        $("#equipmentSelectTable tbody").off("click", "td.details-control").on("click", "td.details-control", function (e) {
+            e.stopPropagation(); // Prevent row click from firing
+            var tr = $(this).closest("tr");
+            var row = equipmentTable.row(tr);
+            var icon = tr.find("td.details-control span.mdi");
+
+            if (row.child.isShown()) {
+                // Close
+                row.child.hide();
+                tr.removeClass("shown");
+                icon.removeClass("mdi-minus-circle-outline").addClass("mdi-plus-circle-outline");
+            } else {
+                // Open
+                row.child(formatEquipmentDetails(row)).show();
+                tr.addClass("shown");
+                icon.removeClass("mdi-plus-circle-outline").addClass("mdi-minus-circle-outline");
+            }
+        });
+
+        // Handle row click to select equipment (exclude details-control column)
         $("#equipmentSelectTable tbody")
-            .off("click")
-            .on("click", "tr", function () {
-                var data = $("#equipmentSelectTable").DataTable().row(this).data();
+            .off("click", "tr")
+            .on("click", "tr", function (e) {
+                // Skip if clicked on expand/collapse icon
+                if ($(e.target).closest("td.details-control").length) {
+                    return;
+                }
+
+                var data = equipmentTable.row(this).data();
                 if (data) {
-                    // Warning for quotes if not available, but allow it? 
-                    // Probably better to warn but allow since it's a quote.
-                    // For now, mirroring rent behavior, but without strict block.
+                    // Warning for quotes if not available, but allow it
                     if (data.available_sub <= 0) {
                         swal({
                             title: "Availability Warning",

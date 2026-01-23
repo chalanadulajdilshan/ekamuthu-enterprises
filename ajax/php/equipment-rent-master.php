@@ -25,17 +25,17 @@ if (isset($_POST['create'])) {
         $result = $db->readQuery($query);
         $row = mysqli_fetch_assoc($result);
         $max_id = $row['max_id'];
-        
+
         $DOC_TRACKING = new DocumentTracking(1);
         $tracking_id = $DOC_TRACKING->equipment_rent_id;
-        
+
         // Next ID is max of (existing in DB, tracking ID) + 1
-        $bill_number = max((int)$max_id, (int)$tracking_id) + 1;
+        $bill_number = max((int) $max_id, (int) $tracking_id) + 1;
     }
 
     // Parse items from JSON
     $items = json_decode($_POST['items'] ?? '[]', true);
-    
+
     if (empty($items)) {
         echo json_encode(["status" => "error", "message" => "Please add at least one equipment item"]);
         exit();
@@ -51,7 +51,7 @@ if (isset($_POST['create'])) {
         if (!EquipmentRentItem::isSubEquipmentAvailable($item['sub_equipment_id'])) {
             $SUB_EQ = new SubEquipment($item['sub_equipment_id']);
             echo json_encode([
-                "status" => "error", 
+                "status" => "error",
                 "message" => "Sub equipment '{$SUB_EQ->code}' is already rented out"
             ]);
             exit();
@@ -109,8 +109,8 @@ if (isset($_POST['create'])) {
 
         // Update document tracking ID if the used bill number is greater than current tracking
         $DOC_TRACKING = new DocumentTracking(1);
-        if ((int)$DOC_TRACKING->equipment_rent_id < (int)$bill_number) {
-            $db->readQuery("UPDATE `document_tracking` SET `equipment_rent_id` = '" . (int)$bill_number . "', `updated_at` = NOW() WHERE `id` = 1");
+        if ((int) $DOC_TRACKING->equipment_rent_id < (int) $bill_number) {
+            $db->readQuery("UPDATE `document_tracking` SET `equipment_rent_id` = '" . (int) $bill_number . "', `updated_at` = NOW() WHERE `id` = 1");
         }
 
         echo json_encode(["status" => "success", "rent_id" => $rent_id, "bill_number" => $bill_number]);
@@ -134,10 +134,10 @@ if (isset($_POST['update'])) {
     }
 
     $EQUIPMENT_RENT = new EquipmentRent($_POST['rent_id']);
-    
+
     // Parse items from JSON
     $items = json_decode($_POST['items'] ?? '[]', true);
-    
+
     if (empty($items)) {
         echo json_encode(["status" => "error", "message" => "Please add at least one equipment item"]);
         exit();
@@ -177,14 +177,14 @@ if (isset($_POST['update'])) {
                 $shouldCheck = false;
             }
         }
-        
+
         if ($shouldCheck && !$isReturning) {
             $EQUIP_CHECK = new Equipment($item['equipment_id']);
             if ($EQUIP_CHECK->no_sub_items != 1) {
                 if (!EquipmentRentItem::isSubEquipmentAvailable($subEquipmentId, $itemId)) {
                     $SUB_EQ = new SubEquipment($subEquipmentId);
                     echo json_encode([
-                        "status" => "error", 
+                        "status" => "error",
                         "message" => "Sub equipment '{$SUB_EQ->code}' is already rented out"
                     ]);
                     exit();
@@ -237,7 +237,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
-    
+
     // Check if all items are returned
     $allReturned = true;
     foreach ($items as $item) {
@@ -247,7 +247,7 @@ if (isset($_POST['update'])) {
         }
     }
     $EQUIPMENT_RENT->status = $allReturned ? 'returned' : 'rented';
-    
+
     $res = $EQUIPMENT_RENT->update();
     $EQUIPMENT_RENT->updateTotalItems();
 
@@ -297,7 +297,7 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
 // Mark single item as returned
 if (isset($_POST['action']) && $_POST['action'] === 'return_item') {
     $item_id = $_POST['item_id'] ?? 0;
-    
+
     if ($item_id) {
         $RENT_ITEM = new EquipmentRentItem($item_id);
         if ($RENT_ITEM->markAsReturned()) {
@@ -308,7 +308,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_item') {
                 $EQUIPMENT_RENT->received_date = date('Y-m-d');
                 $EQUIPMENT_RENT->update();
             }
-            
+
             echo json_encode(["status" => "success"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to mark item as returned"]);
@@ -322,7 +322,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_item') {
 // Mark all items as returned
 if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $rent_id = $_POST['rent_id'] ?? 0;
-    
+
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
         if ($EQUIPMENT_RENT->markAllReturned()) {
@@ -339,12 +339,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 // Filter for DataTable
 if (isset($_POST['filter'])) {
     $EQUIPMENT_RENT = new EquipmentRent(NULL);
-    
+
     // Add custom filter for Issue Note page (exclude already issued invoices)
     if (isset($_POST['exclude_issued']) && $_POST['exclude_issued'] == 'true') {
         $_REQUEST['custom_where'] = "AND er.id NOT IN (SELECT rent_invoice_id FROM issue_notes WHERE issue_status != 'cancelled')";
     }
-    
+
     $result = $EQUIPMENT_RENT->fetchForDataTable($_REQUEST);
     echo json_encode($result);
     exit;
@@ -353,10 +353,10 @@ if (isset($_POST['filter'])) {
 // Get rent details with items
 if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
     $rent_id = $_POST['rent_id'] ?? 0;
-    
+
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
-        
+
         // Get items with equipment deposit info
         $db = Database::getInstance();
         $itemsQuery = "SELECT ri.*, e.code as equipment_code, e.item_name as equipment_name, 
@@ -371,10 +371,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         while ($row = mysqli_fetch_assoc($itemsResult)) {
             $items[] = $row;
         }
-        
+
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
-        
+
         echo json_encode([
             "status" => "success",
             "rent" => [
@@ -458,7 +458,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
         $EQUIPMENT = new Equipment($equipment_id);
         $available = EquipmentRentItem::getAvailableSubEquipment($equipment_id);
         $all = EquipmentRentItem::getAllSubEquipmentWithStatus($equipment_id);
-        
+
         echo json_encode([
             "status" => "success",
             "equipment" => [
@@ -599,9 +599,12 @@ if (isset($_POST['filter_equipment'])) {
             "id" => $row['id'],
             "code" => $row['code'],
             "item_name" => $row['item_name'],
+            "image_name" => $row['image_name'],
             "category" => $row['category'],
             "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
+            "size" => $row['size'],
+            "value" => $row['value'],
             "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
             "rented_qty" => $row['rented_qty'],
