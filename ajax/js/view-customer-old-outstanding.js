@@ -39,6 +39,14 @@ $(document).ready(function () {
         if (data) {
             $("#customer_select").val(data.id);
             $("#customer_name_display").val(data.name + " (" + data.code + ")");
+
+            // Populate customer details card
+            $("#customer_code_display").text(data.code || '-');
+            $("#customer_name_detail").text(data.name || '-');
+            $("#customer_nic_display").text(data.nic || '-');
+            $("#customer_mobile_display").text(data.mobile_number || '-');
+            $("#customer_address_display").text(data.address || '-');
+
             $('#oldOutstandingCustomerModal').modal('hide');
             $("#customer_select").trigger('change');
         }
@@ -96,6 +104,7 @@ $(document).ready(function () {
         var customerId = $(this).val();
 
         if (customerId) {
+            $("#customer_details_section").fadeIn();
             $("#summary_section").fadeIn();
             $("#pay_customer_id").val(customerId);
 
@@ -105,6 +114,7 @@ $(document).ready(function () {
             loadPendingInvoices(customerId);
             loadPaymentHistory(customerId);
         } else {
+            $("#customer_details_section").fadeOut();
             $("#summary_section").fadeOut();
         }
     });

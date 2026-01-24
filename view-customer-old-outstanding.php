@@ -76,6 +76,45 @@ include 'auth.php';
                     
                     <?php include 'old-outstanding-customer-model.php'; ?>
 
+                    <!-- Customer Details Card (Hidden initially) -->
+                    <div id="customer_details_section" style="display: none;">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0"><i class="uil uil-user me-2"></i>Customer Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <p class="mb-2"><strong>Customer Code:</strong></p>
+                                                <p id="customer_code_display" class="text-muted">-</p>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <p class="mb-2"><strong>Name:</strong></p>
+                                                <p id="customer_name_detail" class="text-muted">-</p>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <p class="mb-2"><strong>NIC:</strong></p>
+                                                <p id="customer_nic_display" class="text-muted">-</p>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <p class="mb-2"><strong>Mobile:</strong></p>
+                                                <p id="customer_mobile_display" class="text-muted">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <p class="mb-2"><strong>Address:</strong></p>
+                                                <p id="customer_address_display" class="text-muted">-</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Summary Cards (Hidden initially) -->
                     <div id="summary_section" style="display: none;">
                         <div class="row">
