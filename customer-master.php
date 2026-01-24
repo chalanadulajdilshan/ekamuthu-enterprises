@@ -205,7 +205,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <div class="card-body">
                                                     <div class="row">
                                                         <div class="col-12 col-md-6 col-lg-6">
-                                                            <label for="water_bill_no" class="form-label">Utility Bill Number (Water/Electricity) <span class="text-danger">*</span></label>
+                                                            <label for="water_bill_no" class="form-label">Utility Bill Number (Water/Electricity) <span class="text-danger"></span></label>
                                                             <div class="input-group">
                                                                 <input id="water_bill_no" name="water_bill_no" type="text"
                                                                     class="form-control" placeholder="Enter utility bill number">
