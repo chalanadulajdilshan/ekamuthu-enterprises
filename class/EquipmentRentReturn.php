@@ -5,8 +5,13 @@ class EquipmentRentReturn
     public $id;
     public $rent_item_id;
     public $return_date;
+    public $return_time;
     public $return_qty;
     public $damage_amount;
+    public $after_9am_extra_day;
+    public $extra_day_amount;
+    public $penalty_percentage;
+    public $penalty_amount;
     public $settle_amount;
     public $refund_amount;
     public $additional_payment;
@@ -26,8 +31,13 @@ class EquipmentRentReturn
                 $this->id = $result['id'];
                 $this->rent_item_id = $result['rent_item_id'];
                 $this->return_date = $result['return_date'];
+                $this->return_time = $result['return_time'] ?? null;
                 $this->return_qty = $result['return_qty'];
                 $this->damage_amount = $result['damage_amount'];
+                $this->after_9am_extra_day = $result['after_9am_extra_day'] ?? 0;
+                $this->extra_day_amount = $result['extra_day_amount'] ?? 0;
+                $this->penalty_percentage = $result['penalty_percentage'] ?? 0;
+                $this->penalty_amount = $result['penalty_amount'] ?? 0;
                 $this->settle_amount = $result['settle_amount'];
                 $this->refund_amount = $result['refund_amount'];
                 $this->additional_payment = $result['additional_payment'];
@@ -42,11 +52,15 @@ class EquipmentRentReturn
     public function create()
     {
         $query = "INSERT INTO `equipment_rent_returns` (
-            `rent_item_id`, `return_date`, `return_qty`, `damage_amount`, 
+            `rent_item_id`, `return_date`, `return_time`, `return_qty`, `damage_amount`, 
+            `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
             `settle_amount`, `refund_amount`, `additional_payment`, `remark`, `created_by`
         ) VALUES (
-            '$this->rent_item_id', '$this->return_date', '$this->return_qty', 
-            '$this->damage_amount', '$this->settle_amount', '$this->refund_amount', 
+            '$this->rent_item_id', '$this->return_date', " .
+            ($this->return_time ? "'{$this->return_time}'" : "NULL") . ", '$this->return_qty', 
+            '$this->damage_amount', '$this->after_9am_extra_day', '$this->extra_day_amount',
+            '$this->penalty_percentage', '$this->penalty_amount',
+            '$this->settle_amount', '$this->refund_amount', 
             '$this->additional_payment', '$this->remark', " . 
             (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . "
         )";
@@ -70,8 +84,13 @@ class EquipmentRentReturn
     {
         $query = "UPDATE `equipment_rent_returns` SET 
             `return_date` = '$this->return_date',
+            `return_time` = " . ($this->return_time ? "'{$this->return_time}'" : "NULL") . ",
             `return_qty` = '$this->return_qty',
             `damage_amount` = '$this->damage_amount',
+            `after_9am_extra_day` = '$this->after_9am_extra_day',
+            `extra_day_amount` = '$this->extra_day_amount',
+            `penalty_percentage` = '$this->penalty_percentage',
+            `penalty_amount` = '$this->penalty_amount',
             `settle_amount` = '$this->settle_amount',
             `refund_amount` = '$this->refund_amount',
             `additional_payment` = '$this->additional_payment',
@@ -130,7 +149,7 @@ class EquipmentRentReturn
         }
     }
 
-    public static function calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date = null)
+    public static function calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date = null, $return_time = null, $after_9am_extra_day = 0, $extra_day_amount = 0, $penalty_percentage = 0)
     {
         $db = Database::getInstance();
         
@@ -175,16 +194,41 @@ class EquipmentRentReturn
         $rental_dt = strtotime($rental_date);
         $return_dt = strtotime($return_date);
         $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400));
+        
+        // Check if return is late (used_days > duration_days)
+        $is_late = $used_days > $duration_days;
+        $overdue_days = $is_late ? ($used_days - $duration_days) : 0;
+
+        $isAfterCutoff = false;
+        if (intval($after_9am_extra_day) === 1) {
+            $t = $return_time ?: '00:00';
+            if (preg_match('/^\d{2}:\d{2}/', $t)) {
+                $isAfterCutoff = (strtotime($t) >= strtotime('09:00'));
+            }
+        }
+
+        $suggestedExtraDayAmount = $isAfterCutoff ? ($per_unit_daily * $return_qty) : 0;
+        $finalExtraDayAmount = $isAfterCutoff ? (floatval($extra_day_amount) > 0 ? floatval($extra_day_amount) : $suggestedExtraDayAmount) : 0;
+        $charged_days = $used_days + ($finalExtraDayAmount > 0 ? 1 : 0);
 
         // Calculate deposit for this return quantity
         $deposit_for_return = $per_unit_deposit * $return_qty;
 
-        // Rental charge for returned quantity based on days used
+        // Rental charge for returned quantity based on days used (extra day amount is separate)
         $rental_amount = $per_unit_daily * $used_days * $return_qty;
         
+        // Calculate penalty if late and penalty_percentage is provided (10% to 20%)
+        $penalty_percentage = floatval($penalty_percentage);
+        if ($penalty_percentage < 0) $penalty_percentage = 0;
+        if ($penalty_percentage > 20) $penalty_percentage = 20;
+        $penalty_amount = 0;
+        if ($is_late && $penalty_percentage > 0) {
+            $penalty_amount = ($rental_amount * $penalty_percentage) / 100;
+        }
+        
         // Calculate settlement
-        // settle_amount: rental + damage - deposit share
-        $settle_amount = ($rental_amount + floatval($damage_amount)) - $deposit_for_return;
+        // settle_amount: rental + extra_day + damage + penalty - deposit share
+        $settle_amount = ($rental_amount + $finalExtraDayAmount + floatval($damage_amount) + $penalty_amount) - $deposit_for_return;
         
         $refund_amount = 0;
         $additional_payment = 0;
@@ -205,6 +249,13 @@ class EquipmentRentReturn
             'rental_amount' => round($rental_amount, 2),
             'per_unit_daily' => round($per_unit_daily, 2),
             'used_days' => $used_days,
+            'charged_days' => $charged_days,
+            'duration_days' => $duration_days,
+            'is_late' => $is_late,
+            'overdue_days' => $overdue_days,
+            'extra_day_amount' => round($finalExtraDayAmount, 2),
+            'penalty_percentage' => round($penalty_percentage, 2),
+            'penalty_amount' => round($penalty_amount, 2),
             'damage_amount' => round(floatval($damage_amount), 2),
             'settle_amount' => round($settle_amount, 2),
             'refund_amount' => round($refund_amount, 2),
@@ -248,7 +299,10 @@ class EquipmentRentReturn
 
             $rentalAmount = floatval($row['rental_amount'] ?? 0);
             $damageAmount = floatval($row['damage_amount'] ?? 0);
-            $settleCalc = ($rentalAmount + $damageAmount) - $depositForReturn;
+            $extraDayAmount = floatval($row['extra_day_amount'] ?? 0);
+            $penaltyAmount = floatval($row['penalty_amount'] ?? 0);
+            $penaltyPercentage = floatval($row['penalty_percentage'] ?? 0);
+            $settleCalc = ($rentalAmount + $extraDayAmount + $damageAmount + $penaltyAmount) - $depositForReturn;
             $additionalPayment = $settleCalc > 0 ? $settleCalc : 0;
             $refundAmount = $settleCalc < 0 ? abs($settleCalc) : 0;
 
@@ -257,6 +311,9 @@ class EquipmentRentReturn
             $row['settle_amount_calc'] = round($settleCalc, 2);
             $row['additional_payment'] = round($additionalPayment, 2);
             $row['refund_amount'] = round($refundAmount, 2);
+            $row['extra_day_amount'] = round($extraDayAmount, 2);
+            $row['penalty_amount'] = round($penaltyAmount, 2);
+            $row['penalty_percentage'] = round($penaltyPercentage, 2);
 
             $returns[] = $row;
         }

@@ -73,6 +73,11 @@ SET total_items = (
 CREATE INDEX IF NOT EXISTS `idx_sub_equipment_rental_status` ON `sub_equipment` (`rental_status`);
 CREATE INDEX IF NOT EXISTS `idx_sub_equipment_equipment_id` ON `sub_equipment` (`equipment_id`);
 
+ALTER TABLE `equipment_rent_returns`
+ADD COLUMN IF NOT EXISTS `return_time` TIME NULL AFTER `return_date`,
+ADD COLUMN IF NOT EXISTS `after_9am_extra_day` TINYINT(1) NOT NULL DEFAULT 0 AFTER `damage_amount`,
+ADD COLUMN IF NOT EXISTS `extra_day_amount` DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER `after_9am_extra_day`;
+
 -- =====================================================
 -- IMPORTANT: Run these queries to check the migration
 -- =====================================================

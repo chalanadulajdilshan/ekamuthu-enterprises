@@ -145,6 +145,15 @@ if (!empty($customerMobile)) {
             border-style: none !important;
         }
 
+        .invoice-meta {
+            margin-top: 20px !important;
+            padding: 6px 14px;
+            min-width: 230px;
+            display: inline-block;
+            border: none;
+            background: transparent;
+        }
+
         .summary-table td {
             padding: 4px 12px !important;
         }
@@ -180,48 +189,59 @@ if (!empty($customerMobile)) {
         <div class="card-body">
             <!-- Company & Customer Info -->
             <div class="invoice-title">
-                <div class="row mb-4">
-                    <?php
-                    function formatPhone($number) {
-                        $number = preg_replace('/\D/', '', $number);
-                        if (strlen($number) == 10) {
-                            return sprintf("(%s) %s-%s", substr($number, 0, 3), substr($number, 3, 3), substr($number, 6));
-                        }
-                        return $number;
+                <?php
+                function formatPhone($number) {
+                    $number = preg_replace('/\D/', '', $number);
+                    if (strlen($number) == 10) {
+                        return sprintf("(%s) %s-%s", substr($number, 0, 3), substr($number, 3, 3), substr($number, 6));
                     }
-                    ?>
-                    <div class="col-md-3 text-muted">
-                        <p class="mb-1" style="font-weight:bold;font-size:18px;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
-                        <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
-                        <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
-                        <p class="mb-1" style="font-size:13px;">VAT Registration No: <?php echo htmlspecialchars($COMPANY_PROFILE->vat_number); ?></p>
+                    return $number;
+                }
+                ?>
+                
+                <!-- Centered Title -->
+                <div class="row mb-3">
+                    <div class="col-12 text-center">
+                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:0; display:inline-block;">උපකරණ කුලී ඉන්වොයිසිය</h3>
                     </div>
+                </div>
+
+                <div class="row mb-4">
                     <div class="col-md-6 text-sm-start text-md-start">
-                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:10px; display:inline-block; margin-left:100px;">උපකරණ කුලී ඉන්වොයිසිය</h3>
-                        <div style="font-size:15px; line-height:1.6; margin-left:40px;">
+                        <div style="font-size:15px; line-height:1.6;">
                             <p class="mb-1"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
                             <p class="mb-1"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
                             <p class="mb-1"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
                             <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
                             <p class="mb-1"><strong>Workplace Address:</strong> <?php echo !empty($CUSTOMER_MASTER->workplace_address) ? htmlspecialchars($CUSTOMER_MASTER->workplace_address) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo !empty($CUSTOMER_MASTER->guarantor_address) ? htmlspecialchars($CUSTOMER_MASTER->guarantor_address) : '.................................'; ?></p>
+                            <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>
+                                <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->guarantor_address); ?></p>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <div class="col-md-3 text-sm-start text-md-end">
-                        <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                        <p class="mb-1" style="font-size:14px;"><strong>Rental Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
-                        <?php if ($EQUIPMENT_RENT->received_date): ?>
-                            <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
-                        <?php endif; ?>
-                        <p class="mb-1" style="font-size:14px;">
-                            <strong>Status:</strong> 
-                            <?php if ($EQUIPMENT_RENT->status === 'rented'): ?>
-                                <span class="badge bg-warning">Rented</span>
-                            <?php else: ?>
-                                <span class="badge bg-success">Returned</span>
+                    <div class="col-md-6 text-sm-start text-md-end">
+                        <div class="text-muted mb-3">
+                            <p class="mb-1" style="font-weight:bold;font-size:18px;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
+                            <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
+                            <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
+                            <p class="mb-1" style="font-size:13px;">VAT Registration No: <?php echo htmlspecialchars($COMPANY_PROFILE->vat_number); ?></p>
+                        </div>
+                        <div class="invoice-meta">
+                            <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
+                            <p class="mb-1" style="font-size:14px;"><strong>Rental Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                            <?php if ($EQUIPMENT_RENT->received_date): ?>
+                                <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
                             <?php endif; ?>
-                        </p>
+                            <p class="mb-1" style="font-size:14px;">
+                                <strong>Status:</strong> 
+                                <?php if ($EQUIPMENT_RENT->status === 'rented'): ?>
+                                    <span class="badge bg-warning">Rented</span>
+                                <?php else: ?>
+                                    <span class="badge bg-success">Returned</span>
+                                <?php endif; ?>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -281,9 +301,12 @@ if (!empty($customerMobile)) {
                         <thead class="table-light">
                             <tr>
                                 <th>Date</th>
+                                <th>Time</th>
                                 <th>Equipment</th>
                                 <th class="text-center">Qty</th>
                                 <th class="text-end">Rental</th>
+                                <th class="text-end">Extra Day</th>
+                                <th class="text-end">Penalty</th>
                                 <th class="text-end">Damage</th>
                                 <th class="text-end">Settlement</th>
                             </tr>
@@ -292,9 +315,18 @@ if (!empty($customerMobile)) {
                             <?php foreach ($return_rows as $ret): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($ret['return_date']); ?></td>
+                                    <td><?php echo htmlspecialchars($ret['return_time'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($ret['equipment_name'] ?? '-'); ?></td>
                                     <td class="text-center"><?php echo intval($ret['return_qty'] ?? 0); ?></td>
                                     <td class="text-end"><?php echo number_format(floatval($ret['rental_amount'] ?? 0), 2); ?></td>
+                                    <td class="text-end"><?php echo number_format(floatval($ret['extra_day_amount'] ?? 0), 2); ?></td>
+                                    <td class="text-end">
+                                        <?php if (floatval($ret['penalty_amount'] ?? 0) > 0): ?>
+                                            <span class="text-danger"><?php echo number_format(floatval($ret['penalty_amount']), 2); ?> (<?php echo intval($ret['penalty_percentage'] ?? 0); ?>%)</span>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-end"><?php echo number_format(floatval($ret['damage_amount'] ?? 0), 2); ?></td>
                                     <td class="text-end">
                                         <?php if (!empty($ret['additional_payment']) && floatval($ret['additional_payment']) > 0): ?>

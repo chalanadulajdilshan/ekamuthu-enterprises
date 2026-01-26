@@ -168,9 +168,9 @@ $bill_number = $lastId + 1;
 
                                                 <!-- Payment Method -->
                                                 <div class="col-md-3">
-                                                    <label for="payment_type_id" class="form-label">Payment Method - ගෙවීමේ ක්‍රමය</label>
+                                                    <label for="payment_type_id" class="form-label">Payment Method - ගෙවීමේ ක්‍රමය<span class="text-danger">*</span></label>
                                                     <div class="mb-3">
-                                                        <select id="payment_type_id" name="payment_type_id" class="form-select">
+                                                        <select id="payment_type_id" name="payment_type_id" class="form-select" required>
                                                             <option value="">-- Select Payment Method --</option>
                                                             <?php foreach ($PAYMENT_TYPES as $pt) { ?>
                                                                 <option value="<?php echo (int) $pt['id']; ?>"><?php echo htmlspecialchars($pt['name']); ?></option>
@@ -558,6 +558,14 @@ $bill_number = $lastId + 1;
 
                             <div class="col-md-4">
                                 <div class="mb-3">
+                                    <label for="return_time" class="form-label">Return Time <span
+                                            class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="return_time" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
                                     <label for="return_qty" class="form-label">Return Quantity <span
                                             class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="return_qty" min="1" required>
@@ -579,6 +587,35 @@ $bill_number = $lastId + 1;
                                     <label for="return_remark" class="form-label">Remark</label>
                                     <textarea class="form-control" id="return_remark" rows="2"
                                         placeholder="Enter any notes about this return..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="after_9am_extra_day" value="1">
+                                        <label class="form-check-label" for="after_9am_extra_day">
+                                            Return after 9:00 AM (count extra day)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="extra_day_amount" class="form-label">Extra Day Amount (Rs.)</label>
+                                    <input type="number" class="form-control" id="extra_day_amount" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="penaltySection" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="penalty_percentage" class="form-label text-danger">Penalty % (10-20%)</label>
+                                    <input type="number" class="form-control" id="penalty_percentage" min="10" max="20" step="1" value="10" disabled>
+                                    <small class="text-muted">Only applies when return is late</small>
                                 </div>
                             </div>
                         </div>

@@ -7,6 +7,13 @@ $(document).ready(function() {
         $("#return_qty").val(1);
         $("#damage_amount").val(0);
         $("#return_date").val(new Date().toISOString().split('T')[0]);
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        $("#return_time").val(`${hh}:${mm}`);
+        $("#after_9am_extra_day").prop('checked', false);
+        $("#extra_day_amount").val(0).prop('disabled', true);
+        $("#penalty_percentage").val(0).prop('disabled', true);
         $("#return_remark").val("");
         
         // Clear settlement display
@@ -64,7 +71,7 @@ $(document).ready(function() {
                     // Display existing returns if any
                     if (data.returns && data.returns.length > 0) {
                         let returnsHtml = '<h6 class="mt-3">Previous Returns:</h6><div class="table-responsive"><table class="table table-sm table-bordered">';
-                        returnsHtml += '<thead><tr><th>Date</th><th>Qty</th><th>Rental</th><th>Damage</th><th>Settlement</th><th>Remark</th></tr></thead><tbody>';
+                        returnsHtml += '<thead><tr><th>Date</th><th>Time</th><th>Qty</th><th>Rental</th><th>Extra Day</th><th>Penalty</th><th>Damage</th><th>Settlement</th><th>Remark</th></tr></thead><tbody>';
                         
                         data.returns.forEach(function(ret) {
                             let settlementText = '';
@@ -76,10 +83,17 @@ $(document).ready(function() {
                                 settlementText = '<span class="text-muted">No charge</span>';
                             }
                             
+                            const penaltyText = parseFloat(ret.penalty_amount || 0) > 0 
+                                ? `<span class="text-danger">Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)</span>`
+                                : '-';
+                            
                             returnsHtml += `<tr>
                                 <td>${ret.return_date}</td>
+                                <td>${ret.return_time || '-'}</td>
                                 <td>${ret.return_qty}</td>
                                 <td>Rs. ${parseFloat(ret.rental_amount || 0).toFixed(2)}</td>
+                                <td>Rs. ${parseFloat(ret.extra_day_amount || 0).toFixed(2)}</td>
+                                <td>${penaltyText}</td>
                                 <td>Rs. ${parseFloat(ret.damage_amount).toFixed(2)}</td>
                                 <td>${settlementText}</td>
                                 <td>${ret.remark || '-'}</td>
@@ -108,7 +122,7 @@ $(document).ready(function() {
     }
     
     // Calculate settlement on input change
-    $("#return_qty, #damage_amount, #return_date").on("input change", function() {
+    $("#return_qty, #damage_amount, #return_date, #return_time, #after_9am_extra_day, #extra_day_amount, #penalty_percentage").on("input change", function() {
         calculateSettlement();
     });
     
@@ -118,6 +132,10 @@ $(document).ready(function() {
         const returnQty = parseFloat($("#return_qty").val()) || 0;
         const damageAmount = parseFloat($("#damage_amount").val()) || 0;
         const returnDate = $("#return_date").val();
+        const returnTime = $("#return_time").val();
+        const after9amExtraDay = $("#after_9am_extra_day").is(':checked') ? 1 : 0;
+        const extraDayAmount = parseFloat($("#extra_day_amount").val()) || 0;
+        const penaltyPercentage = parseFloat($("#penalty_percentage").val()) || 0;
         
         if (returnQty <= 0) {
             $("#settlementPreview").hide();
@@ -132,12 +150,35 @@ $(document).ready(function() {
                 rent_item_id: rentItemId,
                 return_qty: returnQty,
                 damage_amount: damageAmount,
-                return_date: returnDate
+                return_date: returnDate,
+                return_time: returnTime,
+                after_9am_extra_day: after9amExtraDay,
+                extra_day_amount: extraDayAmount,
+                penalty_percentage: penaltyPercentage
             },
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
                     const calc = response.data;
+
+                    if (after9amExtraDay) {
+                        $("#extra_day_amount").prop('disabled', false);
+                        const currentExtra = parseFloat($("#extra_day_amount").val());
+                        if (!currentExtra || currentExtra <= 0) {
+                            $("#extra_day_amount").val(parseFloat(calc.extra_day_amount || 0).toFixed(2));
+                        }
+                    } else {
+                        $("#extra_day_amount").val(0).prop('disabled', true);
+                    }
+                    
+                    // Enable penalty field only when return is late
+                    if (calc.is_late) {
+                        $("#penalty_percentage").prop('disabled', false);
+                        $("#penaltySection").show();
+                    } else {
+                        $("#penalty_percentage").val(0).prop('disabled', true);
+                        $("#penaltySection").hide();
+                    }
                     
                     let settlementHtml = `
                         <div class="alert alert-warning">
@@ -156,9 +197,25 @@ $(document).ready(function() {
                                     <td class="text-right">${calc.used_days} day(s)</td>
                                 </tr>
                                 <tr>
+                                    <td>Charged Days:</td>
+                                    <td class="text-right">${calc.charged_days} day(s)</td>
+                                </tr>
+                                <tr>
                                     <td>Daily Rate (per unit):</td>
                                     <td class="text-right">Rs. ${calc.per_unit_daily.toFixed(2)}</td>
                                 </tr>
+                                <tr>
+                                    <td>Extra Day Amount:</td>
+                                    <td class="text-right">Rs. ${(parseFloat(calc.extra_day_amount || 0)).toFixed(2)}</td>
+                                </tr>
+                                ${calc.is_late ? `<tr class="text-danger">
+                                    <td>Overdue Days:</td>
+                                    <td class="text-right">${calc.overdue_days} day(s)</td>
+                                </tr>
+                                <tr class="text-danger">
+                                    <td>Penalty (${calc.penalty_percentage}%):</td>
+                                    <td class="text-right">Rs. ${(parseFloat(calc.penalty_amount || 0)).toFixed(2)}</td>
+                                </tr>` : ''}
                                 <tr>
                                     <td>Rental for this qty:</td>
                                     <td class="text-right">Rs. ${calc.rental_amount.toFixed(2)}</td>
@@ -197,8 +254,12 @@ $(document).ready(function() {
     $("#saveReturnBtn").click(function() {
         const rentItemId = $("#return_rent_item_id").val();
         const returnDate = $("#return_date").val();
+        const returnTime = $("#return_time").val();
         const returnQty = parseFloat($("#return_qty").val()) || 0;
         const damageAmount = parseFloat($("#damage_amount").val()) || 0;
+        const after9amExtraDay = $("#after_9am_extra_day").is(':checked') ? 1 : 0;
+        const extraDayAmount = parseFloat($("#extra_day_amount").val()) || 0;
+        const penaltyPercentage = parseFloat($("#penalty_percentage").val()) || 0;
         const remark = $("#return_remark").val();
         
         if (!rentItemId) {
@@ -241,8 +302,12 @@ $(document).ready(function() {
                 action: 'create_return',
                 rent_item_id: rentItemId,
                 return_date: returnDate,
+                return_time: returnTime,
                 return_qty: returnQty,
                 damage_amount: damageAmount,
+                after_9am_extra_day: after9amExtraDay,
+                extra_day_amount: extraDayAmount,
+                penalty_percentage: penaltyPercentage,
                 remark: remark
             },
             dataType: 'json',
@@ -317,8 +382,11 @@ $(document).ready(function() {
                                     <thead>
                                         <tr>
                                             <th>Date</th>
+                                            <th>Time</th>
                                             <th>Qty</th>
                                             <th>Damage</th>
+                                            <th>Extra Day</th>
+                                            <th>Penalty</th>
                                             <th>Refund</th>
                                             <th>Additional Payment</th>
                                             <th>Created By</th>
@@ -328,11 +396,17 @@ $(document).ready(function() {
                                     <tbody>`;
                         
                         response.returns.forEach(function(ret) {
+                            const penaltyText = parseFloat(ret.penalty_amount || 0) > 0 
+                                ? `Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)`
+                                : '-';
                             modalHtml += `
                                 <tr>
                                     <td>${ret.return_date}</td>
+                                    <td>${ret.return_time || '-'}</td>
                                     <td>${ret.return_qty}</td>
                                     <td>Rs. ${parseFloat(ret.damage_amount).toFixed(2)}</td>
+                                    <td>Rs. ${parseFloat(ret.extra_day_amount || 0).toFixed(2)}</td>
+                                    <td class="text-danger">${penaltyText}</td>
                                     <td class="text-success">Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</td>
                                     <td class="text-danger">Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</td>
                                     <td>${ret.created_by_name || '-'}</td>
@@ -345,6 +419,8 @@ $(document).ready(function() {
                                     <tfoot>
                                         <tr class="font-weight-bold">
                                             <td colspan="3">Total Settlement:</td>
+                                            <td colspan="2"></td>
+                                            <td></td>
                                             <td class="text-success">Rs. ${response.settlement.total_refund.toFixed(2)}</td>
                                             <td class="text-danger">Rs. ${response.settlement.total_additional.toFixed(2)}</td>
                                             <td colspan="2">Net: Rs. ${response.settlement.net_settlement.toFixed(2)}</td>
