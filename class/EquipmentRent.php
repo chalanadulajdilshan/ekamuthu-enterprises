@@ -13,7 +13,9 @@ class EquipmentRent
     public $remark;
     public $transport_cost;
     public $deposit_total;
+    public $payment_type_id;
     public $total_items;
+    public $created_by;
     public $created_at;
     public $updated_at;
 
@@ -35,8 +37,10 @@ class EquipmentRent
                 $this->quantity = $result['quantity'] ?? 0;
                 $this->transport_cost = $result['transport_cost'] ?? 0;
                 $this->deposit_total = $result['deposit_total'] ?? 0;
+                $this->payment_type_id = $result['payment_type_id'] ?? null;
                 $this->remark = $result['remark'];
                 $this->total_items = $result['total_items'] ?? 0;
+                $this->created_by = $result['created_by'] ?? null;
                 $this->created_at = $result['created_at'] ?? null;
                 $this->updated_at = $result['updated_at'] ?? null;
             }
@@ -46,10 +50,13 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`
+            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `created_by`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
-            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total'
+            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
+            ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
+            ($this->created_by ? "'$this->created_by'" : "NULL") .
+            "
         )";
 
         $db = Database::getInstance();
@@ -73,7 +80,8 @@ class EquipmentRent
             `remark` = '$this->remark',
             `total_items` = '$this->total_items',
             `transport_cost` = '$this->transport_cost',
-            `deposit_total` = '$this->deposit_total'
+            `deposit_total` = '$this->deposit_total',
+            `payment_type_id` = " . ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . "
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -179,6 +187,7 @@ class EquipmentRent
             $this->quantity = $result['quantity'];
             $this->transport_cost = $result['transport_cost'];
             $this->deposit_total = $result['deposit_total'];
+            $this->payment_type_id = $result['payment_type_id'] ?? null;
             $this->remark = $result['remark'];
             return true;
         }

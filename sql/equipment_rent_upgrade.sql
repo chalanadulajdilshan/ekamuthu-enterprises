@@ -40,6 +40,10 @@ ADD COLUMN IF NOT EXISTS `total_items` INT(11) NOT NULL DEFAULT 0 AFTER `remark`
 ADD COLUMN IF NOT EXISTS `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER `total_items`,
 ADD COLUMN IF NOT EXISTS `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `created_at`;
 
+-- Store selected payment method (payment_type.id)
+ALTER TABLE `equipment_rent`
+ADD COLUMN IF NOT EXISTS `payment_type_id` INT(11) DEFAULT NULL AFTER `deposit_total`;
+
 -- 4. Migrate existing single-item rentals to the new structure
 -- This will create rent_items records from existing equipment_rent records
 INSERT INTO `equipment_rent_items` (`rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `status`, `remark`)

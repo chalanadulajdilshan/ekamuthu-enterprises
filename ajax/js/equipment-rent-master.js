@@ -474,6 +474,7 @@ jQuery(document).ready(function () {
           $("#customer_id").val(rent.customer_id);
           $("#customer_display").val(rent.customer_name);
           $("#rental_date").val(rent.rental_date);
+          $("#payment_type_id").val(rent.payment_type_id || "");
           $("#received_date").val(rent.received_date || "");
           $("#received_date_container").show();
           $("#remark").val(rent.remark || "");
@@ -1063,6 +1064,7 @@ jQuery(document).ready(function () {
     $("#rent_id").val("");
     $("#customer_id").val("");
     $("#customer_display").val("");
+    $("#payment_type_id").val("");
     $("#item_equipment_id").val("");
     $("#item_equipment_display").val("");
     $("#item_sub_equipment_id").val("");
