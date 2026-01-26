@@ -69,6 +69,8 @@ if (isset($_POST['create'])) {
     $EQUIPMENT_RENT->total_items = count($items);
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
+    $EQUIPMENT_RENT->payment_type_id = !empty($_POST['payment_type_id']) ? (int) $_POST['payment_type_id'] : null;
+    $EQUIPMENT_RENT->created_by = isset($_SESSION['id']) ? $_SESSION['id'] : null;
 
     $rent_id = $EQUIPMENT_RENT->create();
 
@@ -237,6 +239,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
+    $EQUIPMENT_RENT->payment_type_id = !empty($_POST['payment_type_id']) ? (int) $_POST['payment_type_id'] : null;
 
     // Check if all items are returned
     $allReturned = true;
@@ -388,6 +391,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "remark" => $EQUIPMENT_RENT->remark,
                 "transport_cost" => $EQUIPMENT_RENT->transport_cost,
                 "deposit_total" => $EQUIPMENT_RENT->deposit_total,
+                "payment_type_id" => $EQUIPMENT_RENT->payment_type_id,
                 "total_items" => $EQUIPMENT_RENT->total_items
             ],
             "items" => $items

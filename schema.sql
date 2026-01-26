@@ -4,6 +4,13 @@ ADD COLUMN `transport_cost` DECIMAL(10,2) DEFAULT '0.00' AFTER `total_items`;
 ALTER TABLE `equipment_rent` 
 ADD COLUMN `deposit_total` DECIMAL(10,2) DEFAULT '0.00' AFTER `transport_cost`;
 
+
+ALTER TABLE `equipment_rent`
+ADD COLUMN `payment_type_id` INT(11) DEFAULT NULL AFTER `deposit_total`;
+
+ALTER TABLE `equipment_rent`
+ADD COLUMN `created_by` INT(11) DEFAULT NULL AFTER `payment_type_id`;
+
 CREATE TABLE `equipment_rent_quotation` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `quotation_number` varchar(50) DEFAULT NULL,

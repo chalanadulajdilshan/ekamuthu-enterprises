@@ -6,6 +6,9 @@ include 'auth.php';
 
 $EQUIPMENT_RENT = new EquipmentRent(NULL);
 
+$PAYMENT_TYPE = new PaymentType(null);
+$PAYMENT_TYPES = $PAYMENT_TYPE->all();
+
 // Get the bill number from document tracking table
 $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
 $lastId = $DOCUMENT_TRACKING->equipment_rent_id;
@@ -160,6 +163,19 @@ $bill_number = $lastId + 1;
                                                         <input id="rental_date" name="rental_date" type="text"
                                                             class="form-control date-picker"
                                                             value="<?php echo date('Y-m-d'); ?>">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Payment Method -->
+                                                <div class="col-md-3">
+                                                    <label for="payment_type_id" class="form-label">Payment Method - ගෙවීමේ ක්‍රමය</label>
+                                                    <div class="mb-3">
+                                                        <select id="payment_type_id" name="payment_type_id" class="form-select">
+                                                            <option value="">-- Select Payment Method --</option>
+                                                            <?php foreach ($PAYMENT_TYPES as $pt) { ?>
+                                                                <option value="<?php echo (int) $pt['id']; ?>"><?php echo htmlspecialchars($pt['name']); ?><?php echo ((int) ($pt['is_active'] ?? 0) === 1) ? '' : ' (Inactive)'; ?></option>
+                                                            <?php } ?>
+                                                        </select>
                                                     </div>
                                                 </div>
 
