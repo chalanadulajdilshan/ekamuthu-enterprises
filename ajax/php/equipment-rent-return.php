@@ -14,13 +14,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'calculate_settlement') {
     $return_qty = $_POST['return_qty'] ?? 0;
     $damage_amount = $_POST['damage_amount'] ?? 0;
     $return_date = $_POST['return_date'] ?? date('Y-m-d');
+    $return_time = $_POST['return_time'] ?? null;
+    $after_9am_extra_day = $_POST['after_9am_extra_day'] ?? 0;
+    $extra_day_amount = $_POST['extra_day_amount'] ?? 0;
+    $penalty_percentage = $_POST['penalty_percentage'] ?? 0;
     
     if (!$rent_item_id) {
         echo json_encode(["status" => "error", "message" => "Rent item ID required"]);
         exit;
     }
     
-    $calculation = EquipmentRentReturn::calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date);
+    $calculation = EquipmentRentReturn::calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date, $return_time, $after_9am_extra_day, $extra_day_amount, $penalty_percentage);
     
     if ($calculation['error']) {
         echo json_encode(["status" => "error", "message" => $calculation['message']]);
@@ -34,8 +38,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'calculate_settlement') {
 if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     $rent_item_id = $_POST['rent_item_id'] ?? 0;
     $return_date = $_POST['return_date'] ?? date('Y-m-d');
+    $return_time = $_POST['return_time'] ?? null;
     $return_qty = $_POST['return_qty'] ?? 0;
     $damage_amount = $_POST['damage_amount'] ?? 0;
+    $after_9am_extra_day = $_POST['after_9am_extra_day'] ?? 0;
+    $extra_day_amount = $_POST['extra_day_amount'] ?? 0;
+    $penalty_percentage = $_POST['penalty_percentage'] ?? 0;
     $remark = $_POST['remark'] ?? '';
     
     if (!$rent_item_id) {
@@ -49,7 +57,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     }
     
     // Calculate settlement
-    $calculation = EquipmentRentReturn::calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date);
+    $calculation = EquipmentRentReturn::calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date, $return_time, $after_9am_extra_day, $extra_day_amount, $penalty_percentage);
     
     if ($calculation['error']) {
         echo json_encode(["status" => "error", "message" => $calculation['message']]);
@@ -60,8 +68,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     $RETURN = new EquipmentRentReturn(NULL);
     $RETURN->rent_item_id = $rent_item_id;
     $RETURN->return_date = $return_date;
+    $RETURN->return_time = $return_time;
     $RETURN->return_qty = $return_qty;
     $RETURN->damage_amount = $damage_amount;
+    $RETURN->after_9am_extra_day = intval($after_9am_extra_day);
+    $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
+    $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
+    $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
     $RETURN->settle_amount = $calculation['settle_amount'];
     $RETURN->refund_amount = $calculation['refund_amount'];
     $RETURN->additional_payment = $calculation['additional_payment'];

@@ -12,6 +12,11 @@ header('Content-Type: application/json; charset=UTF-8');
 // Create new equipment rent with items
 if (isset($_POST['create'])) {
 
+    if (empty($_POST['payment_type_id'])) {
+        echo json_encode(["status" => "error", "message" => "Please select a payment method"]);
+        exit();
+    }
+
     // Check if bill number already exists
     $db = Database::getInstance();
     $codeCheck = "SELECT id FROM equipment_rent WHERE bill_number = '{$_POST['code']}'";
@@ -124,6 +129,11 @@ if (isset($_POST['create'])) {
 
 // Update equipment rent
 if (isset($_POST['update'])) {
+
+    if (empty($_POST['payment_type_id'])) {
+        echo json_encode(["status" => "error", "message" => "Please select a payment method"]);
+        exit();
+    }
 
     // Check if bill number already exists (excluding current record)
     $db = Database::getInstance();
@@ -272,87 +282,6 @@ if (isset($_POST['update'])) {
     exit();
 }
 
-// Delete equipment rent
-if (isset($_POST['delete']) && isset($_POST['id'])) {
-    $EQUIPMENT_RENT = new EquipmentRent($_POST['id']);
-
-    // Audit log
-    $AUDIT_LOG = new AuditLog(NULL);
-    $AUDIT_LOG->ref_id = $_POST['id'];
-    $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
-    $AUDIT_LOG->action = 'DELETE';
-    $AUDIT_LOG->description = 'DELETE EQUIPMENT RENT NO #' . $EQUIPMENT_RENT->bill_number;
-    $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
-    $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
-    $AUDIT_LOG->create();
-
-    // Delete will also release all sub_equipment
-    $res = $EQUIPMENT_RENT->delete();
-
-    if ($res) {
-        echo json_encode(['status' => 'success']);
-    } else {
-        echo json_encode(['status' => 'error']);
-    }
-    exit;
-}
-
-// Mark single item as returned
-if (isset($_POST['action']) && $_POST['action'] === 'return_item') {
-    $item_id = $_POST['item_id'] ?? 0;
-
-    if ($item_id) {
-        $RENT_ITEM = new EquipmentRentItem($item_id);
-        if ($RENT_ITEM->markAsReturned()) {
-            // Check if all items for this rent are returned
-            $EQUIPMENT_RENT = new EquipmentRent($RENT_ITEM->rent_id);
-            if (!$EQUIPMENT_RENT->hasActiveRentals()) {
-                $EQUIPMENT_RENT->status = 'returned';
-                $EQUIPMENT_RENT->received_date = date('Y-m-d');
-                $EQUIPMENT_RENT->update();
-            }
-
-            echo json_encode(["status" => "success"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Failed to mark item as returned"]);
-        }
-    } else {
-        echo json_encode(["status" => "error", "message" => "Item ID required"]);
-    }
-    exit;
-}
-
-// Mark all items as returned
-if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
-    $rent_id = $_POST['rent_id'] ?? 0;
-
-    if ($rent_id) {
-        $EQUIPMENT_RENT = new EquipmentRent($rent_id);
-        if ($EQUIPMENT_RENT->markAllReturned()) {
-            echo json_encode(["status" => "success"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Failed to mark items as returned"]);
-        }
-    } else {
-        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
-    }
-    exit;
-}
-
-// Filter for DataTable
-if (isset($_POST['filter'])) {
-    $EQUIPMENT_RENT = new EquipmentRent(NULL);
-
-    // Add custom filter for Issue Note page (exclude already issued invoices)
-    if (isset($_POST['exclude_issued']) && $_POST['exclude_issued'] == 'true') {
-        $_REQUEST['custom_where'] = "AND er.id NOT IN (SELECT rent_invoice_id FROM issue_notes WHERE issue_status != 'cancelled')";
-    }
-
-    $result = $EQUIPMENT_RENT->fetchForDataTable($_REQUEST);
-    echo json_encode($result);
-    exit;
-}
-
 // Get rent details with items
 if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
     $rent_id = $_POST['rent_id'] ?? 0;
@@ -491,6 +420,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
             "message" => "Equipment ID required"
         ]);
     }
+    exit;
+}
+
+// Filter equipment rent master list for DataTable
+if (isset($_POST['filter'])) {
+    $EQUIPMENT_RENT = new EquipmentRent(NULL);
+    echo json_encode($EQUIPMENT_RENT->fetchForDataTable($_REQUEST));
     exit;
 }
 
