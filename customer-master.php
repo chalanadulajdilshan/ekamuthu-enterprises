@@ -98,7 +98,18 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-12 col-md-4 col-lg-2">
+                                                       
+
+                                                        <div class="col-12 mb-3">
+                                                            <div id="blacklist-alert" class="alert alert-danger d-flex align-items-center" role="alert" style="display: none !important;">
+                                                                <i class="uil uil-exclamation-triangle me-2" style="font-size: 24px;"></i>
+                                                                <div>
+                                                                    <strong>This customer is blacklisted!</strong> <br>
+                                                                    Reason: <span id="blacklist-reason-display"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                         <div class="col-12 col-md-4 col-lg-2">
                                                             <label for="customerCode" class="form-label">Customer Code</label>
                                                             <div class="input-group mb-3">
                                                                 <input id="code" name="code" type="text" class="form-control"
@@ -108,16 +119,6 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                         class="uil uil-search me-1"></i>
                                                                 </button>
                                                                 <input type="hidden" id="id" name="id">
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-12 mb-3">
-                                                            <div id="blacklist-alert" class="alert alert-danger d-flex align-items-center" role="alert" style="display: none !important;">
-                                                                <i class="uil uil-exclamation-triangle me-2" style="font-size: 24px;"></i>
-                                                                <div>
-                                                                    <strong>This customer is blacklisted!</strong> <br>
-                                                                    Reason: <span id="blacklist-reason-display"></span>
-                                                                </div>
                                                             </div>
                                                         </div>
 
