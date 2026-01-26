@@ -474,7 +474,23 @@ jQuery(document).ready(function () {
           $("#customer_id").val(rent.customer_id);
           $("#customer_display").val(rent.customer_name);
           $("#rental_date").val(rent.rental_date);
-          $("#payment_type_id").val(rent.payment_type_id || "");
+          var $paymentSelect = $("#payment_type_id");
+          $paymentSelect.find("option[data-temp='1']").remove();
+
+          if (rent.payment_type_id) {
+            if ($paymentSelect.find("option[value='" + rent.payment_type_id + "']").length === 0) {
+              // Saved payment type is not in the active list; show it as selected but hidden in dropdown
+              var tempLabel = rent.payment_type_name ? (rent.payment_type_name + " (Inactive)") : "(Inactive)";
+              $paymentSelect.append(
+                "<option data-temp='1' value='" + rent.payment_type_id + "' selected hidden>" +
+                tempLabel +
+                "</option>"
+              );
+            }
+            $paymentSelect.val(rent.payment_type_id);
+          } else {
+            $paymentSelect.val("");
+          }
           $("#received_date").val(rent.received_date || "");
           $("#received_date_container").show();
           $("#remark").val(rent.remark || "");
