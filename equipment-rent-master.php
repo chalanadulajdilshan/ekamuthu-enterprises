@@ -7,7 +7,7 @@ include 'auth.php';
 $EQUIPMENT_RENT = new EquipmentRent(NULL);
 
 $PAYMENT_TYPE = new PaymentType(null);
-$PAYMENT_TYPES = $PAYMENT_TYPE->all();
+$PAYMENT_TYPES = $PAYMENT_TYPE->getActivePaymentType();
 
 // Get the bill number from document tracking table
 $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
@@ -173,7 +173,7 @@ $bill_number = $lastId + 1;
                                                         <select id="payment_type_id" name="payment_type_id" class="form-select">
                                                             <option value="">-- Select Payment Method --</option>
                                                             <?php foreach ($PAYMENT_TYPES as $pt) { ?>
-                                                                <option value="<?php echo (int) $pt['id']; ?>"><?php echo htmlspecialchars($pt['name']); ?><?php echo ((int) ($pt['is_active'] ?? 0) === 1) ? '' : ' (Inactive)'; ?></option>
+                                                                <option value="<?php echo (int) $pt['id']; ?>"><?php echo htmlspecialchars($pt['name']); ?></option>
                                                             <?php } ?>
                                                         </select>
                                                     </div>

@@ -360,6 +360,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
 
+        $paymentTypeName = null;
+        if (!empty($EQUIPMENT_RENT->payment_type_id)) {
+            $PAYMENT_TYPE = new PaymentType((int) $EQUIPMENT_RENT->payment_type_id);
+            $paymentTypeName = $PAYMENT_TYPE->name ?? null;
+        }
+
         // Get items with equipment deposit info
         $db = Database::getInstance();
         $itemsQuery = "SELECT ri.*, e.code as equipment_code, e.item_name as equipment_name, 
@@ -392,6 +398,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "transport_cost" => $EQUIPMENT_RENT->transport_cost,
                 "deposit_total" => $EQUIPMENT_RENT->deposit_total,
                 "payment_type_id" => $EQUIPMENT_RENT->payment_type_id,
+                "payment_type_name" => $paymentTypeName,
                 "total_items" => $EQUIPMENT_RENT->total_items
             ],
             "items" => $items
