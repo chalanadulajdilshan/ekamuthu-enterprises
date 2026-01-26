@@ -59,6 +59,9 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 <a href="#" class="btn btn-warning" id="update" style="display: none;">
                                     <i class="uil uil-edit me-1"></i> Update
                                 </a>
+                                <button type="button" class="btn btn-dark" id="blacklist-btn" style="display: none;">
+                                    <i class="uil uil-ban me-1"></i> Blacklist
+                                </button>
                             <?php endif; ?>
 
                             <?php if ($PERMISSIONS['delete_page']): ?>
@@ -108,6 +111,16 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             </div>
                                                         </div>
 
+                                                        <div class="col-12 mb-3">
+                                                            <div id="blacklist-alert" class="alert alert-danger d-flex align-items-center" role="alert" style="display: none !important;">
+                                                                <i class="uil uil-exclamation-triangle me-2" style="font-size: 24px;"></i>
+                                                                <div>
+                                                                    <strong>This customer is blacklisted!</strong> <br>
+                                                                    Reason: <span id="blacklist-reason-display"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
                                                         <div class="col-12 col-md-8 col-lg-3">
                                                             <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
                                                             <div class="input-group">
@@ -132,8 +145,24 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                     placeholder="Enter NIC number" maxlength="12"
                                                                     oninput="validateNIC(this)">
                                                                 <span class="input-group-text" id="nic-status"></span>
+                                                                <button class="btn btn-outline-secondary" type="button" onclick="openCameraModal('nic', 2)" title="Upload NIC Images">
+                                                                    <i class="uil uil-camera"></i>
+                                                                </button>
+                                                                <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('nic', 1)" title="Upload Front">
+                                                                    <i class="uil uil-file-upload"></i> F
+                                                                </button>
+                                                                <button class="btn btn-outline-primary" type="button" onclick="openFileUpload('nic', 2)" title="Upload Back">
+                                                                    <i class="uil uil-file-upload"></i> B
+                                                                </button>
                                                             </div>
                                                             <small id="nic-error" class="text-danger" style="display: none;"></small>
+                                                            <input type="hidden" id="nic_image_1" name="nic_image_1">
+                                                            <input type="hidden" id="nic_image_2" name="nic_image_2">
+                                                            <!-- File Inputs -->
+                                                            <input type="file" id="nic_file_1" name="nic_file_1" accept="image/*" style="display:none;" onchange="handleFileUpload('nic', this, 1)">
+                                                            <input type="file" id="nic_file_2" name="nic_file_2" accept="image/*" style="display:none;" onchange="handleFileUpload('nic', this, 2)">
+                                                            
+                                                            <div id="nic_preview" class="mt-2 d-flex gap-2"></div>
                                                         </div>
 
                                                         <div class="col-12 col-md-3 col-lg-2">
@@ -560,10 +589,10 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 $(`#${currentField}_image_${index + 1}`).val(imageData);
             });
             
-            // Update preview area in the form
-            const previewContainer = $(`#${currentField}_preview`);
-            previewContainer.empty();
+            // Update preview area logic
+            refreshPreviews(currentField);
             
+            /*
             capturedImages.forEach((imageData, index) => {
                 const previewHtml = `
                     <div class="position-relative" style="width: 60px;">
@@ -573,6 +602,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 `;
                 previewContainer.append(previewHtml);
             });
+            */
             
             // Stop camera and close modal
             stopCamera();
@@ -678,34 +708,23 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 const isPdf = file.type === 'application/pdf';
                 
                 if (isPdf) {
-                    // PDF Preview
-                    const previewHtml = `
-                        <div class="position-relative border rounded p-2" style="background: #f8f9fa;">
-                            <div class="d-flex align-items-center">
-                                <i class="uil uil-file-alt text-danger" style="font-size: 24px;"></i>
-                                <div class="ms-2">
-                                    <small class="d-block text-truncate" style="max-width: 120px;">${file.name}</small>
-                                    <small class="text-muted">${(file.size / 1024).toFixed(1)} KB</small>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-link text-danger ms-2" onclick="removeFileUpload('${fieldName}', ${index})">
-                                    <i class="uil uil-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    previewContainer.append(previewHtml);
+                    // Update preview by refreshing all
+                    refreshPreviews(fieldName);
                 } else {
-                    // Image Preview
-                    const previewHtml = `
-                        <div class="position-relative" style="width: 60px;">
-                            <img src="${base64Data}" class="img-fluid rounded border" style="width: 60px; height: 40px; object-fit: cover;">
-                            <span class="badge bg-primary position-absolute" style="top: -5px; right: -5px; font-size: 10px;">${index}</span>
-                            <button type="button" class="btn btn-sm btn-link text-danger position-absolute" style="top: -10px; right: -10px; padding: 0;" onclick="removeFileUpload('${fieldName}', ${index})">
-                                <i class="uil uil-times-circle"></i>
-                            </button>
-                        </div>
-                    `;
-                    previewContainer.append(previewHtml);
+                // Update preview by refreshing all
+                refreshPreviews(fieldName);
+                /*
+                const previewHtml = `
+                    <div class="position-relative" style="width: 60px;">
+                        <img src="${base64Data}" class="img-fluid rounded border" style="width: 60px; height: 40px; object-fit: cover;">
+                        <span class="badge bg-primary position-absolute" style="top: -5px; right: -5px; font-size: 10px;">${index}</span>
+                        <button type="button" class="btn btn-sm btn-link text-danger position-absolute" style="top: -10px; right: -10px; padding: 0;" onclick="removeFileUpload('${fieldName}', ${index})">
+                            <i class="uil uil-times-circle"></i>
+                        </button>
+                    </div>
+                `;
+                previewContainer.append(previewHtml);
+                */
                 }
 
                 swal({
@@ -721,26 +740,63 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
         }
  
         function removeFileUpload(fieldName, index = 1) {
+            // Clear specific inputs
             $(`#${fieldName}_image_${index}`).val('');
             if(document.getElementById(`${fieldName}_file_${index}`)) {
                  $(`#${fieldName}_file_${index}`).val('');
-            } else {
+            } else if (index === 1) {
                  $(`#${fieldName}_file`).val('');
             }
-            // If checking for multiple, we might want to be selective about preview removal, 
-            // but for now, if it's just visual, let's clear the whole preview if strictly necessary or 
-            // ideally reload preview from valid inputs.
-            // Simplified: Just clear preview container and rebuild? 
-            // Or since we are just appending, removing specific element is hard without ID.
-            // Let's just clear ALL for that field for now to be safe, or just accept the limitation.
-            // Better: Re-render previews based on hidden inputs? No, that's complex.
-            // Let's just clear the container.
-            $(`#${fieldName}_preview`).empty();
-             
-             // If there are other images (e.g. index 2 exists), we should probably put it back?
-             // This is getting complicated. 
-             // Let's stick to: Clicking remove clears EVERYTHING for that field. 
-             // The user can re-upload.
+            
+            // Refresh previews to show remaining images
+            refreshPreviews(fieldName);
+        }
+
+        function refreshPreviews(fieldName) {
+            const previewContainer = $(`#${fieldName}_preview`);
+            previewContainer.empty();
+            
+            // Check for index 1 and 2
+            [1, 2].forEach(index => {
+                const hiddenInput = $(`#${fieldName}_image_${index}`);
+                if (hiddenInput.length && hiddenInput.val()) {
+                    const base64Data = hiddenInput.val();
+                    const isPdf = base64Data.startsWith('data:application/pdf');
+                    
+                    let previewHtml = '';
+                    if (isPdf) {
+                         // Try to get filename if possible, otherwise generic
+                         let filename = "Document " + index;
+                         if ($(`#${fieldName}_name_${index}`).length) filename = $(`#${fieldName}_name_${index}`).val();
+                         else if (index === 1 && $(`#${fieldName}_name`).length) filename = $(`#${fieldName}_name`).val();
+
+                        previewHtml = `
+                            <div class="position-relative border rounded p-2" style="background: #f8f9fa;">
+                                <div class="d-flex align-items-center">
+                                    <i class="uil uil-file-alt text-danger" style="font-size: 24px;"></i>
+                                    <div class="ms-2">
+                                        <small class="d-block text-truncate" style="max-width: 120px;">${filename}</small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link text-danger ms-2" onclick="removeFileUpload('${fieldName}', ${index})">
+                                        <i class="uil uil-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        previewHtml = `
+                            <div class="position-relative" style="width: 60px;">
+                                <img src="${base64Data}" class="img-fluid rounded border" style="width: 60px; height: 40px; object-fit: cover;">
+                                <span class="badge bg-primary position-absolute" style="top: -5px; right: -5px; font-size: 10px;">${index}</span>
+                                <button type="button" class="btn btn-sm btn-link text-danger position-absolute" style="top: -10px; right: -10px; padding: 0;" onclick="removeFileUpload('${fieldName}', ${index})">
+                                    <i class="uil uil-times-circle"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                    previewContainer.append(previewHtml);
+                }
+            });
         }
 
         // Toggle company document fields visibility

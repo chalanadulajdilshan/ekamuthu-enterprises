@@ -334,6 +334,20 @@ jQuery(document).ready(function () {
           $("#create").hide();
           $("#update").show();
           $("#btnAddDescription").show(); // Show Detail Button
+
+          // Blacklist UI
+          if (data.is_blacklisted == 1) {
+            $("#blacklist-alert").show().css('display', 'flex'); // Ensure flex is applied
+            $("#blacklist-reason-display").text(data.blacklist_reason || "No reason provided");
+            $("#blacklist-btn").html('<i class="uil uil-check-circle me-1"></i> Remove from Blacklist').removeClass('btn-dark').addClass('btn-success');
+            $("#blacklist-btn").data('status', 1);
+          } else {
+            $("#blacklist-alert").hide();
+            $("#blacklist-btn").html('<i class="uil uil-ban me-1"></i> Blacklist').removeClass('btn-success').addClass('btn-dark');
+            $("#blacklist-btn").data('status', 0);
+          }
+          $("#blacklist-btn").show();
+
           // Close the modal
           $("#AllCustomerModal").modal("hide");
         }

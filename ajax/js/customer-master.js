@@ -69,12 +69,12 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!isCompany && !$("#water_bill_no").val()) {
+    } else if (!isCompany && !$("#water_bill_no").val() && !$("#nic").val()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
       swal({
         title: "Error!",
-        text: "Please enter Utility Bill Number",
+        text: "Please enter NIC Number OR Utility Bill Number",
         type: "error",
         timer: 3000,
         showConfirmButton: true,
@@ -93,6 +93,15 @@ jQuery(document).ready(function () {
           if (!companyDoc) {
             errorMsg = "Please upload Company PDF/Image";
           }
+        }
+      } else {
+        // Validation for Individual
+        if (!$("#customer_photo_image_1").val()) {
+          errorMsg = "Please upload Customer Photo";
+        } else if (!$("#nic_image_1").val()) {
+          errorMsg = "Please upload NIC Front Image";
+        } else if (!$("#nic_image_2").val()) {
+          errorMsg = "Please upload NIC Back Image";
         }
       }
 
@@ -188,6 +197,8 @@ jQuery(document).ready(function () {
     // Reset logic for other fields...
     $("#create").show();
     $("#update").hide();
+    $("#blacklist-btn").hide();
+    $("#blacklist-alert").hide();
     $("#btnAddDescription").hide(); // Hide Add Detail button
     window.location.reload();
   });
@@ -316,16 +327,6 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#nic").val()) {
-      // Re-enable the button on validation error
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter NIC number",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
     } else if ($("#nic").val() && !isNICValid()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
@@ -346,12 +347,12 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#water_bill_no").val()) {
+    } else if (!$("#water_bill_no").val() && !$("#nic").val()) { // Assuming logic applies to non-company mostly, or general fallback
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
       swal({
         title: "Error!",
-        text: "Please enter Utility Bill Number",
+        text: "Please enter NIC Number OR Utility Bill Number",
         type: "error",
         timer: 3000,
         showConfirmButton: true,
@@ -414,6 +415,86 @@ jQuery(document).ready(function () {
 
     return false;
   });
+
+  // Blacklist Button Handler
+  $("#blacklist-btn").click(function (e) {
+    e.preventDefault();
+
+    var customerId = $("#id").val();
+    var currentStatus = $(this).data('status'); // 1 if blacklisted, 0 if normal
+
+    if (!customerId) return;
+
+    if (currentStatus == 1) {
+      // Remove from Blacklist
+      swal({
+        title: "Remove from Blacklist?",
+        text: "Are you sure you want to reactivate this customer?",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        confirmButtonText: "Yes, Remove!",
+        closeOnConfirm: false
+      }, function () {
+        toggleBlacklist(customerId, 0, null);
+      });
+    } else {
+      // Add to Blacklist
+      swal({
+        title: "Blacklist Customer",
+        text: "Please enter the reason for blacklisting:",
+        type: "input",
+        showCancelButton: true,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputPlaceholder: "Reason..."
+      }, function (inputValue) {
+        if (inputValue === false) return false;
+        if (inputValue === "") {
+          swal.showInputError("You need to write a reason!");
+          return false
+        }
+        toggleBlacklist(customerId, 1, inputValue);
+      });
+    }
+  });
+
+  function toggleBlacklist(id, status, reason) {
+    $.ajax({
+      url: "ajax/php/customer-master.php",
+      type: "POST",
+      data: {
+        toggle_blacklist: true,
+        customer_id: id,
+        status: status,
+        reason: reason
+      },
+      dataType: "JSON",
+      success: function (response) {
+        if (response.status === "success") {
+          swal({
+            title: "Success!",
+            text: "Customer status updated successfully.",
+            type: "success",
+            timer: 1500,
+            showConfirmButton: false
+          });
+
+          // Update UI immediately (or reload)
+          setTimeout(() => {
+            // We can either reload or trigger the search again to refresh data.
+            // Reloading is safer to ensure all state is clean.
+            window.location.reload();
+          }, 1500);
+        } else {
+          swal("Error", "Failed to update status", "error");
+        }
+      },
+      error: function () {
+        swal("Error", "System encountered an error", "error");
+      }
+    });
+  }
 
   // Reset input fields
   $("#new").click(function (e) {

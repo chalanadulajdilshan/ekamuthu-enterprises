@@ -1,8 +1,9 @@
 <?php
 
-// Suppress PHP warnings/notices from corrupting JSON output
-error_reporting(0);
-ini_set('display_errors', 0);
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
@@ -137,6 +138,22 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete_old_outstanding_detai
 }
 
 // Create a new customer
+if (isset($_POST['toggle_blacklist'])) {
+    
+    $customer_id = $_POST['customer_id'];
+    $status = $_POST['status']; // 1 for blacklist, 0 for remove
+    $reason = $_POST['reason'] ?? null;
+    
+    $CUSTOMER = new CustomerMaster($customer_id);
+    
+    if($CUSTOMER->toggleBlacklist($customer_id, $status, $reason)) {
+        echo json_encode(['status' => 'success']);
+    } else {
+        echo json_encode(['status' => 'error']);
+    }
+    exit;
+}
+
 if (isset($_POST['create'])) {
 
     // Check if NIC already exists
