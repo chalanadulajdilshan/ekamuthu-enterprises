@@ -523,7 +523,8 @@ if (isset($_POST['filter_customers'])) {
             "mobile_number" => $row['mobile_number'],
             "address" => $row['address'],
             "nic" => $row['nic'],
-            "outstanding" => number_format($row['old_outstanding'] ?? 0, 2)
+            "outstanding" => number_format($row['old_outstanding'] ?? 0, 2),
+            "is_blacklisted" => $row['is_blacklisted'] ?? 0
         ];
 
         $data[] = $nestedData;

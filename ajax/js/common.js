@@ -271,6 +271,9 @@ jQuery(document).ready(function () {
           data: "is_company",
           title: "Type",
           render: function (data, type, row) {
+            if (row.is_blacklisted == 1) {
+              return '<span class="badge bg-danger">Blocked</span>';
+            }
             return data == 1 ? '<span class="badge bg-primary">Company</span>' : '<span class="badge bg-success">Individual</span>';
           }
         },

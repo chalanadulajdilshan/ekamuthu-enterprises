@@ -570,7 +570,16 @@ jQuery(document).ready(function () {
       columns: [
         { data: "id", title: "#ID" },
         { data: "code", title: "Code" },
-        { data: "name", title: "Name" },
+        {
+          data: "name",
+          title: "Name",
+          render: function (data, type, row) {
+            if (row.is_blacklisted == 1) {
+              return data + ' <span class="badge bg-danger">Blocked</span>';
+            }
+            return data;
+          }
+        },
         { data: "mobile_number", title: "Mobile" },
         { data: "nic", title: "NIC" },
         { data: "address", title: "Address" },
@@ -585,6 +594,16 @@ jQuery(document).ready(function () {
       .on("click", "tr", function () {
         var data = $("#customerSelectTable").DataTable().row(this).data();
         if (data) {
+          if (data.is_blacklisted == 1) {
+            swal({
+              title: "Blocked!",
+              text: "This customer is blacklisted and cannot be selected.",
+              type: "error",
+              timer: 3000,
+              showConfirmButton: false
+            });
+            return;
+          }
           $("#customer_id").val(data.id);
           $("#customer_display").val(data.code + " - " + data.name);
           $("#CustomerSelectModal").modal("hide");
