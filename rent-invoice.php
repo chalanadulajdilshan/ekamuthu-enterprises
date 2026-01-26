@@ -315,17 +315,10 @@ if (!empty($customerMobile)) {
                 <!-- Summary Section -->
                 <div class="row mt-3">
                     <div class="col-md-6">
-                        <h6><strong>Terms & Conditions - නියම සහ කොන්දේසි:</strong></h6>
-                        <ul style="padding-left:20px;margin-bottom:0;font-size:13px;">
-                            <li>Equipment should be returned in good condition - උපකරණ හොඳ තත්වයේ ආපසු දිය යුතුය</li>
-                            <li>Customer is responsible for any damage - හානි සඳහා පාරිභෝගිකයා වගකිව යුතුය</li>
-                            <li>Deposit is refundable upon return - ආපසු දීමෙන් පසු තැන්පතුව ආපසු ලැබේ</li>
-                            <li>Late returns will incur additional charges - ප්‍රමාද ආපසු දීම් සඳහා අමතර ගාස්තු අය කරයි</li>
-                        </ul>
 
                         <?php if (!empty($EQUIPMENT_RENT->remark)): ?>
                             <div class="mt-3">
-                                <strong>Remark - සටහන:</strong><br>
+                                <strong>Terms & Conditions - නියම සහ කොන්දේසි:</strong><br>
                                 <span style="font-size:13px;"><?php echo nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)); ?></span>
                             </div>
                         <?php endif; ?>
