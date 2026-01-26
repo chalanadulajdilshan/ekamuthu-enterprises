@@ -26,18 +26,25 @@ class CustomerMaster
     public $guarantor_photo_image;
     public $customer_photo_image;
     
+    // DB Column Mappings (to avoid dynamic property warnings)
+    public $customer_photo;
+    public $guarantor_photo;
+    
     // Company fields
     public $is_company;
     public $company_name;
     public $company_document;
+    
+    // Blacklist fields
+    public $is_blacklisted;
+    public $blacklist_reason;
 
-    // Constructor
     public function __construct($id = null)
     {
         if ($id) {
             $query = "SELECT * FROM `customer_master` WHERE `id` = " . (int) $id;
             $db = Database::getInstance();
-            $result = mysqli_fetch_array($db->readQuery($query));
+            $result = mysqli_fetch_assoc($db->readQuery($query));
 
             if ($result) {
                 foreach ($result as $key => $value) {
@@ -327,7 +334,9 @@ class CustomerMaster
                 "customer_photo" => $row['customer_photo'] ?? '',
                 "is_company" => $row['is_company'] ?? 0,
                 "company_name" => $row['company_name'] ?? '', // Added company_name to fetchForDataTable
-                "company_document" => $row['company_document'] ?? ''
+                "company_document" => $row['company_document'] ?? '',
+                "is_blacklisted" => $row['is_blacklisted'] ?? 0,
+                "blacklist_reason" => $row['blacklist_reason'] ?? ''
             ];
 
             $data[] = $nestedData;
@@ -509,6 +518,35 @@ class CustomerMaster
                 $this->updateOldOutstandingBalance($detail['customer_id']);
                 return true;
             }
+        }
+        return false;
+    }
+    public function toggleBlacklist($id, $status, $reason = null)
+    {
+        $db = Database::getInstance();
+        $status = $status ? 1 : 0;
+        
+        // Prepare reason for UPDATE query
+        $escapedReason = $reason ? $db->escapeString($reason) : null;
+        $reasonSql = $escapedReason ? "'" . $escapedReason . "'" : "NULL";
+        
+        $query = "UPDATE `customer_master` SET `is_blacklisted` = $status, `blacklist_reason` = $reasonSql WHERE `id` = $id";
+        
+        if ($db->readQuery($query)) {
+            // Log this action
+            $action = $status ? "Blacklisted Customer" : "Removed Customer from Blacklist";
+            $audit = new AuditLog();
+            $audit->user_id = $_SESSION['id'];
+            $audit->ref_id = $id;
+            $audit->ref_code = 'CUSTOMER';
+            $audit->action = $action;
+            
+            // Prepare description and escape it for AuditLog since AuditLog doesn't escape
+            $auditDesc = "Customer ID: $id" . ($status ? " - Reason: $reason" : "");
+            $audit->description = $db->escapeString($auditDesc);
+            
+            $audit->create();
+            return true;
         }
         return false;
     }

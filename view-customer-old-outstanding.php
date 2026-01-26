@@ -82,31 +82,38 @@ include 'auth.php';
                             <div class="col-12">
                                 <div class="card border-primary">
                                     <div class="card-header bg-primary text-white">
-                                        <h5 class="mb-0"><i class="uil uil-user me-2"></i>Customer Details</h5>
+                                        <h5 class="mb-0 text-white"><i class="uil uil-user me-2"></i>Customer Details</h5>
                                     </div>
                                     <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <p class="mb-2"><strong>Customer Code:</strong></p>
-                                                <p id="customer_code_display" class="text-muted">-</p>
+                                        <div class="row align-items-center">
+                                            <div class="col-md-2 text-center">
+                                                <img id="customer_photo_display" src="assets/images/users/avatar-1.jpg" alt="Customer Photo" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                                             </div>
-                                            <div class="col-md-3">
-                                                <p class="mb-2"><strong>Name:</strong></p>
-                                                <p id="customer_name_detail" class="text-muted">-</p>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <p class="mb-2"><strong>NIC:</strong></p>
-                                                <p id="customer_nic_display" class="text-muted">-</p>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <p class="mb-2"><strong>Mobile:</strong></p>
-                                                <p id="customer_mobile_display" class="text-muted">-</p>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-12">
-                                                <p class="mb-2"><strong>Address:</strong></p>
-                                                <p id="customer_address_display" class="text-muted">-</p>
+                                            <div class="col-md-10">
+                                                <div class="row">
+                                                    <div class="col-md-3">
+                                                        <p class="mb-2"><strong>Customer Code:</strong></p>
+                                                        <p id="customer_code_display" class="text-muted">-</p>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <p class="mb-2"><strong>Name:</strong></p>
+                                                        <p id="customer_name_detail" class="text-muted">-</p>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <p class="mb-2"><strong>NIC:</strong></p>
+                                                        <p id="customer_nic_display" class="text-muted">-</p>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <p class="mb-2"><strong>Mobile:</strong></p>
+                                                        <p id="customer_mobile_display" class="text-muted">-</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-2">
+                                                    <div class="col-12">
+                                                        <p class="mb-2"><strong>Address:</strong></p>
+                                                        <p id="customer_address_display" class="text-muted">-</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

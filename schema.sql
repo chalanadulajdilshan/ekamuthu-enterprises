@@ -109,3 +109,8 @@ CREATE TABLE `issue_note_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `document_tracking` ADD COLUMN `issue_note_id` INT(11) DEFAULT 0;
+
+
+ALTER TABLE `customer_master` 
+ADD COLUMN `is_blacklisted` TINYINT(1) DEFAULT 0,
+ADD COLUMN `blacklist_reason` TEXT DEFAULT NULL;

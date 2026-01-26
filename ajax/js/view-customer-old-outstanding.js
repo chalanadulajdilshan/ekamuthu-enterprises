@@ -47,6 +47,10 @@ $(document).ready(function () {
             $("#customer_mobile_display").text(data.mobile_number || '-');
             $("#customer_address_display").text(data.address || '-');
 
+            // Populate photo
+            var photoPath = data.customer_photo ? data.customer_photo : 'assets/images/users/avatar-1.jpg';
+            $("#customer_photo_display").attr("src", photoPath);
+
             $('#oldOutstandingCustomerModal').modal('hide');
             $("#customer_select").trigger('change');
         }
