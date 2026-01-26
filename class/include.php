@@ -90,6 +90,7 @@ include_once(dirname(__FILE__) . '/RepairJob.php');
 include_once(dirname(__FILE__) . '/RepairJobItem.php');
 include_once(dirname(__FILE__) . '/IssueNote.php');
 include_once(dirname(__FILE__) . '/IssueNoteItem.php');
+include_once(dirname(__FILE__) . '/LoyaltyPoints.php');
 
 
 // Initialize session if not already started

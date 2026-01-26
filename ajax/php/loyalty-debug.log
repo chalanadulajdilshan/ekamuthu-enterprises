@@ -1,0 +1,16 @@
+[26-Jan-2026 12:11:43 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "LoyaltyPoints" not found in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php:174
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php on line 174
+[26-Jan-2026 12:11:54 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "LoyaltyPoints" not found in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php:174
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php on line 174
+[26-Jan-2026 12:14:03 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "LoyaltyPoints" not found in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php:174
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php on line 174
+[26-Jan-2026 12:14:09 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "LoyaltyPoints" not found in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php:174
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\loyalty-customers.php on line 174
