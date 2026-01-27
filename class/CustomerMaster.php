@@ -295,7 +295,12 @@ class CustomerMaster
 
 
         if (!empty($search)) {
-            $sql .= " AND (name LIKE '%$search%' OR code LIKE '%$search%' OR mobile_number LIKE '%$search%') ";
+            $sql .= " AND (
+                name LIKE '%$search%'
+                OR code LIKE '%$search%'
+                OR mobile_number LIKE '%$search%'
+                OR nic LIKE '%$search%'
+            ) ";
         }
 
         $filteredQuery = $db->readQuery($sql);
@@ -357,7 +362,7 @@ class CustomerMaster
         $db = Database::getInstance();
         $query = "SELECT *
                 FROM customer_master 
-                WHERE (code LIKE '%$search%' OR name LIKE '%$search%')";
+                WHERE (code LIKE '%$search%' OR name LIKE '%$search%' OR nic LIKE '%$search%')";
 
 
         $result = $db->readQuery($query);
