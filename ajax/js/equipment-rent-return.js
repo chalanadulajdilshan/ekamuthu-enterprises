@@ -189,8 +189,16 @@ $(document).ready(function() {
                                     <td class="text-right"><strong>${returnQty}</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>Deposit for this qty:</td>
-                                    <td class="text-right">Rs. ${calc.customer_deposit_share.toFixed(2)}</td>
+                                    <td>Deposit Balance (before):</td>
+                                    <td class="text-right">Rs. ${calc.deposit_remaining_before.toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Deposit Used Now:</td>
+                                    <td class="text-right">Rs. ${calc.deposit_applied.toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Deposit Balance (after):</td>
+                                    <td class="text-right">Rs. ${calc.deposit_balance_after.toFixed(2)}</td>
                                 </tr>
                                 <tr>
                                     <td>Used Days:</td>

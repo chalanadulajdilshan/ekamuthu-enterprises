@@ -213,17 +213,47 @@ class EquipmentRentReturn
         $finalExtraDayAmount = $isAfterCutoff ? (floatval($extra_day_amount) > 0 ? floatval($extra_day_amount) : $suggestedExtraDayAmount) : 0;
         $charged_days = $used_days + ($finalExtraDayAmount > 0 ? 1 : 0);
 
-        // Calculate deposit for this return quantity
-        $deposit_for_return = $per_unit_deposit * $return_qty;
-        
-        // Calculate customer deposit share for this return quantity
-        // Use actual customer deposit paid, not equipment catalog deposit
-        $customer_deposit = floatval($item['customer_deposit'] ?? 0);
-        $customer_deposit_share = $customer_deposit > 0 ? ($customer_deposit / $quantity) * $return_qty : $deposit_for_return;
+        // Calculate total charges already applied for this rent to get running deposit balance
+        $rentId = $item['rent_id'];
+        $totalPreviousCharges = 0;
 
-        // Rental charge for returned quantity based on days used (extra day amount is separate)
+        if ($rentId) {
+            $returnsQuery = "SELECT err.*, eri.amount, eri.quantity, eri.rent_type, eri.duration, eri.rental_date
+                             FROM equipment_rent_returns err
+                             LEFT JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                             WHERE eri.rent_id = " . (int) $rentId;
+
+            $returnsResult = $db->readQuery($returnsQuery);
+            while ($row = mysqli_fetch_assoc($returnsResult)) {
+                $prevQty = max(1, floatval($row['quantity']));
+                $prevPerUnitRentTotal = floatval($row['amount']) / $prevQty;
+                $prevDuration = max(1, floatval($row['duration']));
+                $prevDurationDays = ($row['rent_type'] === 'month') ? $prevDuration * 30 : $prevDuration;
+                $prevPerUnitDaily = $prevDurationDays > 0 ? ($prevPerUnitRentTotal / $prevDurationDays) : 0;
+
+                $prevRentalDate = $row['rental_date'];
+                $prevReturnDate = $row['return_date'];
+                $prevRentalDt = strtotime($prevRentalDate);
+                $prevReturnDt = strtotime($prevReturnDate);
+                $prevUsedDays = max(1, (int)ceil(($prevReturnDt - $prevRentalDt) / 86400));
+
+                $prevReturnQty = floatval($row['return_qty']);
+                $prevRentalAmount = $prevPerUnitDaily * $prevUsedDays * $prevReturnQty;
+                $prevExtra = floatval($row['extra_day_amount'] ?? 0);
+                $prevPenalty = floatval($row['penalty_amount'] ?? 0);
+                $prevDamage = floatval($row['damage_amount'] ?? 0);
+
+                $totalPreviousCharges += ($prevRentalAmount + $prevExtra + $prevPenalty + $prevDamage);
+            }
+        }
+
+        // Deposit balance before this return
+        $customer_deposit = floatval($item['customer_deposit'] ?? 0);
+        $deposit_remaining_before = max(0, $customer_deposit - $totalPreviousCharges);
+
+        // Charges for this return - compute rental first
         $rental_amount = $per_unit_daily * $used_days * $return_qty;
-        
+
         // Calculate penalty if late and penalty_percentage is provided (10% to 20%)
         $penalty_percentage = floatval($penalty_percentage);
         if ($penalty_percentage < 0) $penalty_percentage = 0;
@@ -233,27 +263,41 @@ class EquipmentRentReturn
             $penalty_amount = ($rental_amount * $penalty_percentage) / 100;
         }
         
-        // Calculate settlement
-        // settle_amount: rental + extra_day + damage + penalty - customer deposit share
-        $settle_amount = ($rental_amount + $finalExtraDayAmount + floatval($damage_amount) + $penalty_amount) - $customer_deposit_share;
-        
+        // Charges for this return including penalty
+        $charges_current = $rental_amount + $finalExtraDayAmount + floatval($damage_amount) + $penalty_amount;
+
+        // Apply remaining deposit to current charges
+        $deposit_applied = min($deposit_remaining_before, $charges_current);
+        $deposit_balance_after = max(0, $deposit_remaining_before - $deposit_applied);
+
+        // Pending quantity after this return for this item
+        $pending_after = $item['pending_qty'] - $return_qty;
+
+        // Calculate settlement using remaining deposit balance
+        $settle_amount = $charges_current - $deposit_applied;
         $refund_amount = 0;
         $additional_payment = 0;
         
         if ($settle_amount < 0) {
-            // Customer gets refund
             $refund_amount = abs($settle_amount);
-            $additional_payment = 0;
         } else {
-            // Customer needs to pay additional
-            $refund_amount = 0;
             $additional_payment = $settle_amount;
+        }
+
+        // If this return completes the item, refund any remaining deposit balance
+        if ($pending_after <= 0 && $deposit_balance_after > 0) {
+            $refund_amount += $deposit_balance_after;
+            $settle_amount = -$refund_amount;
+            $deposit_balance_after = 0;
+            $additional_payment = 0;
         }
         
         return [
             'error' => false,
-            'deposit_for_return' => round($deposit_for_return, 2),
-            'customer_deposit_share' => round($customer_deposit_share, 2),
+            'deposit_remaining_before' => round($deposit_remaining_before, 2),
+            'deposit_applied' => round($deposit_applied, 2),
+            'deposit_balance_after' => round($deposit_balance_after, 2),
+            'pending_after' => $pending_after,
             'rental_amount' => round($rental_amount, 2),
             'per_unit_daily' => round($per_unit_daily, 2),
             'used_days' => $used_days,
