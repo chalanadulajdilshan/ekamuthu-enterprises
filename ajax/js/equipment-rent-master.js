@@ -1107,6 +1107,7 @@ jQuery(document).ready(function () {
     $("#item_sub_equipment_display").val("");
     $("#transport_cost").val("");
     $("#custom_deposit").val("");
+    $("#transport_cost, #custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#calculated_deposit_display").text("0.00");
     totalCalculatedDeposit = 0;
     rentItems = [];
@@ -1155,7 +1156,7 @@ jQuery(document).ready(function () {
               if (result.status === "success") {
                 swal({
                   title: "Success!",
-                  text: "All items marked as returned.",
+                  text: result.message || "All items marked as returned.",
                   type: "success",
                   timer: 2000,
                   showConfirmButton: false,
@@ -1166,11 +1167,19 @@ jQuery(document).ready(function () {
               } else {
                 swal({
                   title: "Error!",
-                  text: result.message,
+                  text: result.message || "Failed to return all items.",
                   type: "error",
                   showConfirmButton: true,
                 });
               }
+            },
+            error: function () {
+              swal({
+                title: "Error!",
+                text: "Unable to process return all request.",
+                type: "error",
+                showConfirmButton: true,
+              });
             },
           });
         }
@@ -1219,13 +1228,14 @@ jQuery(document).ready(function () {
             data: { id: rentId, delete: true },
             dataType: "JSON",
             success: function (response) {
+              console.log("Delete response:", response);
               $("#page-preloader").hide();
               $(".delete-equipment-rent").prop("disabled", false);
 
-              if (response.status === "success") {
+              if (response && response.status === "success") {
                 swal({
                   title: "Deleted!",
-                  text: "Equipment rent has been deleted.",
+                  text: response.message || "Equipment rent has been deleted.",
                   type: "success",
                   timer: 2000,
                   showConfirmButton: false,
@@ -1236,11 +1246,22 @@ jQuery(document).ready(function () {
               } else {
                 swal({
                   title: "Error!",
-                  text: "Something went wrong.",
+                  text: (response && response.message) || "Something went wrong.",
                   type: "error",
                   showConfirmButton: true,
                 });
               }
+            },
+            error: function (xhr, status, error) {
+              console.error("Delete error:", xhr.responseText);
+              $("#page-preloader").hide();
+              $(".delete-equipment-rent").prop("disabled", false);
+              swal({
+                title: "Error!",
+                text: "Unable to delete equipment rent. Check console for details.",
+                type: "error",
+                showConfirmButton: true,
+              });
             },
           });
         } else {
@@ -1254,4 +1275,9 @@ jQuery(document).ready(function () {
   $("#rental_date").on("change", function () {
     $("#item_rental_date").val($(this).val());
   });
+
+  // Initialize button visibility on page load
+  $("#update").hide();
+  $("#return-all").hide();
+  $("#print").hide();
 });

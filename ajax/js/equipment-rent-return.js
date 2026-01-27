@@ -190,7 +190,7 @@ $(document).ready(function() {
                                 </tr>
                                 <tr>
                                     <td>Deposit for this qty:</td>
-                                    <td class="text-right">Rs. ${calc.deposit_for_return.toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${calc.customer_deposit_share.toFixed(2)}</td>
                                 </tr>
                                 <tr>
                                     <td>Used Days:</td>
@@ -388,7 +388,7 @@ $(document).ready(function() {
                                             <th>Extra Day</th>
                                             <th>Penalty</th>
                                             <th>Refund</th>
-                                            <th>Additional Payment</th>
+                                            <th>Rent Value</th>
                                             <th>Created By</th>
                                             <th>Remark</th>
                                         </tr>

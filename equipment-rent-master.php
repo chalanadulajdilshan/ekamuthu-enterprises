@@ -298,8 +298,7 @@ $bill_number = $lastId + 1;
 
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
-                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන්
-                                                    දිනය</label>
+                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දිය යුතු දිනය</label>
                                                 <input id="item_return_date" type="text"
                                                     class="form-control date-picker-date">
                                             </div>

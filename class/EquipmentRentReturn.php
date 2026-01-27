@@ -153,13 +153,15 @@ class EquipmentRentReturn
     {
         $db = Database::getInstance();
         
-        // Get rent item details with rent type and duration
+        // Get rent item details with rent type and duration, including customer deposit
         $query = "SELECT eri.*, 
                   e.deposit_one_day as deposit_per_item,
+                  er.deposit_total as customer_deposit,
                   (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as already_returned,
                   eri.quantity - (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as pending_qty
                   FROM equipment_rent_items eri
                   LEFT JOIN equipment e ON eri.equipment_id = e.id
+                  LEFT JOIN equipment_rent er ON eri.rent_id = er.id
                   WHERE eri.id = " . (int) $rent_item_id;
         
         $item = mysqli_fetch_assoc($db->readQuery($query));
@@ -213,6 +215,11 @@ class EquipmentRentReturn
 
         // Calculate deposit for this return quantity
         $deposit_for_return = $per_unit_deposit * $return_qty;
+        
+        // Calculate customer deposit share for this return quantity
+        // Use actual customer deposit paid, not equipment catalog deposit
+        $customer_deposit = floatval($item['customer_deposit'] ?? 0);
+        $customer_deposit_share = $customer_deposit > 0 ? ($customer_deposit / $quantity) * $return_qty : $deposit_for_return;
 
         // Rental charge for returned quantity based on days used (extra day amount is separate)
         $rental_amount = $per_unit_daily * $used_days * $return_qty;
@@ -227,8 +234,8 @@ class EquipmentRentReturn
         }
         
         // Calculate settlement
-        // settle_amount: rental + extra_day + damage + penalty - deposit share
-        $settle_amount = ($rental_amount + $finalExtraDayAmount + floatval($damage_amount) + $penalty_amount) - $deposit_for_return;
+        // settle_amount: rental + extra_day + damage + penalty - customer deposit share
+        $settle_amount = ($rental_amount + $finalExtraDayAmount + floatval($damage_amount) + $penalty_amount) - $customer_deposit_share;
         
         $refund_amount = 0;
         $additional_payment = 0;
@@ -246,6 +253,7 @@ class EquipmentRentReturn
         return [
             'error' => false,
             'deposit_for_return' => round($deposit_for_return, 2),
+            'customer_deposit_share' => round($customer_deposit_share, 2),
             'rental_amount' => round($rental_amount, 2),
             'per_unit_daily' => round($per_unit_daily, 2),
             'used_days' => $used_days,

@@ -423,6 +423,61 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
     exit;
 }
 
+// Delete equipment rent
+if (isset($_POST['delete'])) {
+    $rent_id = $_POST['id'] ?? 0;
+    
+    if ($rent_id) {
+        $EQUIPMENT_RENT = new EquipmentRent($rent_id);
+        $bill_number = $EQUIPMENT_RENT->bill_number;
+        
+        if ($EQUIPMENT_RENT->delete()) {
+            $AUDIT_LOG = new AuditLog(NULL);
+            $AUDIT_LOG->ref_id = $rent_id;
+            $AUDIT_LOG->ref_code = $bill_number;
+            $AUDIT_LOG->action = 'DELETE';
+            $AUDIT_LOG->description = 'DELETE EQUIPMENT BILL NO #' . $bill_number;
+            $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+            $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+            $AUDIT_LOG->create();
+            
+            echo json_encode(["status" => "success", "message" => "Equipment rent deleted successfully"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to delete equipment rent"]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
+    }
+    exit;
+}
+
+// Return all items
+if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
+    $rent_id = $_POST['rent_id'] ?? 0;
+    
+    if ($rent_id) {
+        $EQUIPMENT_RENT = new EquipmentRent($rent_id);
+        
+        if ($EQUIPMENT_RENT->markAllReturned()) {
+            $AUDIT_LOG = new AuditLog(NULL);
+            $AUDIT_LOG->ref_id = $rent_id;
+            $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
+            $AUDIT_LOG->action = 'RETURN_ALL';
+            $AUDIT_LOG->description = 'RETURN ALL ITEMS FOR EQUIPMENT BILL NO #' . $EQUIPMENT_RENT->bill_number;
+            $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+            $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+            $AUDIT_LOG->create();
+            
+            echo json_encode(["status" => "success", "message" => "All items marked as returned"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to return all items"]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
+    }
+    exit;
+}
+
 // Filter equipment rent master list for DataTable
 if (isset($_POST['filter'])) {
     $EQUIPMENT_RENT = new EquipmentRent(NULL);
