@@ -36,10 +36,34 @@
             allowClear: true
         });
 
-        // Initialize datepickers
-        $(".date-picker, .date-picker-date").datepicker({
-            dateFormat: 'yy-mm-dd'
-        });
+        // Initialize datepickers with modal-safe positioning
+        const datepickerConfig = {
+            dateFormat: 'yy-mm-dd',
+            beforeShow: function (input) {
+                const $input = $(input);
+                const $dp = $('#ui-datepicker-div');
+
+                setTimeout(function () {
+                    const $modal = $input.closest('.modal');
+                    if ($modal.length) {
+                        // Anchor the calendar inside the modal and align under the input
+                        const modalOffset = $modal.offset();
+                        const inputOffset = $input.offset();
+                        $dp.appendTo($modal).css({
+                            top: inputOffset.top - modalOffset.top + $input.outerHeight(),
+                            left: inputOffset.left - modalOffset.left,
+                            'z-index': (parseInt($modal.css('z-index'), 10) || 1050) + 2,
+                            position: 'absolute'
+                        });
+                    } else {
+                        // Default to body for non-modal fields
+                        $dp.appendTo('body').css({ 'z-index': 1052 });
+                    }
+                }, 0);
+            }
+        };
+
+        $(".date-picker, .date-picker-date").datepicker(datepickerConfig);
 
         // Set today's date for .date-picker fields
         $(".date-picker").val($.datepicker.formatDate('yy-mm-dd', new Date()));

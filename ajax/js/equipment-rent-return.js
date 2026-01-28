@@ -56,9 +56,12 @@ $(document).ready(function() {
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <div><strong>Customer Deposit:</strong> Rs. ${parseFloat(data.customer_deposit || 0).toFixed(2)}</div>
-                                    <div><strong>Deposit (Total):</strong> Rs. ${parseFloat(data.deposit_amount).toFixed(2)}</div>
-                                    <div><strong>Deposit Per Unit:</strong> Rs. ${(parseFloat(data.deposit_amount) / parseFloat(data.quantity)).toFixed(2)}</div>
-                                    <div><strong class="text-danger">Equipment Damage (catalog):</strong> <span class="text-danger">Rs. ${parseFloat(data.equipment_damage || 0).toFixed(2)}</span></div>
+                                    <div><strong>Deposit Per Unit:</strong> Rs. ${(
+                                        parseFloat(data.quantity || 1) > 0
+                                            ? (parseFloat(data.deposit_amount || 0) / parseFloat(data.quantity || 1))
+                                            : 0
+                                    ).toFixed(2)}</div>
+                                    <div><strong class="text-danger">Damage Per Unit (catalog):</strong> <span class="text-danger">Rs. ${parseFloat(data.equipment_damage || 0).toFixed(2)}</span></div>
                                 </div>
                             </div>
                         </div>

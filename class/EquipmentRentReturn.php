@@ -157,6 +157,7 @@ class EquipmentRentReturn
         $query = "SELECT eri.*, 
                   e.deposit_one_day as deposit_per_item,
                   er.deposit_total as customer_deposit,
+                  er.id as rent_id,
                   (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as already_returned,
                   eri.quantity - (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as pending_qty
                   FROM equipment_rent_items eri
@@ -216,10 +217,31 @@ class EquipmentRentReturn
         // Calculate deposit for this return quantity
         $deposit_for_return = $per_unit_deposit * $return_qty;
         
-        // Calculate customer deposit share for this return quantity
-        // Use actual customer deposit paid, not equipment catalog deposit
+        // Calculate REMAINING customer deposit after previous returns
+        // Sum all rental amounts (rent charged) from previous returns across ALL items in this rent order
         $customer_deposit = floatval($item['customer_deposit'] ?? 0);
-        $customer_deposit_share = $customer_deposit > 0 ? ($customer_deposit / $quantity) * $return_qty : $deposit_for_return;
+        $rent_id = $item['rent_id'];
+        
+        // Get total rent already charged from previous returns for this entire rent order
+        $prevRentQuery = "SELECT COALESCE(SUM(
+                            GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
+                            * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / NULLIF(CASE WHEN eri2.rent_type = 'month' THEN eri2.duration * 30 ELSE eri2.duration END,0))
+                            * err2.return_qty
+                            + COALESCE(err2.extra_day_amount, 0)
+                            + COALESCE(err2.damage_amount, 0)
+                            + COALESCE(err2.penalty_amount, 0)
+                          ), 0) as total_previous_charges
+                          FROM equipment_rent_returns err2
+                          INNER JOIN equipment_rent_items eri2 ON err2.rent_item_id = eri2.id
+                          WHERE eri2.rent_id = " . (int) $rent_id;
+        $prevResult = mysqli_fetch_assoc($db->readQuery($prevRentQuery));
+        $total_previous_charges = floatval($prevResult['total_previous_charges'] ?? 0);
+        
+        // Remaining deposit = original deposit - total charges already deducted from previous returns
+        $remaining_deposit = max(0, $customer_deposit - $total_previous_charges);
+        
+        // Customer deposit share for this return is the remaining deposit (capped by what's available)
+        $customer_deposit_share = $remaining_deposit;
 
         // Rental charge for returned quantity based on days used (extra day amount is separate)
         $rental_amount = $per_unit_daily * $used_days * $return_qty;
@@ -254,6 +276,9 @@ class EquipmentRentReturn
             'error' => false,
             'deposit_for_return' => round($deposit_for_return, 2),
             'customer_deposit_share' => round($customer_deposit_share, 2),
+            'customer_deposit_original' => round($customer_deposit, 2),
+            'total_previous_charges' => round($total_previous_charges, 2),
+            'remaining_deposit' => round($remaining_deposit, 2),
             'rental_amount' => round($rental_amount, 2),
             'per_unit_daily' => round($per_unit_daily, 2),
             'used_days' => $used_days,
