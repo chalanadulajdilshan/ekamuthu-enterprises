@@ -43,9 +43,9 @@ $has_daily = count($rent_types) === 0 ? false : ($has_month ? count($rent_types)
 if ($has_month && !$has_daily) {
     $rent_label = 'මසක කුලී මුදල:';
 } elseif (!$has_month && $has_daily) {
-    $rent_label = 'දිනක කුලී මුදල:';
+    $rent_label = 'කුලී මුදල:';
 } else {
-    $rent_label = 'මුළු කුලී මුදල:';
+    $rent_label = 'කුලී මුදල:';
 }
 
 // Collect return rows across items for print
@@ -177,8 +177,7 @@ if (!empty($customerMobile)) {
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 no-print gap-2">
         <h4 class="mb-0">උපකරණ කුලී ඉන්වොයිසිය</h4>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <button onclick="window.print()" class="btn btn-success ms-2">Print</button>
-            <button onclick="downloadPDF()" class="btn btn-primary ms-2">PDF</button>
+            <button onclick="window.print()" class="btn btn-success ms-2">Print / PDF</button>
             <button onclick="shareViaWhatsApp()" class="btn btn-success ms-2 no-print">
                 <i class="uil uil-whatsapp"></i> WhatsApp
             </button>
@@ -392,39 +391,18 @@ if (!empty($customerMobile)) {
 </div>
 
 <!-- JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-    function downloadPDF() {
-        const element = document.getElementById('invoice-content');
-        const opt = {
-            margin: 0.5,
-            filename: 'Rent_Invoice_<?php echo $EQUIPMENT_RENT->bill_number; ?>.pdf',
-            image: {
-                type: 'jpeg',
-                quality: 0.98
-            },
-            html2canvas: {
-                scale: 2
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            }
-        };
-        html2pdf().set(opt).from(element).save();
-    }
-
     function shareViaWhatsApp() {
         const customerMobile = '<?php echo $customerMobile; ?>';
         const billNo = '<?php echo addslashes($EQUIPMENT_RENT->bill_number); ?>';
         const customerName = '<?php echo addslashes($CUSTOMER_MASTER->name); ?>';
         const companyName = '<?php echo addslashes($COMPANY_PROFILE->name); ?>';
         const netAmount = '<?php echo number_format($net_amount, 2); ?>';
-        
-        const currentUrl = window.location.href;
 
-        const message = `Dear ${customerName},\n\nYour equipment rent invoice ${billNo} from ${companyName} is ready.\n\nTotal Amount: Rs. ${netAmount}\n\nView Invoice: ${currentUrl}\n\nThank you for your business!`;
+        const currentUrl = window.location.href.split('#')[0];
+        const pdfUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'wa=1';
+
+        const message = `Dear ${customerName},\n\nYour equipment rent invoice ${billNo} from ${companyName} is ready.\n\nTotal Amount: Rs. ${netAmount}\n\nView/Print Invoice: ${pdfUrl}\n\nThank you for your business!`;
 
         const encodedMessage = encodeURIComponent(message);
 
@@ -437,6 +415,23 @@ if (!empty($customerMobile)) {
 
         window.open(whatsappUrl, '_blank');
     }
+
+    // Hide controls and auto-trigger print when opened from WhatsApp (wa=1)
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const fromWhatsApp = params.get('wa') === '1';
+
+        if (fromWhatsApp) {
+            document.querySelectorAll('.no-print').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Auto-trigger print dialog after layout is ready
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        }
+    });
 
     // Trigger print on Enter
     document.addEventListener("keydown", function(e) {

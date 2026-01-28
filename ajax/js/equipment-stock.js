@@ -112,7 +112,25 @@ jQuery(document).ready(function () {
     loadSummaryTotals();
 
     // Function to render sub-equipment table
-    function renderSubEquipmentTable(subEquipments) {
+    function renderSubEquipmentTable(subEquipments, meta) {
+        // If equipment has no sub-items, show summary badges
+        if (meta && meta.no_sub_items == 1) {
+            var available = parseFloat(meta.available_qty || 0).toFixed(0);
+            var rented = parseFloat(meta.rented_qty || 0).toFixed(0);
+            var total = parseFloat(meta.total_qty || 0).toFixed(0);
+
+            return (
+                '<div class="p-3">'
+                + '<div class="fw-bold mb-2">No Sub-Items (summary)</div>'
+                + '<div class="d-flex gap-2 flex-wrap">'
+                + '<span class="badge bg-success">Available: ' + available + '</span>'
+                + '<span class="badge bg-danger">Rented: ' + rented + '</span>'
+                + '<span class="badge bg-secondary">Total: ' + total + '</span>'
+                + '</div>'
+                + '</div>'
+            );
+        }
+
         if (!Array.isArray(subEquipments) || subEquipments.length === 0) {
             return '<div class="p-2 text-muted">No sub-equipment available for this equipment</div>';
         }
@@ -203,7 +221,7 @@ jQuery(document).ready(function () {
                 },
                 success: function (resp) {
                     if (resp && resp.status === "success") {
-                        row.child(renderSubEquipmentTable(resp.data)).show();
+                        row.child(renderSubEquipmentTable(resp.data, resp.meta)).show();
                     } else {
                         row.child(
                             '<div class="p-2 text-muted">No sub-equipment available</div>'

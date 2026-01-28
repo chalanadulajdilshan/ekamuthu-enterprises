@@ -266,28 +266,50 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     exit;
 }
 
-// Get sub-equipment by equipment_id
+// Get sub-equipment by equipment_id (and availability summary for no-sub-items)
 if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
     $equipment_id = isset($_POST['equipment_id']) ? (int) $_POST['equipment_id'] : 0;
 
     if ($equipment_id > 0) {
         $db = Database::getInstance();
-        $sql = "SELECT id, equipment_id, code, rental_status FROM sub_equipment WHERE equipment_id = $equipment_id ORDER BY id ASC";
-        $result = $db->readQuery($sql);
+
+        // Check if equipment has no sub items
+        $equipRow = mysqli_fetch_assoc($db->readQuery("SELECT quantity, no_sub_items FROM equipment WHERE id = $equipment_id"));
+        $isNoSub = ($equipRow['no_sub_items'] ?? 0) == 1;
 
         $subEquipments = [];
-        while ($row = mysqli_fetch_assoc($result)) {
-            $subEquipments[] = [
-                'id' => $row['id'],
-                'equipment_id' => $row['equipment_id'],
-                'code' => $row['code'],
-                'rental_status' => $row['rental_status']
+        $meta = [];
+
+        if ($isNoSub) {
+            $totalQty = (float) ($equipRow['quantity'] ?? 0);
+            $rentSql = "SELECT COALESCE(SUM(quantity),0) AS rented FROM equipment_rent_items WHERE equipment_id = $equipment_id AND status = 'rented' AND (sub_equipment_id IS NULL OR sub_equipment_id = 0)";
+            $rentRow = mysqli_fetch_assoc($db->readQuery($rentSql));
+            $rentedQty = (float) ($rentRow['rented'] ?? 0);
+            $availableQty = max(0, $totalQty - $rentedQty);
+
+            $meta = [
+                'no_sub_items' => 1,
+                'available_qty' => $availableQty,
+                'rented_qty' => $rentedQty,
+                'total_qty' => $totalQty,
             ];
+        } else {
+            $sql = "SELECT id, equipment_id, code, rental_status FROM sub_equipment WHERE equipment_id = $equipment_id ORDER BY id ASC";
+            $result = $db->readQuery($sql);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $subEquipments[] = [
+                    'id' => $row['id'],
+                    'equipment_id' => $row['equipment_id'],
+                    'code' => $row['code'],
+                    'rental_status' => $row['rental_status']
+                ];
+            }
         }
 
         echo json_encode([
             "status" => "success",
-            "data" => $subEquipments
+            "data" => $subEquipments,
+            "meta" => $meta
         ]);
     } else {
         echo json_encode([
