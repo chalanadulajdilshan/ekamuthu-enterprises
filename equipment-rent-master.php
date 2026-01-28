@@ -551,7 +551,7 @@ $bill_number = $lastId + 1;
                                 <div class="mb-3">
                                     <label for="return_date" class="form-label">Return Date <span
                                             class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" id="return_date" required>
+                                    <input type="text" class="form-control date-picker" id="return_date" placeholder="YYYY-MM-DD" required>
                                 </div>
                             </div>
 
