@@ -4,6 +4,7 @@ jQuery(document).ready(function () {
   var currentRentOneDay = 0;
   var currentRentOneMonth = 0;
   var currentDepositOneDay = 0;
+  var currentAllowManualAmount = false;
   var totalCalculatedDeposit = 0;
 
   // Calculate amount and return date
@@ -15,6 +16,11 @@ jQuery(document).ready(function () {
 
     if (!rentalDate || duration <= 0) {
       $("#item_amount").val("0.00");
+      return;
+    }
+
+    var manualEnabled = !$("#item_amount").prop("readonly");
+    if (manualEnabled && $("#item_amount").data("manual-edited")) {
       return;
     }
 
@@ -32,7 +38,7 @@ jQuery(document).ready(function () {
     }
 
     // Format amount
-    $("#item_amount").val(amount.toFixed(2));
+    $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
 
     // Format return date YYYY-MM-DD
     var yyyy = returnDate.getFullYear();
@@ -84,15 +90,18 @@ jQuery(document).ready(function () {
 
     $("#item_duration").val(duration);
 
-    // Recalculate Amount only
-    var amount = 0;
-    var qty = parseFloat($("#item_qty").val()) || 1;
-    if (rentType === "day") {
-      amount = currentRentOneDay * duration * qty;
-    } else {
-      amount = currentRentOneMonth * duration * qty;
+    // Recalculate Amount only if not manually edited
+    var manualEnabled = !$("#item_amount").prop("readonly");
+    if (!(manualEnabled && $("#item_amount").data("manual-edited"))) {
+      var amount = 0;
+      var qty = parseFloat($("#item_qty").val()) || 1;
+      if (rentType === "day") {
+        amount = currentRentOneDay * duration * qty;
+      } else {
+        amount = currentRentOneMonth * duration * qty;
+      }
+      $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
     }
-    $("#item_amount").val(amount.toFixed(2));
   }
 
   // Update items table display
@@ -323,6 +332,13 @@ jQuery(document).ready(function () {
     $("#item_qty").val(1);
     $("#item_returned_qty").val(0);
     $("#item_amount").val("");
+  });
+
+  // Track manual edits on amount when allowed
+  $("#item_amount").on("input", function () {
+    if (!$(this).prop("readonly")) {
+      $(this).data("manual-edited", true);
+    }
   });
 
   // Calculate on input changes
@@ -791,6 +807,15 @@ jQuery(document).ready(function () {
           currentRentOneDay = parseFloat(data.rent_one_day) || 0;
           currentRentOneMonth = parseFloat(data.rent_one_month) || 0;
           currentDepositOneDay = parseFloat(data.deposit_one_day) || 0;
+          currentAllowManualAmount = data.change_value == 1;
+
+          // Amount field editability (force remove attribute when allowed)
+          if (currentAllowManualAmount) {
+            $("#item_amount").prop("readonly", false).removeAttr("readonly");
+          } else {
+            $("#item_amount").prop("readonly", true).attr("readonly", "readonly");
+          }
+          $("#item_amount").data("manual-edited", false);
 
           // Reset calculations
           $("#item_duration").val("");

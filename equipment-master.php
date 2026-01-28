@@ -241,13 +241,21 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                         class="form-control" placeholder="0" value="0" min="0" required>
                                                 </div>
 
-                                                <!-- No Sub-Items -->
-                                                <div class="col-md-2 mt-4 pt-2">
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            id="no_sub_items" name="no_sub_items" value="1">
-                                                        <label class="form-check-label" for="no_sub_items">No
-                                                            Sub-Items</label>
+                                                <!-- No Sub-Items / Change Value -->
+                                                <div class="col-md-3 mt-4 pt-2">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="form-check form-check-inline mb-0">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="no_sub_items" name="no_sub_items" value="1">
+                                                            <label class="form-check-label" for="no_sub_items">No
+                                                                Sub-Items</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline mb-0">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="change_value" name="change_value" value="1">
+                                                            <label class="form-check-label" for="change_value">Change
+                                                                Value</label>
+                                                        </div>
                                                     </div>
                                                 </div>
 

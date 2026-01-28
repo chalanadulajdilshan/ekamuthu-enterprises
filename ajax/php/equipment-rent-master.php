@@ -298,7 +298,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Get items with equipment deposit info
         $db = Database::getInstance();
         $itemsQuery = "SELECT ri.*, e.code as equipment_code, e.item_name as equipment_name, 
-                       e.deposit_one_day as equipment_deposit, e.no_sub_items,
+                       e.deposit_one_day as equipment_deposit, e.no_sub_items, e.change_value,
                        se.code as sub_equipment_code 
                        FROM equipment_rent_items ri 
                        LEFT JOIN equipment e ON ri.equipment_id = e.id
@@ -615,6 +615,7 @@ if (isset($_POST['filter_equipment'])) {
             "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
             "no_sub_items" => $row['no_sub_items'],
+            "change_value" => $row['change_value'] ?? 0,
             "total_quantity" => $row['quantity'],
             "availability_label" => $statusLabel
         ];

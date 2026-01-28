@@ -23,6 +23,10 @@ jQuery(document).ready(function () {
     { selector: "#quantity", message: "Please enter quantity" },
   ];
 
+  function getCheckboxVal(selector) {
+    return $(selector).is(":checked") ? 1 : 0;
+  }
+
   function toggleAddSubButton() {
     var hasEquipment = $("#equipment_id").val();
     if (hasEquipment) {
@@ -119,6 +123,7 @@ jQuery(document).ready(function () {
           $("#value").val(data.value || "0");
           $("#quantity").val(data.quantity || "0");
           $("#no_sub_items").prop("checked", data.no_sub_items == 1);
+          $("#change_value").prop("checked", data.change_value == 1);
           $("#remark").val(data.remark || "");
           $("#old_image_name").val(data.image_name || "");
 
@@ -175,10 +180,8 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
-      formData.append(
-        "no_sub_items",
-        $("#no_sub_items").is(":checked") ? 1 : 0,
-      );
+      formData.append("no_sub_items", getCheckboxVal("#no_sub_items"));
+      formData.append("change_value", getCheckboxVal("#change_value"));
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -278,10 +281,8 @@ jQuery(document).ready(function () {
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
-      formData.append(
-        "no_sub_items",
-        $("#no_sub_items").is(":checked") ? 1 : 0,
-      );
+      formData.append("no_sub_items", getCheckboxVal("#no_sub_items"));
+      formData.append("change_value", getCheckboxVal("#change_value"));
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -362,6 +363,7 @@ jQuery(document).ready(function () {
     $("#form-data")[0].reset();
     $("#equipment_id").val("");
     $("#no_sub_items").prop("checked", false);
+    $("#change_value").prop("checked", false);
     $("#old_image_name").val("");
     $("#image_preview").attr("src", "assets/images/no-image.png");
     $("#update").hide();
