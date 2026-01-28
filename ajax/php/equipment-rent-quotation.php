@@ -278,7 +278,7 @@ if (isset($_POST['filter_customers'])) {
     // Search filter
     $where = "";
     if (!empty($search)) {
-        $where .= " WHERE (name LIKE '%$search%' OR code LIKE '%$search%' OR mobile_number LIKE '%$search%')";
+        $where .= " WHERE (name LIKE '%$search%' OR code LIKE '%$search%' OR mobile_number LIKE '%$search%' OR nic LIKE '%$search%')";
     }
 
     // Filtered records
