@@ -52,7 +52,7 @@ $(document).ready(function () {
                     if (result.data.length > 0) {
                         result.data.forEach(function (item) {
                             rows += `
-                                <tr style="cursor: pointer;" onclick="window.location.href='repair-job.php?page_id=' + repairJobPageId + '&job_id=${item.id}'">
+                                <tr>
                                     <td>${item.job_code}</td>
                                     <td>${item.created_at}</td>
                                     <td>${item.customer_name}</td>
