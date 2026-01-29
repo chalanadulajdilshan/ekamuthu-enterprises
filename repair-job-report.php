@@ -149,8 +149,21 @@ include 'auth.php';
             color: #000 !important;
         }
     </style>
-</head>
+<?php
+// Get Repair Job Page ID for redirection
+$db = Database::getInstance();
+$query = "SELECT id FROM pages WHERE page_url = 'repair-job.php' LIMIT 1";
+$result = $db->readQuery($query);
+$repairJobPageId = 0;
+if ($row = mysqli_fetch_assoc($result)) {
+    $repairJobPageId = $row['id'];
+}
+?>
 
+<script>
+    var repairJobPageId = <?php echo $repairJobPageId; ?>;
+</script>
+</head>
 <body data-layout="horizontal" data-topbar="colored" class="someBlock">
 
     <!-- Begin page -->
@@ -410,11 +423,11 @@ include 'auth.php';
                 $('#fromDate').datepicker('setDate', firstDay);
             });
             
-             // Initialize with current month as default
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            $('#fromDate').datepicker('setDate', firstDay);
-            $('#toDate').datepicker('setDate', today);
+             // Initialize with Status = Pending and Empty Dates (for All Pending)
+            $('#statusFilter').val('pending');
+            // Ensure dates are empty
+            $('#fromDate').val('');
+            $('#toDate').val('');
         });
     </script>
 

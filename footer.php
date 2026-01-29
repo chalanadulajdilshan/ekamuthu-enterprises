@@ -40,8 +40,7 @@
 <?php include 'item-master-model.php' ?>
 
 
-<?php include 'invoice-model.php' ?>
-<?php include 'dag-mode.php' ?>
+<?php include 'invoice-model.php' ?> 
 <?php include 'customer_model.php' ?>
 <?php include 'all_item-master-model.php' ?>
 <?php include 'special-permission-model.php' ?>

@@ -48,9 +48,9 @@ include 'auth.php';
                                 <i class="uil uil-lock me-1"></i> Non Permission
                             </button>
 
-                            <!-- <a href="#" class="btn btn-danger delete-branch">
+                            <a href="#" class="btn btn-danger" id="delete" style="display: none;">
                                 <i class="uil uil-trash-alt me-1"></i> Delete
-                            </a> -->
+                            </a>
 
                         </div>
 

@@ -62,3 +62,23 @@ if (isset($_POST['update'])) {
         exit();
     }
 }
+
+// Delete Page
+if (isset($_POST['delete'])) {
+
+    $PAGES = new Pages($_POST['page_id']);
+
+    if ($PAGES->delete()) {
+        $result = [
+            "status" => 'success'
+        ];
+        echo json_encode($result);
+        exit();
+    } else {
+        $result = [
+            "status" => 'error'
+        ];
+        echo json_encode($result);
+        exit();
+    }
+}

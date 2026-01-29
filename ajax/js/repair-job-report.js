@@ -7,7 +7,7 @@ $(document).ready(function () {
         var toDate = $('#toDate').val();
         var status = $('#statusFilter').val();
 
-        if (!fromDate || !toDate) {
+        if ((!fromDate || !toDate) && status !== 'pending') {
             swal("Error", "Please select a valid date range", "error");
             return;
         }
@@ -52,7 +52,7 @@ $(document).ready(function () {
                     if (result.data.length > 0) {
                         result.data.forEach(function (item) {
                             rows += `
-                                <tr style="cursor: pointer;" onclick="window.location.href='repair-job.php?job_id=${item.id}'">
+                                <tr style="cursor: pointer;" onclick="window.location.href='repair-job.php?page_id=' + repairJobPageId + '&job_id=${item.id}'">
                                     <td>${item.job_code}</td>
                                     <td>${item.created_at}</td>
                                     <td>${item.customer_name}</td>
@@ -130,6 +130,6 @@ $(document).ready(function () {
         window.print();
     });
 
-    // Load initial data (Optional - maybe wait for user to click search)
-    // loadReport();
+    // Load initial data
+    loadReport();
 });

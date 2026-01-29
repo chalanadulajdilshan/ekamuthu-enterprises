@@ -144,6 +144,65 @@ jQuery(document).ready(function () {
     return false;
   });
 
+  // Delete Page
+  $("#delete").click(function (event) {
+    event.preventDefault();
+
+    var id = $("#page_id").val();
+
+    if (!id || id == 0) {
+      swal({
+        title: "Error!",
+        text: "Please select a page to delete",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    swal({
+      title: "Are you sure?",
+      text: "You will not be able to recover this page!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, delete it!",
+      closeOnConfirm: false
+    }, function () {
+      $.ajax({
+        url: "ajax/php/pages.php",
+        type: "POST",
+        data: {
+          delete: true,
+          page_id: id
+        },
+        dataType: "JSON",
+        success: function (result) {
+          if (result.status === "success") {
+            swal({
+              title: "Deleted!",
+              text: "Page has been deleted.",
+              type: "success",
+              timer: 2000,
+              showConfirmButton: false
+            });
+
+            setTimeout(function () {
+              location.reload();
+            }, 2000);
+          } else {
+            swal("Error!", "Failed to delete page.", "error");
+          }
+        },
+        error: function () {
+          swal("Error!", "Something went wrong.", "error");
+        }
+      });
+    });
+  });
+
+
   //remove input field values
   $("#new").click(function (e) {
     e.preventDefault();
@@ -156,6 +215,7 @@ jQuery(document).ready(function () {
     // Optional: Reset selects to default option (if needed)
     $("#id").prop("selectedIndex", 0);
     $("#create").show();
+    $("#delete").hide();
   });
 
   //model click append value form
@@ -167,6 +227,7 @@ jQuery(document).ready(function () {
     $("#page_url").val($(this).data("url"));
 
     $("#create").hide();
+    $("#delete").show();
     $(".bs-example-modal-xl").modal("hide"); // Close the modal
   });
 
