@@ -169,7 +169,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 </div>
 
                                                 <!-- One Day's Rent -->
-                                                <div class="col-md-2">
+                                                <div class="col-md-1">
                                                     <label for="rent_one_day" class="form-label">One Day's Rent <span
                                                             class="text-danger">*</span></label>
                                                     <input id="rent_one_day" name="rent_one_day" type="number"
