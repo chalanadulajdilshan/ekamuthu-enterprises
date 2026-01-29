@@ -72,16 +72,18 @@ jQuery(document).ready(function () {
             errorMsg = "Please upload Company PDF/Image";
           }
         }
-      } else {
-        // Validation for Individual
-        if (!$("#customer_photo_image_1").val()) {
-          errorMsg = "Please upload Customer Photo";
-        } else if (!$("#nic_image_1").val()) {
-          errorMsg = "Please upload NIC Front Image";
-        } else if (!$("#nic_image_2").val()) {
-          errorMsg = "Please upload NIC Back Image";
-        }
-      }
+      } 
+      
+      // else {
+      //   // Validation for Individual
+      //   if (!$("#customer_photo_image_1").val()) {
+      //     errorMsg = "Please upload Customer Photo";
+      //   } else if (!$("#nic_image_1").val()) {
+      //     errorMsg = "Please upload NIC Front Image";
+      //   } else if (!$("#nic_image_2").val()) {
+      //     errorMsg = "Please upload NIC Back Image";
+      //   }
+      // }
 
       if (errorMsg) {
         $("#create").prop("disabled", false);
