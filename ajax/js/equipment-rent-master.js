@@ -31,12 +31,12 @@ jQuery(document).ready(function () {
 
     if (rentType === "day") {
       // amount = currentRentOneDay * duration * qty;
-       amount = currentRentOneDay ;
+       amount = currentRentOneDay * qty ;
       returnDate.setDate(returnDate.getDate() + duration);
       $("#duration_label").text("Days");
     } else {
       // amount = currentRentOneMonth * duration * qty;
-      amount = currentRentOneMonth ;
+      amount = currentRentOneMonth * qty ;
       returnDate.setMonth(returnDate.getMonth() + duration);
       $("#duration_label").text("Months");
     }
@@ -102,11 +102,11 @@ jQuery(document).ready(function () {
       if (rentType === "day") {
         // amount = currentRentOneDay * duration * qty;
         
-        amount = currentRentOneDay ;
+        amount = currentRentOneDay * qty;
 
       } else {
           // amount = currentRentOneMonth * duration * qty;
-        amount = currentRentOneMonth ;
+        amount = currentRentOneMonth * qty;
 
       }
       $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
