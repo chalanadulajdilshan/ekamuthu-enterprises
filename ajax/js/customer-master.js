@@ -284,12 +284,16 @@ jQuery(document).ready(function () {
   $("#update").click(function (event) {
     event.preventDefault();
 
+    // Show page preloader immediately when button is clicked
+    $("#page-preloader").show();
+
     // Disable the button to prevent multiple submissions
     $("#update").prop("disabled", true);
 
     if (!$("#code").val()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter customer code",
@@ -300,6 +304,7 @@ jQuery(document).ready(function () {
     } else if (!$("#name").val()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter customer name",
@@ -310,6 +315,7 @@ jQuery(document).ready(function () {
     } else if (!$("#address").val()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter customer address",
@@ -320,6 +326,7 @@ jQuery(document).ready(function () {
     } else if ($("#nic").val() && !isNICValid()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter a valid NIC number",
@@ -330,6 +337,7 @@ jQuery(document).ready(function () {
     } else if (!$("#mobile_number").val()) {
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter mobile number",
@@ -340,6 +348,7 @@ jQuery(document).ready(function () {
     } else if (!$("#water_bill_no").val() && !$("#nic").val()) { // Assuming logic applies to non-company mostly, or general fallback
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter NIC Number OR Utility Bill Number",
@@ -348,8 +357,6 @@ jQuery(document).ready(function () {
         showConfirmButton: true,
       });
     } else {
-      // Show page preloader
-      $("#page-preloader").show();
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
