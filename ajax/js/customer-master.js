@@ -181,6 +181,7 @@ jQuery(document).ready(function () {
 
   // Create Customer in Invoice
   $("#create-invoice-customer").click(function (event) {
+    $("#page-preloader").show();
     event.preventDefault();
 
     // Disable the button to prevent multiple submissions
