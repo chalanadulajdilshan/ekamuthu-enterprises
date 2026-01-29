@@ -577,72 +577,97 @@ jQuery(document).ready(function () {
     }
   });
 
-  // Load Customer Table
+  // Load Customer Table (simple table with search)
   $("#CustomerSelectModal").on("shown.bs.modal", function () {
-    loadCustomerTable();
+    $("#customerSearchInput").val("");
+    loadCustomerTable("");
   });
 
-  function loadCustomerTable() {
-    if ($.fn.DataTable.isDataTable("#customerSelectTable")) {
-      $("#customerSelectTable").DataTable().destroy();
+  $("#customerSearchInput").on("keyup", function () {
+    var term = $(this).val();
+    loadCustomerTable(term);
+  });
+
+  function loadCustomerTable(searchTerm) {
+    var $tbody = $("#customerSelectTable tbody");
+    var $status = $("#customerTableStatus");
+
+    $status.text("Loading...");
+    $tbody.html("<tr><td colspan='7' class='text-center text-muted py-3'>Loading...</td></tr>");
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "json",
+      data: {
+        action: "search_customers_simple",
+        search: searchTerm || ""
+      },
+      success: function (res) {
+        if (!res || res.status !== "success") {
+          $tbody.html("<tr><td colspan='7' class='text-center text-danger py-3'>Failed to load customers</td></tr>");
+          $status.text("");
+          return;
+        }
+
+        var rows = res.data || [];
+        if (rows.length === 0) {
+          $tbody.html("<tr><td colspan='7' class='text-center text-muted py-3'>No customers found</td></tr>");
+          $status.text("0 customers");
+          return;
+        }
+
+        var html = "";
+        rows.forEach(function (row) {
+          var nameCell = row.name;
+          if (parseInt(row.is_blacklisted) === 1) {
+            nameCell += ' <span class="badge bg-danger ms-1">Blocked</span>';
+          }
+          html +=
+            "<tr data-id='" + row.id + "' data-name='" + row.name + "' data-code='" + row.code + "' data-blacklist='" + (row.is_blacklisted || 0) + "'>" +
+            "<td>" + (row.id || "") + "</td>" +
+            "<td>" + (row.code || "") + "</td>" +
+            "<td>" + nameCell + "</td>" +
+            "<td>" + (row.mobile_number || "") + "</td>" +
+            "<td>" + (row.nic || "") + "</td>" +
+            "<td>" + (row.address || "") + "</td>" +
+            "<td>" + (row.outstanding || "0.00") + "</td>" +
+            "</tr>";
+        });
+
+        $tbody.html(html);
+        $status.text(rows.length + " customers");
+      },
+      error: function () {
+        $tbody.html("<tr><td colspan='7' class='text-center text-danger py-3'>Failed to load customers</td></tr>");
+        $status.text("");
+      }
+    });
+  }
+
+  $("#customerSelectTable tbody").on("click", "tr", function () {
+    var $row = $(this);
+    var isBlacklisted = parseInt($row.data("blacklist")) === 1;
+    if (isBlacklisted) {
+      swal({
+        title: "Blocked!",
+        text: "This customer is blacklisted and cannot be selected.",
+        type: "error",
+        timer: 3000,
+        showConfirmButton: false
+      });
+      return;
     }
 
-    $("#customerSelectTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/equipment-rent-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter_customers = true;
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-      },
-      columns: [
-        { data: "id", title: "#ID" },
-        { data: "code", title: "Code" },
-        {
-          data: "name",
-          title: "Name",
-          render: function (data, type, row) {
-            if (row.is_blacklisted == 1) {
-              return data + ' <span class="badge bg-danger">Blocked</span>';
-            }
-            return data;
-          }
-        },
-        { data: "mobile_number", title: "Mobile" },
-        { data: "nic", title: "NIC" },
-        { data: "address", title: "Address" },
-        { data: "outstanding", title: "Outstanding" },
-      ],
-      order: [[2, "asc"]],
-      pageLength: 50,
-    });
-
-    $("#customerSelectTable tbody")
-      .off("click")
-      .on("click", "tr", function () {
-        var data = $("#customerSelectTable").DataTable().row(this).data();
-        if (data) {
-          if (data.is_blacklisted == 1) {
-            swal({
-              title: "Blocked!",
-              text: "This customer is blacklisted and cannot be selected.",
-              type: "error",
-              timer: 3000,
-              showConfirmButton: false
-            });
-            return;
-          }
-          $("#customer_id").val(data.id);
-          $("#customer_display").val(data.code + " - " + data.name);
-          $("#CustomerSelectModal").modal("hide");
-        }
-      });
-  }
+    var id = $row.data("id");
+    var code = $row.data("code");
+    var name = $row.data("name");
+    if (id) {
+      $("#customer_id").val(id);
+      $("#customer_display").val(code + " - " + name);
+      $("#CustomerSelectModal").modal("hide");
+    }
+  });
 
   // Load Equipment Table
   $("#EquipmentSelectModal").on("shown.bs.modal", function () {

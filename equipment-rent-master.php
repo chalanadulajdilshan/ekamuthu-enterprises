@@ -447,7 +447,15 @@ $bill_number = $lastId + 1;
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
-                            <table id="customerSelectTable" class="table table-bordered dt-responsive nowrap w-100">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                                <div class="fw-semibold">Click a customer to select</div>
+                                <div class="input-group" style="max-width: 340px;">
+                                    <span class="input-group-text"><i class="uil uil-search"></i></span>
+                                    <input type="text" id="customerSearchInput" class="form-control" placeholder="Search by name / NIC / mobile" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <table id="customerSelectTable" class="table table-bordered table-hover w-100 mb-0">
                                 <thead>
                                     <tr>
                                         <th>#ID</th>
@@ -459,7 +467,10 @@ $bill_number = $lastId + 1;
                                         <th>Outstanding</th>
                                     </tr>
                                 </thead>
+                                <tbody>
+                                </tbody>
                             </table>
+                            <div id="customerTableStatus" class="text-muted small mt-2"></div>
                         </div>
                     </div>
                 </div>

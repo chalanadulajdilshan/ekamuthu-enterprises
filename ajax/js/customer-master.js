@@ -2,7 +2,6 @@ jQuery(document).ready(function () {
   // Create Customer
   $("#create").click(function (event) {
     event.preventDefault();
-
     // Disable the button to prevent multiple submissions
     $("#create").prop("disabled", true);
 
@@ -87,7 +86,7 @@ jQuery(document).ready(function () {
         return;
       }
       // -----------------------------------
-      // Show page preloader
+      // Show page preloader only after validation passes
       $("#page-preloader").show();
 
       var formData = new FormData($("#form-data")[0]);
@@ -96,7 +95,7 @@ jQuery(document).ready(function () {
         url: "ajax/php/customer-master.php",
         type: "POST",
         data: formData,
-        async: false,
+        async: true,
         cache: false,
         contentType: false,
         processData: false,

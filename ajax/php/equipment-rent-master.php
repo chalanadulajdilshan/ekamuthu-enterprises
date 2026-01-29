@@ -579,6 +579,41 @@ if (isset($_POST['filter_customers'])) {
     exit;
 }
 
+// Simple customer search (non-DataTable) for modal
+if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
+    $db = Database::getInstance();
+    $search = trim($_POST['search'] ?? '');
+
+    $where = "WHERE id != 1"; // skip default/system customer if any
+    if ($search !== '') {
+        $safeSearch = mysqli_real_escape_string($db->DB_CON, $search);
+        $where .= " AND (name LIKE '%$safeSearch%' OR code LIKE '%$safeSearch%' OR mobile_number LIKE '%$safeSearch%' OR nic LIKE '%$safeSearch%')";
+    }
+
+    $sql = "SELECT id, code, name, mobile_number, address, nic, old_outstanding, is_blacklisted FROM customer_master $where ORDER BY name ASC LIMIT 500";
+    $result = $db->readQuery($sql);
+
+    $data = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $data[] = [
+            'id' => $row['id'],
+            'code' => $row['code'],
+            'name' => $row['name'],
+            'mobile_number' => $row['mobile_number'],
+            'address' => $row['address'],
+            'nic' => $row['nic'],
+            'outstanding' => number_format($row['old_outstanding'] ?? 0, 2),
+            'is_blacklisted' => $row['is_blacklisted'] ?? 0,
+        ];
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'data' => $data
+    ]);
+    exit;
+}
+
 // Filter equipment for DataTable (only equipment that has sub-equipment)
 if (isset($_POST['filter_equipment'])) {
     $db = Database::getInstance();
