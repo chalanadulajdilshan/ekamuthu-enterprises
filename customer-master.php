@@ -140,7 +140,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
 
                                                         <div class="col-12 col-md-6 col-lg-3">
-                                                            <label for="nic" class="form-label">NIC <span class="text-danger">*</span></label>
+                                                            <label for="nic" class="form-label">NIC</label>
                                                             <div class="input-group">
                                                                 <input id="nic" name="nic" type="text" class="form-control"
                                                                     placeholder="Enter NIC number" maxlength="12"
@@ -183,7 +183,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
 
                                                         <div class="col-12 col-md-8 col-lg-4 mt-3">
-                                                            <label for="address" class="form-label">NIC Address <span class="text-danger">*</span></label>
+                                                            <label for="address" class="form-label">NIC Address</label>
                                                             <input id="address" onkeyup="toUpperCaseInput(this)" name="address"
                                                                 type="text" class="form-control" placeholder="Enter NIC address">
                                                         </div>

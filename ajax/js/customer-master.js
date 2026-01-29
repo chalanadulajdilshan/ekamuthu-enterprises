@@ -29,26 +29,6 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#address").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter customer address",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else if (!$("#nic").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter NIC number",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
     } else if ($("#nic").val() && !isNICValid()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
@@ -68,16 +48,6 @@ jQuery(document).ready(function () {
         type: "error",
         timer: 2000,
         showConfirmButton: false,
-      });
-    } else if (!isCompany && !$("#water_bill_no").val() && !$("#nic").val()) {
-      // Re-enable the button on validation error
-      $("#create").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please enter NIC Number OR Utility Bill Number",
-        type: "error",
-        timer: 3000,
-        showConfirmButton: true,
       });
     } else {
 
