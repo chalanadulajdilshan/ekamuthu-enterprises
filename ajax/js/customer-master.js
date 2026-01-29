@@ -2,6 +2,10 @@ jQuery(document).ready(function () {
   // Create Customer
   $("#create").click(function (event) {
     event.preventDefault();
+
+    // Show page preloader immediately when button is clicked
+    $("#page-preloader").show();
+
     // Disable the button to prevent multiple submissions
     $("#create").prop("disabled", true);
 
@@ -11,6 +15,7 @@ jQuery(document).ready(function () {
     if (!$("#code").val()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter customer code",
@@ -21,6 +26,7 @@ jQuery(document).ready(function () {
     } else if (!$("#name").val()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter customer name",
@@ -31,6 +37,7 @@ jQuery(document).ready(function () {
     } else if ($("#nic").val() && !isNICValid()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter a valid NIC number",
@@ -41,6 +48,7 @@ jQuery(document).ready(function () {
     } else if (!$("#mobile_number").val()) {
       // Re-enable the button on validation error
       $("#create").prop("disabled", false);
+      $("#page-preloader").hide();
       swal({
         title: "Error!",
         text: "Please enter mobile number",
@@ -76,6 +84,7 @@ jQuery(document).ready(function () {
 
       if (errorMsg) {
         $("#create").prop("disabled", false);
+        $("#page-preloader").hide();
         swal({
           title: "Error!",
           text: errorMsg,
@@ -86,8 +95,6 @@ jQuery(document).ready(function () {
         return;
       }
       // -----------------------------------
-      // Show page preloader only after validation passes
-      $("#page-preloader").show();
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
@@ -95,7 +102,7 @@ jQuery(document).ready(function () {
         url: "ajax/php/customer-master.php",
         type: "POST",
         data: formData,
-        async: true,
+        async: false,
         cache: false,
         contentType: false,
         processData: false,

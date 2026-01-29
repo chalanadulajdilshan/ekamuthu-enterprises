@@ -77,8 +77,12 @@ $hire_amount = $total_amount;
 $net_amount = $total_amount + $total_deposit + $transport_amount;
 $total_outstanding = $net_amount; // For now, assuming full amount is outstanding
 
-// Get customer mobile number for WhatsApp
-$customerMobile = !empty($CUSTOMER_MASTER->mobile_number) ? $CUSTOMER_MASTER->mobile_number : '';
+// Get customer WhatsApp number (mobile_number_2) for WhatsApp sharing
+$customerMobile = !empty($CUSTOMER_MASTER->mobile_number_2) ? $CUSTOMER_MASTER->mobile_number_2 : '';
+// Fallback to primary mobile if WP No is not available
+if (empty($customerMobile)) {
+    $customerMobile = !empty($CUSTOMER_MASTER->mobile_number) ? $CUSTOMER_MASTER->mobile_number : '';
+}
 if (!empty($customerMobile)) {
     $customerMobile = preg_replace('/\D/', '', $customerMobile);
     if (strlen($customerMobile) == 10) {
@@ -211,6 +215,7 @@ if (!empty($customerMobile)) {
                             <p class="mb-1"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
                             <p class="mb-1"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
                             <p class="mb-1"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>WP No:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '.................................'; ?></p>
                             <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
                             <p class="mb-1"><strong>Workplace Address:</strong> <?php echo !empty($CUSTOMER_MASTER->workplace_address) ? htmlspecialchars($CUSTOMER_MASTER->workplace_address) : '.................................'; ?></p>
                             <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>

@@ -175,9 +175,9 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
                                                         
                                                         <div class="col-12 col-md-3 col-lg-2">
-                                                            <label for="mobile_number_2" class="form-label">Mobile Number 02</label>
+                                                            <label for="mobile_number_2" class="form-label">WP No</label>
                                                             <input id="mobile_number_2" name="mobile_number_2" type="tel"
-                                                                class="form-control" placeholder="Enter secondary mobile"
+                                                                class="form-control" placeholder="Enter WhatsApp number"
                                                                 pattern="[0-9]{10}" maxlength="10"
                                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                                         </div>
