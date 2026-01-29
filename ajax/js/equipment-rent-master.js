@@ -1010,6 +1010,13 @@ jQuery(document).ready(function () {
           setTimeout(function () {
             window.location.reload();
           }, 2000);
+        } else if (result.status === "duplicate") {
+          swal({
+            title: "Duplicate Bill Number!",
+            text: result.message || "Bill number already exists.",
+            type: "warning",
+            showConfirmButton: true,
+          });
         } else {
           swal({
             title: "Error!",
@@ -1093,6 +1100,13 @@ jQuery(document).ready(function () {
           setTimeout(function () {
             window.location.reload();
           }, 2000);
+        } else if (result.status === "duplicate") {
+          swal({
+            title: "Duplicate Bill Number!",
+            text: result.message || "Bill number already exists.",
+            type: "warning",
+            showConfirmButton: true,
+          });
         } else {
           swal({
             title: "Error!",

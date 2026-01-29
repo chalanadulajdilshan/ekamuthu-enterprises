@@ -130,7 +130,7 @@ $bill_number = $lastId + 1;
                                                         අංකය</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
-                                                            value="<?php echo $bill_number ?>" readonly>
+                                                            value="<?php echo $bill_number ?>" placeholder="Enter Bill Number">
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#EquipmentRentModal"><i
@@ -638,6 +638,7 @@ $bill_number = $lastId + 1;
 
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
+
     <!-- /////////////////////////// -->
     <!-- include main js  -->
     <?php include 'main-js.php' ?>

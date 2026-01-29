@@ -22,21 +22,12 @@ if (isset($_POST['create'])) {
     $codeCheck = "SELECT id FROM equipment_rent WHERE bill_number = '{$_POST['code']}'";
     $existingRent = mysqli_fetch_assoc($db->readQuery($codeCheck));
 
-    $bill_number = $_POST['code'];
-
     if ($existingRent) {
-        // If bill number exists, find the absolute next available one
-        $query = "SELECT MAX(CAST(bill_number AS UNSIGNED)) as max_id FROM equipment_rent";
-        $result = $db->readQuery($query);
-        $row = mysqli_fetch_assoc($result);
-        $max_id = $row['max_id'];
-
-        $DOC_TRACKING = new DocumentTracking(1);
-        $tracking_id = $DOC_TRACKING->equipment_rent_id;
-
-        // Next ID is max of (existing in DB, tracking ID) + 1
-        $bill_number = max((int) $max_id, (int) $tracking_id) + 1;
+        echo json_encode(["status" => "duplicate", "message" => "Bill number already exists in the system"]);
+        exit();
     }
+
+    $bill_number = $_POST['code'];
 
     // Parse items from JSON
     $items = json_decode($_POST['items'] ?? '[]', true);
@@ -349,6 +340,52 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
         "status" => "success",
         "code" => $newCode
     ]);
+    exit;
+}
+
+// List bill numbers for autocomplete
+if (isset($_POST['action']) && $_POST['action'] === 'list_bill_numbers') {
+    $db = Database::getInstance();
+    $sql = "SELECT er.id, er.bill_number, c.name AS customer_name FROM equipment_rent er LEFT JOIN customer_master c ON er.customer_id = c.id ORDER BY er.id DESC";
+    $result = $db->readQuery($sql);
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $labelName = trim(($row['customer_name'] ?? ''));
+        $data[] = [
+            'label' => $row['bill_number'] . ($labelName ? (' - ' . $labelName) : ''),
+            'value' => $row['bill_number'],
+            'bill_number' => $row['bill_number'],
+            'rent_id' => $row['id'],
+        ];
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'data' => $data
+    ]);
+    exit;
+}
+
+// Get rent id by bill number
+if (isset($_POST['action']) && $_POST['action'] === 'get_rent_by_bill' && isset($_POST['bill_number'])) {
+    $db = Database::getInstance();
+    $bill = mysqli_real_escape_string($db->DB_CON, $_POST['bill_number']);
+    $sql = "SELECT id FROM equipment_rent WHERE bill_number = '$bill' LIMIT 1";
+    $result = $db->readQuery($sql);
+    $row = mysqli_fetch_assoc($result);
+
+    if ($row) {
+        echo json_encode([
+            'status' => 'success',
+            'rent_id' => $row['id']
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Bill number not found'
+        ]);
+    }
     exit;
 }
 
