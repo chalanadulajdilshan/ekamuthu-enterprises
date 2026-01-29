@@ -17,6 +17,12 @@ $EQUIPMENT = new Equipment(NULL);
     <meta content="<?php echo $COMPANY_PROFILE_DETAILS->name ?>" name="author" />
     <!-- include main CSS -->
     <?php include 'main-css.php' ?>
+    <style>
+        .highlight-text {
+            background-color: yellow;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body data-layout="horizontal" data-topbar="colored">

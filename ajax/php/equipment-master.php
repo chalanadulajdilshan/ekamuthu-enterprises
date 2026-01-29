@@ -192,7 +192,7 @@ if (isset($_POST['filter'])) {
     // Search filter
     $where = "WHERE 1=1";
     if (!empty($search)) {
-        $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%' OR damage LIKE '%$search%' OR size LIKE '%$search%')";
+        $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%' OR damage LIKE '%$search%' OR size LIKE '%$search%' OR EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = equipment.id AND se.code LIKE '%$search%'))";
     }
 
     // Filtered records
@@ -236,8 +236,19 @@ if (isset($_POST['filter'])) {
             "no_sub_items" => $row['no_sub_items'],
             "change_value" => $row['change_value'] ?? 0,
             "image_name" => $row['image_name'],
-            "remark" => $row['remark']
+            "remark" => $row['remark'],
+            "has_sub_match" => false, 
+            "search_term" => $search
         ];
+
+        // Check for sub-equipment match if search is active
+        if (!empty($search)) {
+            $subMatchQuery = "SELECT 1 FROM sub_equipment WHERE equipment_id = " . (int)$row['id'] . " AND code LIKE '%$search%' LIMIT 1";
+            $subMatchResult = $db->readQuery($subMatchQuery);
+            if ($subMatchResult && mysqli_num_rows($subMatchResult) > 0) {
+                $nestedData['has_sub_match'] = true;
+            }
+        }
 
         $data[] = $nestedData;
         $key++;
@@ -339,7 +350,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
                 'total_qty' => $totalQty,
             ];
         } else {
-            $sql = "SELECT id, equipment_id, code, rental_status FROM sub_equipment WHERE equipment_id = $equipment_id ORDER BY id ASC";
+            $sql = "SELECT id, equipment_id, code, rental_status FROM sub_equipment WHERE equipment_id = $equipment_id";
+            
+            // Apply search filter to sub-equipment if provided
+            if (isset($_POST['search']) && !empty($_POST['search'])) {
+                $search = mysqli_real_escape_string($db->DB_CON, $_POST['search']);
+                $sql .= " AND code LIKE '%$search%'";
+            }
+            
+            $sql .= " ORDER BY id ASC";
             $result = $db->readQuery($sql);
             while ($row = mysqli_fetch_assoc($result)) {
                 $subEquipments[] = [

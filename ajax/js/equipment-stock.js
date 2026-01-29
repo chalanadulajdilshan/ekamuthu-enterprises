@@ -78,7 +78,24 @@ jQuery(document).ready(function () {
         },
         drawCallback: function () {
             $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-        },
+
+            // Auto-expand rows with sub-equipment matches
+            var api = this.api();
+            var searchTerm = api.search();
+
+            api.rows().every(function () {
+                var data = this.data();
+                if (data.has_sub_match === true && searchTerm.length > 0) {
+                    var tr = $(this.node());
+                    var row = this;
+
+                    if (!row.child.isShown()) {
+                        // Trigger expansion
+                        tr.find('td.details-control').trigger('click');
+                    }
+                }
+            });
+        }
     });
 
     // Make rows appear clickable
@@ -111,8 +128,17 @@ jQuery(document).ready(function () {
     // Load summary totals on page load
     loadSummaryTotals();
 
+    // Highlight text helper
+    function highlightText(text, term) {
+        if (!term || term.trim() === "") {
+            return text;
+        }
+        var pattern = new RegExp("(" + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ")", "gi");
+        return text.replace(pattern, '<span class="highlight-text">$1</span>');
+    }
+
     // Function to render sub-equipment table
-    function renderSubEquipmentTable(subEquipments, meta) {
+    function renderSubEquipmentTable(subEquipments, meta, searchTerm) {
         // If equipment has no sub-items, show summary badges
         if (meta && meta.no_sub_items == 1) {
             var available = parseFloat(meta.available_qty || 0).toFixed(0);
@@ -120,14 +146,33 @@ jQuery(document).ready(function () {
             var total = parseFloat(meta.total_qty || 0).toFixed(0);
 
             return (
-                '<div class="p-3">'
-                + '<div class="fw-bold mb-2">No Sub-Items (summary)</div>'
-                + '<div class="d-flex gap-2 flex-wrap">'
-                + '<span class="badge bg-success">Available: ' + available + '</span>'
-                + '<span class="badge bg-danger">Rented: ' + rented + '</span>'
-                + '<span class="badge bg-secondary">Total: ' + total + '</span>'
-                + '</div>'
-                + '</div>'
+                '<div class="row m-2">' +
+
+                '<div class="col-md-4">' +
+                '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
+                '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Available</span>' +
+                '<span class="text-muted fw-bold me-2">-</span>' +
+                '<span class="text-success fw-bold font-size-22">' + available + '</span>' +
+                '</div>' +
+                '</div>' +
+
+                '<div class="col-md-4">' +
+                '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
+                '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Rented</span>' +
+                '<span class="text-muted fw-bold me-2">-</span>' +
+                '<span class="text-danger fw-bold font-size-22">' + rented + '</span>' +
+                '</div>' +
+                '</div>' +
+
+                '<div class="col-md-4">' +
+                '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
+                '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Total</span>' +
+                '<span class="text-muted fw-bold me-2">-</span>' +
+                '<span class="text-dark fw-bold font-size-22">' + total + '</span>' +
+                '</div>' +
+                '</div>' +
+
+                '</div>'
             );
         }
 
@@ -146,11 +191,16 @@ jQuery(document).ready(function () {
             "</tr></thead><tbody>";
 
         subEquipments.forEach(function (item, index) {
+            var code = item.code || "-";
+            if (searchTerm) {
+                code = highlightText(code, searchTerm);
+            }
+
             html +=
                 "<tr>" +
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
-                "<td>" + (item.code || "-") + "</td>" +
+                "<td>" + code + "</td>" +
                 "<td>" + renderStatusBadge(item.rental_status) + "</td>" +
                 "</tr>";
         });
@@ -218,10 +268,11 @@ jQuery(document).ready(function () {
                 data: {
                     action: "get_sub_equipment",
                     equipment_id: data.id,
+                    search: table.search() // Pass current search term
                 },
                 success: function (resp) {
                     if (resp && resp.status === "success") {
-                        row.child(renderSubEquipmentTable(resp.data, resp.meta)).show();
+                        row.child(renderSubEquipmentTable(resp.data, resp.meta, table.search())).show();
                     } else {
                         row.child(
                             '<div class="p-2 text-muted">No sub-equipment available</div>'
