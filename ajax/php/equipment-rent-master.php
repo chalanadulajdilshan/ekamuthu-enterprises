@@ -494,21 +494,75 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
-        
-        if ($EQUIPMENT_RENT->markAllReturned()) {
-            $AUDIT_LOG = new AuditLog(NULL);
-            $AUDIT_LOG->ref_id = $rent_id;
-            $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
-            $AUDIT_LOG->action = 'RETURN_ALL';
-            $AUDIT_LOG->description = 'RETURN ALL ITEMS FOR EQUIPMENT BILL NO #' . $EQUIPMENT_RENT->bill_number;
-            $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
-            $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
-            $AUDIT_LOG->create();
-            
-            echo json_encode(["status" => "success", "message" => "All items marked as returned"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Failed to return all items"]);
+        $items = $EQUIPMENT_RENT->getItems();
+
+        if (!$items) {
+            echo json_encode(["status" => "error", "message" => "No items found for this rent"]);
+            exit;
         }
+
+        $nowDate = date('Y-m-d');
+        $nowTime = date('H:i');
+
+        foreach ($items as $item) {
+            // Only process items that still have pending quantity
+            $pendingQty = max(0, ($item['quantity'] ?? 0) - EquipmentRentReturn::getTotalReturnedQty($item['id']));
+            if ($pendingQty <= 0) {
+                continue;
+            }
+
+            // Calculate settlement for full pending quantity
+            $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, 0, 0, 0);
+
+            if ($calculation['error']) {
+                echo json_encode(["status" => "error", "message" => $calculation['message']]);
+                exit;
+            }
+
+            // Create return record for the item
+            $RETURN = new EquipmentRentReturn(NULL);
+            $RETURN->rent_item_id = $item['id'];
+            $RETURN->return_date = $nowDate;
+            $RETURN->return_time = $nowTime;
+            $RETURN->return_qty = $pendingQty;
+            $RETURN->damage_amount = 0;
+            $RETURN->after_9am_extra_day = 0;
+            $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
+            $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
+            $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
+            $RETURN->settle_amount = $calculation['settle_amount'];
+            $RETURN->refund_amount = $calculation['refund_amount'];
+            $RETURN->additional_payment = $calculation['additional_payment'];
+            $RETURN->remark = 'Returned via Return All';
+
+            $return_id = $RETURN->create();
+
+            if ($return_id) {
+                // Mark item as returned
+                $RENT_ITEM = new EquipmentRentItem($item['id']);
+                $RENT_ITEM->markAsReturned();
+            } else {
+                echo json_encode(["status" => "error", "message" => "Failed to create return record for item #" . ($item['id'] ?? '')]);
+                exit;
+            }
+        }
+
+        // Update master rent status
+        $EQUIPMENT_RENT->status = 'returned';
+        $EQUIPMENT_RENT->received_date = $nowDate;
+        $EQUIPMENT_RENT->update();
+
+        // Audit log
+        $AUDIT_LOG = new AuditLog(NULL);
+        $AUDIT_LOG->ref_id = $rent_id;
+        $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
+        $AUDIT_LOG->action = 'RETURN_ALL';
+        $AUDIT_LOG->description = 'RETURN ALL ITEMS FOR EQUIPMENT BILL NO #' . $EQUIPMENT_RENT->bill_number;
+        $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+        $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+        $AUDIT_LOG->create();
+        
+        echo json_encode(["status" => "success", "message" => "All items returned successfully"]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
     }
