@@ -396,6 +396,13 @@ $bill_number = $lastId + 1;
                                                                                 class="fw-bold">0.00</span></small>
                                                                     </td>
                                                                 </tr>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Customer Refund Balance:
+                                                                    </td>
+                                                                    <td class="text-end">
+                                                                        <span id="customer_refund_balance" class="fw-bold text-success">0.00</span>
+                                                                    </td>
+                                                                </tr>
                                                             </tbody>
                                                         </table>
                                                     </div>

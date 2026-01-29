@@ -654,6 +654,7 @@ jQuery(document).ready(function () {
           $("#remark").val(rent.remark || "");
           $("#transport_cost").val(rent.transport_cost || "0.00");
           $("#custom_deposit").val(rent.deposit_total || "0.00");
+          $("#customer_refund_balance").text(parseFloat(rent.refund_balance || 0).toFixed(2));
 
           // Lock manual edits when loading an existing rent
           $("#transport_cost, #custom_deposit").prop("readonly", true);
@@ -1423,6 +1424,7 @@ jQuery(document).ready(function () {
     $("#custom_deposit").val("");
     $("#transport_cost, #custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#calculated_deposit_display").text("0.00");
+    $("#customer_refund_balance").text("0.00");
     totalCalculatedDeposit = 0;
     rentItems = [];
     updateItemsTable();

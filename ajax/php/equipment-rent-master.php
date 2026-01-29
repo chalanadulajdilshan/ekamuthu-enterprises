@@ -299,6 +299,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
             $items[] = $row;
         }
 
+        // Calculate refund balance from returns
+        $refundQuery = "SELECT COALESCE(SUM(refund_amount), 0) as total_refund, 
+                        COALESCE(SUM(additional_payment), 0) as total_additional
+                        FROM equipment_rent_returns err
+                        INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                        WHERE eri.rent_id = $rent_id";
+        $refundResult = $db->readQuery($refundQuery);
+        $refundData = mysqli_fetch_assoc($refundResult);
+        $totalRefund = floatval($refundData['total_refund'] ?? 0);
+        $totalAdditional = floatval($refundData['total_additional'] ?? 0);
+        $refundBalance = $totalRefund - $totalAdditional;
+
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 
@@ -315,6 +327,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "remark" => $EQUIPMENT_RENT->remark,
                 "transport_cost" => $EQUIPMENT_RENT->transport_cost,
                 "deposit_total" => $EQUIPMENT_RENT->deposit_total,
+                "refund_balance" => $refundBalance,
                 "payment_type_id" => $EQUIPMENT_RENT->payment_type_id,
                 "payment_type_name" => $paymentTypeName,
                 "total_items" => $EQUIPMENT_RENT->total_items
