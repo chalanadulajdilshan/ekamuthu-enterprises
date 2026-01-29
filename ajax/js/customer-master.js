@@ -128,6 +128,8 @@ jQuery(document).ready(function () {
               window.location.reload();
             }, 2000);
           } else if (result.status === "duplicate") {
+            // Hide preloader in duplicate case
+            $("#page-preloader").hide();
             swal({
               title: "Duplicate Entry!",
               text: result.message,
@@ -135,6 +137,8 @@ jQuery(document).ready(function () {
               showConfirmButton: true,
             });
           } else {
+            // Hide preloader in generic error case
+            $("#page-preloader").hide();
             swal({
               title: "Error!",
               text: "Something went wrong.",
@@ -143,6 +147,11 @@ jQuery(document).ready(function () {
               showConfirmButton: false,
             });
           }
+        },
+        complete: function () {
+          // Ensure preloader hidden and button enabled
+          $("#page-preloader").hide();
+          $("#create").prop("disabled", false);
         },
         error: function (xhr, status, error) {
           // Hide page preloader
@@ -391,6 +400,7 @@ jQuery(document).ready(function () {
           } else if (result.status === "duplicate") {
             // Re-enable the button
             $("#update").prop("disabled", false);
+            $("#page-preloader").hide();
             swal({
               title: "Duplicate Entry!",
               text: result.message,
@@ -400,6 +410,7 @@ jQuery(document).ready(function () {
           } else {
             // Re-enable the button
             $("#update").prop("disabled", false);
+            $("#page-preloader").hide();
             swal({
               title: "Error!",
               text: "Something went wrong.",
@@ -408,6 +419,11 @@ jQuery(document).ready(function () {
               showConfirmButton: false,
             });
           }
+        },
+        complete: function () {
+          // Ensure preloader hidden and button enabled
+          $("#page-preloader").hide();
+          $("#update").prop("disabled", false);
         },
       });
     }
@@ -907,6 +923,11 @@ jQuery(document).ready(function () {
             type: "error",
             showConfirmButton: true,
           });
+        },
+        complete: function () {
+          // Ensure preloader hidden and button enabled
+          $("#page-preloader").hide();
+          $("#create-invoice-customer").prop("disabled", false);
         }
       });
     });
