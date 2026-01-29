@@ -590,7 +590,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
         $where .= " AND (name LIKE '%$safeSearch%' OR code LIKE '%$safeSearch%' OR mobile_number LIKE '%$safeSearch%' OR nic LIKE '%$safeSearch%')";
     }
 
-    $sql = "SELECT id, code, name, mobile_number, address, nic, old_outstanding, is_blacklisted FROM customer_master $where ORDER BY name ASC LIMIT 500";
+    // If no search term, only load a small initial set to keep modal light
+    $limitClause = ($search === '') ? 'LIMIT 5' : 'LIMIT 500';
+
+    $sql = "SELECT id, code, name, mobile_number, address, nic, old_outstanding, is_blacklisted FROM customer_master $where ORDER BY name ASC $limitClause";
     $result = $db->readQuery($sql);
 
     $data = [];
@@ -702,6 +705,56 @@ if (isset($_POST['filter_equipment'])) {
         "recordsFiltered" => intval($filteredData),
         "data" => $data
     ]);
+    exit;
+}
+
+// Update equipment amount (rent_one_day or rent_one_month)
+if (isset($_POST['action']) && $_POST['action'] === 'update_equipment_amount') {
+    $equipment_id = $_POST['equipment_id'] ?? 0;
+    $rent_type = $_POST['rent_type'] ?? 'day';
+    $amount = $_POST['amount'] ?? 0;
+
+    if (!$equipment_id || $amount <= 0) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Invalid equipment ID or amount'
+        ]);
+        exit;
+    }
+
+    $db = Database::getInstance();
+    $equipment_id = (int) $equipment_id;
+    $amount = (float) $amount;
+
+    // Determine which field to update based on rent type
+    $field = ($rent_type === 'month') ? 'rent_one_month' : 'rent_one_day';
+
+    // Update the equipment table
+    $updateQuery = "UPDATE equipment SET `$field` = '$amount' WHERE id = $equipment_id";
+    $result = $db->readQuery($updateQuery);
+
+    if ($result) {
+        // Create audit log
+        $EQUIPMENT = new Equipment($equipment_id);
+        $AUDIT_LOG = new AuditLog(NULL);
+        $AUDIT_LOG->ref_id = $equipment_id;
+        $AUDIT_LOG->ref_code = $EQUIPMENT->code;
+        $AUDIT_LOG->action = 'UPDATE';
+        $AUDIT_LOG->description = 'UPDATE EQUIPMENT ' . $EQUIPMENT->code . ' - ' . strtoupper($field) . ' to ' . $amount;
+        $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+        $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+        $AUDIT_LOG->create();
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Equipment amount updated successfully'
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Failed to update equipment amount'
+        ]);
+    }
     exit;
 }
 

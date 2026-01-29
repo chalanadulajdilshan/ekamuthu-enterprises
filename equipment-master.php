@@ -168,6 +168,16 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                     </select>
                                                 </div>
 
+                                                <!-- One Day's Rent -->
+                                                <div class="col-md-2">
+                                                    <label for="rent_one_day" class="form-label">One Day's Rent <span
+                                                            class="text-danger">*</span></label>
+                                                    <input id="rent_one_day" name="rent_one_day" type="number"
+                                                        step="0.01" class="form-control" placeholder="0.00" min="0"
+                                                        required>
+
+                                                </div>
+
                                                 <!-- Serial Number -->
                                                 <div class="col-md-2">
                                                     <label for="serial_number" class="form-label">Serial Number <span
@@ -192,16 +202,6 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                             class="text-danger">*</span></label>
                                                     <input id="size" name="size" type="text" class="form-control"
                                                         placeholder="Size" required>
-
-                                                </div>
-
-                                                <!-- One Day's Rent -->
-                                                <div class="col-md-2">
-                                                    <label for="rent_one_day" class="form-label">One Day's Rent <span
-                                                            class="text-danger">*</span></label>
-                                                    <input id="rent_one_day" name="rent_one_day" type="number"
-                                                        step="0.01" class="form-control" placeholder="0.00" min="0"
-                                                        required>
 
                                                 </div>
 

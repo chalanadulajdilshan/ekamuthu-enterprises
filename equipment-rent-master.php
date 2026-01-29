@@ -279,8 +279,16 @@ $bill_number = $lastId + 1;
 
                                             <div class="col-md-2">
                                                 <label class="form-label">Amount - අගය</label>
-                                                <input type="text" class="form-control" id="item_amount" readonly
-                                                    placeholder="0.00">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="item_amount" readonly
+                                                        placeholder="0.00">
+                                                    <?php if ($PERMISSIONS['edit_page']): ?>
+                                                        <button class="btn btn-danger" type="button" id="btn-enable-amount-edit" 
+                                                            title="Enable manual amount editing" style="display: none;">
+                                                            <i class="uil uil-plus"></i>
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
 
                                         </div>
