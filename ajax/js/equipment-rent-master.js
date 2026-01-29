@@ -31,12 +31,12 @@ jQuery(document).ready(function () {
 
     if (rentType === "day") {
       // amount = currentRentOneDay * duration * qty;
-       amount = currentRentOneDay * qty ;
+      amount = currentRentOneDay * qty;
       returnDate.setDate(returnDate.getDate() + duration);
       $("#duration_label").text("Days");
     } else {
       // amount = currentRentOneMonth * duration * qty;
-      amount = currentRentOneMonth * qty ;
+      amount = currentRentOneMonth * qty;
       returnDate.setMonth(returnDate.getMonth() + duration);
       $("#duration_label").text("Months");
     }
@@ -101,11 +101,11 @@ jQuery(document).ready(function () {
       var qty = parseFloat($("#item_qty").val()) || 1;
       if (rentType === "day") {
         // amount = currentRentOneDay * duration * qty;
-        
+
         amount = currentRentOneDay * qty;
 
       } else {
-          // amount = currentRentOneMonth * duration * qty;
+        // amount = currentRentOneMonth * duration * qty;
         amount = currentRentOneMonth * qty;
 
       }
@@ -368,14 +368,14 @@ jQuery(document).ready(function () {
     $("#item_amount").prop("readonly", false).removeAttr("readonly").focus();
     manualAmountEditEnabled = true;
     $("#item_amount").data("manual-edited", true);
-    
+
     // Change button to save icon
     $(this).html('<i class="uil uil-save"></i>').removeClass('btn-danger').addClass('btn-success');
     $(this).attr('title', 'Save amount to equipment');
     $(this).attr('id', 'btn-save-amount-edit');
-    
+
     // Rebind the click event for save
-    $("#btn-save-amount-edit").off('click').on('click', function() {
+    $("#btn-save-amount-edit").off('click').on('click', function () {
       saveEquipmentAmount();
     });
   });
@@ -404,7 +404,7 @@ jQuery(document).ready(function () {
       showCancelButton: true,
       confirmButtonText: "Yes, save it!",
       cancelButtonText: "No, cancel"
-    }, function(isConfirm) {
+    }, function (isConfirm) {
       if (isConfirm) {
         $.ajax({
           url: "ajax/php/equipment-rent-master.php",
@@ -416,7 +416,7 @@ jQuery(document).ready(function () {
             amount: newAmount
           },
           dataType: "JSON",
-          success: function(result) {
+          success: function (result) {
             if (result.status === "success") {
               // Update the current rent values
               if (rentType === 'day') {
@@ -424,7 +424,7 @@ jQuery(document).ready(function () {
               } else {
                 currentRentOneMonth = newAmount;
               }
-              
+
               swal({
                 title: "Success!",
                 text: "Equipment amount updated successfully",
@@ -432,13 +432,13 @@ jQuery(document).ready(function () {
                 timer: 2000,
                 showConfirmButton: false,
               });
-              
+
               // Reset button to + icon
               $("#btn-save-amount-edit").html('<i class="uil uil-plus"></i>').removeClass('btn-success').addClass('btn-danger');
               $("#btn-save-amount-edit").attr('title', 'Enable manual amount editing');
               $("#btn-save-amount-edit").attr('id', 'btn-enable-amount-edit');
               manualAmountEditEnabled = false;
-              
+
               // Keep the amount field editable but mark as saved
               $("#item_amount").data("manual-edited", false);
             } else {
@@ -451,7 +451,7 @@ jQuery(document).ready(function () {
               });
             }
           },
-          error: function() {
+          error: function () {
             swal({
               title: "Error!",
               text: "Failed to update equipment amount",
@@ -1073,7 +1073,7 @@ jQuery(document).ready(function () {
           $("#item_sub_equipment_id").val(data.id);
           $("#item_sub_equipment_display").val(data.code);
           $("#SubEquipmentSelectModal").modal("hide");
-          
+
           // Auto-fill amount when sub-equipment is selected
           calculateRentDetails();
         }
