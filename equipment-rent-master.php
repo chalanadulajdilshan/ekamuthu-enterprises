@@ -425,6 +425,12 @@ $bill_number = $lastId + 1;
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
+                            <div class="d-flex justify-content-end mb-2">
+                                <div class="input-group" style="max-width: 280px;">
+                                    <span class="input-group-text"><i class="uil uil-search"></i></span>
+                                    <input type="text" id="equipmentRentSearchInput" class="form-control" placeholder="Search by bill / customer" autocomplete="off">
+                                </div>
+                            </div>
                             <table id="equipmentRentTable" class="table table-bordered dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
@@ -437,6 +443,7 @@ $bill_number = $lastId + 1;
                                         <th>Status</th>
                                     </tr>
                                 </thead>
+                                <tbody id="equipmentRentTableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -478,6 +485,7 @@ $bill_number = $lastId + 1;
                                         <th>Status</th>
                                     </tr>
                                 </thead>
+                                <tbody id="returnedBillsTableBody"></tbody>
                             </table>
                         </div>
                     </div>

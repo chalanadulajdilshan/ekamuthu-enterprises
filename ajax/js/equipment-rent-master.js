@@ -539,56 +539,82 @@ jQuery(document).ready(function () {
     updateItemsTable();
   });
 
-  // Load Equipment Rent Table when modal opens (default: pending only)
+  // Load Equipment Rent list when modal opens (limit 5, search by bill/customer)
+  var rentListSearchTimer = null;
+
   $("#EquipmentRentModal").on("shown.bs.modal", function () {
-    loadEquipmentRentTable(true);
+    loadEquipmentRentList("");
   });
 
-  function loadEquipmentRentTable(pendingOnly) {
-    if ($.fn.DataTable.isDataTable("#equipmentRentTable")) {
-      $("#equipmentRentTable").DataTable().destroy();
-    }
+  $("#equipmentRentSearchInput").on("input", function () {
+    var term = $(this).val();
+    clearTimeout(rentListSearchTimer);
+    rentListSearchTimer = setTimeout(function () {
+      loadEquipmentRentList(term);
+    }, 250);
+  });
 
-    $("#equipmentRentTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/equipment-rent-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter = true;
-          d.pending_only = pendingOnly === undefined ? true : !!pendingOnly;
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-        error: function (xhr) {
-          console.error("Server Error:", xhr.responseText);
-        },
+  function loadEquipmentRentList(searchTerm) {
+    var $tbody = $("#equipmentRentTableBody");
+    $tbody.html(
+      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>'
+    );
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "json",
+      data: {
+        filter: true,
+        length: 5,
+        start: 0,
+        pending_only: false,
+        search: { value: searchTerm || "" },
       },
-      columns: [
-        { data: "id", title: "#ID" },
-        { data: "bill_number", title: "Bill" },
-        { data: "customer_name", title: "Customer" },
-        { data: "rental_date", title: "Rental Date" },
-        { data: "received_date", title: "Received Date" },
-        { data: "total_items", title: "Items" },
-        { data: "status_label", title: "Status" },
-      ],
-      order: [[0, "desc"]],
-      pageLength: 100,
-    });
+      success: function (res) {
+        var rows = res && res.data ? res.data : [];
+        $tbody.empty();
 
-    // Row click to load rent details
-    $("#equipmentRentTable tbody")
-      .off("click")
-      .on("click", "tr", function () {
-        var data = $("#equipmentRentTable").DataTable().row(this).data();
-        if (data) {
-          loadRentDetails(data.id);
-          $("#EquipmentRentModal").modal("hide");
+        if (!rows.length) {
+          $tbody.html(
+            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>'
+          );
+          return;
         }
-      });
+
+        rows.forEach(function (row) {
+          var html =
+            "<tr class='rent-row' data-id='" +
+            (row.id || "") +
+            "'>" +
+            "<td>" + (row.id || "") + "</td>" +
+            "<td>" + (row.bill_number || "") + "</td>" +
+            "<td>" + (row.customer_name || "") + "</td>" +
+            "<td>" + (row.rental_date || "") + "</td>" +
+            "<td>" + (row.received_date || "") + "</td>" +
+            "<td>" + (row.total_items || 0) + "</td>" +
+            "<td>" + (row.status_label || "") + "</td>" +
+            "</tr>";
+          $tbody.append(html);
+        });
+
+        $("#equipmentRentTable tbody .rent-row")
+          .off("click")
+          .on("click", function () {
+            var id = $(this).data("id");
+            if (id) {
+              loadRentDetails(id);
+              $("#EquipmentRentModal").modal("hide");
+            }
+          });
+      },
+      error: function (xhr) {
+        console.error("Server Error:", xhr.responseText);
+        $tbody.html(
+          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>'
+        );
+      },
+    });
   }
 
   // Load rent details including items
@@ -699,56 +725,82 @@ jQuery(document).ready(function () {
     $("#ReturnedBillsModal").modal("show");
   });
 
-  // Load Returned Bills Table when modal opens
+  // Load Returned Bills list when modal opens (limit 5, search by bill/customer)
+  var returnedSearchTimer = null;
+
   $("#ReturnedBillsModal").on("shown.bs.modal", function () {
-    loadReturnedBillsTable();
+    loadReturnedBillsList("");
   });
 
-  function loadReturnedBillsTable() {
-    if ($.fn.DataTable.isDataTable("#returnedBillsTable")) {
-      $("#returnedBillsTable").DataTable().destroy();
-    }
+  $("#returnedBillsSearchInput").on("input", function () {
+    var term = $(this).val();
+    clearTimeout(returnedSearchTimer);
+    returnedSearchTimer = setTimeout(function () {
+      loadReturnedBillsList(term);
+    }, 250);
+  });
 
-    $("#returnedBillsTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/equipment-rent-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter = true;
-          d.returned_only = true; // only show fully returned bills
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-        error: function (xhr) {
-          console.error("Server Error:", xhr.responseText);
-        },
+  function loadReturnedBillsList(searchTerm) {
+    var $tbody = $("#returnedBillsTableBody");
+    $tbody.html(
+      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>'
+    );
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "json",
+      data: {
+        filter: true,
+        length: 5,
+        start: 0,
+        returned_only: true,
+        search: { value: searchTerm || "" },
       },
-      columns: [
-        { data: "id", title: "#ID" },
-        { data: "bill_number", title: "Bill" },
-        { data: "customer_name", title: "Customer" },
-        { data: "rental_date", title: "Rental Date" },
-        { data: "received_date", title: "Received Date" },
-        { data: "total_items", title: "Items" },
-        { data: "status_label", title: "Status" },
-      ],
-      order: [[0, "desc"]],
-      pageLength: 100,
-    });
+      success: function (res) {
+        var rows = res && res.data ? res.data : [];
+        $tbody.empty();
 
-    // Row click to load rent details
-    $("#returnedBillsTable tbody")
-      .off("click")
-      .on("click", "tr", function () {
-        var data = $("#returnedBillsTable").DataTable().row(this).data();
-        if (data) {
-          loadRentDetails(data.id);
-          $("#ReturnedBillsModal").modal("hide");
+        if (!rows.length) {
+          $tbody.html(
+            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>'
+          );
+          return;
         }
-      });
+
+        rows.forEach(function (row) {
+          var html =
+            "<tr class='returned-row' data-id='" +
+            (row.id || "") +
+            "'>" +
+            "<td>" + (row.id || "") + "</td>" +
+            "<td>" + (row.bill_number || "") + "</td>" +
+            "<td>" + (row.customer_name || "") + "</td>" +
+            "<td>" + (row.rental_date || "") + "</td>" +
+            "<td>" + (row.received_date || "") + "</td>" +
+            "<td>" + (row.total_items || 0) + "</td>" +
+            "<td>" + (row.status_label || "") + "</td>" +
+            "</tr>";
+          $tbody.append(html);
+        });
+
+        $("#returnedBillsTable tbody .returned-row")
+          .off("click")
+          .on("click", function () {
+            var id = $(this).data("id");
+            if (id) {
+              loadRentDetails(id);
+              $("#ReturnedBillsModal").modal("hide");
+            }
+          });
+      },
+      error: function (xhr) {
+        console.error("Server Error:", xhr.responseText);
+        $tbody.html(
+          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>'
+        );
+      },
+    });
   }
 
   // Load Customer Table (simple table with search)
