@@ -539,64 +539,82 @@ jQuery(document).ready(function () {
     updateItemsTable();
   });
 
-  // Load Equipment Rent Table when modal opens
+  // Load Equipment Rent list when modal opens (limit 5, search by bill/customer)
+  var rentListSearchTimer = null;
+
   $("#EquipmentRentModal").on("shown.bs.modal", function () {
-    loadEquipmentRentTable();
+    loadEquipmentRentList("");
   });
 
-  function loadEquipmentRentTable() {
-    if ($.fn.DataTable.isDataTable("#equipmentRentTable")) {
-      $("#equipmentRentTable").DataTable().destroy();
-    }
+  $("#equipmentRentSearchInput").on("input", function () {
+    var term = $(this).val();
+    clearTimeout(rentListSearchTimer);
+    rentListSearchTimer = setTimeout(function () {
+      loadEquipmentRentList(term);
+    }, 250);
+  });
 
-    $("#equipmentRentTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/equipment-rent-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter = true;
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-        error: function (xhr) {
-          console.error("Server Error:", xhr.responseText);
-        },
+  function loadEquipmentRentList(searchTerm) {
+    var $tbody = $("#equipmentRentTableBody");
+    $tbody.html(
+      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>'
+    );
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "json",
+      data: {
+        filter: true,
+        length: 5,
+        start: 0,
+        pending_only: false,
+        search: { value: searchTerm || "" },
       },
-      columns: [
-        { data: "id", title: "#ID" },
-        { data: "bill_number", title: "Bill Number" },
-        { data: "customer_name", title: "Customer" },
-        { data: "rental_date", title: "Rental Date" },
-        { data: "received_date", title: "Received Date" },
-        { data: "total_items", title: "Items" },
-        {
-          data: "outstanding_items",
-          title: "Outstanding",
-          render: function (data, type, row) {
-            return data > 0
-              ? '<span class="text-danger fw-bold">' + data + "</span>"
-              : '<span class="text-success">0</span>';
-          },
-        },
-        { data: "status_label", title: "Status" },
-      ],
-      order: [[0, "desc"]],
-      pageLength: 100,
-    });
+      success: function (res) {
+        var rows = res && res.data ? res.data : [];
+        $tbody.empty();
 
-    // Row click to load rent details
-    $("#equipmentRentTable tbody")
-      .off("click")
-      .on("click", "tr", function () {
-        var data = $("#equipmentRentTable").DataTable().row(this).data();
-        if (data) {
-          loadRentDetails(data.id);
-          $("#EquipmentRentModal").modal("hide");
+        if (!rows.length) {
+          $tbody.html(
+            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>'
+          );
+          return;
         }
-      });
+
+        rows.forEach(function (row) {
+          var html =
+            "<tr class='rent-row' data-id='" +
+            (row.id || "") +
+            "'>" +
+            "<td>" + (row.id || "") + "</td>" +
+            "<td>" + (row.bill_number || "") + "</td>" +
+            "<td>" + (row.customer_name || "") + "</td>" +
+            "<td>" + (row.rental_date || "") + "</td>" +
+            "<td>" + (row.received_date || "") + "</td>" +
+            "<td>" + (row.total_items || 0) + "</td>" +
+            "<td>" + (row.status_label || "") + "</td>" +
+            "</tr>";
+          $tbody.append(html);
+        });
+
+        $("#equipmentRentTable tbody .rent-row")
+          .off("click")
+          .on("click", function () {
+            var id = $(this).data("id");
+            if (id) {
+              loadRentDetails(id);
+              $("#EquipmentRentModal").modal("hide");
+            }
+          });
+      },
+      error: function (xhr) {
+        console.error("Server Error:", xhr.responseText);
+        $tbody.html(
+          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>'
+        );
+      },
+    });
   }
 
   // Load rent details including items
@@ -701,6 +719,90 @@ jQuery(document).ready(function () {
     }
   });
 
+  // Show All Bills (returned bills only)
+  $("#show-all-bills").click(function (e) {
+    e.preventDefault();
+    $("#ReturnedBillsModal").modal("show");
+  });
+
+  // Load Returned Bills list when modal opens (limit 5, search by bill/customer)
+  var returnedSearchTimer = null;
+
+  $("#ReturnedBillsModal").on("shown.bs.modal", function () {
+    loadReturnedBillsList("");
+  });
+
+  $("#returnedBillsSearchInput").on("input", function () {
+    var term = $(this).val();
+    clearTimeout(returnedSearchTimer);
+    returnedSearchTimer = setTimeout(function () {
+      loadReturnedBillsList(term);
+    }, 250);
+  });
+
+  function loadReturnedBillsList(searchTerm) {
+    var $tbody = $("#returnedBillsTableBody");
+    $tbody.html(
+      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>'
+    );
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "json",
+      data: {
+        filter: true,
+        length: 5,
+        start: 0,
+        returned_only: true,
+        search: { value: searchTerm || "" },
+      },
+      success: function (res) {
+        var rows = res && res.data ? res.data : [];
+        $tbody.empty();
+
+        if (!rows.length) {
+          $tbody.html(
+            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>'
+          );
+          return;
+        }
+
+        rows.forEach(function (row) {
+          var html =
+            "<tr class='returned-row' data-id='" +
+            (row.id || "") +
+            "'>" +
+            "<td>" + (row.id || "") + "</td>" +
+            "<td>" + (row.bill_number || "") + "</td>" +
+            "<td>" + (row.customer_name || "") + "</td>" +
+            "<td>" + (row.rental_date || "") + "</td>" +
+            "<td>" + (row.received_date || "") + "</td>" +
+            "<td>" + (row.total_items || 0) + "</td>" +
+            "<td>" + (row.status_label || "") + "</td>" +
+            "</tr>";
+          $tbody.append(html);
+        });
+
+        $("#returnedBillsTable tbody .returned-row")
+          .off("click")
+          .on("click", function () {
+            var id = $(this).data("id");
+            if (id) {
+              loadRentDetails(id);
+              $("#ReturnedBillsModal").modal("hide");
+            }
+          });
+      },
+      error: function (xhr) {
+        console.error("Server Error:", xhr.responseText);
+        $tbody.html(
+          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>'
+        );
+      },
+    });
+  }
+
   // Load Customer Table (simple table with search)
   $("#CustomerSelectModal").on("shown.bs.modal", function () {
     $("#customerSearchInput").val("");
@@ -786,10 +888,21 @@ jQuery(document).ready(function () {
     var id = $row.data("id");
     var code = $row.data("code");
     var name = $row.data("name");
+    var outstanding = $row.find("td").eq(6).text() || "0.00";
     if (id) {
       $("#customer_id").val(id);
       $("#customer_display").val(code + " - " + name);
+      $("#customerOutstandingValue").text(outstanding);
+      $("#customerOutstandingAlert").show();
       $("#CustomerSelectModal").modal("hide");
+    }
+  });
+
+  // Hide outstanding alert when clearing customer
+  $("#customer_display").on("input", function () {
+    if (!$(this).val()) {
+      $("#customerOutstandingAlert").hide();
+      $("#customerOutstandingValue").text("0.00");
     }
   });
 

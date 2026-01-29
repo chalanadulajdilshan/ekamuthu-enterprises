@@ -80,6 +80,10 @@ $bill_number = $lastId + 1;
                                 <i class="uil uil-print me-1"></i> Print
                             </a>
 
+                            <a href="#" class="btn btn-outline-secondary" id="show-all-bills">
+                                <i class="uil uil-list-ul me-1"></i> All Return Bills
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
@@ -350,8 +354,13 @@ $bill_number = $lastId + 1;
                                                 sub-equipment above to add items.</p>
                                         </div>
 
-                                        <!-- Totals Summary Section -->
-                                        <div class="row justify-content-end mt-4" id="totalsSummarySection">
+                                        <div class="row mt-4 align-items-start" id="totalsSummarySection">
+                                            <div class="col-md-7">
+                                                <div id="customerOutstandingAlert" class="alert alert-danger" role="alert"
+                                                    style="display:none; font-size: 22px; font-weight: 700;">
+                                                    Outstanding: <span id="customerOutstandingValue">0.00</span>
+                                                </div>
+                                            </div>
                                             <div class="col-md-5">
                                                 <div class="card border shadow-sm">
                                                     <div class="card-body">
@@ -393,6 +402,7 @@ $bill_number = $lastId + 1;
                                                 </div>
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
 
@@ -421,19 +431,67 @@ $bill_number = $lastId + 1;
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
+                            <div class="d-flex justify-content-end mb-2">
+                                <div class="input-group" style="max-width: 280px;">
+                                    <span class="input-group-text"><i class="uil uil-search"></i></span>
+                                    <input type="text" id="equipmentRentSearchInput" class="form-control" placeholder="Search by bill / customer" autocomplete="off">
+                                </div>
+                            </div>
                             <table id="equipmentRentTable" class="table table-bordered dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
                                         <th>#ID</th>
-                                        <th>Bill Number</th>
+                                        <th>Bill</th>
                                         <th>Customer</th>
                                         <th>Rental Date</th>
                                         <th>Received Date</th>
                                         <th>Items</th>
-                                        <th>Outstanding</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
+                                <tbody id="equipmentRentTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Returned Bills Modal -->
+    <div id="ReturnedBillsModal" class="modal fade bs-example-modal-xl" tabindex="-1" role="dialog"
+        aria-labelledby="ReturnedBillsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ReturnedBillsModalLabel">Returned Bills</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                                <div class="fw-semibold">Search and view returned bills</div>
+                                <div class="input-group" style="max-width: 340px;">
+                                    <span class="input-group-text"><i class="uil uil-search"></i></span>
+                                    <input type="text" id="returnedBillsSearchInput" class="form-control" placeholder="Search by bill number" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <table id="returnedBillsTable" class="table table-bordered dt-responsive nowrap w-100">
+                                <thead>
+                                    <tr>
+                                        <th>#ID</th>
+                                        <th>Bill</th>
+                                        <th>Customer</th>
+                                        <th>Rental Date</th>
+                                        <th>Received Date</th>
+                                        <th>Items</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="returnedBillsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
