@@ -6,6 +6,8 @@ jQuery(document).ready(function () {
   var currentDepositOneDay = 0;
   var currentAllowManualAmount = false;
   var totalCalculatedDeposit = 0;
+  var currentEquipmentId = null;
+  var manualAmountEditEnabled = false;
 
   // Calculate amount and return date
   function calculateRentDetails() {
@@ -347,6 +349,121 @@ jQuery(document).ready(function () {
       $(this).data("manual-edited", true);
     }
   });
+
+  // Handle red + button click to enable manual amount editing
+  $("#btn-enable-amount-edit").click(function () {
+    var equipmentId = $("#item_equipment_id").val();
+    if (!equipmentId) {
+      swal({
+        title: "Error!",
+        text: "Please select an equipment first",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // Enable manual editing
+    $("#item_amount").prop("readonly", false).removeAttr("readonly").focus();
+    manualAmountEditEnabled = true;
+    $("#item_amount").data("manual-edited", true);
+    
+    // Change button to save icon
+    $(this).html('<i class="uil uil-save"></i>').removeClass('btn-danger').addClass('btn-success');
+    $(this).attr('title', 'Save amount to equipment');
+    $(this).attr('id', 'btn-save-amount-edit');
+    
+    // Rebind the click event for save
+    $("#btn-save-amount-edit").off('click').on('click', function() {
+      saveEquipmentAmount();
+    });
+  });
+
+  // Function to save changed amount to equipment table
+  function saveEquipmentAmount() {
+    var equipmentId = $("#item_equipment_id").val();
+    var rentType = $("#item_rent_type").val();
+    var newAmount = parseFloat($("#item_amount").val()) || 0;
+
+    if (!equipmentId || newAmount <= 0) {
+      swal({
+        title: "Error!",
+        text: "Please enter a valid amount",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    swal({
+      title: "Save Amount?",
+      text: "This will update the " + (rentType === 'day' ? 'daily' : 'monthly') + " rent amount for this equipment. Continue?",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, save it!",
+      cancelButtonText: "No, cancel"
+    }, function(isConfirm) {
+      if (isConfirm) {
+        $.ajax({
+          url: "ajax/php/equipment-rent-master.php",
+          type: "POST",
+          data: {
+            action: "update_equipment_amount",
+            equipment_id: equipmentId,
+            rent_type: rentType,
+            amount: newAmount
+          },
+          dataType: "JSON",
+          success: function(result) {
+            if (result.status === "success") {
+              // Update the current rent values
+              if (rentType === 'day') {
+                currentRentOneDay = newAmount;
+              } else {
+                currentRentOneMonth = newAmount;
+              }
+              
+              swal({
+                title: "Success!",
+                text: "Equipment amount updated successfully",
+                type: "success",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+              
+              // Reset button to + icon
+              $("#btn-save-amount-edit").html('<i class="uil uil-plus"></i>').removeClass('btn-success').addClass('btn-danger');
+              $("#btn-save-amount-edit").attr('title', 'Enable manual amount editing');
+              $("#btn-save-amount-edit").attr('id', 'btn-enable-amount-edit');
+              manualAmountEditEnabled = false;
+              
+              // Keep the amount field editable but mark as saved
+              $("#item_amount").data("manual-edited", false);
+            } else {
+              swal({
+                title: "Error!",
+                text: result.message || "Failed to update equipment amount",
+                type: "error",
+                timer: 3000,
+                showConfirmButton: false,
+              });
+            }
+          },
+          error: function() {
+            swal({
+              title: "Error!",
+              text: "Failed to update equipment amount",
+              type: "error",
+              timer: 3000,
+              showConfirmButton: false,
+            });
+          }
+        });
+      }
+    });
+  }
 
   // Calculate on input changes
   $("#item_rent_type, #item_duration, #item_qty, #item_rental_date").on(
@@ -840,6 +957,7 @@ jQuery(document).ready(function () {
           currentRentOneMonth = parseFloat(data.rent_one_month) || 0;
           currentDepositOneDay = parseFloat(data.deposit_one_day) || 0;
           currentAllowManualAmount = data.change_value == 1;
+          currentEquipmentId = data.id;
 
           // Amount field editability (force remove attribute when allowed)
           if (currentAllowManualAmount) {
@@ -848,10 +966,19 @@ jQuery(document).ready(function () {
             $("#item_amount").prop("readonly", true).attr("readonly", "readonly");
           }
           $("#item_amount").data("manual-edited", false);
+          manualAmountEditEnabled = false;
+
+          // Show/hide the red + button
+          $("#btn-enable-amount-edit").show();
+          $("#btn-enable-amount-edit").html('<i class="uil uil-plus"></i>').removeClass('btn-success').addClass('btn-danger');
+          $("#btn-enable-amount-edit").attr('title', 'Enable manual amount editing');
 
           // Reset calculations
           $("#item_duration").val("");
           $("#item_amount").val("");
+
+          // Auto-fill amount if equipment is selected (will be updated when sub-equipment is selected)
+          calculateRentDetails();
 
           // Clear sub equipment when equipment changes
           $("#item_sub_equipment_id").val("");
@@ -946,6 +1073,9 @@ jQuery(document).ready(function () {
           $("#item_sub_equipment_id").val(data.id);
           $("#item_sub_equipment_display").val(data.code);
           $("#SubEquipmentSelectModal").modal("hide");
+          
+          // Auto-fill amount when sub-equipment is selected
+          calculateRentDetails();
         }
       });
   }
