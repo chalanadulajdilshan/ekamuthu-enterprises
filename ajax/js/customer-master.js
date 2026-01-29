@@ -244,9 +244,8 @@ jQuery(document).ready(function () {
         processData: false,
         dataType: "JSON",
         success: function (result) {
-          $(".someBlock").preloader("remove");
-
-          // Re-enable the button
+          // Hide page preloader and re-enable the button
+          $("#page-preloader").hide();
           $("#create-invoice-customer").prop("disabled", false);
 
           if (result.status === "success") {
@@ -283,6 +282,21 @@ jQuery(document).ready(function () {
               showConfirmButton: false,
             });
           }
+        },
+        error: function (xhr, status, error) {
+          // Hide page preloader and re-enable the button
+          $("#page-preloader").hide();
+          $("#create-invoice-customer").prop("disabled", false);
+
+          console.error("AJAX Error:", status, error);
+          console.error("Response:", xhr.responseText);
+
+          swal({
+            title: "Error!",
+            text: "Failed to create customer. Please try again.",
+            type: "error",
+            showConfirmButton: true,
+          });
         },
       });
     }
@@ -894,6 +908,20 @@ jQuery(document).ready(function () {
           } else {
             swal("Error", response.message, "error");
           }
+        },
+        error: function (xhr, status, error) {
+          // Hide page preloader and re-enable the button
+          $("#page-preloader").hide();
+          $("#create-invoice-customer").prop("disabled", false);
+
+          console.error("AJAX Error:", status, error);
+          console.error("Response:", xhr.responseText);
+          swal({
+            title: "Error!",
+            text: "Failed to create customer. Please try again.",
+            type: "error",
+            showConfirmButton: true,
+          });
         }
       });
     });

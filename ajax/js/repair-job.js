@@ -1,6 +1,7 @@
 jQuery(document).ready(function () {
     // Store repair items in memory
     var repairItems = [];
+    var isJobCodeDuplicate = false;
 
     // Calculate item total
     function calculateItemTotal() {
@@ -68,6 +69,43 @@ jQuery(document).ready(function () {
             $("#repair-items-card").slideUp();
         }
     }
+
+    // Check job code uniqueness
+    function checkJobCodeDuplicate(jobCode) {
+        isJobCodeDuplicate = false;
+        $("#job_code").removeClass("is-invalid");
+
+        if (!jobCode) {
+            return;
+        }
+
+        $.ajax({
+            url: "ajax/php/repair-job.php",
+            type: "POST",
+            data: { action: "check_duplicate_code", job_code: jobCode },
+            dataType: "JSON",
+            success: function (res) {
+                if (res.status === "success" && res.duplicate) {
+                    isJobCodeDuplicate = true;
+                    $("#job_code").addClass("is-invalid");
+                    swal({
+                        title: "Duplicate Entry!",
+                        text: "This job code already exists. Please use a different code.",
+                        type: "warning",
+                        showConfirmButton: true
+                    });
+                }
+            },
+            error: function () {
+                // Fail silently; validation on submit will still run
+            }
+        });
+    }
+
+    $("#job_code").on("change blur", function () {
+        var code = $(this).val().trim();
+        checkJobCodeDuplicate(code);
+    });
 
     // Show/hide machine CODE section based on item type (machine name is always visible)
     function toggleMachineSection() {
@@ -271,7 +309,14 @@ jQuery(document).ready(function () {
         var errorMessage = "";
 
         // Check required fields
-        if ($("#machine_name").val().trim() === "") {
+        if ($("#job_code").val().trim() === "") {
+            errorMessage = "Job Code is required";
+            isValid = false;
+        } else if (isJobCodeDuplicate) {
+            errorMessage = "Job Code already exists. Please use a different code";
+            isValid = false;
+            $("#job_code").addClass("is-invalid");
+        } else if ($("#machine_name").val().trim() === "") {
             errorMessage = "Machine/Item Name is required";
             isValid = false;
         } else if ($("#customer_name").val().trim() === "") {

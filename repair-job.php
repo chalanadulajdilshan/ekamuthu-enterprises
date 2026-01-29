@@ -114,7 +114,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <label for="job_code" class="form-label">Job Code - රැකියා කේතය</label>
                                                     <div class="input-group mb-3">
                                                         <input id="job_code" name="job_code" type="text" class="form-control"
-                                                            value="<?php echo $job_code ?>" readonly>
+                                                            value="<?php echo $job_code ?>">
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#RepairJobModal"><i

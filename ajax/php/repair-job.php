@@ -7,6 +7,26 @@ ini_set('display_errors', 0);
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
 
+// Check duplicate job code
+if (isset($_POST['action']) && $_POST['action'] === 'check_duplicate_code') {
+    $db = Database::getInstance();
+    $jobCode = $db->escapeString($_POST['job_code'] ?? '');
+
+    if (empty($jobCode)) {
+        echo json_encode(["status" => "error", "message" => "Job code is required"]);
+        exit();
+    }
+
+    $codeCheck = "SELECT id FROM repair_jobs WHERE job_code = '$jobCode'";
+    $existing = mysqli_fetch_assoc($db->readQuery($codeCheck));
+
+    echo json_encode([
+        "status" => "success",
+        "duplicate" => $existing ? true : false
+    ]);
+    exit();
+}
+
 // Create new repair job
 if (isset($_POST['create'])) {
     $db = Database::getInstance();
