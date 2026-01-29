@@ -213,21 +213,40 @@ class EquipmentRent
             $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
         }
 
-        if (isset($request['custom_where']) && !empty($request['custom_where'])) {
-            $where .= " " . $request['custom_where'];
+        // Base FROM/JOIN for reuse
+        $fromJoin = "FROM equipment_rent er LEFT JOIN customer_master cm ON er.customer_id = cm.id";
+
+        // pending_only filter handling
+        $pendingOnlyHaving = "";
+        if (!empty($request['pending_only'])) {
+            $pendingOnlyHaving = "HAVING outstanding_items > 0";
+        } elseif (!empty($request['returned_only'])) {
+            $pendingOnlyHaving = "HAVING outstanding_items = 0";
         }
 
-        // Filtered records
-        $filteredSql = "SELECT COUNT(*) as filtered FROM equipment_rent er 
-                        LEFT JOIN customer_master cm ON er.customer_id = cm.id $where";
+        // Filtered records count (respect pending_only)
+        $filteredSql = "SELECT COUNT(*) as filtered FROM (
+                            SELECT er.id,
+                                   (SELECT COUNT(*) FROM equipment_rent_items eri
+                                       WHERE eri.rent_id = er.id AND (eri.status = 'rented' OR (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id),0)) > 0)
+                                   ) AS outstanding_items
+                            $fromJoin
+                            $where
+                            $pendingOnlyHaving
+                        ) sub";
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
-        // Paginated query
-        $sql = "SELECT er.*, cm.name as customer_name, cm.code as customer_code
-                FROM equipment_rent er 
-                LEFT JOIN customer_master cm ON er.customer_id = cm.id 
-                $where ORDER BY er.id DESC LIMIT $start, $length";
+        // Data query with outstanding counts
+        $sql = "SELECT er.*, cm.name as customer_name, cm.code as customer_code,
+                       (SELECT COUNT(*) FROM equipment_rent_items eri WHERE eri.rent_id = er.id) AS total_items,
+                       (SELECT COUNT(*) FROM equipment_rent_items eri
+                          WHERE eri.rent_id = er.id AND (eri.status = 'rented' OR (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id),0)) > 0)
+                       ) AS outstanding_items
+                $fromJoin
+                $where
+                $pendingOnlyHaving
+                ORDER BY er.id DESC LIMIT $start, $length";
         $dataQuery = $db->readQuery($sql);
 
         $data = [];
@@ -242,16 +261,6 @@ class EquipmentRent
             ];
             $statusLabel = isset($statusLabels[$row['status']]) ? $statusLabels[$row['status']] : $row['status'];
 
-            // Get item count
-            $itemCountSql = "SELECT COUNT(*) as cnt FROM equipment_rent_items WHERE rent_id = " . $row['id'];
-            $itemCountResult = mysqli_fetch_assoc($db->readQuery($itemCountSql));
-            $itemCount = $itemCountResult['cnt'] ?? 0;
-
-            // Get outstanding item count
-            $outstandingCountSql = "SELECT COUNT(*) as cnt FROM equipment_rent_items WHERE rent_id = " . $row['id'] . " AND status = 'rented'";
-            $outstandingCountResult = mysqli_fetch_assoc($db->readQuery($outstandingCountSql));
-            $outstandingCount = $outstandingCountResult['cnt'] ?? 0;
-
             $nestedData = [
                 "key" => $key,
                 "id" => $row['id'],
@@ -263,8 +272,8 @@ class EquipmentRent
                 "received_date" => $row['received_date'],
                 "status" => $row['status'],
                 "status_label" => $statusLabel,
-                "total_items" => $itemCount,
-                "outstanding_items" => $outstandingCount,
+                "total_items" => $row['total_items'],
+                "outstanding_items" => $row['outstanding_items'],
                 "remark" => $row['remark']
             ];
 
