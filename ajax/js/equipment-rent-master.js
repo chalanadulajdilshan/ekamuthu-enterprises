@@ -888,10 +888,21 @@ jQuery(document).ready(function () {
     var id = $row.data("id");
     var code = $row.data("code");
     var name = $row.data("name");
+    var outstanding = $row.find("td").eq(6).text() || "0.00";
     if (id) {
       $("#customer_id").val(id);
       $("#customer_display").val(code + " - " + name);
+      $("#customerOutstandingValue").text(outstanding);
+      $("#customerOutstandingAlert").show();
       $("#CustomerSelectModal").modal("hide");
+    }
+  });
+
+  // Hide outstanding alert when clearing customer
+  $("#customer_display").on("input", function () {
+    if (!$(this).val()) {
+      $("#customerOutstandingAlert").hide();
+      $("#customerOutstandingValue").text("0.00");
     }
   });
 
