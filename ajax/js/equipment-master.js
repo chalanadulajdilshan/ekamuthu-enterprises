@@ -97,7 +97,10 @@ jQuery(document).ready(function () {
           $("#old_image_name").val(data.image_name || "");
 
           if (data.image_name) {
-            $("#image_preview").attr("src", "uploads/equipment/" + data.image_name);
+            $("#image_preview").attr(
+              "src",
+              "uploads/equipment/" + data.image_name,
+            );
             $("#preview_text").hide();
           } else {
             $("#image_preview").attr("src", "assets/images/no-image.png");
@@ -150,7 +153,9 @@ jQuery(document).ready(function () {
           title: "Image",
           orderable: false,
           render: function (data, type, row) {
-            var imgSrc = data ? "uploads/equipment/" + data : "assets/images/no-image.png";
+            var imgSrc = data
+              ? "uploads/equipment/" + data
+              : "assets/images/no-image.png";
             return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
           },
         },
@@ -295,7 +300,8 @@ jQuery(document).ready(function () {
             });
 
             setTimeout(() => {
-              window.location.reload();
+              window.location.href =
+              "sub-equipment-master.php?equipment_id=" + result.equipment_id;
             }, 2000);
           } else if (result.status === "duplicate") {
             swal({

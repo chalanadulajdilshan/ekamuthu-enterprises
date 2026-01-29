@@ -68,7 +68,8 @@ if (isset($_POST['create'])) {
     $AUDIT_LOG->create();
 
     if ($res) {
-        echo json_encode(["status" => "success"]);
+        echo json_encode(["status" => "success","equipment_id" => $res]  ) ;  
+
         exit();
     } else {
         echo json_encode(["status" => "error"]);
