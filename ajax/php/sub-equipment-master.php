@@ -10,6 +10,16 @@ header('Content-Type: application/json; charset=UTF-8');
 // Create new sub equipment
 if (isset($_POST['create'])) {
 
+    // Check if code already exists
+    $db = Database::getInstance();
+    $codeCheck = "SELECT id FROM sub_equipment WHERE code = '{$_POST['code']}'";
+    $existingSub = mysqli_fetch_assoc($db->readQuery($codeCheck));
+
+    if ($existingSub) {
+        echo json_encode(["status" => "duplicate", "message" => "Sub equipment code already exists in the system"]);
+        exit();
+    }
+
     $SUB_EQUIPMENT = new SubEquipment(NULL);
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
@@ -39,6 +49,16 @@ if (isset($_POST['create'])) {
 
 // Update sub equipment
 if (isset($_POST['update'])) {
+
+    // Check if code already exists (excluding current record)
+    $db = Database::getInstance();
+    $codeCheck = "SELECT id FROM sub_equipment WHERE code = '{$_POST['code']}' AND id != '{$_POST['sub_equipment_id']}'";
+    $existingSub = mysqli_fetch_assoc($db->readQuery($codeCheck));
+
+    if ($existingSub) {
+        echo json_encode(["status" => "duplicate", "message" => "Sub equipment code already exists in the system"]);
+        exit();
+    }
 
     $SUB_EQUIPMENT = new SubEquipment($_POST['sub_equipment_id']);
 
