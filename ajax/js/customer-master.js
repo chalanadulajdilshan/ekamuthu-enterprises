@@ -1,10 +1,11 @@
 jQuery(document).ready(function () {
   // Create Customer
   $("#create").click(function (event) {
+    $("#page-preloader").show();
     event.preventDefault();
 
     // Show page preloader immediately when button is clicked
-    $("#page-preloader").show();
+   
 
     // Disable the button to prevent multiple submissions
     $("#create").prop("disabled", true);
