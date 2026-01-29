@@ -28,11 +28,13 @@ jQuery(document).ready(function () {
     var returnDate = new Date(rentalDate);
 
     if (rentType === "day") {
-      amount = currentRentOneDay * duration * qty;
+      // amount = currentRentOneDay * duration * qty;
+       amount = currentRentOneDay ;
       returnDate.setDate(returnDate.getDate() + duration);
       $("#duration_label").text("Days");
     } else {
-      amount = currentRentOneMonth * duration * qty;
+      // amount = currentRentOneMonth * duration * qty;
+      amount = currentRentOneMonth ;
       returnDate.setMonth(returnDate.getMonth() + duration);
       $("#duration_label").text("Months");
     }
@@ -96,9 +98,14 @@ jQuery(document).ready(function () {
       var amount = 0;
       var qty = parseFloat($("#item_qty").val()) || 1;
       if (rentType === "day") {
-        amount = currentRentOneDay * duration * qty;
+        // amount = currentRentOneDay * duration * qty;
+        
+        amount = currentRentOneDay ;
+
       } else {
-        amount = currentRentOneMonth * duration * qty;
+          // amount = currentRentOneMonth * duration * qty;
+        amount = currentRentOneMonth ;
+
       }
       $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
     }
