@@ -38,6 +38,88 @@ jQuery(document).ready(function () {
 
   toggleAddSubButton();
 
+  // Equipment code autocomplete
+  var equipmentCodeCache = [];
+
+  function loadEquipmentCodes() {
+    if (equipmentCodeCache.length) return;
+    $.ajax({
+      url: "ajax/php/equipment-master.php",
+      type: "POST",
+      dataType: "JSON",
+      data: { action: "list_codes" },
+      success: function (res) {
+        if (res.status === "success" && Array.isArray(res.data)) {
+          equipmentCodeCache = res.data;
+          initAutocomplete();
+        }
+      },
+    });
+  }
+
+  function initAutocomplete() {
+    if (!$.ui || !$.ui.autocomplete) return;
+    $("#code").autocomplete({
+      minLength: 0,
+      source: equipmentCodeCache,
+      select: function (event, ui) {
+        if (ui && ui.item) {
+          autofillEquipment(ui.item.code);
+        }
+      },
+    });
+  }
+
+  function autofillEquipment(code) {
+    $.ajax({
+      url: "ajax/php/equipment-master.php",
+      type: "POST",
+      dataType: "JSON",
+      data: { action: "get_by_code", code: code },
+      success: function (res) {
+        if (res.status === "success" && res.data) {
+          var data = res.data;
+          $("#equipment_id").val(data.id || "");
+          $("#code").val(data.code || "");
+          $("#item_name").val(data.item_name || "");
+          $("#category").val(data.category || "");
+          $("#serial_number").val(data.serial_number || "");
+          $("#damage").val(data.damage || "");
+          $("#size").val(data.size || "");
+          $("#rent_one_day").val(data.rent_one_day || "0");
+          $("#deposit_one_day").val(data.deposit_one_day || "0");
+          $("#rent_one_month").val(data.rent_one_month || "0");
+          $("#value").val(data.value || "0");
+          $("#quantity").val(data.quantity || "0");
+          $("#no_sub_items").prop("checked", data.no_sub_items == 1);
+          $("#change_value").prop("checked", data.change_value == 1);
+          $("#remark").val(data.remark || "");
+          $("#old_image_name").val(data.image_name || "");
+
+          if (data.image_name) {
+            $("#image_preview").attr("src", "uploads/equipment/" + data.image_name);
+            $("#preview_text").hide();
+          } else {
+            $("#image_preview").attr("src", "assets/images/no-image.png");
+            $("#preview_text").show();
+          }
+
+          // Show update button, hide create button
+          $("#create").hide();
+          $("#update").show();
+
+          toggleAddSubButton();
+        }
+      },
+    });
+  }
+
+  // Trigger suggestions on focus
+  $("#code").on("focus", function () {
+    loadEquipmentCodes();
+    $(this).autocomplete("search", $(this).val());
+  });
+
   function loadEquipmentTable() {
     // Destroy if already initialized
     if ($.fn.DataTable.isDataTable("#equipmentTable")) {

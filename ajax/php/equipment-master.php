@@ -266,6 +266,50 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     exit;
 }
 
+// List codes for autocomplete
+if (isset($_POST['action']) && $_POST['action'] === 'list_codes') {
+    $db = Database::getInstance();
+    $sql = "SELECT id, code, item_name FROM equipment ORDER BY id DESC";
+    $result = $db->readQuery($sql);
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $data[] = [
+            'label' => $row['code'] . ' - ' . $row['item_name'],
+            'value' => $row['code'],
+            'code' => $row['code'],
+        ];
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'data' => $data
+    ]);
+    exit;
+}
+
+// Get equipment by code
+if (isset($_POST['action']) && $_POST['action'] === 'get_by_code' && isset($_POST['code'])) {
+    $db = Database::getInstance();
+    $code = mysqli_real_escape_string($db->DB_CON, $_POST['code']);
+    $sql = "SELECT * FROM equipment WHERE code = '$code' LIMIT 1";
+    $result = $db->readQuery($sql);
+    $row = mysqli_fetch_assoc($result);
+
+    if ($row) {
+        echo json_encode([
+            'status' => 'success',
+            'data' => $row
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Equipment not found'
+        ]);
+    }
+    exit;
+}
+
 // Get sub-equipment by equipment_id (and availability summary for no-sub-items)
 if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
     $equipment_id = isset($_POST['equipment_id']) ? (int) $_POST['equipment_id'] : 0;

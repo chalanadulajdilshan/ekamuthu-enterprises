@@ -21,6 +21,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
     <meta content="<?php echo $COMPANY_PROFILE_DETAILS->name ?>" name="author" />
     <!-- include main CSS -->
     <?php include 'main-css.php' ?>
+    <link rel="stylesheet" href="assets/libs/jquery-ui-dist/jquery-ui.min.css">
 
     <!-- Cropper CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
@@ -134,7 +135,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                     <label for="code" class="form-label">Equipment Code</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
-                                                            value="<?php echo $equipment_id ?>" readonly>
+                                                            value="<?php echo $equipment_id ?>">
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#EquipmentModal">
                                                             <i class="uil uil-search me-1"></i>
@@ -361,6 +362,8 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
+    <script src="assets/libs/jquery-ui-dist/jquery-ui.min.js"></script>
+
     <!-- /////////////////////////// -->
 
     <!-- include main js  -->
