@@ -50,8 +50,6 @@ include_once(dirname(__FILE__) . '/PurchaseOrderItem.php');
 include_once(dirname(__FILE__) . '/StockMaster.php');
 include_once(dirname(__FILE__) . '/AuditLog.php');
 include_once(dirname(__FILE__) . '/PurchaseReturn.php');
-include_once(dirname(__FILE__) . '/Dag.php');
-include_once(dirname(__FILE__) . '/DagItem.php');
 include_once(dirname(__FILE__) . '/StockItemTmp.php'); 
 include_once(dirname(__FILE__) . '/ArnQrGenaretor.php');
 include_once(dirname(__FILE__) . '/Expenses.php');
