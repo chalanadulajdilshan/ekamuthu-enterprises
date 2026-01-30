@@ -67,6 +67,10 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 </a>
                             <?php endif; ?>
 
+                            <a href="#" class="btn btn-secondary" id="print-job" style="display: none;">
+                                <i class="uil uil-print me-1"></i> Print
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
