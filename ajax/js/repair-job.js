@@ -282,6 +282,7 @@ jQuery(document).ready(function () {
                     $("#create").hide();
                     $("#update").show();
                     $(".delete-job").show();
+                    $("#print-job").show();
                 } else {
                     swal({
                         title: "Error!",
@@ -543,6 +544,7 @@ jQuery(document).ready(function () {
         $("#create").show();
         $("#update").hide();
         $(".delete-job").hide();
+        $("#print-job").hide();
 
         // Get new code
         $.ajax({
@@ -556,6 +558,15 @@ jQuery(document).ready(function () {
                 }
             }
         });
+    });
+
+    // Print job
+    $("#print-job").click(function (e) {
+        e.preventDefault();
+        var jobId = $("#job_id").val();
+        if (jobId) {
+            window.open("print-repair-job.php?id=" + jobId, "_blank");
+        }
     });
 
     // Initialize
