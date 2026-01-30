@@ -24,6 +24,7 @@ class DocumentTracking
     public $vat_percentage;
     public $created_at;
     public $updated_at;
+    public $status;
 
     // Constructor to initialize the object using ID
     public function __construct($id = null)
@@ -31,7 +32,7 @@ class DocumentTracking
         if ($id) {
             $query = "SELECT * FROM `document_tracking` WHERE `id` = " . (int) $id;
             $db = Database::getInstance();
-            $result = mysqli_fetch_array($db->readQuery($query));
+            $result = mysqli_fetch_assoc($db->readQuery($query));
 
             if ($result) {
                 foreach ($result as $key => $value) {
