@@ -181,7 +181,7 @@ class EquipmentRentReturn
         $duration = max(1, floatval($item['duration']));
         $rent_type = $item['rent_type'];
         $duration_days = ($rent_type === 'month') ? $duration * 30 : $duration;
-        $per_unit_daily = $per_unit_rent_total / $duration_days;
+        $per_unit_daily = $per_unit_rent_total;
 
         // Validate return quantity
         if ($return_qty > $item['pending_qty']) {
@@ -225,7 +225,7 @@ class EquipmentRentReturn
         // Get total rent already charged from previous returns for this entire rent order
         $prevRentQuery = "SELECT COALESCE(SUM(
                             GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
-                            * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / NULLIF(CASE WHEN eri2.rent_type = 'month' THEN eri2.duration * 30 ELSE eri2.duration END,0))
+                            * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / (CASE WHEN eri2.rent_type = 'month' THEN 30 ELSE 1 END))
                             * err2.return_qty
                             + COALESCE(err2.extra_day_amount, 0)
                             + COALESCE(err2.damage_amount, 0)
@@ -305,12 +305,12 @@ class EquipmentRentReturn
                          -- duration days (month=>30)
                          CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END AS duration_days,
                          -- per-unit daily rate
-                         (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / NULLIF(CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END,0) AS per_unit_daily,
+                         (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily,
                          -- used days from rental_date to this return_date (>=1), matching PHP ceil day diff
                          GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) AS used_days,
                          -- rental for this return qty based on days used
                          GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                           * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / NULLIF(CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END,0))
+                           * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
                            * err.return_qty AS rental_amount
                   FROM `equipment_rent_returns` err
                   LEFT JOIN `user` u ON err.created_by = u.id
