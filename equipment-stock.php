@@ -106,6 +106,85 @@ $EQUIPMENT = new Equipment(NULL);
     </div>
     <!-- END layout-wrapper -->
 
+    <!-- Rent Details Modal (from Equipment Stock) -->
+    <div class="modal fade" id="rentDetailsModal" tabindex="-1" aria-labelledby="rentDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rentDetailsModalLabel">Rent Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Bill Number</label>
+                            <div id="rd-bill" class="fw-bold text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Customer</label>
+                            <div id="rd-customer" class="fw-bold text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Status</label>
+                            <div id="rd-status" class="fw-bold text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Rental Date</label>
+                            <div id="rd-rental-date" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Received Date</label>
+                            <div id="rd-received-date" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Payment Method</label>
+                            <div id="rd-payment" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Transport Cost</label>
+                            <div id="rd-transport" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Deposit Total</label>
+                            <div id="rd-deposit" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1">Refund Balance</label>
+                            <div id="rd-refund" class="text-dark">-</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted mb-1">Remark</label>
+                            <div id="rd-remark" class="text-dark">-</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="rentItemsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Equipment</th>
+                                    <th>Sub Code</th>
+                                    <th>Qty</th>
+                                    <th>Type</th>
+                                    <th>Duration</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="8" class="text-center text-muted">No items</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>

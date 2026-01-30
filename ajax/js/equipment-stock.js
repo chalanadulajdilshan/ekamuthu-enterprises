@@ -181,7 +181,7 @@ jQuery(document).ready(function () {
         }
 
         let html =
-            '<div class="table-responsive"><table class="table table-sm table-bordered mb-0">';
+            '<div class="table-responsive"><table class="table table-sm table-bordered mb-0" id="subEquipmentTable">';
         html +=
             '<thead class="table-light"><tr>' +
             "<th>ID</th>" +
@@ -196,8 +196,14 @@ jQuery(document).ready(function () {
                 code = highlightText(code, searchTerm);
             }
 
+            var isRented = (item.rental_status || "").toLowerCase() === "rented" || (item.rental_status || "").toLowerCase() === "rent";
+            var rentAttr = '';
+            if (isRented && item.active_rent_id) {
+                rentAttr = ' data-rent-id="' + item.active_rent_id + '" data-bill="' + (item.active_bill_number || '') + '" data-customer="' + (item.active_customer_name || '') + '"';
+            }
+
             html +=
-                "<tr>" +
+                "<tr class='sub-eq-row" + (isRented ? " sub-eq-rented" : "") + "'" + rentAttr + ">" +
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + code + "</td>" +
@@ -273,6 +279,15 @@ jQuery(document).ready(function () {
                 success: function (resp) {
                     if (resp && resp.status === "success") {
                         row.child(renderSubEquipmentTable(resp.data, resp.meta, table.search())).show();
+
+                        // Attach click handler to rented sub-equipment rows to open rent details
+                        row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-rented", function (evt) {
+                            evt.stopPropagation();
+                            var rentId = $(this).data("rent-id");
+                            if (rentId) {
+                                loadRentDetailsFromStock(rentId);
+                            }
+                        });
                     } else {
                         row.child(
                             '<div class="p-2 text-muted">No sub-equipment available</div>'
@@ -287,4 +302,69 @@ jQuery(document).ready(function () {
             });
         }
     });
+
+    // --- Rent details loader for equipment stock page ---
+    function resetRentDetailsModal() {
+        $("#rd-bill, #rd-customer, #rd-status, #rd-rental-date, #rd-received-date, #rd-payment, #rd-transport, #rd-deposit, #rd-refund, #rd-remark").text("-");
+        const tbody = $("#rentItemsTable tbody");
+        tbody.html('<tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>');
+    }
+
+    function renderRentItems(items) {
+        const tbody = $("#rentItemsTable tbody");
+        tbody.empty();
+        if (!Array.isArray(items) || !items.length) {
+            tbody.html('<tr><td colspan="8" class="text-center text-muted">No items</td></tr>');
+            return;
+        }
+        items.forEach(function (item, idx) {
+            tbody.append(
+                "<tr>" +
+                "<td>" + (idx + 1) + "</td>" +
+                "<td>" + (item.equipment_code || "") + " - " + (item.equipment_name || "") + "</td>" +
+                "<td>" + (item.sub_equipment_code || "-") + "</td>" +
+                "<td>" + (item.quantity || 0) + "</td>" +
+                "<td>" + (item.rent_type || "-") + "</td>" +
+                "<td>" + (item.duration || "-") + "</td>" +
+                "<td>" + (item.amount || "0.00") + "</td>" +
+                "<td>" + (item.status ? item.status.toUpperCase() : "-") + "</td>" +
+                "</tr>"
+            );
+        });
+    }
+
+    function loadRentDetailsFromStock(rentId) {
+        resetRentDetailsModal();
+        $.ajax({
+            url: "ajax/php/equipment-rent-master.php",
+            type: "POST",
+            data: { action: "get_rent_details", rent_id: rentId },
+            dataType: "json",
+            success: function (result) {
+                if (result.status === "success") {
+                    var rent = result.rent;
+                    $("#rd-bill").text(rent.bill_number || "-");
+                    $("#rd-customer").text(rent.customer_name || "-");
+                    $("#rd-status").text((rent.status || "-").toUpperCase());
+                    $("#rd-rental-date").text(rent.rental_date || "-");
+                    $("#rd-received-date").text(rent.received_date || "-");
+                    $("#rd-payment").text(rent.payment_type_name || "-");
+                    $("#rd-transport").text(rent.transport_cost || "0.00");
+                    $("#rd-deposit").text(rent.deposit_total || "0.00");
+                    $("#rd-refund").text(rent.refund_balance || "0.00");
+                    $("#rd-remark").text(rent.remark || "-");
+                    $("#rd-open-full").attr("href", "equipment-rent-master.php?rent_id=" + rent.id);
+                    renderRentItems(result.items || []);
+                    $("#rentDetailsModal").modal("show");
+                } else {
+                    renderRentItems([]);
+                    $("#rentItemsTable tbody").html('<tr><td colspan="8" class="text-center text-danger">Failed to load rent details</td></tr>');
+                }
+            },
+            error: function (xhr) {
+                console.error("Rent details load failed", xhr.responseText);
+                $("#rentItemsTable tbody").html('<tr><td colspan="8" class="text-center text-danger">Server error</td></tr>');
+            }
+        });
+    }
 });

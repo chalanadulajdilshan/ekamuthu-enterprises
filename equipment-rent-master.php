@@ -357,9 +357,10 @@ $bill_number = $lastId + 1;
                                         <div class="row mt-4 align-items-start" id="totalsSummarySection">
                                             <div class="col-md-7">
                                                 <div id="customerOutstandingAlert" class="alert alert-danger" role="alert"
-                                                    style="display:none; font-size: 22px; font-weight: 700;">
+                                                    style="display:none; font-size:18px; font-weight:700; padding:10px 14px; max-width:50%;">
                                                     Outstanding: <span id="customerOutstandingValue">0.00</span>
                                                 </div>
+
                                             </div>
                                             <div class="col-md-5">
                                                 <div class="card border shadow-sm">

@@ -350,22 +350,34 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
                 'total_qty' => $totalQty,
             ];
         } else {
-            $sql = "SELECT id, equipment_id, code, rental_status FROM sub_equipment WHERE equipment_id = $equipment_id";
+            $sql = "SELECT 
+                        se.id, 
+                        se.equipment_id, 
+                        se.code, 
+                        se.rental_status,
+                        (SELECT eri.rent_id FROM equipment_rent_items eri WHERE eri.sub_equipment_id = se.id AND eri.status = 'rented' ORDER BY eri.id DESC LIMIT 1) AS active_rent_id,
+                        (SELECT er.bill_number FROM equipment_rent er WHERE er.id = (SELECT eri2.rent_id FROM equipment_rent_items eri2 WHERE eri2.sub_equipment_id = se.id AND eri2.status = 'rented' ORDER BY eri2.id DESC LIMIT 1)) AS active_bill_number,
+                        (SELECT cm.name FROM equipment_rent er2 LEFT JOIN customer_master cm ON er2.customer_id = cm.id WHERE er2.id = (SELECT eri3.rent_id FROM equipment_rent_items eri3 WHERE eri3.sub_equipment_id = se.id AND eri3.status = 'rented' ORDER BY eri3.id DESC LIMIT 1)) AS active_customer_name
+                    FROM sub_equipment se
+                    WHERE se.equipment_id = $equipment_id";
             
             // Apply search filter to sub-equipment if provided
             if (isset($_POST['search']) && !empty($_POST['search'])) {
                 $search = mysqli_real_escape_string($db->DB_CON, $_POST['search']);
-                $sql .= " AND code LIKE '%$search%'";
+                $sql .= " AND se.code LIKE '%$search%'";
             }
             
-            $sql .= " ORDER BY id ASC";
+            $sql .= " ORDER BY se.id ASC";
             $result = $db->readQuery($sql);
             while ($row = mysqli_fetch_assoc($result)) {
                 $subEquipments[] = [
                     'id' => $row['id'],
                     'equipment_id' => $row['equipment_id'],
                     'code' => $row['code'],
-                    'rental_status' => $row['rental_status']
+                    'rental_status' => $row['rental_status'],
+                    'active_rent_id' => $row['active_rent_id'],
+                    'active_bill_number' => $row['active_bill_number'],
+                    'active_customer_name' => $row['active_customer_name']
                 ];
             }
         }
