@@ -210,7 +210,7 @@ class EquipmentRent
         // Search filter
         $where = "WHERE 1=1";
         if (!empty($search)) {
-            $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
+            $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%' OR cm.nic LIKE '%$search%')";
         }
 
         // Base FROM/JOIN for reuse
