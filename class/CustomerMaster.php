@@ -286,7 +286,7 @@ class CustomerMaster
         $totalData = mysqli_num_rows($totalQuery);
 
         // Search filter
-        $sql = "SELECT * FROM customer_master WHERE id != 1 ";
+        $sql = "SELECT * FROM customer_master WHERE id != 0 ";
 
         // Add old outstanding filter if requested
         if ($oldOutstandingOnly) {
