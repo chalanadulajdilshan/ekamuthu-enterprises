@@ -5,7 +5,6 @@ jQuery(document).ready(function () {
     event.preventDefault();
 
     // Show page preloader immediately when button is clicked
-   
 
     // Disable the button to prevent multiple submissions
     $("#create").prop("disabled", true);
@@ -58,7 +57,6 @@ jQuery(document).ready(function () {
         showConfirmButton: false,
       });
     } else {
-
       // --- DOCUMENT & IMAGE VALIDATION ---
       var errorMsg = "";
 
@@ -67,13 +65,15 @@ jQuery(document).ready(function () {
         if (!$("#company_name").val()) {
           errorMsg = "Please enter Company Name";
         } else {
-          var companyDoc = $("#po_document_image_1").val() || $("#company_document_image_1").val();
+          var companyDoc =
+            $("#po_document_image_1").val() ||
+            $("#company_document_image_1").val();
           if (!companyDoc) {
             errorMsg = "Please upload Company PDF/Image";
           }
         }
-      } 
-      
+      }
+
       // else {
       //   // Validation for Individual
       //   if (!$("#customer_photo_image_1").val()) {
@@ -93,14 +93,16 @@ jQuery(document).ready(function () {
           text: errorMsg,
           type: "error",
           timer: 3000,
-          showConfirmButton: true
+          showConfirmButton: true,
         });
         return;
       }
       // -----------------------------------
+      $("#page-preloader").show();
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
+
       $.ajax({
         url: "ajax/php/customer-master.php",
         type: "POST",
@@ -358,7 +360,8 @@ jQuery(document).ready(function () {
         timer: 2000,
         showConfirmButton: false,
       });
-    } else if (!$("#water_bill_no").val() && !$("#nic").val()) { // Assuming logic applies to non-company mostly, or general fallback
+    } else if (!$("#water_bill_no").val() && !$("#nic").val()) {
+      // Assuming logic applies to non-company mostly, or general fallback
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
       $("#page-preloader").hide();
@@ -370,7 +373,6 @@ jQuery(document).ready(function () {
         showConfirmButton: true,
       });
     } else {
-
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
 
@@ -438,41 +440,47 @@ jQuery(document).ready(function () {
     e.preventDefault();
 
     var customerId = $("#id").val();
-    var currentStatus = $(this).data('status'); // 1 if blacklisted, 0 if normal
+    var currentStatus = $(this).data("status"); // 1 if blacklisted, 0 if normal
 
     if (!customerId) return;
 
     if (currentStatus == 1) {
       // Remove from Blacklist
-      swal({
-        title: "Remove from Blacklist?",
-        text: "Are you sure you want to reactivate this customer?",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#28a745",
-        confirmButtonText: "Yes, Remove!",
-        closeOnConfirm: false
-      }, function () {
-        toggleBlacklist(customerId, 0, null);
-      });
+      swal(
+        {
+          title: "Remove from Blacklist?",
+          text: "Are you sure you want to reactivate this customer?",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#28a745",
+          confirmButtonText: "Yes, Remove!",
+          closeOnConfirm: false,
+        },
+        function () {
+          toggleBlacklist(customerId, 0, null);
+        },
+      );
     } else {
       // Add to Blacklist
-      swal({
-        title: "Blacklist Customer",
-        text: "Please enter the reason for blacklisting:",
-        type: "input",
-        showCancelButton: true,
-        closeOnConfirm: false,
-        animation: "slide-from-top",
-        inputPlaceholder: "Reason..."
-      }, function (inputValue) {
-        if (inputValue === false) return false;
-        if (inputValue === "") {
-          swal.showInputError("You need to write a reason!");
-          return false
-        }
-        toggleBlacklist(customerId, 1, inputValue);
-      });
+      swal(
+        {
+          title: "Blacklist Customer",
+          text: "Please enter the reason for blacklisting:",
+          type: "input",
+          showCancelButton: true,
+          closeOnConfirm: false,
+          animation: "slide-from-top",
+          inputPlaceholder: "Reason...",
+        },
+        function (inputValue) {
+          if (inputValue === false) return false;
+          if (inputValue === "") {
+            swal.showInputError("You need to write a reason!");
+            return false;
+          }
+          toggleBlacklist(customerId, 1, inputValue);
+        },
+      );
     }
   });
 
@@ -484,7 +492,7 @@ jQuery(document).ready(function () {
         toggle_blacklist: true,
         customer_id: id,
         status: status,
-        reason: reason
+        reason: reason,
       },
       dataType: "JSON",
       success: function (response) {
@@ -494,7 +502,7 @@ jQuery(document).ready(function () {
             text: "Customer status updated successfully.",
             type: "success",
             timer: 1500,
-            showConfirmButton: false
+            showConfirmButton: false,
           });
 
           // Update UI immediately (or reload)
@@ -509,7 +517,7 @@ jQuery(document).ready(function () {
       },
       error: function () {
         swal("Error", "System encountered an error", "error");
-      }
+      },
     });
   }
 
@@ -603,7 +611,7 @@ jQuery(document).ready(function () {
           // Re-enable the button if user cancels
           $(".delete-customer").prop("disabled", false);
         }
-      }
+      },
     );
   });
 
@@ -627,7 +635,7 @@ jQuery(document).ready(function () {
                 customer.display_name ||
                 (customer.name
                   ? customer.name +
-                  (customer.name_2 ? " " + customer.name_2 : "")
+                    (customer.name_2 ? " " + customer.name_2 : "")
                   : "");
 
               listHtml += `
@@ -654,7 +662,7 @@ jQuery(document).ready(function () {
         error: function () {
           $("#customerList")
             .html(
-              '<a href="#" class="list-group-item list-group-item-action disabled" style="color:black">Error loading customers</a>'
+              '<a href="#" class="list-group-item list-group-item-action disabled" style="color:black">Error loading customers</a>',
             )
             .show();
         },
@@ -715,7 +723,6 @@ jQuery(document).ready(function () {
 
           // Hide the customer dropdown list
           $("#customerList").hide();
-
 
           listItems.removeClass("active"); // Remove active class from all items
           selectedItem.addClass("active"); // Highlight the current selected item
@@ -796,10 +803,12 @@ jQuery(document).ready(function () {
                   `;
         });
 
-        if (!rows) rows = '<tr><td colspan="5" class="text-center">No records found</td></tr>';
+        if (!rows)
+          rows =
+            '<tr><td colspan="5" class="text-center">No records found</td></tr>';
 
         $("#oldOutstandingTable tbody").html(rows);
-      }
+      },
     });
   }
 
@@ -835,14 +844,16 @@ jQuery(document).ready(function () {
       contentType: false,
       dataType: "JSON",
       success: function (response) {
-        $("#saveOldOutstandingDetail").prop("disabled", false).text("Save changes");
+        $("#saveOldOutstandingDetail")
+          .prop("disabled", false)
+          .text("Save changes");
         if (response.status === "success") {
           swal({
             title: "Success!",
             text: "Detail added successfully!",
             type: "success",
             timer: 2000,
-            showConfirmButton: false
+            showConfirmButton: false,
           });
 
           $("#oldOutstandingDetailForm")[0].reset();
@@ -861,19 +872,20 @@ jQuery(document).ready(function () {
             // So I'll keep modal open and just clear form.
           }
           // Note: UI Update of "Old Outstanding" field on main form for newly added amount
-          // is missed if we just reset form. 
+          // is missed if we just reset form.
           // But I'll leave the total update logic aside for now or fetch it separately?
           // Re-fetching full customer might be safer.
           // For now, let's just reload modal table.
-
         } else {
           swal("Error", response.message, "error");
         }
       },
       error: function () {
-        $("#saveOldOutstandingDetail").prop("disabled", false).text("Save changes");
+        $("#saveOldOutstandingDetail")
+          .prop("disabled", false)
+          .text("Save changes");
         swal("Error", "System encountered an error", "error");
-      }
+      },
     });
   });
 
@@ -884,55 +896,59 @@ jQuery(document).ready(function () {
     var status = $(this).data("status");
     var $btn = $(this);
 
-    swal({
-      title: "Are you sure?",
-      text: "This will delete the record and reduce outstanding balance if 'Not Paid'.",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "Yes, delete it!",
-      closeOnConfirm: false
-    }, function () {
-      $.ajax({
-        url: "ajax/php/customer-master.php",
-        type: "POST",
-        data: { action: "delete_old_outstanding_detail", id: id },
-        dataType: "JSON",
-        success: function (response) {
-          if (response.status === "success") {
-            swal("Deleted!", "Record deleted.", "success");
-            loadOldOutstandingDetails($("#detail_customer_id").val());
+    swal(
+      {
+        title: "Are you sure?",
+        text: "This will delete the record and reduce outstanding balance if 'Not Paid'.",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes, delete it!",
+        closeOnConfirm: false,
+      },
+      function () {
+        $.ajax({
+          url: "ajax/php/customer-master.php",
+          type: "POST",
+          data: { action: "delete_old_outstanding_detail", id: id },
+          dataType: "JSON",
+          success: function (response) {
+            if (response.status === "success") {
+              swal("Deleted!", "Record deleted.", "success");
+              loadOldOutstandingDetails($("#detail_customer_id").val());
 
-            // Update main UI total if it was Not Paid
-            if (status === 'Not Paid') {
-              var currentTotal = parseFloat($("#old_outstanding").val()) || 0;
-              $("#old_outstanding").val((currentTotal - parseFloat(amount)).toFixed(2));
+              // Update main UI total if it was Not Paid
+              if (status === "Not Paid") {
+                var currentTotal = parseFloat($("#old_outstanding").val()) || 0;
+                $("#old_outstanding").val(
+                  (currentTotal - parseFloat(amount)).toFixed(2),
+                );
+              }
+            } else {
+              swal("Error", response.message, "error");
             }
-          } else {
-            swal("Error", response.message, "error");
-          }
-        },
-        error: function (xhr, status, error) {
-          // Hide page preloader and re-enable the button
-          $("#page-preloader").hide();
-          $("#create-invoice-customer").prop("disabled", false);
+          },
+          error: function (xhr, status, error) {
+            // Hide page preloader and re-enable the button
+            $("#page-preloader").hide();
+            $("#create-invoice-customer").prop("disabled", false);
 
-          console.error("AJAX Error:", status, error);
-          console.error("Response:", xhr.responseText);
-          swal({
-            title: "Error!",
-            text: "Failed to create customer. Please try again.",
-            type: "error",
-            showConfirmButton: true,
-          });
-        },
-        complete: function () {
-          // Ensure preloader hidden and button enabled
-          $("#page-preloader").hide();
-          $("#create-invoice-customer").prop("disabled", false);
-        }
-      });
-    });
+            console.error("AJAX Error:", status, error);
+            console.error("Response:", xhr.responseText);
+            swal({
+              title: "Error!",
+              text: "Failed to create customer. Please try again.",
+              type: "error",
+              showConfirmButton: true,
+            });
+          },
+          complete: function () {
+            // Ensure preloader hidden and button enabled
+            $("#page-preloader").hide();
+            $("#create-invoice-customer").prop("disabled", false);
+          },
+        });
+      },
+    );
   });
-
 });
