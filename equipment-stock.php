@@ -64,12 +64,19 @@ $EQUIPMENT = new Equipment(NULL);
                             </div>
                         </div>
 
+
                     </div>
 
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <div class="form-check form-switch form-switch-lg" dir="ltr">
+                                            <input class="form-check-input" type="checkbox" id="searchSubOnly">
+                                            <label class="form-check-label fw-bold ps-2 mb-0 align-middle" for="searchSubOnly">Search Sub Equipment Only</label>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-bordered dt-responsive nowrap"
                                             id="equipmentStockTable"
