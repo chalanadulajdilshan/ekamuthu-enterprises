@@ -300,16 +300,25 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         }
 
         // Calculate refund balance from returns
-        $refundQuery = "SELECT COALESCE(SUM(refund_amount), 0) as total_refund, 
-                        COALESCE(SUM(additional_payment), 0) as total_additional
+        // Refund Balance = Customer Deposit - Total Charges (rental + extra day + damage + penalty)
+        $customerDeposit = floatval($EQUIPMENT_RENT->deposit_total ?? 0);
+        
+        // Get total charges from all returns: rental amounts + extra day + damage + penalty
+        $chargesQuery = "SELECT COALESCE(SUM(
+                            GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                            * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)))
+                            * err.return_qty
+                            + COALESCE(err.extra_day_amount, 0)
+                            + COALESCE(err.damage_amount, 0)
+                            + COALESCE(err.penalty_amount, 0)
+                        ), 0) as total_charges
                         FROM equipment_rent_returns err
                         INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
                         WHERE eri.rent_id = $rent_id";
-        $refundResult = $db->readQuery($refundQuery);
-        $refundData = mysqli_fetch_assoc($refundResult);
-        $totalRefund = floatval($refundData['total_refund'] ?? 0);
-        $totalAdditional = floatval($refundData['total_additional'] ?? 0);
-        $refundBalance = $totalRefund - $totalAdditional;
+        $chargesResult = $db->readQuery($chargesQuery);
+        $chargesData = mysqli_fetch_assoc($chargesResult);
+        $totalCharges = floatval($chargesData['total_charges'] ?? 0);
+        $refundBalance = $customerDeposit - $totalCharges;
 
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
