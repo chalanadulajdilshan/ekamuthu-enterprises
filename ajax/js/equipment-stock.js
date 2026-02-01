@@ -8,6 +8,7 @@ jQuery(document).ready(function () {
             type: "POST",
             data: function (d) {
                 d.filter = true;
+                d.search_sub_only = $("#searchSubOnly").is(":checked");
             },
             dataSrc: function (json) {
                 return json.data;
@@ -82,10 +83,12 @@ jQuery(document).ready(function () {
             // Auto-expand rows with sub-equipment matches
             var api = this.api();
             var searchTerm = api.search();
+            var isSubSearch = $("#searchSubOnly").is(":checked");
 
             api.rows().every(function () {
                 var data = this.data();
-                if (data.has_sub_match === true && searchTerm.length > 0) {
+                // Expand if backend says there's a sub match OR if we are in sub-only search mode and there's a search term
+                if ((data.has_sub_match === true) && searchTerm.length > 0) {
                     var tr = $(this.node());
                     var row = this;
 
@@ -96,6 +99,11 @@ jQuery(document).ready(function () {
                 }
             });
         }
+    });
+
+    // Reload table on checkbox change
+    $("#searchSubOnly").on("change", function () {
+        table.ajax.reload();
     });
 
     // Make rows appear clickable
@@ -138,7 +146,7 @@ jQuery(document).ready(function () {
     }
 
     // Function to render sub-equipment table
-    function renderSubEquipmentTable(subEquipments, meta, searchTerm) {
+    function renderSubEquipmentTable(subEquipments, meta, searchTerm, isSubSearch) {
         // If equipment has no sub-items, show summary badges
         if (meta && meta.no_sub_items == 1) {
             var available = parseFloat(meta.available_qty || 0).toFixed(0);
@@ -192,6 +200,7 @@ jQuery(document).ready(function () {
 
         subEquipments.forEach(function (item, index) {
             var code = item.code || "-";
+            // Highlight only if sub-search is active or if we want generic highlight
             if (searchTerm) {
                 code = highlightText(code, searchTerm);
             }
@@ -274,11 +283,12 @@ jQuery(document).ready(function () {
                 data: {
                     action: "get_sub_equipment",
                     equipment_id: data.id,
-                    search: table.search() // Pass current search term
+                    search: table.search(), // Pass current search term
+                    search_sub_only: $("#searchSubOnly").is(":checked") // Pass check state
                 },
                 success: function (resp) {
                     if (resp && resp.status === "success") {
-                        row.child(renderSubEquipmentTable(resp.data, resp.meta, table.search())).show();
+                        row.child(renderSubEquipmentTable(resp.data, resp.meta, table.search(), $("#searchSubOnly").is(":checked"))).show();
 
                         // Attach click handler to rented sub-equipment rows to open rent details
                         row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-rented", function (evt) {

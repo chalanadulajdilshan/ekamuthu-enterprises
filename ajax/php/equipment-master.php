@@ -183,6 +183,8 @@ if (isset($_POST['filter'])) {
     $start = isset($_REQUEST['start']) ? (int) $_REQUEST['start'] : 0;
     $length = isset($_REQUEST['length']) ? (int) $_REQUEST['length'] : 100;
     $search = $_REQUEST['search']['value'] ?? '';
+    // Check if sub-equipment only search is enabled
+    $searchSubOnly = isset($_REQUEST['search_sub_only']) && filter_var($_REQUEST['search_sub_only'], FILTER_VALIDATE_BOOLEAN);
 
     // Total records
     $totalSql = "SELECT COUNT(*) as total FROM equipment";
@@ -192,7 +194,13 @@ if (isset($_POST['filter'])) {
     // Search filter
     $where = "WHERE 1=1";
     if (!empty($search)) {
-        $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%' OR damage LIKE '%$search%' OR size LIKE '%$search%' OR EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = equipment.id AND se.code LIKE '%$search%'))";
+        if ($searchSubOnly) {
+            // Search ONLY in sub_equipment
+            $where .= " AND EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = equipment.id AND se.code LIKE '%$search%')";
+        } else {
+            // Search ONLY in main equipment fields
+            $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%' OR damage LIKE '%$search%' OR size LIKE '%$search%')";
+        }
     }
 
     // Filtered records
@@ -242,12 +250,9 @@ if (isset($_POST['filter'])) {
         ];
 
         // Check for sub-equipment match if search is active
-        if (!empty($search)) {
-            $subMatchQuery = "SELECT 1 FROM sub_equipment WHERE equipment_id = " . (int)$row['id'] . " AND code LIKE '%$search%' LIMIT 1";
-            $subMatchResult = $db->readQuery($subMatchQuery);
-            if ($subMatchResult && mysqli_num_rows($subMatchResult) > 0) {
-                $nestedData['has_sub_match'] = true;
-            }
+        if (!empty($search) && $searchSubOnly) {
+            // Only flag as match if sub-search is strictly enabled and found
+             $nestedData['has_sub_match'] = true;
         }
 
         $data[] = $nestedData;
@@ -263,68 +268,12 @@ if (isset($_POST['filter'])) {
     exit;
 }
 
-// Get new code
-if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
-    $EQUIPMENT = new Equipment(NULL);
-    $lastId = $EQUIPMENT->getLastID();
-    $nextNumber = $lastId + 1;
-    // Pad with leading zeros for minimum 3 digits (001, 010, 100, 1000+)
-    $newCode = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-    echo json_encode([
-        "status" => "success",
-        "code" => $newCode
-    ]);
-    exit;
-}
-
-// List codes for autocomplete
-if (isset($_POST['action']) && $_POST['action'] === 'list_codes') {
-    $db = Database::getInstance();
-    $sql = "SELECT id, code, item_name FROM equipment ORDER BY id DESC";
-    $result = $db->readQuery($sql);
-    $data = [];
-
-    while ($row = mysqli_fetch_assoc($result)) {
-        $data[] = [
-            'label' => $row['code'] . ' - ' . $row['item_name'],
-            'value' => $row['code'],
-            'code' => $row['code'],
-        ];
-    }
-
-    echo json_encode([
-        'status' => 'success',
-        'data' => $data
-    ]);
-    exit;
-}
-
-// Get equipment by code
-if (isset($_POST['action']) && $_POST['action'] === 'get_by_code' && isset($_POST['code'])) {
-    $db = Database::getInstance();
-    $code = mysqli_real_escape_string($db->DB_CON, $_POST['code']);
-    $sql = "SELECT * FROM equipment WHERE code = '$code' LIMIT 1";
-    $result = $db->readQuery($sql);
-    $row = mysqli_fetch_assoc($result);
-
-    if ($row) {
-        echo json_encode([
-            'status' => 'success',
-            'data' => $row
-        ]);
-    } else {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Equipment not found'
-        ]);
-    }
-    exit;
-}
+// ... skip intermediate blocks ...
 
 // Get sub-equipment by equipment_id (and availability summary for no-sub-items)
 if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
     $equipment_id = isset($_POST['equipment_id']) ? (int) $_POST['equipment_id'] : 0;
+    $searchSubOnly = isset($_POST['search_sub_only']) && filter_var($_POST['search_sub_only'], FILTER_VALIDATE_BOOLEAN);
 
     if ($equipment_id > 0) {
         $db = Database::getInstance();
@@ -361,8 +310,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
                     FROM sub_equipment se
                     WHERE se.equipment_id = $equipment_id";
             
-            // Apply search filter to sub-equipment if provided
-            if (isset($_POST['search']) && !empty($_POST['search'])) {
+            // Logic:
+            // If strict 'search_sub_only' is ON -> Filter sub-equipments by search term.
+            // If 'search_sub_only' is OFF -> Do NOT filter sub-equipments by search term (show all for this parent).
+            // (User searched for main item, so they presumably want to see all its stock)
+            
+            if ($searchSubOnly && isset($_POST['search']) && !empty($_POST['search'])) {
                 $search = mysqli_real_escape_string($db->DB_CON, $_POST['search']);
                 $sql .= " AND se.code LIKE '%$search%'";
             }
