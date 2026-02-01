@@ -146,10 +146,13 @@ jQuery(document).ready(function () {
             item.id +
             '" title="View Returns History"><i class="uil uil-history"></i></button>';
         }
-        actionBtns +=
-          '<button class="btn btn-sm btn-danger remove-item-btn" data-index="' +
-          index +
-          '" title="Remove"><i class="uil uil-trash"></i></button>';
+        // Hide delete for already saved items (after rent is saved/loaded)
+        if (!item.id) {
+          actionBtns +=
+            '<button class="btn btn-sm btn-danger remove-item-btn" data-index="' +
+            index +
+            '" title="Remove"><i class="uil uil-trash"></i></button>';
+        }
 
         var row =
           "<tr>" +
