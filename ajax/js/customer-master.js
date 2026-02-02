@@ -1,7 +1,6 @@
 jQuery(document).ready(function () {
   // Create Customer
   $("#create").click(function (event) {
-    $("#page-preloader").show();
     event.preventDefault();
 
     // Show page preloader immediately when button is clicked
@@ -84,10 +83,11 @@ jQuery(document).ready(function () {
       //     errorMsg = "Please upload NIC Back Image";
       //   }
       // }
+      $(".someBlock").preloader();
 
       if (errorMsg) {
         $("#create").prop("disabled", false);
-        $("#page-preloader").hide();
+        $(".someBlock").preloader("remove");
         swal({
           title: "Error!",
           text: errorMsg,
@@ -98,7 +98,7 @@ jQuery(document).ready(function () {
         return;
       }
       // -----------------------------------
-      $("#page-preloader").show();
+      // $("#page-preloader").show();
 
       var formData = new FormData($("#form-data")[0]);
       formData.append("create", true);
@@ -114,7 +114,7 @@ jQuery(document).ready(function () {
         dataType: "JSON",
         success: function (result) {
           // Hide page preloader
-          $("#page-preloader").hide();
+          $(".someBlock").preloader("remove");
 
           // Re-enable the button
           $("#create").prop("disabled", false);
@@ -133,7 +133,7 @@ jQuery(document).ready(function () {
             }, 2000);
           } else if (result.status === "duplicate") {
             // Hide preloader in duplicate case
-            $("#page-preloader").hide();
+            $(".someBlock").preloader("remove");
             swal({
               title: "Duplicate Entry!",
               text: result.message,
