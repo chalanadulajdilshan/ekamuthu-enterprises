@@ -113,6 +113,32 @@ jQuery(document).ready(function () {
     }
   }
 
+  function calculateReturnDateFallback(item) {
+    if (item.return_date) {
+      return item.return_date;
+    }
+
+    if (!item.rental_date || !item.duration) {
+      return "";
+    }
+
+    var base = new Date(item.rental_date);
+    if (isNaN(base)) {
+      return "";
+    }
+
+    if (String(item.rent_type).toLowerCase() === "month") {
+      base.setMonth(base.getMonth() + parseFloat(item.duration || 0));
+    } else {
+      base.setDate(base.getDate() + parseFloat(item.duration || 0));
+    }
+
+    var yyyy = base.getFullYear();
+    var mm = String(base.getMonth() + 1).padStart(2, "0");
+    var dd = String(base.getDate()).padStart(2, "0");
+    return yyyy + "-" + mm + "-" + dd;
+  }
+
   // Update items table display
   function updateItemsTable() {
     var tbody = $("#rentItemsTable tbody");
@@ -154,6 +180,9 @@ jQuery(document).ready(function () {
             '" title="Remove"><i class="uil uil-trash"></i></button>';
         }
 
+        var computedReturn = calculateReturnDateFallback(item);
+        var durationLabel = (item.rent_type === "month" ? "Months" : "Days");
+
         var row =
           "<tr>" +
           "<td>" +
@@ -193,7 +222,10 @@ jQuery(document).ready(function () {
           item.rental_date +
           "</td>" +
           "<td>" +
-          (item.return_date || "-") +
+          (computedReturn || "-") +
+          '<div class="text-danger small fw-semibold">' +
+          (parseFloat(item.duration || 0).toFixed(0) + " " + durationLabel) +
+          "</div>" +
           "</td>" +
           "<td>" +
           statusBadge +
