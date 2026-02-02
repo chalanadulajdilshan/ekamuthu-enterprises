@@ -90,7 +90,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
         $EQUIPMENT_RENT = new EquipmentRent($RENT_ITEM->rent_id);
         if (!$EQUIPMENT_RENT->hasActiveRentals()) {
             $EQUIPMENT_RENT->status = 'returned';
-            $EQUIPMENT_RENT->received_date = date('Y-m-d');
+            // Use latest return date/time across all items for this rent
+            $latestReturn = EquipmentRentReturn::getLatestReturnDateTimeByRentId($RENT_ITEM->rent_id);
+            $EQUIPMENT_RENT->received_date = $latestReturn ?: date('Y-m-d H:i');
             $EQUIPMENT_RENT->update();
         }
         

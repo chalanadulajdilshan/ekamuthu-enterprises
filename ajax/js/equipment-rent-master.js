@@ -664,6 +664,8 @@ jQuery(document).ready(function () {
             $paymentSelect.val("");
           }
           $("#received_date").val(rent.received_date || "");
+          // System-controlled received date (read-only)
+          $("#received_date").prop("readonly", true).addClass("bg-light");
           $("#received_date_container").show();
           $("#remark").val(rent.remark || "");
           $("#transport_cost").val(rent.transport_cost || "0.00");
@@ -1267,6 +1269,8 @@ jQuery(document).ready(function () {
     var formData = new FormData($("#form-data")[0]);
     formData.append("create", true);
     formData.append("items", JSON.stringify(rentItems));
+    // Received date is system-controlled; do not send manual value
+    formData.delete("received_date");
     formData.append("transport_cost", $("#transport_cost").val() || 0);
     formData.append("custom_deposit", $("#custom_deposit").val() || 0);
 
@@ -1368,6 +1372,8 @@ jQuery(document).ready(function () {
     var formData = new FormData($("#form-data")[0]);
     formData.append("update", true);
     formData.append("items", JSON.stringify(rentItems));
+    // Received date is system-controlled; do not send manual value
+    formData.delete("received_date");
     formData.append("transport_cost", $("#transport_cost").val() || 0);
     formData.append("custom_deposit", $("#custom_deposit").val() || 0);
 
@@ -1451,6 +1457,7 @@ jQuery(document).ready(function () {
     $("#print").hide();
     $("#return-all").hide();
     $("#received_date_container").hide();
+    $("#received_date").prop("readonly", true).val("").removeClass("bg-light");
 
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",

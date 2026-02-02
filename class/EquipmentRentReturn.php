@@ -402,6 +402,32 @@ class EquipmentRentReturn
         ];
     }
 
+    /**
+     * Get the latest return date/time (as string) across all items for a rent.
+     */
+    public static function getLatestReturnDateTimeByRentId($rent_id)
+    {
+        $db = Database::getInstance();
+        $rent_id = (int) $rent_id;
+
+        $query = "SELECT err.return_date, err.return_time
+                  FROM equipment_rent_returns err
+                  INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                  WHERE eri.rent_id = {$rent_id}
+                  ORDER BY err.return_date DESC, err.return_time DESC, err.id DESC
+                  LIMIT 1";
+
+        $row = mysqli_fetch_assoc($db->readQuery($query));
+
+        if (!$row || empty($row['return_date'])) {
+            return null;
+        }
+
+        $date = $row['return_date'];
+        $time = $row['return_time'] ?? null;
+        return $time ? ($date . ' ' . $time) : $date;
+    }
+
     public static function getReturnSummaryByRentId($rent_id)
     {
         $db = Database::getInstance();
