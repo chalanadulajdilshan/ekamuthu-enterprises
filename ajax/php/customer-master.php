@@ -174,14 +174,9 @@ if (isset($_POST['create'])) {
     $conditions = [];
 
     // Check primary mobile number
-    $conditions[] = "mobile_number = '{$_POST['mobile_number']}'";
-    $conditions[] = "mobile_number_2 = '{$_POST['mobile_number']}'";
+    $conditions[] = "mobile_number = '{$_POST['mobile_number']}'"; 
 
-    // Check secondary mobile number if provided
-    if (!empty($_POST['mobile_number_2'])) {
-        $conditions[] = "mobile_number = '{$_POST['mobile_number_2']}'";
-        $conditions[] = "mobile_number_2 = '{$_POST['mobile_number_2']}'";
-    }
+   
 
     $conditionString = implode(' OR ', $conditions);
     $mobileCheck = "SELECT id FROM customer_master WHERE ($conditionString)";
