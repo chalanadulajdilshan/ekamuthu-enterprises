@@ -57,7 +57,9 @@ if (isset($_POST['create'])) {
     $EQUIPMENT_RENT->bill_number = $bill_number;
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
-    $EQUIPMENT_RENT->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
+    // Received date is system-controlled; ignore manual input and set when all items returned
+    // Keep previously stored received_date if already set and all items remain returned
+    $existingReceivedDate = $EQUIPMENT_RENT->received_date;
     $EQUIPMENT_RENT->status = 'rented';
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT_RENT->total_items = count($items);
@@ -234,7 +236,6 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->bill_number = $_POST['code'];
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
-    $EQUIPMENT_RENT->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
@@ -249,6 +250,14 @@ if (isset($_POST['update'])) {
         }
     }
     $EQUIPMENT_RENT->status = $allReturned ? 'returned' : 'rented';
+
+    if ($allReturned) {
+        // Set received date/time only once when all items are returned
+        $EQUIPMENT_RENT->received_date = $existingReceivedDate ?: date('Y-m-d H:i');
+    } else {
+        // Clear received date if items are still pending
+        $EQUIPMENT_RENT->received_date = null;
+    }
 
     $res = $EQUIPMENT_RENT->update();
     $EQUIPMENT_RENT->updateTotalItems();
@@ -581,7 +590,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 
         // Update master rent status
         $EQUIPMENT_RENT->status = 'returned';
-        $EQUIPMENT_RENT->received_date = $nowDate;
+        // Store full datetime for received_date when all items returned via Return All
+        $EQUIPMENT_RENT->received_date = date('Y-m-d H:i');
         $EQUIPMENT_RENT->update();
 
         // Audit log
