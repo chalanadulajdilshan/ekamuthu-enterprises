@@ -113,32 +113,6 @@ jQuery(document).ready(function () {
     }
   }
 
-  function calculateReturnDateFallback(item) {
-    if (item.return_date) {
-      return item.return_date;
-    }
-
-    if (!item.rental_date || !item.duration) {
-      return "";
-    }
-
-    var base = new Date(item.rental_date);
-    if (isNaN(base)) {
-      return "";
-    }
-
-    if (String(item.rent_type).toLowerCase() === "month") {
-      base.setMonth(base.getMonth() + parseFloat(item.duration || 0));
-    } else {
-      base.setDate(base.getDate() + parseFloat(item.duration || 0));
-    }
-
-    var yyyy = base.getFullYear();
-    var mm = String(base.getMonth() + 1).padStart(2, "0");
-    var dd = String(base.getDate()).padStart(2, "0");
-    return yyyy + "-" + mm + "-" + dd;
-  }
-
   // Update items table display
   function updateItemsTable() {
     var tbody = $("#rentItemsTable tbody");
@@ -180,8 +154,16 @@ jQuery(document).ready(function () {
             '" title="Remove"><i class="uil uil-trash"></i></button>';
         }
 
-        var computedReturn = calculateReturnDateFallback(item);
-        var durationLabel = (item.rent_type === "month" ? "Months" : "Days");
+        var usedDays = parseInt(item.latest_used_days, 10);
+        var hasReturn = !!item.latest_return_date;
+        var returnDateTime = hasReturn
+          ? (item.latest_return_time ? (item.latest_return_date + " " + item.latest_return_time) : item.latest_return_date)
+          : null;
+        var returnDisplay = hasReturn
+          ? '<div class="text-danger fw-semibold">' + returnDateTime +
+            (usedDays ? '<br><small class="text-danger">' + usedDays + ' day' + (usedDays > 1 ? 's' : '') + '</small>' : '') +
+            '</div>'
+          : "-";
 
         var row =
           "<tr>" +
@@ -222,10 +204,7 @@ jQuery(document).ready(function () {
           item.rental_date +
           "</td>" +
           "<td>" +
-          (computedReturn || "-") +
-          '<div class="text-danger small fw-semibold">' +
-          (parseFloat(item.duration || 0).toFixed(0) + " " + durationLabel) +
-          "</div>" +
+          returnDisplay +
           "</td>" +
           "<td>" +
           statusBadge +
@@ -726,6 +705,10 @@ jQuery(document).ready(function () {
                   : item.quantity,
               amount: item.amount,
               deposit_one_day: item.equipment_deposit, // Store this
+              // latest return info
+              latest_return_date: item.latest_return_date || null,
+              latest_return_time: item.latest_return_time || null,
+              latest_used_days: item.latest_used_days || null,
               status: item.status,
               remark: item.remark,
               no_sub_items: item.no_sub_items == 1 ? 1 : ((!item.sub_equipment_id || item.sub_equipment_id == 0) ? 1 : 0)

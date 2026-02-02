@@ -286,9 +286,21 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
 
         // Get items with equipment deposit info
         $db = Database::getInstance();
-        $itemsQuery = "SELECT ri.*, e.code as equipment_code, e.item_name as equipment_name, 
+        $itemsQuery = "SELECT ri.*, 
+                       e.code as equipment_code, e.item_name as equipment_name, 
                        e.deposit_one_day as equipment_deposit, e.no_sub_items, e.change_value,
-                       se.code as sub_equipment_code 
+                       se.code as sub_equipment_code,
+                       -- latest return info per item
+                       (SELECT err.return_date FROM equipment_rent_returns err 
+                            WHERE err.rent_item_id = ri.id 
+                            ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_return_date,
+                       (SELECT err.return_time FROM equipment_rent_returns err 
+                            WHERE err.rent_item_id = ri.id 
+                            ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_return_time,
+                       (SELECT GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, err.return_date) / 86400))
+                            FROM equipment_rent_returns err 
+                            WHERE err.rent_item_id = ri.id 
+                            ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_used_days
                        FROM equipment_rent_items ri 
                        LEFT JOIN equipment e ON ri.equipment_id = e.id
                        LEFT JOIN sub_equipment se ON ri.sub_equipment_id = se.id
