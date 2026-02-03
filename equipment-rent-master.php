@@ -206,6 +206,16 @@ $bill_number = $lastId + 1;
                                                         placeholder="Enter any remarks or notes about the rental..."></textarea>
                                                 </div>
 
+                                                <!-- Return-after-9 checkbox (applies to Return All) -->
+                                                <div class="col-md-3 align-self-end">
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" id="after_9am_extra_day_all" value="1">
+                                                        <label class="form-check-label" for="after_9am_extra_day_all">
+                                                            Return after 9:00 AM (count extra day)
+                                                        </label>
+                                                    </div>
+                                                </div>
+
                                                 <input type="hidden" id="rent_id" name="rent_id" />
                                             </div>
                                         </form>
@@ -335,7 +345,7 @@ $bill_number = $lastId + 1;
                                                     <tr>
                                                         <th>#</th>
                                                         <th>Equipment</th>
-                                                        <th>Sub Equipment Code</th>
+                                                        <th>Sub Equipment</th>
                                                         <th>Type</th>
                                                         <th>Duration</th>
                                                         <th>Qty</th>

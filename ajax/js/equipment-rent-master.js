@@ -174,7 +174,7 @@ jQuery(document).ready(function () {
           
           dayCountDisplay = '<br><small class="text-danger">' + usedDays + ' day' + (usedDays > 1 ? 's' : '');
           if (hasExtraDay) {
-            dayCountDisplay += ' +1';
+            dayCountDisplay += ' +1 Extra day';
           }
           dayCountDisplay += '</small>';
         }
@@ -1507,10 +1507,26 @@ jQuery(document).ready(function () {
       },
       function (isConfirm) {
         if (isConfirm) {
+          // Capture client local date/time for return-all
+          var now = new Date();
+          var yyyy = now.getFullYear();
+          var mm = String(now.getMonth() + 1).padStart(2, "0");
+          var dd = String(now.getDate()).padStart(2, "0");
+          var hh = String(now.getHours()).padStart(2, "0");
+          var min = String(now.getMinutes()).padStart(2, "0");
+          var localReturnDate = yyyy + "-" + mm + "-" + dd;
+          var localReturnTime = hh + ":" + min;
+
           $.ajax({
             url: "ajax/php/equipment-rent-master.php",
             type: "POST",
-            data: { action: "return_all", rent_id: rentId },
+            data: {
+              action: "return_all",
+              rent_id: rentId,
+              after_9am_extra_day: $("#after_9am_extra_day_all").is(":checked") ? 1 : 0,
+              return_date: localReturnDate,
+              return_time: localReturnTime,
+            },
             dataType: "JSON",
             success: function (result) {
               if (result.status === "success") {

@@ -542,8 +542,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             exit;
         }
 
-        $nowDate = date('Y-m-d');
-        $nowTime = date('H:i');
+        // Prefer client-provided date/time (local to user); fallback to server time
+        $nowDate = !empty($_POST['return_date']) ? $_POST['return_date'] : date('Y-m-d');
+        $nowTime = !empty($_POST['return_time']) ? $_POST['return_time'] : date('H:i');
+        $after9Flag = isset($_POST['after_9am_extra_day']) ? (int) $_POST['after_9am_extra_day'] : 0;
+        // If user wants to count an extra day for all items, ensure return time is after 9:00 AM
+        if ($after9Flag === 1 && $nowTime < '09:00') {
+            $nowTime = '09:01';
+        }
 
         foreach ($items as $item) {
             // Only process items that still have pending quantity
@@ -553,7 +559,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             }
 
             // Calculate settlement for full pending quantity
-            $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, 0, 0, 0);
+            $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, 0, 0);
 
             if ($calculation['error']) {
                 echo json_encode(["status" => "error", "message" => $calculation['message']]);
@@ -567,7 +573,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $RETURN->return_time = $nowTime;
             $RETURN->return_qty = $pendingQty;
             $RETURN->damage_amount = 0;
-            $RETURN->after_9am_extra_day = 0;
+            $RETURN->after_9am_extra_day = $after9Flag;
             $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
             $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
             $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
