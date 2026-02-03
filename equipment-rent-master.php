@@ -1312,9 +1312,45 @@ $bill_number = $lastId + 1;
                 return;
             }
             
-            // Prepare data
-            const generatedCode = `CUST-${Date.now()}`;
+            // Show loading while getting next code
+            swal({
+                title: "Preparing...",
+                text: "Please wait",
+                type: "info",
+                showConfirmButton: false,
+                allowOutsideClick: false
+            });
+            
+            // Get next customer code from server
+            $.ajax({
+                url: 'ajax/php/customer-master.php',
+                type: 'POST',
+                data: { get_next_code: 1 },
+                dataType: 'json',
+                success: function(codeResponse) {
+                    if (codeResponse.status === 'success' && codeResponse.code) {
+                        saveCustomerWithCode(codeResponse.code);
+                    } else {
+                        swal({
+                            title: "Error!",
+                            text: "Failed to generate customer code",
+                            type: "error"
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error status:', status, 'error:', error);
+                    console.error('Response:', xhr.responseText);
+                    swal({
+                        title: "Error!",
+                        text: "Failed to generate customer code",
+                        type: "error"
+                    });
+                }
+            });
+        });
 
+        function saveCustomerWithCode(generatedCode) {
             const formData = {
                 code: generatedCode,
                 name: $('#modal_name').val().toUpperCase(),
@@ -1371,11 +1407,13 @@ $bill_number = $lastId + 1;
                             timer: 2000,
                             showConfirmButton: false
                         });
-                        
-                        // Set the customer in the main form
+
+                        // Set the customer in the main form with code and name
                         $('#customer_id').val(returned.id || '');
-                        $('#customer_display').val((returned.name || formData.name) + ' - ' + (returned.mobile_number || formData.mobile_number));
-                        
+                        const displayCode = returned.code || formData.code || '';
+                        const displayName = returned.name || formData.name || '';
+                        $('#customer_display').val(displayCode + (displayName ? ' - ' + displayName : ''));
+
                         // Clear modal form
                         $('#modal-customer-form')[0].reset();
                         $('#modal_company_fields').hide();
@@ -1408,7 +1446,7 @@ $bill_number = $lastId + 1;
                     });
                 }
             });
-        });
+        }
 
         // Clear modal when it's closed
         $('#AddCustomerModal').on('hidden.bs.modal', function() {

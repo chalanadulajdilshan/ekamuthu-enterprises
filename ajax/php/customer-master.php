@@ -7,6 +7,16 @@ error_reporting(E_ALL);
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
 
+// Get next customer code (used by rent modal)
+if (isset($_POST['get_next_code'])) {
+    $CUSTOMER_MASTER = new CustomerMaster(NULL);
+    $lastId = $CUSTOMER_MASTER->getLastID();
+    $nextCode = 'CM/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
+
+    echo json_encode(["status" => "success", "code" => $nextCode]);
+    exit();
+}
+
 // Add Old Outstanding Detail
 if (isset($_POST['action']) && $_POST['action'] == 'add_old_outstanding_detail') {
     
@@ -230,7 +240,17 @@ if (isset($_POST['create'])) {
 
 
     if ($res) {
-        echo json_encode(["status" => "success"]);
+        $created = new CustomerMaster($res);
+        echo json_encode([
+            "status" => "success",
+            "data" => [
+                "id" => $created->id,
+                "code" => $created->code,
+                "name" => $created->name,
+                "mobile_number" => $created->mobile_number,
+                "address" => $created->address
+            ]
+        ]);
         exit();
     } else {
         echo json_encode(["status" => "error"]);
