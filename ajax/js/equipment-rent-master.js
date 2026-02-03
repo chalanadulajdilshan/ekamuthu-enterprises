@@ -159,10 +159,28 @@ jQuery(document).ready(function () {
         var returnDateTime = hasReturn
           ? (item.latest_return_time ? (item.latest_return_date + " " + item.latest_return_time) : item.latest_return_date)
           : null;
+        
+        // Calculate day count display similar to return modal
+        var dayCountDisplay = '';
+        if (hasReturn && usedDays) {
+          // Check if there's an extra day charged (if return time is after 9:00 AM)
+          var hasExtraDay = false;
+          if (item.latest_return_time) {
+            var returnTime = item.latest_return_time;
+            if (returnTime && returnTime >= '09:00') {
+              hasExtraDay = true;
+            }
+          }
+          
+          dayCountDisplay = '<br><small class="text-danger">' + usedDays + ' day' + (usedDays > 1 ? 's' : '');
+          if (hasExtraDay) {
+            dayCountDisplay += ' +1';
+          }
+          dayCountDisplay += '</small>';
+        }
+        
         var returnDisplay = hasReturn
-          ? '<div class="text-danger fw-semibold">' + returnDateTime +
-            (usedDays ? '<br><small class="text-danger">' + usedDays + ' day' + (usedDays > 1 ? 's' : '') + '</small>' : '') +
-            '</div>'
+          ? '<div class="text-danger fw-semibold">' + returnDateTime + dayCountDisplay + '</div>'
           : "-";
 
         var row =
@@ -1476,6 +1494,7 @@ jQuery(document).ready(function () {
   $("#return-all").click(function (e) {
     e.preventDefault();
     var rentId = $("#rent_id").val();
+    var billNo = $("#code").val();
     if (!rentId) return;
 
     swal(
@@ -1499,12 +1518,16 @@ jQuery(document).ready(function () {
                   title: "Success!",
                   text: result.message || "All items marked as returned.",
                   type: "success",
-                  timer: 2000,
+                  timer: 1500,
                   showConfirmButton: false,
                 });
                 setTimeout(function () {
-                  window.location.reload();
-                }, 2000);
+                  if (billNo) {
+                    window.location.href = "rent-invoice.php?bill_no=" + billNo;
+                  } else {
+                    window.location.reload();
+                  }
+                }, 1500);
               } else {
                 swal({
                   title: "Error!",
