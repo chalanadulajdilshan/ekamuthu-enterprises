@@ -1,8 +1,8 @@
 <?php
 
 // Suppress PHP warnings/notices from corrupting JSON output
-error_reporting(0);
-ini_set('display_errors', 0);
+error_reporting(1);
+ini_set('display_errors', 1);
 
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
@@ -20,19 +20,58 @@ if (isset($_POST['create'])) {
         exit();
     }
 
+    // Decode items first for validation
+    $items = json_decode($_POST['items'] ?? '[]', true);
+
+    // 1. Validation Phase: Check if issued quantity exceeds remaining balance
+    foreach ($items as $item) {
+        $eqId = (int)$item['equipment_id'];
+        $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : 'NULL';
+        $rentId = (int)$_POST['rent_invoice_id'];
+        
+        // Get total ordered for this line item
+        $orderedQuery = "SELECT SUM(quantity) as ordered FROM equipment_rent_items 
+                         WHERE rent_id = $rentId 
+                         AND equipment_id = $eqId 
+                         AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))";
+        $orderedRes = mysqli_fetch_assoc($db->readQuery($orderedQuery));
+        $totalOrdered = (float)($orderedRes['ordered'] ?? 0);
+        
+        // Get total issued so far (excluding current being created)
+        $issuedQuery = "SELECT SUM(ini.issued_quantity) as issued 
+                        FROM issue_note_items ini
+                        INNER JOIN issue_notes n ON ini.issue_note_id = n.id
+                        WHERE n.rent_invoice_id = $rentId 
+                        AND ini.equipment_id = $eqId 
+                        AND (ini.sub_equipment_id = $subEqId OR ($subEqId IS NULL AND ini.sub_equipment_id IS NULL))";
+        $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedQuery));
+        $totalIssuedSoFar = (float)($issuedRes['issued'] ?? 0);
+        
+        $newIssued = (float)$item['issued_quantity'];
+        
+        // Enforce validation: New + Previous Issued <= Total Billed
+        if (($totalIssuedSoFar + $newIssued) > $totalOrdered) {
+            echo json_encode([
+                "status" => "error", 
+                "message" => "Cannot issue $newIssued for Item ID $eqId. Perviously issued: $totalIssuedSoFar. Total Billed: $totalOrdered."
+            ]);
+            exit();
+        }
+    }
+
+    // 2. Create Issue Note
     $NOTE = new IssueNote(null);
     $NOTE->issue_note_code = $_POST['issue_note_code'];
     $NOTE->rent_invoice_id = $_POST['rent_invoice_id'];
     $NOTE->customer_id = $_POST['customer_id'];
     $NOTE->issue_date = $_POST['issue_date'];
-    $NOTE->issue_status = $_POST['issue_status'] ?? 'pending';
+    $NOTE->issue_status = 'issued'; 
     $NOTE->remarks = $_POST['remarks'] ?? '';
 
     $note_id = $NOTE->create();
 
     if ($note_id) {
-        // Create items
-        $items = json_decode($_POST['items'] ?? '[]', true);
+        // 3. Create Items
         foreach ($items as $item) {
             $ITEM = new IssueNoteItem(null);
             $ITEM->issue_note_id = $note_id;
@@ -46,10 +85,33 @@ if (isset($_POST['create'])) {
             $ITEM->create();
         }
 
-        // Increment document ID
+        // 4. Update Invoice Issuing Status
+        $rentId = (int)$_POST['rent_invoice_id'];
+        
+        // Calculate totals for the whole invoice
+        $totalOrderedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentId";
+        $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 
+                           FROM issue_note_items ini 
+                           INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                           WHERE n.rent_invoice_id = $rentId";
+                           
+        $totOrd = (float)mysqli_fetch_assoc($db->readQuery($totalOrderedSql))['total'];
+        $totIss = (float)mysqli_fetch_assoc($db->readQuery($totalIssuedSql))['total'];
+        
+        $newDocStatus = 0; // Not Issued
+        if ($totIss > 0) {
+            if ($totIss >= $totOrd) {
+                $newDocStatus = 2; // Fully Issued
+            } else {
+                $newDocStatus = 1; // Partially Issued
+            }
+        }
+        
+        $db->readQuery("UPDATE equipment_rent SET issue_status = $newDocStatus WHERE id = $rentId");
+
+        // 5. Audit & Tracking
         (new DocumentTracking(null))->incrementDocumentId('issue_note');
 
-        // Audit log
         $AUDIT_LOG = new AuditLog(null);
         $AUDIT_LOG->ref_id = $note_id;
         $AUDIT_LOG->ref_code = $_POST['issue_note_code'];
@@ -77,15 +139,49 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
             $RENT_ITEMS = new EquipmentRentItem(null);
             $items = $RENT_ITEMS->getByRentId($RENT->id);
             
+            // Fetch previously issued quantities for this invoice
+            $db = Database::getInstance();
+            $issuedQuery = "SELECT ini.equipment_id, ini.sub_equipment_id, SUM(ini.issued_quantity) as total_issued
+                            FROM issue_note_items ini
+                            INNER JOIN issue_notes note ON ini.issue_note_id = note.id
+                            WHERE note.rent_invoice_id = " . (int)$invoice_id . "
+                            GROUP BY ini.equipment_id, ini.sub_equipment_id";
+            $issuedResult = $db->readQuery($issuedQuery);
+            $issuedMap = [];
+            while ($row = mysqli_fetch_assoc($issuedResult)) {
+                $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL');
+                $issuedMap[$key] = (float)$row['total_issued'];
+            }
+
+            // Get Issue History
+            $historyQuery = "SELECT n.id, n.issue_note_code, n.issue_date, n.issue_status, n.created_at,
+                             (SELECT SUM(issued_quantity) FROM issue_note_items WHERE issue_note_id = n.id) as total_qty
+                             FROM issue_notes n
+                             WHERE n.rent_invoice_id = " . (int)$invoice_id . " 
+                             ORDER BY n.id DESC";
+            $historyResult = $db->readQuery($historyQuery);
+            $history = [];
+            while ($row = mysqli_fetch_assoc($historyResult)) {
+                $history[] = $row;
+            }
+
             // Format items for frontend
             $formattedItems = [];
             foreach ($items as $item) {
+                // Determine already issued qty
+                $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL');
+                $alreadyIssued = $issuedMap[$key] ?? 0;
+                $orderedQty = (float)$item['quantity'];
+                $remainingQty = max(0, $orderedQty - $alreadyIssued);
+
                 $formattedItems[] = [
                     'equipment_id' => $item['equipment_id'],
                     'sub_equipment_id' => $item['sub_equipment_id'],
                     'equipment_name' => $item['equipment_name'],
                     'sub_equipment_code' => $item['sub_equipment_code'],
-                    'quantity' => $item['quantity'],
+                    'quantity' => $orderedQty,          // Total Billed Qty
+                    'already_issued' => $alreadyIssued, // Previously Issued
+                    'remaining_quantity' => $remainingQty, // Available based on balance
                     'rent_type' => $item['rent_type'],
                     'duration' => $item['duration'],
                     'rental_date' => $item['rental_date'],
@@ -104,9 +200,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                     "customer_id" => $RENT->customer_id,
                     "customer_name" => $CUSTOMER->name,
                     "customer_phone" => $CUSTOMER->mobile_number,
-                    "rental_date" => $RENT->rental_date
+                    "rental_date" => $RENT->rental_date,
+                    "issue_status" => $RENT->issue_status ?? 0 // 0=Pending, 1=Partial, 2=Full
                 ],
-                "items" => $formattedItems
+                "items" => $formattedItems,
+                "history" => $history
             ]);
         } else {
             echo json_encode(["status" => "error", "message" => "Invoice not found"]);
