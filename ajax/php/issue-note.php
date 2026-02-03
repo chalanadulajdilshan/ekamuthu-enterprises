@@ -103,7 +103,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                     "bill_number" => $RENT->bill_number,
                     "customer_id" => $RENT->customer_id,
                     "customer_name" => $CUSTOMER->name,
-                    "customer_phone" => $CUSTOMER->mobile,
+                    "customer_phone" => $CUSTOMER->mobile_number,
                     "rental_date" => $RENT->rental_date
                 ],
                 "items" => $formattedItems

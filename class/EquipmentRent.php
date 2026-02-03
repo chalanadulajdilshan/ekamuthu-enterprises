@@ -213,6 +213,10 @@ class EquipmentRent
             $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%' OR cm.nic LIKE '%$search%')";
         }
 
+        if (!empty($request['exclude_issued'])) {
+            $where .= " AND er.status != 'returned'";
+        }
+
         // Base FROM/JOIN for reuse
         $fromJoin = "FROM equipment_rent er LEFT JOIN customer_master cm ON er.customer_id = cm.id";
 
