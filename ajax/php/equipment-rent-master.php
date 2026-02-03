@@ -306,6 +306,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                        (SELECT err.return_time FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 
                             ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_return_time,
+                       (SELECT err.after_9am_extra_day FROM equipment_rent_returns err 
+                            WHERE err.rent_item_id = ri.id 
+                            ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_after_9am_flag,
                        (SELECT GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, err.return_date) / 86400))
                             FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 

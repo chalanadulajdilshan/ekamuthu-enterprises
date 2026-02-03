@@ -163,14 +163,8 @@ jQuery(document).ready(function () {
         // Calculate day count display similar to return modal
         var dayCountDisplay = '';
         if (hasReturn && usedDays) {
-          // Check if there's an extra day charged (if return time is after 9:00 AM)
-          var hasExtraDay = false;
-          if (item.latest_return_time) {
-            var returnTime = item.latest_return_time;
-            if (returnTime && returnTime >= '09:00') {
-              hasExtraDay = true;
-            }
-          }
+          // Check if extra day was actually charged (based on the after_9am_extra_day flag from the return record)
+          var hasExtraDay = !!(item.latest_after_9am_flag && parseInt(item.latest_after_9am_flag, 10) === 1);
           
           dayCountDisplay = '<br><small class="text-danger">' + usedDays + ' day' + (usedDays > 1 ? 's' : '');
           if (hasExtraDay) {
@@ -728,6 +722,7 @@ jQuery(document).ready(function () {
               // latest return info
               latest_return_date: item.latest_return_date || null,
               latest_return_time: item.latest_return_time || null,
+              latest_after_9am_flag: item.latest_after_9am_flag || null,
               latest_used_days: item.latest_used_days || null,
               status: item.status,
               remark: item.remark,
