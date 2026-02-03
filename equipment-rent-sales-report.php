@@ -75,17 +75,30 @@ include 'auth.php';
                                                 <label for="toDate" class="form-label">To Date</label>
                                                 <input type="text" class="form-control date-picker" id="toDate" name="toDate" autocomplete="off">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <label class="d-block">&nbsp;</label>
-                                                <button type="button" class="btn btn-primary" id="searchBtn">
-                                                    <i class="mdi mdi-magnify me-1"></i> Search
-                                                </button>
-                                                <button type="button" class="btn btn-secondary" id="resetBtn">
-                                                    <i class="mdi mdi-refresh me-1"></i> Reset
-                                                </button>
-                                                <button type="button" class="btn btn-success" id="printBtn">
-                                                    <i class="mdi mdi-printer me-1"></i> Print
-                                                </button>
+                                                <div class="d-flex gap-2 flex-wrap">
+                                                    <div>
+                                                        <button type="button" class="btn btn-primary" id="searchBtn">
+                                                            <i class="mdi mdi-magnify me-1"></i> Search
+                                                        </button>
+                                                        <button type="button" class="btn btn-secondary" id="resetBtn">
+                                                            <i class="mdi mdi-refresh me-1"></i> Reset
+                                                        </button>
+                                                        <button type="button" class="btn btn-success" id="printBtn">
+                                                            <i class="mdi mdi-printer me-1"></i> Print
+                                                        </button>
+                                                        <button type="button" class="btn btn-warning" id="printReturnIncomeBtn">
+                                                            <i class="mdi mdi-cash-multiple me-1"></i> Return Income
+                                                        </button>
+                                                    </div>
+                                                    <div class="ms-auto">
+                                                        <button type="button" class="btn btn-info" id="printDailyBtn">
+                                                            <i class="mdi mdi-printer-settings me-1"></i>Daily Rental Report
+                                                        </button>   
+                                                        <button type="button" class="btn btn-info" id="printDailyReturnBtn">Daily Return Report</button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </form>
