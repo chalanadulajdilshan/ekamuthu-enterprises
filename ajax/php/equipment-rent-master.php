@@ -561,6 +561,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             // Calculate settlement for full pending quantity
             $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, 0, 0);
 
+            // If after-9 flag is set but extra day amount did not compute, force one extra-day charge
+            if ($after9Flag === 1 && floatval($calculation['extra_day_amount'] ?? 0) <= 0) {
+                $extraOverride = floatval($calculation['per_unit_daily'] ?? 0) * $pendingQty;
+                $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, $extraOverride, 0);
+            }
+
             if ($calculation['error']) {
                 echo json_encode(["status" => "error", "message" => $calculation['message']]);
                 exit;
