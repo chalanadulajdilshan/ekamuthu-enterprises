@@ -101,14 +101,27 @@ $(document).ready(function () {
 
                     // Store items
                     issueItems = result.items.map(function (item) {
-                        item.ordered_quantity = item.quantity;
-                        if (!item.issued_quantity) {
-                            item.issued_quantity = item.quantity;
-                        }
-                        return item;
+                        var ordered = parseFloat(item.quantity) || 0;
+                        var alreadyIssued = parseFloat(item.already_issued) || 0;
+                        var remaining = parseFloat(item.remaining_quantity) || 0;
+
+                        return {
+                            equipment_id: item.equipment_id,
+                            sub_equipment_id: item.sub_equipment_id,
+                            equipment_name: item.equipment_name,
+                            sub_equipment_code: item.sub_equipment_code,
+                            rent_type: item.rent_type,
+                            ordered_quantity: ordered,
+                            already_issued: alreadyIssued,
+                            remaining_quantity: remaining,
+                            issued_quantity: remaining, // Default to issuing all remaining
+                            remarks: ""
+                        };
                     });
 
                     renderItemsTable();
+                    renderHistoryTable(result.history);
+
                 } else {
                     swal("Error!", result.message, "error");
                 }
@@ -149,12 +162,8 @@ $(document).ready(function () {
                     savedNoteId = note.id;
                     $("#print_note").show();
 
-                    // Store items and render
-                    // Note: items from get_issue_note_details structure matches renderItemsTable expectations
-                    // but we need to map keys if they differ. 
-                    // IssueNoteItem::getItems returns: equipment_name, sub_equipment_code, ordered_quantity, issued_quantity
-                    // renderItemsTable expects: equipment_name, sub_equipment_code, quantity (for max), issued_quantity
-
+                    // View Mode: Just show what was in THIS note
+                    // We don't recalculate remaining etc here because this is a historic view
                     issueItems = result.items.map(function (item) {
                         return {
                             equipment_id: item.equipment_id,
@@ -162,14 +171,17 @@ $(document).ready(function () {
                             equipment_name: item.equipment_name,
                             sub_equipment_code: item.sub_equipment_code,
                             rent_type: item.rent_type,
-                            quantity: item.ordered_quantity, // Map ordered to quantity for validation max
                             ordered_quantity: item.ordered_quantity,
+                            already_issued: 0, // Not relevant in view mode
+                            remaining_quantity: 0, // Not relevant
                             issued_quantity: item.issued_quantity,
-                            remarks: item.remarks
+                            remarks: item.remarks,
+                            is_view_mode: true // Flag to disable inputs
                         };
                     });
 
                     renderItemsTable();
+                    $("#issueHistoryContainer").hide(); // Hide history when viewing a specific note
 
                 } else {
                     swal("Error!", result.message, "error");
@@ -187,7 +199,7 @@ $(document).ready(function () {
         tbody.empty();
 
         if (issueItems.length === 0) {
-            tbody.append('<tr><td colspan="7" class="text-center py-4 text-muted"><i class="uil uil-box font-size-24 d-block mb-2"></i>Select a Rent Invoice to load items</td></tr>');
+            tbody.append('<tr><td colspan="9" class="text-center py-4 text-muted"><i class="uil uil-box font-size-24 d-block mb-2"></i>Select a Rent Invoice to load items</td></tr>');
             return;
         }
 
@@ -198,35 +210,92 @@ $(document).ready(function () {
                 itemName += " (" + item.sub_equipment_code + ")";
             }
 
+            var isReadOnly = item.is_view_mode || item.remaining_quantity <= 0;
+            var inputDisabled = isReadOnly ? 'disabled' : '';
+            var bgClass = item.remaining_quantity <= 0 && !item.is_view_mode ? 'table-success' : '';
+            var issueVal = item.issued_quantity;
+
             var row = `
-                <tr>
+                <tr class="${bgClass}">
                     <td>${index + 1}</td>
                     <td>${itemName}
                         <input type="hidden" class="equipment_id" value="${item.equipment_id}">
                         <input type="hidden" class="sub_equipment_id" value="${item.sub_equipment_id || ''}">
                     </td>
                     <td>${item.rent_type}</td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm text-center" value="${item.quantity}" readonly>
+                    
+                    <!-- Ordered -->
+                    <td class="text-center bg-light">
+                        <span class="fw-bold">${item.ordered_quantity}</span>
                     </td>
+                    
+                    <!-- Already Issued -->
+                    <td class="text-center bg-light">
+                        <span>${item.already_issued || '-'}</span>
+                    </td>
+                    
+                    <!-- Remaining -->
+                    <td class="text-center bg-light">
+                        <span class="text-primary fw-bold remaining-display">${item.remaining_quantity !== undefined ? item.remaining_quantity : '-'}</span>
+                    </td>
+                    
+                    <!-- Issue Now -->
                     <td>
                         <input type="number" class="form-control form-control-sm text-center issued-qty" 
-                               data-index="${index}" value="${item.issued_quantity}" min="0" max="${item.quantity}">
+                               data-index="${index}" value="${issueVal}" min="0" max="${item.remaining_quantity}" ${inputDisabled}>
                     </td>
+                    
                     <td>
                         <input type="text" class="form-control form-control-sm item-remark" 
-                               data-index="${index}" value="${item.remarks || ''}" placeholder="Remark">
+                               data-index="${index}" value="${item.remarks || ''}" placeholder="Remark" ${item.is_view_mode ? 'readonly' : ''}>
                     </td>
                     <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-item" data-index="${index}">
+                        ${!item.is_view_mode ?
+                    `<button type="button" class="btn btn-sm btn-danger remove-item" data-index="${index}">
                             <i class="uil uil-trash"></i>
-                        </button>
+                        </button>` : ''}
                     </td>
                 </tr>
             `;
             tbody.append(row);
         });
     }
+
+    // Render History Table
+    function renderHistoryTable(history) {
+        var tbody = $("#issueHistoryTable tbody");
+        tbody.empty();
+
+        if (!history || history.length === 0) {
+            $("#issueHistoryContainer").hide();
+            return;
+        }
+
+        $("#issueHistoryContainer").show();
+
+        history.forEach(function (h) {
+            var statusBadge = h.issue_status === 'issued' ? '<span class="badge bg-success">Issued</span>' : '<span class="badge bg-warning">Pending</span>';
+            var totalQty = h.total_qty || 0;
+
+            var row = `
+                <tr style="cursor: pointer;" class="view-history-note" data-id="${h.id}">
+                    <td>${h.issue_date}</td>
+                    <td>${h.issue_note_code}</td>
+                    <td>${statusBadge}</td>
+                     <td><span class="badge bg-info font-size-12">${totalQty}</span></td>
+                    <td>${h.created_at}</td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+
+    // View History Note Click
+    $(document).on("click", ".view-history-note", function () {
+        var id = $(this).data("id");
+        $("#IssueNoteHistoryModal").modal("hide");
+        loadIssueNoteDetails(id);
+    });
 
     // Update Issued Quantity
     $(document).on("change keyup", ".issued-qty", function () {
@@ -235,8 +304,6 @@ $(document).ready(function () {
         var max = parseInt(issueItems[index].quantity);
 
         if (val < 0) val = 0;
-        // Optional: Enforcement to not exceed ordered quantity
-        // if (val > max) val = max; 
 
         issueItems[index].issued_quantity = val;
     });

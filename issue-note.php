@@ -135,8 +135,10 @@ $issue_note_code = ($lastId + 1);
                                                                 <th style="width: 50px;">#</th>
                                                                 <th>Item Name</th>
                                                                 <th>Rent Type</th>
-                                                                <th style="width: 150px;">Ordered Qty</th>
-                                                                <th style="width: 150px;">Issued Qty</th>
+                                                                <th style="width: 100px;">Ordered</th>
+                                                                <th style="width: 100px;">Issued</th>
+                                                                <th style="width: 100px;">Remaining</th>
+                                                                <th style="width: 120px;">Issue Now</th>
                                                                 <th>Remarks</th>
                                                                 <th style="width: 50px;">Action</th>
                                                             </tr>
@@ -144,12 +146,33 @@ $issue_note_code = ($lastId + 1);
                                                         <tbody>
                                                             <!-- Items will be loaded here via AJAX -->
                                                             <tr id="empty_row">
-                                                                <td colspan="7" class="text-center py-4 text-muted">
+                                                                <td colspan="9" class="text-center py-4 text-muted">
                                                                     <i class="uil uil-box font-size-24 d-block mb-2"></i>
                                                                     Select a Rent Invoice to load items
                                                                 </td>
                                                             </tr>
                                                         </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Issue History Section -->
+                                        <div class="row mt-4" id="issueHistoryContainer" style="display:none;">
+                                            <div class="col-12">
+                                                <h5 class="font-size-16 mb-3">Previous Issue Notes for this Invoice</h5>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-hover mb-0" id="issueHistoryTable">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Date</th>
+                                                                <th>Issue Note No</th>
+                                                                <th>Status</th>
+                                                                <th>Total Issued</th>
+                                                                <th>Created At</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
                                                     </table>
                                                 </div>
                                             </div>

@@ -214,7 +214,7 @@ class EquipmentRent
         }
 
         if (!empty($request['exclude_issued'])) {
-            $where .= " AND er.status != 'returned'";
+            $where .= " AND er.issue_status != 2";
         }
 
         // Base FROM/JOIN for reuse
