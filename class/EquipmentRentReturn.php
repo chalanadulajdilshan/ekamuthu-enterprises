@@ -181,7 +181,8 @@ class EquipmentRentReturn
         $duration = max(1, floatval($item['duration']));
         $rent_type = $item['rent_type'];
         $duration_days = ($rent_type === 'month') ? $duration * 30 : $duration;
-        $per_unit_daily = $per_unit_rent_total;
+        // Calculate daily rate: for monthly rentals, divide by 30 to get per-day rate
+        $per_unit_daily = ($rent_type === 'month') ? ($per_unit_rent_total / 30) : $per_unit_rent_total;
 
         // Validate return quantity
         if ($return_qty > $item['pending_qty']) {
