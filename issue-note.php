@@ -6,7 +6,10 @@ include 'auth.php';
 // Get new Issue Note Code
 $DOCUMENT_TRACKING = new DocumentTracking(1);
 $lastId = $DOCUMENT_TRACKING->issue_note_id ?? 0;
-$issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
+// $issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
+
+$issue_note_code = ($lastId + 1);
+
 ?>
 <head>
     <meta charset="utf-8" />
@@ -79,7 +82,7 @@ $issue_note_code = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
                                             <div class="col-md-3">
                                                 <label class="form-label">Issue Note Code - පත්‍රිකා අංකය</label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" id="issue_note_code" value="<?php echo $issue_note_code ?>" readonly>
+                                                    <input type="text" class="form-control" id="issue_note_code" value="<?php echo $issue_note_code ?>"  >
                                                     <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#IssueNoteHistoryModal">
                                                         <i class="uil uil-search"></i>
                                                     </button>
