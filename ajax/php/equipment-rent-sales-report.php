@@ -89,6 +89,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_sales_report') {
         $total_revenue += $net_revenue;
     }
 
+    // Calculate Total Items Rented (Quantity)
+    $qTotalItems = "SELECT SUM(eri.quantity) as total_qty 
+                    FROM equipment_rent_items eri 
+                    JOIN equipment_rent er ON eri.rent_id = er.id 
+                    WHERE er.rental_date BETWEEN '$from_date' AND '$to_date'";
+    $resTotalItems = mysqli_fetch_assoc($db->readQuery($qTotalItems));
+    $total_items_count = $resTotalItems['total_qty'] ?? 0;
+
     echo json_encode([
         'status' => 'success',
         'data' => $data,
@@ -97,7 +105,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_sales_report') {
             'total_transport' => number_format($total_transport, 2),
             'total_additional' => number_format($total_additional, 2),
             'total_refund' => number_format($total_refund, 2),
-            'total_revenue' => number_format($total_revenue, 2)
+            'total_revenue' => number_format($total_revenue, 2),
+            'total_items_count' => (int)$total_items_count
         ]
     ]);
     exit();

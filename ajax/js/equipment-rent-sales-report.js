@@ -67,8 +67,6 @@ $(document).ready(function () {
                     $('#tblTotalRevenue').text(result.summary.total_revenue);
 
                     reportTable = $('#reportTable').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
                         order: [[1, 'desc']],
                         pageLength: 25
                     });
@@ -93,7 +91,43 @@ $(document).ready(function () {
     });
 
     $('#printBtn').click(function () {
-        window.print();
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        if (fromDate && toDate) {
+            window.open("print-equipment-report.php?from=" + fromDate + "&to=" + toDate, "_blank");
+        } else {
+            swal("Error", "Please select a date range first", "error");
+        }
+    });
+
+    $('#printDailyBtn').click(function () {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+        var currentDate = yyyy + '-' + mm + '-' + dd;
+
+        window.open("print-equipment-report.php?from=" + currentDate + "&to=" + currentDate, "_blank");
+    });
+
+    $('#printReturnIncomeBtn').click(function () {
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        if (fromDate && toDate) {
+            window.open("print-return-income-report.php?from=" + fromDate + "&to=" + toDate, "_blank");
+        } else {
+            swal("Error", "Please select a date range first", "error");
+        }
+    });
+
+    $('#printDailyReturnBtn').click(function () {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+        var currentDate = yyyy + '-' + mm + '-' + dd;
+
+        window.open("print-return-income-report.php?from=" + currentDate + "&to=" + currentDate, "_blank");
     });
 
     // Set default date range to current month
