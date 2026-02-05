@@ -735,9 +735,14 @@ jQuery(document).ready(function () {
           );
           updateItemsTable();
 
+          // Hide Return All if any item already has a returned quantity
+          var hasAnyReturnedQty = rentItems.some(function (it) {
+            return parseFloat(it.total_returned_qty || 0) > 0;
+          });
+
           $("#create").hide();
           $("#update").show();
-          $("#return-all").show();
+          $("#return-all").toggle(!hasAnyReturnedQty);
           $("#print").show();
         }
       },
@@ -1485,81 +1490,161 @@ jQuery(document).ready(function () {
     });
   });
 
-  // Return All Items
+  // Return All Items - Open Modal
   $("#return-all").click(function (e) {
     e.preventDefault();
     var rentId = $("#rent_id").val();
-    var billNo = $("#code").val();
     if (!rentId) return;
 
-    swal(
-      {
-        title: "Return All Items?",
-        text: "This will mark all items as returned.",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, return all!",
-      },
-      function (isConfirm) {
-        if (isConfirm) {
-          // Capture client local date/time for return-all
-          var now = new Date();
-          var yyyy = now.getFullYear();
-          var mm = String(now.getMonth() + 1).padStart(2, "0");
-          var dd = String(now.getDate()).padStart(2, "0");
-          var hh = String(now.getHours()).padStart(2, "0");
-          var min = String(now.getMinutes()).padStart(2, "0");
-          var localReturnDate = yyyy + "-" + mm + "-" + dd;
-          var localReturnTime = hh + ":" + min;
+    // Initialize return all modal with current date/time
+    var now = new Date();
+    var yyyy = now.getFullYear();
+    var mm = String(now.getMonth() + 1).padStart(2, "0");
+    var dd = String(now.getDate()).padStart(2, "0");
+    var hh = String(now.getHours()).padStart(2, "0");
+    var min = String(now.getMinutes()).padStart(2, "0");
+    
+    $("#return_all_date").val(yyyy + "-" + mm + "-" + dd);
+    $("#return_all_time").val(hh + ":" + min);
+    $("#return_all_after_9am").prop("checked", false);
+    $("#returnAllPreview").hide();
+    
+    // Remove readonly attribute to make the field editable
+    $("#return_all_date").prop("readonly", false).removeAttr("readonly");
+    
+    // Show the modal
+    $("#returnAllModal").modal("show");
+    
+    // Initialize/reinitialize date picker for return_all_date with editable configuration
+    if ($.fn.datepicker) {
+      $("#return_all_date").datepicker("destroy").datepicker({
+        dateFormat: "yy-mm-dd",
+        changeMonth: true,
+        changeYear: true,
+        autoclose: true,
+        todayHighlight: true,
+        onClose: function() {
+          // Ensure field remains editable after closing datepicker
+          $(this).prop("readonly", false).removeAttr("readonly");
+        }
+      });
+      // Ensure field remains editable after datepicker init
+      $("#return_all_date").prop("readonly", false).removeAttr("readonly");
+    }
+    
+    // Force remove readonly after modal is fully shown
+    setTimeout(function() {
+      $("#return_all_date").prop("readonly", false).removeAttr("readonly");
+    }, 100);
+  });
+  
+  // Ensure return_all_date remains editable when modal is shown
+  $("#returnAllModal").on("shown.bs.modal", function() {
+    $("#return_all_date").prop("readonly", false).removeAttr("readonly");
+  });
 
-          $.ajax({
-            url: "ajax/php/equipment-rent-master.php",
-            type: "POST",
-            data: {
-              action: "return_all",
-              rent_id: rentId,
-              after_9am_extra_day: $("#after_9am_extra_day_all").is(":checked") ? 1 : 0,
-              return_date: localReturnDate,
-              return_time: localReturnTime,
-            },
-            dataType: "JSON",
-            success: function (result) {
-              if (result.status === "success") {
-                swal({
-                  title: "Success!",
-                  text: result.message || "All items marked as returned.",
-                  type: "success",
-                  timer: 1500,
-                  showConfirmButton: false,
-                });
-                setTimeout(function () {
-                  if (billNo) {
-                    window.location.href = "rent-invoice.php?bill_no=" + billNo;
-                  } else {
-                    window.location.reload();
-                  }
-                }, 1500);
-              } else {
-                swal({
-                  title: "Error!",
-                  text: result.message || "Failed to return all items.",
-                  type: "error",
-                  showConfirmButton: true,
-                });
-              }
-            },
-            error: function () {
-              swal({
-                title: "Error!",
-                text: "Unable to process return all request.",
-                type: "error",
-                showConfirmButton: true,
-              });
-            },
+  // Calculate return all preview when inputs change
+  $("#return_all_date, #return_all_time, #return_all_after_9am").on("change input", function() {
+    var rentId = $("#rent_id").val();
+    var returnDate = $("#return_all_date").val();
+    var returnTime = $("#return_all_time").val();
+    
+    if (!rentId || !returnDate || !returnTime) {
+      $("#returnAllPreview").hide();
+      return;
+    }
+    
+    // Show preview with basic info
+    var after9am = $("#return_all_after_9am").is(":checked");
+    var previewHtml = '<p><strong>Return Date:</strong> ' + returnDate + ' ' + returnTime + '</p>';
+    previewHtml += '<p><strong>After 9:00 AM:</strong> ' + (after9am ? 'Yes (extra day will be counted)' : 'No') + '</p>';
+    previewHtml += '<p class="text-muted">All pending items will be marked as returned with this date/time.</p>';
+    
+    $("#returnAllPreviewContent").html(previewHtml);
+    $("#returnAllPreview").show();
+  });
+
+  // Confirm Return All Items
+  $("#confirmReturnAllBtn").click(function() {
+    var rentId = $("#rent_id").val();
+    var billNo = $("#code").val();
+    var returnDate = $("#return_all_date").val();
+    var returnTime = $("#return_all_time").val();
+    var after9amExtraDay = $("#return_all_after_9am").is(":checked") ? 1 : 0;
+
+    if (!rentId) {
+      swal({
+        title: "Error!",
+        text: "No rent record selected.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (!returnDate || !returnTime) {
+      swal({
+        title: "Error!",
+        text: "Please enter return date and time.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // Disable button to prevent double submission
+    $("#confirmReturnAllBtn").prop("disabled", true);
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: {
+        action: "return_all",
+        rent_id: rentId,
+        after_9am_extra_day: after9amExtraDay,
+        return_date: returnDate,
+        return_time: returnTime,
+      },
+      dataType: "JSON",
+      success: function (result) {
+        if (result.status === "success") {
+          $("#returnAllModal").modal("hide");
+          swal({
+            title: "Success!",
+            text: result.message || "All items marked as returned.",
+            type: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          setTimeout(function () {
+            if (billNo) {
+              window.location.href = "rent-invoice.php?bill_no=" + billNo;
+            } else {
+              window.location.reload();
+            }
+          }, 1500);
+        } else {
+          $("#confirmReturnAllBtn").prop("disabled", false);
+          swal({
+            title: "Error!",
+            text: result.message || "Failed to return all items.",
+            type: "error",
+            showConfirmButton: true,
           });
         }
       },
-    );
+      error: function () {
+        $("#confirmReturnAllBtn").prop("disabled", false);
+        swal({
+          title: "Error!",
+          text: "Unable to process return all request.",
+          type: "error",
+          showConfirmButton: true,
+        });
+      },
+    });
   });
 
   // Delete Equipment Rent

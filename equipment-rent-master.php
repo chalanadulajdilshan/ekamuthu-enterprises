@@ -195,7 +195,7 @@ $bill_number = $lastId + 1;
                                                         Items) - ලැබුණු දිනය (සියලුම අයිතම)</label>
                                                     <div class="mb-3">
                                                         <input id="received_date" name="received_date" type="text"
-                                                            class="form-control date-picker-date">
+                                                            class="form-control">
                                                     </div>
                                                 </div>
 
@@ -727,6 +727,64 @@ $bill_number = $lastId + 1;
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveReturnBtn">
                         <i class="uil uil-check me-1"></i> Process Return
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return All Items Modal -->
+    <div id="returnAllModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnAllModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="returnAllModalLabel">Return All Items</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="returnAllForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="return_all_date" class="form-label">Return Date <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control date-picker" id="return_all_date" placeholder="YYYY-MM-DD" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="return_all_time" class="form-label">Return Time <span
+                                            class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="return_all_time" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="return_all_after_9am" value="1">
+                                        <label class="form-check-label" for="return_all_after_9am">
+                                            Return after 9:00 AM (count extra day)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="returnAllPreview" class="alert alert-info" style="display: none;">
+                            <h6><strong>Return Summary:</strong></h6>
+                            <div id="returnAllPreviewContent"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmReturnAllBtn">
+                        <i class="uil uil-check me-1"></i> Confirm Return All
                     </button>
                 </div>
             </div>
