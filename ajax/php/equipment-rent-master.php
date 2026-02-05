@@ -607,8 +607,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 
         // Update master rent status
         $EQUIPMENT_RENT->status = 'returned';
-        // Store full datetime for received_date when all items returned via Return All
-        $EQUIPMENT_RENT->received_date = date('Y-m-d H:i');
+        // Store the return date/time from the modal as received_date
+        $EQUIPMENT_RENT->received_date = $nowDate . ' ' . $nowTime;
         $EQUIPMENT_RENT->update();
 
         // Audit log
