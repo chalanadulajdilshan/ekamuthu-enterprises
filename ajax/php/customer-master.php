@@ -437,6 +437,77 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
     exit; // Add exit here to prevent further execution
 }
 
+// Get all customers with search (no pagination limit)
+if (isset($_POST['get_all_customers'])) {
+    $search = isset($_POST['search']) ? trim($_POST['search']) : '';
+    
+    $db = Database::getInstance();
+    
+    // Build search condition
+    $searchCondition = "";
+    if (!empty($search)) {
+        $searchTerm = mysqli_real_escape_string($db->DB_CON, $search);
+        $searchCondition = " AND (
+            name LIKE '%$searchTerm%' OR 
+            nic LIKE '%$searchTerm%' OR 
+            mobile_number LIKE '%$searchTerm%' OR 
+            mobile_number_2 LIKE '%$searchTerm%' OR
+            code LIKE '%$searchTerm%'
+        )";
+    }
+    
+    // Fetch all customers matching search
+    $query = "SELECT 
+        id,
+        code,
+        name,
+        nic,
+        mobile_number,
+        mobile_number_2,
+        address,
+        old_outstanding,
+        is_company,
+        company_name,
+        is_blacklisted,
+        blacklist_reason,
+        utility_bill_no,
+        workplace_address,
+        guarantor_name,
+        guarantor_nic,
+        guarantor_address,
+        nic_image_1,
+        nic_image_2,
+        utility_bill_image,
+        guarantor_nic_image_1,
+        guarantor_nic_image_2,
+        guarantor_photo,
+        customer_photo,
+        company_document,
+        remark
+    FROM customer_master 
+    WHERE 1=1 $searchCondition 
+    ORDER BY id DESC";
+    
+    $result = $db->readQuery($query);
+    
+    $customers = [];
+    $key = 1;
+    
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $row['key'] = $key++;
+            $customers[] = $row;
+        }
+    }
+    
+    echo json_encode([
+        'status' => 'success',
+        'data' => $customers,
+        'total' => count($customers)
+    ]);
+    exit;
+}
+
 if (isset($_POST['filter'])) {
 
     $CUSTOMER_MASTER = new CustomerMaster();

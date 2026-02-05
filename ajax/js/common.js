@@ -237,125 +237,162 @@ jQuery(document).ready(function () {
     });
   }
 
-  // When the modal is shown, load the DataTable
+  // Store all customers data
+  let allCustomersData = [];
+
+  // When the modal is shown, load all customers
   $("#AllCustomerModal").on("shown.bs.modal", function () {
-    loadAllCustomerTable();
+    $("#customerSearchInput").val("");
+    loadAllCustomerTable("");
   });
 
-  function loadAllCustomerTable() {
-    // Destroy if already initialized
-    if ($.fn.DataTable.isDataTable("#allCustomerTable")) {
-      $("#allCustomerTable").DataTable().destroy();
+  // Search input handler
+  $("#customerSearchInput").on("keyup", function () {
+    var searchTerm = $(this).val();
+    loadAllCustomerTable(searchTerm);
+  });
+
+  function loadAllCustomerTable(searchTerm) {
+    var $tbody = $("#allCustomerTable tbody");
+    var $status = $("#customerTableStatus");
+
+    $status.text("Loading...");
+    $tbody.html("<tr><td colspan='8' class='text-center text-muted py-3'>Loading...</td></tr>");
+
+    $.ajax({
+      url: "ajax/php/customer-master.php",
+      type: "POST",
+      data: {
+        get_all_customers: true,
+        search: searchTerm || ""
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.status === "success" && response.data) {
+          allCustomersData = response.data;
+          renderCustomerTable(response.data);
+          $status.text(`Showing ${response.data.length} customer(s)`);
+        } else {
+          $tbody.html("<tr><td colspan='8' class='text-center text-muted py-3'>No customers found</td></tr>");
+          $status.text("No customers found");
+        }
+      },
+      error: function (xhr) {
+        console.error("Error loading customers:", xhr.responseText);
+        $tbody.html("<tr><td colspan='8' class='text-center text-danger py-3'>Error loading customers</td></tr>");
+        $status.text("Error loading data");
+      }
+    });
+  }
+
+  function renderCustomerTable(customers) {
+    var $tbody = $("#allCustomerTable tbody");
+    var html = "";
+
+    if (customers.length === 0) {
+      html = "<tr><td colspan='8' class='text-center text-muted py-3'>No customers found</td></tr>";
+    } else {
+      customers.forEach(function (customer) {
+        var typeHtml = "";
+        if (customer.is_blacklisted == 1) {
+          typeHtml = '<span class="badge bg-danger">Blocked</span>';
+        } else {
+          typeHtml = customer.is_company == 1 
+            ? '<span class="badge bg-primary">Company</span>' 
+            : '<span class="badge bg-success">Individual</span>';
+        }
+
+        html += `
+          <tr style="cursor: pointer;" data-customer='${JSON.stringify(customer).replace(/'/g, "&#39;")}'>
+            <td>${customer.key || ""}</td>
+            <td>${customer.code || ""}</td>
+            <td>${typeHtml}</td>
+            <td>${customer.name || ""}</td>
+            <td>${customer.nic || ""}</td>
+            <td>${customer.mobile_number || ""}</td>
+            <td>${customer.address || ""}</td>
+            <td>${customer.old_outstanding || "0.00"}</td>
+          </tr>
+        `;
+      });
     }
 
-    $("#allCustomerTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/customer-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter = true;
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-        error: function (xhr) {
-          console.error("Server Error Response:", xhr.responseText);
-        },
-      },
-      columns: [
-        { data: "key", title: "#ID" },
-        { data: "code", title: "Code" },
-        {
-          data: "is_company",
-          title: "Type",
-          render: function (data, type, row) {
-            if (row.is_blacklisted == 1) {
-              return '<span class="badge bg-danger">Blocked</span>';
-            }
-            return data == 1 ? '<span class="badge bg-primary">Company</span>' : '<span class="badge bg-success">Individual</span>';
-          }
-        },
-        { data: "name", title: "Name" },
-        { data: "nic", title: "NIC" },
-        { data: "mobile_number", title: "Mobile" },
-        { data: "address", title: "Address" },
-        { data: "old_outstanding", title: "Outstanding" },
-      ],
-      order: [[0, "desc"]],
-      pageLength: 100,
-    });
-
-    // Row click event to populate form and close modal
-    $("#allCustomerTable tbody")
-      .off("click")
-      .on("click", "tr", function () {
-        var data = $("#allCustomerTable").DataTable().row(this).data();
-
-        if (data) {
-          $("#id").val(data.id || "");
-          $("#customer_id").val(data.id || "");
-          $("#code").val(data.code || "");
-          $("#name").val(data.name || "");
-          $("#address").val(data.address || "");
-          $("#mobile_number").val(data.mobile_number || "");
-          $("#mobile_number_2").val(data.mobile_number_2 || "");
-          $("#old_outstanding").val(data.old_outstanding || "");
-          $("#remark").val(data.remark || "");
-          $("#nic").val(data.nic || "");
-          $("#water_bill_no").val(data.utility_bill_no || "");
-          $("#utility_bill_no").val(data.utility_bill_no || "");
-
-          // New fields - workplace address and guarantor details
-          $("#workplace_address").val(data.workplace_address || "");
-          $("#guarantor_name").val(data.guarantor_name || "");
-          $("#guarantor_nic").val(data.guarantor_nic || "");
-          $("#guarantor_address").val(data.guarantor_address || "");
-          $("#guarantor_photo_image_1").val(data.guarantor_photo || "");
-
-          // Company checkbox and fields
-          $("#is_company").prop("checked", data.is_company == 1);
-          if (data.is_company == 1) {
-            $("#company_fields").show();
-            $("#company_name").val(data.company_name || "");
-          } else {
-            $("#company_fields").hide();
-            $("#company_name").val("");
-          }
-
-          // Load image previews if they exist
-          loadImagePreview("nic", 1, data.nic_image_1);
-          loadImagePreview("nic", 2, data.nic_image_2);
-          loadImagePreview("water_bill", 1, data.utility_bill_image);
-          loadImagePreview("guarantor_nic", 1, data.guarantor_nic_image_1);
-          loadImagePreview("guarantor_nic", 2, data.guarantor_nic_image_2);
-          loadImagePreview("guarantor_photo", 1, data.guarantor_photo);
-          loadImagePreview("customer_photo", 1, data.customer_photo);
-          loadDocumentPreview("po_document", data.company_document);
-
-          $("#create").hide();
-          $("#update").show();
-          $("#btnAddDescription").show(); // Show Detail Button
-
-          // Blacklist UI
-          if (data.is_blacklisted == 1) {
-            $("#blacklist-alert").show().css('display', 'flex'); // Ensure flex is applied
-            $("#blacklist-reason-display").text(data.blacklist_reason || "No reason provided");
-            $("#blacklist-btn").html('<i class="uil uil-check-circle me-1"></i> Remove from Blacklist').removeClass('btn-dark').addClass('btn-success');
-            $("#blacklist-btn").data('status', 1);
-          } else {
-            $("#blacklist-alert").hide();
-            $("#blacklist-btn").html('<i class="uil uil-ban me-1"></i> Blacklist').removeClass('btn-success').addClass('btn-dark');
-            $("#blacklist-btn").data('status', 0);
-          }
-          $("#blacklist-btn").show();
-
-          // Close the modal
-          $("#AllCustomerModal").modal("hide");
-        }
-      });
+    $tbody.html(html);
   }
+
+  // Row click event to populate form and close modal
+  $(document).on("click", "#allCustomerTable tbody tr", function () {
+    var customerJson = $(this).attr("data-customer");
+    if (!customerJson) return;
+
+    try {
+      var data = JSON.parse(customerJson);
+
+      if (data) {
+        $("#id").val(data.id || "");
+        $("#customer_id").val(data.id || "");
+        $("#code").val(data.code || "");
+        $("#name").val(data.name || "");
+        $("#address").val(data.address || "");
+        $("#mobile_number").val(data.mobile_number || "");
+        $("#mobile_number_2").val(data.mobile_number_2 || "");
+        $("#old_outstanding").val(data.old_outstanding || "");
+        $("#remark").val(data.remark || "");
+        $("#nic").val(data.nic || "");
+        $("#water_bill_no").val(data.utility_bill_no || "");
+        $("#utility_bill_no").val(data.utility_bill_no || "");
+
+        // New fields - workplace address and guarantor details
+        $("#workplace_address").val(data.workplace_address || "");
+        $("#guarantor_name").val(data.guarantor_name || "");
+        $("#guarantor_nic").val(data.guarantor_nic || "");
+        $("#guarantor_address").val(data.guarantor_address || "");
+        $("#guarantor_photo_image_1").val(data.guarantor_photo || "");
+
+        // Company checkbox and fields
+        $("#is_company").prop("checked", data.is_company == 1);
+        if (data.is_company == 1) {
+          $("#company_fields").show();
+          $("#company_name").val(data.company_name || "");
+        } else {
+          $("#company_fields").hide();
+          $("#company_name").val("");
+        }
+
+        // Load image previews if they exist
+        loadImagePreview("nic", 1, data.nic_image_1);
+        loadImagePreview("nic", 2, data.nic_image_2);
+        loadImagePreview("water_bill", 1, data.utility_bill_image);
+        loadImagePreview("guarantor_nic", 1, data.guarantor_nic_image_1);
+        loadImagePreview("guarantor_nic", 2, data.guarantor_nic_image_2);
+        loadImagePreview("guarantor_photo", 1, data.guarantor_photo);
+        loadImagePreview("customer_photo", 1, data.customer_photo);
+        loadDocumentPreview("po_document", data.company_document);
+
+        $("#create").hide();
+        $("#update").show();
+        $("#btnAddDescription").show(); // Show Detail Button
+
+        // Blacklist UI
+        if (data.is_blacklisted == 1) {
+          $("#blacklist-alert").show().css('display', 'flex'); // Ensure flex is applied
+          $("#blacklist-reason-display").text(data.blacklist_reason || "No reason provided");
+          $("#blacklist-btn").html('<i class="uil uil-check-circle me-1"></i> Remove from Blacklist').removeClass('btn-dark').addClass('btn-success');
+          $("#blacklist-btn").data('status', 1);
+        } else {
+          $("#blacklist-alert").hide();
+          $("#blacklist-btn").html('<i class="uil uil-ban me-1"></i> Blacklist').removeClass('btn-success').addClass('btn-dark');
+          $("#blacklist-btn").data('status', 0);
+        }
+        $("#blacklist-btn").show();
+
+        // Close the modal
+        $("#AllCustomerModal").modal("hide");
+      }
+    } catch (e) {
+      console.error("Error parsing customer data:", e);
+    }
+  });
 
   // Helper function to load image preview (supports both file paths and base64)
   function loadImagePreview(fieldName, imageNum, imageData) {

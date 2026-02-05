@@ -9,21 +9,37 @@
             </div>
 
             <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <input type="text" id="customerSearchInput" class="form-control" placeholder="Search by NIC, Name, or Mobile Number...">
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-12">
-                        <table id="allCustomerTable" class="table table-bordered dt-responsive nowrap w-100">
-                            <thead>
-                                <tr>
-                                    <th>#ID</th>
-                                    <th>Code</th>
-                                    <th>Type</th>
-                                    <th>Name</th>
-                                    <th>NIC</th>
-                                    <th>Mobile</th>
-                                    <th>Address</th>
-                                    <th>Outstanding</th>
-                                </tr>
-                            </thead>                        </table>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table id="allCustomerTable" class="table table-bordered table-hover w-100">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+                                    <tr>
+                                        <th>#ID</th>
+                                        <th>Code</th>
+                                        <th>Type</th>
+                                        <th>Name</th>
+                                        <th>NIC</th>
+                                        <th>Mobile</th>
+                                        <th>Address</th>
+                                        <th>Outstanding</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-3">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted" id="customerTableStatus">Ready</small>
+                        </div>
                     </div>
                 </div>
             </div>
