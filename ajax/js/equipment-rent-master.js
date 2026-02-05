@@ -748,6 +748,9 @@ jQuery(document).ready(function () {
       },
     });
   }
+  
+  // Make loadRentDetails globally accessible for return handler
+  window.loadRentDetails = loadRentDetails;
 
   // Print Invoice
   $("#print").click(function (e) {

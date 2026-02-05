@@ -316,24 +316,30 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
+                    $("#returnModal").modal("hide");
+                    
                     swal({
                         title: "Success!",
                         text: response.message,
                         type: "success",
-                        timer: 2000,
+                        timer: 1500,
                         showConfirmButton: false
                     });
                     
-                    $("#returnModal").modal("hide");
+                    // Reload the current bill details to reflect the return
+                    var currentRentId = $("#rent_id").val();
                     
-                    // Reload the rent details if function exists
-                    if (typeof loadRentDetails === 'function') {
-                        loadRentDetails();
-                    } else if (typeof loadRentItemsTable === 'function') {
-                        loadRentItemsTable();
-                    } else {
-                        location.reload();
-                    }
+                    // Add a small delay to ensure modal closes and then reload
+                    setTimeout(function() {
+                        if (currentRentId && typeof loadRentDetails === 'function') {
+                            loadRentDetails(currentRentId);
+                        } else if (typeof loadRentItemsTable === 'function') {
+                            loadRentItemsTable();
+                        } else {
+                            // Fallback: reload the page
+                            location.reload();
+                        }
+                    }, 300);
                 } else {
                     swal({
                         title: "Error!",
