@@ -682,7 +682,15 @@ jQuery(document).ready(function () {
           $("#remark").val(rent.remark || "");
           $("#transport_cost").val(rent.transport_cost || "0.00");
           $("#custom_deposit").val(rent.deposit_total || "0.00");
-          $("#customer_refund_balance").text(parseFloat(rent.refund_balance || 0).toFixed(2));
+          var refundBalance = parseFloat(rent.refund_balance || 0);
+          $("#customer_refund_balance").text(refundBalance.toFixed(2));
+          var $refundBadge = $("#customer_refund_badge");
+          $refundBadge.removeClass("badge bg-danger bg-success").text("");
+          if (refundBalance < 0) {
+            $refundBadge.addClass("badge bg-danger").text("Customer Pay");
+          } else if (refundBalance > 0) {
+            $refundBadge.addClass("badge bg-success").text("Refund");
+          }
 
           // Lock manual edits when loading an existing rent
           $("#transport_cost, #custom_deposit").prop("readonly", true);
@@ -1470,6 +1478,7 @@ jQuery(document).ready(function () {
     $("#transport_cost, #custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#calculated_deposit_display").text("0.00");
     $("#customer_refund_balance").text("0.00");
+    $("#customer_refund_badge").removeClass("badge bg-danger bg-success").text("");
     totalCalculatedDeposit = 0;
     rentItems = [];
     updateItemsTable();

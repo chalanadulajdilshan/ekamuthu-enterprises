@@ -72,6 +72,24 @@ foreach ($rent_items as $item) {
 $transport_amount = floatval($EQUIPMENT_RENT->transport_cost);
 $total_deposit = floatval($EQUIPMENT_RENT->deposit_total);
 
+// Calculate refund balance = deposit - total charges (rental + extra day + damage + penalty)
+$db = Database::getInstance();
+$chargesQuery = "SELECT COALESCE(SUM(
+                        GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                        * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                        * err.return_qty
+                        + COALESCE(err.extra_day_amount, 0)
+                        + COALESCE(err.damage_amount, 0)
+                        + COALESCE(err.penalty_amount, 0)
+                    ), 0) as total_charges
+                    FROM equipment_rent_returns err
+                    INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                    WHERE eri.rent_id = " . (int) $rent_id;
+$chargesResult = $db->readQuery($chargesQuery);
+$chargesData = mysqli_fetch_assoc($chargesResult);
+$total_charges = floatval($chargesData['total_charges'] ?? 0);
+$refund_balance = $total_deposit - $total_charges;
+
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;
 $net_amount = $total_amount + $total_deposit + $transport_amount;
@@ -372,6 +390,17 @@ if (!empty($customerMobile)) {
                             <tr>
                                 <td class="summary-label">ප්‍රවාහනය:</td>
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="summary-label">පාරිභෝගික අයවැය (Customer Refund Balance):</td>
+                                <td class="summary-value">
+                                    <?php echo number_format($refund_balance, 2); ?>
+                                    <?php if ($refund_balance < 0): ?>
+                                        <span class="badge bg-danger ms-2">Customer Pay</span>
+                                    <?php elseif ($refund_balance > 0): ?>
+                                        <span class="badge bg-success ms-2">Refund</span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         </table>
                     </div>

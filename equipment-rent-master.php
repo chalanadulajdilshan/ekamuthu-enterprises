@@ -417,6 +417,7 @@ $bill_number = $lastId + 1;
                                                                     </td>
                                                                     <td class="text-end">
                                                                         <span id="customer_refund_balance" class="fw-bold text-success">0.00</span>
+                                                                        <span id="customer_refund_badge" class="ms-2"></span>
                                                                     </td>
                                                                 </tr>
                                                             </tbody>
