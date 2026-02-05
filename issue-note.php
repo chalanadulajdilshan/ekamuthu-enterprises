@@ -135,6 +135,7 @@ $issue_note_code = ($lastId + 1);
                                                                 <th style="width: 50px;">#</th>
                                                                 <th>Item Name</th>
                                                                 <th>Rent Type</th>
+                                                                <th>Return Date</th>
                                                                 <th style="width: 100px;">Ordered</th>
                                                                 <th style="width: 100px;">Issued</th>
                                                                 <th style="width: 100px;">Remaining</th>
@@ -168,6 +169,7 @@ $issue_note_code = ($lastId + 1);
                                                                 <th>Date</th>
                                                                 <th>Issue Note No</th>
                                                                 <th>Status</th>
+                                                                <th>Details</th>
                                                                 <th>Total Issued</th>
                                                                 <th>Created At</th>
                                                             </tr>

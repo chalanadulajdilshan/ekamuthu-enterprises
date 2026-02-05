@@ -1,3 +1,4 @@
+
 <?php
 
 class EquipmentRent
@@ -215,6 +216,10 @@ class EquipmentRent
 
         if (!empty($request['exclude_issued'])) {
             $where .= " AND er.issue_status != 2";
+        }
+
+        if (!empty($request['exclude_returned'])) {
+            $where .= " AND er.status != 'returned'";
         }
 
         // Base FROM/JOIN for reuse

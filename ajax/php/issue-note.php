@@ -12,13 +12,25 @@ if (isset($_POST['create'])) {
     $db = Database::getInstance();
     
     // Check if code exists
-    $codeCheck = "SELECT id FROM issue_notes WHERE issue_note_code = '" . $db->escapeString($_POST['issue_note_code']) . "'";
+    $codeCheck = "SELECT id, rent_invoice_id FROM issue_notes WHERE issue_note_code = '" . $db->escapeString($_POST['issue_note_code']) . "'";
     $existing = mysqli_fetch_assoc($db->readQuery($codeCheck));
 
+    $note_id = null;
+    $is_append = false;
+
     if ($existing) {
-        echo json_encode(["status" => "duplicate", "message" => "Issue Note code already exists"]);
-        exit();
+        // If code exists and belongs to the SAME invoice, we are appending
+        if ($existing['rent_invoice_id'] == $_POST['rent_invoice_id']) {
+            $note_id = $existing['id'];
+            $is_append = true;
+        } else {
+            // Duplicate code for a DIFFERENT invoice
+            echo json_encode(["status" => "duplicate", "message" => "Issue Note code already exists for a different invoice"]);
+            exit();
+        }
     }
+
+    // ... validation logic remains the same (it calculates total issued vs ordered) ...
 
     // Decode items first for validation
     $items = json_decode($_POST['items'] ?? '[]', true);
@@ -59,16 +71,19 @@ if (isset($_POST['create'])) {
         }
     }
 
-    // 2. Create Issue Note
-    $NOTE = new IssueNote(null);
-    $NOTE->issue_note_code = $_POST['issue_note_code'];
-    $NOTE->rent_invoice_id = $_POST['rent_invoice_id'];
-    $NOTE->customer_id = $_POST['customer_id'];
-    $NOTE->issue_date = $_POST['issue_date'];
-    $NOTE->issue_status = 'issued'; 
-    $NOTE->remarks = $_POST['remarks'] ?? '';
-
-    $note_id = $NOTE->create();
+    // 2. Create Issue Note (Only if not appending)
+    if (!$is_append) {
+        $NOTE = new IssueNote(null);
+        $NOTE->issue_note_code = $_POST['issue_note_code'];
+        $NOTE->rent_invoice_id = $_POST['rent_invoice_id'];
+        $NOTE->customer_id = $_POST['customer_id'];
+        $NOTE->issue_date = $_POST['issue_date'];
+        $NOTE->issue_status = 'issued'; 
+        $NOTE->remarks = $_POST['remarks'] ?? '';
+    
+        $note_id = $NOTE->create();
+    }
+    // If appending, $note_id is already set from $existing['id']
 
     if ($note_id) {
         // 3. Create Items
@@ -155,7 +170,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
 
             // Get Issue History
             $historyQuery = "SELECT n.id, n.issue_note_code, n.issue_date, n.issue_status, n.created_at,
-                             (SELECT SUM(issued_quantity) FROM issue_note_items WHERE issue_note_id = n.id) as total_qty
+                             (SELECT SUM(issued_quantity) FROM issue_note_items WHERE issue_note_id = n.id) as total_qty,
+                             (SELECT GROUP_CONCAT(CONCAT(e.item_name, ' - ', ini.issued_quantity) SEPARATOR '<br>') 
+                              FROM issue_note_items ini 
+                              JOIN equipment e ON ini.equipment_id = e.id 
+                              WHERE ini.issue_note_id = n.id) as items_summary
                              FROM issue_notes n
                              WHERE n.rent_invoice_id = " . (int)$invoice_id . " 
                              ORDER BY n.id DESC";
@@ -174,6 +193,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                 $orderedQty = (float)$item['quantity'];
                 $remainingQty = max(0, $orderedQty - $alreadyIssued);
 
+                // Calculate Return Date
+                $rentalDate = $item['rental_date'];
+                $duration = (float)$item['duration'];
+                $rentType = $item['rent_type'];
+                
+                $unit = ($rentType === 'month') ? 'months' : 'days';
+                $calculatedReturnDate = date('Y-m-d', strtotime($rentalDate . " + $duration $unit"));
+
                 $formattedItems[] = [
                     'equipment_id' => $item['equipment_id'],
                     'sub_equipment_id' => $item['sub_equipment_id'],
@@ -185,7 +212,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                     'rent_type' => $item['rent_type'],
                     'duration' => $item['duration'],
                     'rental_date' => $item['rental_date'],
-                    'return_date' => $item['return_date']
+                    'return_date' => $calculatedReturnDate
                 ];
             }
 

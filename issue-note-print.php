@@ -159,6 +159,7 @@ if (!empty($customerMobile)) {
                                 <th>Equipment Name - උපකරණ නම</th>
                                 <th>Code - කේතය</th>
                                 <th>Rent Type - වර්ගය</th>
+                                <th>Return Date - ආපසු දින</th>
                                 <th class="text-center">Ordered Qty - ඇණවුම්</th>
                                 <th class="text-center">Issued Qty - නිකුත්</th>
                                 <th>Remarks</th>
@@ -169,6 +170,12 @@ if (!empty($customerMobile)) {
                             $row_num = 0;
                             foreach ($note_items as $item):
                                 $row_num++;
+                                // Calculate Return Date
+                                $rentalDate = $EQUIPMENT_RENT->rental_date;
+                                $duration = (float)$item['duration'];
+                                $rentType = $item['rent_type'];
+                                $unit = ($rentType === 'month') ? 'months' : 'days';
+                                $returnDate = date('Y-m-d', strtotime($rentalDate . " + $duration $unit"));
                             ?>
                                 <tr>
                                     <td><?php echo str_pad($row_num, 2, '0', STR_PAD_LEFT); ?></td>
@@ -181,6 +188,7 @@ if (!empty($customerMobile)) {
                                             <span class="badge bg-info">Daily</span>
                                         <?php endif; ?>
                                     </td>
+                                    <td class="text-center"><?php echo $returnDate; ?></td>
                                     <td class="text-center"><?php echo intval($item['ordered_quantity'] ?? 0); ?></td>
                                     <td class="text-center"><strong><?php echo intval($item['issued_quantity'] ?? 0); ?></strong></td>
                                     <td><?php echo htmlspecialchars($item['remarks'] ?? '-'); ?></td>
@@ -190,6 +198,7 @@ if (!empty($customerMobile)) {
                             <!-- Empty rows for writing additional items -->
                             <?php for ($i = count($note_items); $i < 5; $i++): ?>
                                 <tr>
+                                    <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
