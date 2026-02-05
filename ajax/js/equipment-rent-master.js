@@ -1566,9 +1566,25 @@ jQuery(document).ready(function () {
       return;
     }
     
+    // Calculate day count from rental date to return date/time
+    var rentalStart = $("#rental_date").val();
+    var dayCountText = "-";
+    if (rentalStart) {
+      var returnDateTime = new Date(returnDate + " " + returnTime);
+      var rentalStartDate = new Date(rentalStart + " 00:00");
+      if (!isNaN(returnDateTime) && !isNaN(rentalStartDate)) {
+        var msDiff = returnDateTime - rentalStartDate;
+        var baseDays = msDiff > 0 ? Math.ceil(msDiff / (1000 * 60 * 60 * 24)) : 0;
+        var after9am = $("#return_all_after_9am").is(":checked");
+        var totalDays = baseDays + (after9am ? 1 : 0);
+        dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
+      }
+    }
+
     // Show preview with basic info
     var after9am = $("#return_all_after_9am").is(":checked");
     var previewHtml = '<p><strong>Return Date:</strong> ' + returnDate + ' ' + returnTime + '</p>';
+    previewHtml += '<p><strong>Day Count:</strong> ' + dayCountText + '</p>';
     previewHtml += '<p><strong>After 9:00 AM:</strong> ' + (after9am ? 'Yes (extra day will be counted)' : 'No') + '</p>';
     previewHtml += '<p class="text-muted">All pending items will be marked as returned with this date/time.</p>';
     
@@ -1632,7 +1648,7 @@ jQuery(document).ready(function () {
           });
           setTimeout(function () {
             if (billNo) {
-              window.location.href = "rent-invoice.php?bill_no=" + billNo;
+              window.open("rent-invoice.php?bill_no=" + billNo, "_blank");
             } else {
               window.location.reload();
             }
