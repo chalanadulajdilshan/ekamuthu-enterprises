@@ -1,5 +1,26 @@
+
 $(document).ready(function () {
     var issueItems = [];
+
+    // Get New Code Function
+    function getNewCode() {
+        $.ajax({
+            url: "ajax/php/issue-note.php",
+            type: "POST",
+            data: {
+                action: "get_new_code"
+            },
+            dataType: "JSON",
+            success: function (result) {
+                if (result.status === "success") {
+                    $("#issue_note_code").val(result.code);
+                }
+            }
+        });
+    }
+
+    // Initial Load
+    getNewCode();
 
     // Load Rent Invoice Table in Modal
     $("#RentInvoiceModal").on("shown.bs.modal", function () {
@@ -16,6 +37,7 @@ $(document).ready(function () {
                 data: function (d) {
                     d.filter = true;
                     d.exclude_issued = true;
+                    d.exclude_returned = true;
                 }
             },
             columns: [
@@ -98,6 +120,16 @@ $(document).ready(function () {
                     $("#customer_name").val(invoice.customer_name);
                     $("#customer_phone").val(invoice.customer_phone);
                     $("#selected_invoice_display").val(invoice.bill_number + " - " + invoice.rental_date);
+
+                    // Auto-fill existing issue note code if history exists (Append Mode)
+                    if (result.history && result.history.length > 0) {
+                        var existingCode = result.history[0].issue_note_code;
+                        $("#issue_note_code").val(existingCode);
+                        swal("Info", "Appending to existing Issue Note: " + existingCode, "info");
+                    } else {
+                        // Reset to new code if no history
+                        getNewCode();
+                    }
 
                     // Store items
                     issueItems = result.items.map(function (item) {
@@ -223,6 +255,7 @@ $(document).ready(function () {
                         <input type="hidden" class="sub_equipment_id" value="${item.sub_equipment_id || ''}">
                     </td>
                     <td>${item.rent_type}</td>
+                    <td>${item.return_date || '-'}</td>
                     
                     <!-- Ordered -->
                     <td class="text-center bg-light">
@@ -282,7 +315,8 @@ $(document).ready(function () {
                     <td>${h.issue_date}</td>
                     <td>${h.issue_note_code}</td>
                     <td>${statusBadge}</td>
-                     <td><span class="badge bg-info font-size-12">${totalQty}</span></td>
+                    <td><small>${h.items_summary || '-'}</small></td>
+                    <td><span class="badge bg-info font-size-12">${totalQty}</span></td>
                     <td>${h.created_at}</td>
                 </tr>
             `;
@@ -362,13 +396,16 @@ $(document).ready(function () {
                         showConfirmButton: true,
                         timer: 1500
                     }, function () {
-                        // Redirect to print page
-                        window.location.href = "issue-note-print.php?id=" + savedNoteId;
+                        // Open print page in new window
+                        window.open("issue-note-print.php?id=" + savedNoteId, "_blank");
+                        // Reload current page to reset
+                        location.reload();
                     });
 
                     // Fallback if user doesn't click OK (for timer)
                     setTimeout(function () {
-                        window.location.href = "issue-note-print.php?id=" + savedNoteId;
+                        window.open("issue-note-print.php?id=" + savedNoteId, "_blank");
+                        location.reload();
                     }, 1500);
 
                 } else {
@@ -396,3 +433,5 @@ $(document).ready(function () {
         location.reload();
     });
 });
+//issue note js
+
