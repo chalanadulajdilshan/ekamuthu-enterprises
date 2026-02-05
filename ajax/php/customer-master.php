@@ -222,9 +222,10 @@ if (isset($_POST['create'])) {
     $CUSTOMER->customer_photo_image = $_POST['customer_photo_image_1'] ?? '';
     
     // Company fields
-    $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
-    $CUSTOMER->company_name = strtoupper($_POST['company_name'] ?? '');
-    $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'] ?? '';
+    $isCompany = (!empty($_POST['is_company']) && $_POST['is_company'] != '0') ? 1 : 0; // handle checkbox (missing when unchecked) and explicit 0/1 from modal
+    $CUSTOMER->is_company = $isCompany;
+    $CUSTOMER->company_name = $isCompany ? strtoupper($_POST['company_name'] ?? '') : '';
+    $CUSTOMER->company_document = $isCompany ? ($_POST['po_document_image_1'] ?? $_POST['company_document_image_1'] ?? '') : '';
     
     $res = $CUSTOMER->create();
 
@@ -379,14 +380,16 @@ if (isset($_POST['update'])) {
     }
     
     // Company fields
-    $CUSTOMER->is_company = isset($_POST['is_company']) ? 1 : 0;
-    $CUSTOMER->company_name = strtoupper($_POST['company_name'] ?? '');
-    if (!empty($_POST['po_document_image_1']) || !empty($_POST['company_document_image_1'])) {
-        $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'];
+    $isCompany = (!empty($_POST['is_company']) && $_POST['is_company'] != '0') ? 1 : 0;
+    $CUSTOMER->is_company = $isCompany;
+    $CUSTOMER->company_name = $isCompany ? strtoupper($_POST['company_name'] ?? '') : '';
+    if ($isCompany) {
+        if (!empty($_POST['po_document_image_1']) || !empty($_POST['company_document_image_1'])) {
+            $CUSTOMER->company_document = $_POST['po_document_image_1'] ?? $_POST['company_document_image_1'];
+        }
     } else {
-        // If neither is provided, and company_document was previously set, it should remain unchanged
-        // or be explicitly cleared if that's the desired behavior when no new image is uploaded.
-        // For now, we assume it remains if not explicitly updated.
+        // Not a company: clear stored company details
+        $CUSTOMER->company_document = '';
     }
 
     $res = $CUSTOMER->update();
