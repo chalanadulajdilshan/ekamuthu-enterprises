@@ -80,10 +80,6 @@ $bill_number = $lastId + 1;
                                 <i class="uil uil-print me-1"></i> Print
                             </a>
 
-                            <a href="#" class="btn btn-outline-danger" id="cancel-return" style="display: none;">
-                                <i class="uil uil-times-circle me-1"></i> Cancel Return
-                            </a>
-
                             <a href="#" class="btn btn-outline-secondary" id="show-all-bills">
                                 <i class="uil uil-list-ul me-1"></i> All Return Bills
                             </a>
@@ -1023,27 +1019,9 @@ $bill_number = $lastId + 1;
                         <button type="button" class="btn btn-primary btn-lg" id="modalCaptureBtn" onclick="captureModalImage()">
                             <i class="uil uil-capture me-1"></i> Capture
                         </button>
-                        <button type="button" class="btn btn-warning btn-lg" id="modalMobileSyncBtn" onclick="startModalMobileSync()">
-                            <i class="uil uil-mobile-android me-1"></i> Mobile Sync
-                        </button>
                         <button type="button" class="btn btn-secondary" id="modalSwitchCameraBtn" onclick="switchModalCamera()">
                             <i class="uil uil-sync me-1"></i> Switch Camera
                         </button>
-                    </div>
-
-                    <!-- Mobile Sync Section -->
-                    <div id="modalMobileSyncSection" style="display: none;" class="mb-3">
-                        <div class="card border-warning">
-                            <div class="card-body text-center">
-                                <h6 class="text-warning mb-3"><i class="uil uil-qrcode-scan me-2"></i>Scan to Capture from Mobile</h6>
-                                <div id="modal-qrcode" class="d-flex justify-content-center mb-3"></div>
-                                <div id="modal-syncStatus" class="alert alert-info py-2 small mb-0">
-                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                                    Waiting for mobile capture...
-                                </div>
-                                <p class="text-muted small mt-2 mb-0">You only need to scan once! Take as many photos as needed.</p>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="row" id="modalCapturedImagesContainer">
@@ -1078,7 +1056,6 @@ $bill_number = $lastId + 1;
 
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <!-- /////////////////////////// -->
     <!-- include main js  -->
@@ -1248,13 +1225,9 @@ $bill_number = $lastId + 1;
 
         async function startModalCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                let msg = "Camera API is not supported in this browser.";
-                if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    msg = "Camera access requires HTTPS when accessing via network/IP. Please use HTTPS or access via localhost.";
-                }
                 swal({
                     title: "Camera Error",
-                    text: msg,
+                    text: "Camera API is not supported in this browser.",
                     type: "error"
                 });
                 return;
@@ -1272,22 +1245,13 @@ $bill_number = $lastId + 1;
                 };
 
                 modalCurrentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const videoElement = document.getElementById('modalCameraStream');
-                videoElement.srcObject = modalCurrentStream;
-                videoElement.play().catch(e => console.error("Error playing video:", e));
+                document.getElementById('modalCameraStream').srcObject = modalCurrentStream;
             } catch (err) {
                 console.error('Error accessing camera:', err);
-
-                // Fallback to basic constraints
-                if (err.name === 'OverconstrainedError' || err.name === 'NotReadableError' || err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    startModalCameraWithBasicConstraints();
-                    return;
-                }
-
                 let errorMessage = "Unable to access camera. Please ensure permissions are granted.";
 
                 if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    errorMessage = "Camera access requires a secure HTTPS connection when accessing via IP address. If you are using a mobile phone, please connect via HTTPS.";
+                    errorMessage = "Camera access requires HTTPS on live servers.";
                 } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                     errorMessage = "Camera permission denied. Please allow access.";
                 } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -1299,37 +1263,6 @@ $bill_number = $lastId + 1;
                 swal({
                     title: "Camera Error",
                     text: errorMessage,
-                    type: "error"
-                });
-            }
-        }
-
-        async function startModalCameraWithBasicConstraints() {
-            try {
-                const constraints = {
-                    video: { facingMode: modalCameraFacing }
-                };
-                modalCurrentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const videoElement = document.getElementById('modalCameraStream');
-                videoElement.srcObject = modalCurrentStream;
-                videoElement.play().catch(e => console.error("Error playing video:", e));
-            } catch (e) {
-                console.error("Basic camera fallback failed, trying ultra-basic...", e);
-                startModalCameraWithNoConstraints();
-            }
-        }
-
-        async function startModalCameraWithNoConstraints() {
-            try {
-                modalCurrentStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const videoElement = document.getElementById('modalCameraStream');
-                videoElement.srcObject = modalCurrentStream;
-                videoElement.play().catch(e => console.error("Error playing video:", e));
-            } catch (e) {
-                console.error("Ultra-basic camera fallback failed", e);
-                swal({
-                    title: "Camera Error",
-                    text: "Unable to start camera even with basic settings. Name: " + e.name,
                     type: "error"
                 });
             }
@@ -1596,78 +1529,7 @@ $bill_number = $lastId + 1;
         // Stop camera when capture modal closes
         document.getElementById('AddCustomerCameraModal').addEventListener('hidden.bs.modal', function() {
             stopModalCamera();
-            if (modalSyncPollInterval) {
-                clearInterval(modalSyncPollInterval);
-                modalSyncPollInterval = null;
-            }
-            $('#modalMobileSyncSection').hide();
         });
-
-        // Mobile Sync Logic for Modal
-        let modalSyncPollInterval = null;
-        let modalCurrentSyncId = null;
-
-        function startModalMobileSync() {
-            $('#modalMobileSyncSection').show();
-            $('#modal-qrcode').empty();
-            $('#modal-syncStatus').attr('class', 'alert alert-info py-2 small mb-0').html('<div class="spinner-border spinner-border-sm me-2" role="status"></div>Waiting for mobile capture...');
-
-            $.post('ajax/php/mobile-sync.php', { action: 'INIT' }, function(data) {
-                if (data.status === 'success') {
-                    modalCurrentSyncId = data.sync_id;
-                    const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-                    const syncUrl = `${baseUrl}/mobile-capture.php?id=${modalCurrentSyncId}`;
-                    new QRCode(document.getElementById("modal-qrcode"), { text: syncUrl, width: 150, height: 150 });
-                    startModalPolling(modalCurrentSyncId);
-                }
-            }, 'json');
-        }
-
-        function startModalPolling(syncId) {
-            if (modalSyncPollInterval) clearInterval(modalSyncPollInterval);
-            modalSyncPollInterval = setInterval(function() {
-                $.getJSON('ajax/php/mobile-sync.php', { action: 'POLL', sync_id: syncId }, function(data) {
-                    if (data.status === 'success') {
-                        handleModalSyncedImage(data.image, syncId);
-                    }
-                });
-            }, 2500);
-        }
-
-        function handleModalSyncedImage(imageData, syncId) {
-            if (window.modalLastReceivedImage === imageData) return;
-            window.modalLastReceivedImage = imageData;
-
-            $.post('ajax/php/mobile-sync.php', { action: 'DELETE', sync_id: syncId });
-
-            $('#modal-syncStatus').attr('class', 'alert alert-success py-2 small mb-0').html('<i class="uil uil-check-circle me-2"></i>Image received!');
-            
-            const imageNum = modalCapturedImages.length + 1;
-            if (imageNum <= modalMaxImages) {
-                modalCapturedImages.push(imageData);
-                $(`#modalCapturedImage${imageNum}`).attr('src', imageData);
-                $(`#modalCapturedImage${imageNum}Container`).show();
-
-                if (modalCapturedImages.length < modalMaxImages) {
-                    $('#modalCurrentImageNum').text(modalCapturedImages.length + 1);
-                    setTimeout(() => {
-                        $('#modal-syncStatus').attr('class', 'alert alert-info py-2 small mb-0').html('<div class="spinner-border spinner-border-sm me-2" role="status"></div>Waiting for image ' + (modalCapturedImages.length + 1) + '...');
-                    }, 2000);
-                } else {
-                    $('#modalCaptureInstructions').html('<span class="text-success"><i class="uil uil-check-circle"></i> All images captured!</span>');
-                    clearInterval(modalSyncPollInterval);
-                    setTimeout(() => $('#modalMobileSyncSection').fadeOut(), 1500);
-                }
-
-                if (modalCapturedImages.length >= modalMaxImages) {
-                    $('#modalSaveImagesBtn').prop('disabled', false);
-                }
-                
-                if (typeof toastr !== 'undefined') {
-                    toastr.success("Image " + modalCapturedImages.length + " received from mobile!");
-                }
-            }
-        }
     </script>
 
 </body>
