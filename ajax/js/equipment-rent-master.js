@@ -859,7 +859,7 @@ jQuery(document).ready(function () {
     loadCustomerTable("");
   });
 
-  $("#customerSearchInput").on("keyup", function () {
+  $(document).on("keyup", "#customerSearchInput", function () {
     var term = $(this).val();
     loadCustomerTable(term);
   });
