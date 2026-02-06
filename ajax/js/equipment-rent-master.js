@@ -145,6 +145,12 @@ jQuery(document).ready(function () {
             '<button class="btn btn-sm btn-info view-returns-btn me-1" data-item-id="' +
             item.id +
             '" title="View Returns History"><i class="uil uil-history"></i></button>';
+          actionBtns +=
+            '<button class="btn btn-sm btn-outline-danger cancel-item-return-btn me-1" data-item-id="' +
+            item.id +
+            '" data-index="' +
+            index +
+            '" title="Cancel Return"><i class="uil uil-times-circle"></i></button>';
         }
         // Hide delete for already saved items (after rent is saved/loaded)
         if (!item.id) {
@@ -256,6 +262,77 @@ jQuery(document).ready(function () {
     $(".view-returns-btn").off("click").on("click", function () {
       var itemId = $(this).data("item-id");
       viewReturnsHistory(itemId);
+    });
+
+    // Bind cancel item return button event
+    $(".cancel-item-return-btn").off("click").on("click", function () {
+      var itemId = $(this).data("item-id");
+      var index = $(this).data("index");
+      var item = rentItems[index];
+      var itemLabel = item ? (item.equipment_display + (item.sub_equipment_display ? ' (' + item.sub_equipment_display + ')' : '')) : 'this item';
+
+      swal(
+        {
+          title: "Cancel Item Return?",
+          text: "This will cancel all returns for '" + itemLabel + "' and set it back to rented status. Are you sure?",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          confirmButtonText: "Yes, cancel return!",
+          cancelButtonText: "No, keep it",
+        },
+        function (isConfirm) {
+          if (isConfirm) {
+            $("#page-preloader").show();
+            $.ajax({
+              url: "ajax/php/equipment-rent-master.php",
+              type: "POST",
+              data: {
+                action: "cancel_item_return",
+                rent_item_id: itemId,
+              },
+              dataType: "JSON",
+              success: function (result) {
+                $("#page-preloader").hide();
+
+                if (result.status === "success") {
+                  swal({
+                    title: "Success!",
+                    text: result.message || "Item return cancelled successfully.",
+                    type: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                  });
+                  // Reload the rent details
+                  var rentId = $("#rent_id").val();
+                  if (rentId) {
+                    setTimeout(function () {
+                      loadRentDetails(rentId);
+                    }, 2000);
+                  }
+                } else {
+                  swal({
+                    title: "Error!",
+                    text: result.message || "Failed to cancel item return.",
+                    type: "error",
+                    showConfirmButton: true,
+                  });
+                }
+              },
+              error: function (xhr) {
+                $("#page-preloader").hide();
+                console.error("Cancel item return error:", xhr.responseText);
+                swal({
+                  title: "Error!",
+                  text: "Unable to cancel item return.",
+                  type: "error",
+                  showConfirmButton: true,
+                });
+              },
+            });
+          }
+        },
+      );
     });
   }
 
@@ -748,10 +825,16 @@ jQuery(document).ready(function () {
             return parseFloat(it.total_returned_qty || 0) > 0;
           });
 
+          // Check if all items are fully returned
+          var allFullyReturned = rentItems.every(function (it) {
+            return it.status === "returned";
+          });
+
           $("#create").hide();
           $("#update").show();
           $("#return-all").toggle(!hasAnyReturnedQty);
           $("#print").show();
+          $("#cancel-return").toggle(hasAnyReturnedQty);
         }
       },
     });
@@ -1486,6 +1569,7 @@ jQuery(document).ready(function () {
     $("#update").hide();
     $("#print").hide();
     $("#return-all").hide();
+    $("#cancel-return").hide();
     $("#received_date_container").hide();
     $("#received_date").prop("readonly", true).val("").removeClass("bg-light");
 
@@ -1675,6 +1759,86 @@ jQuery(document).ready(function () {
     });
   });
 
+  // Cancel Return - reverse all returns for a returned bill
+  $("#cancel-return").click(function (e) {
+    e.preventDefault();
+    var rentId = $("#rent_id").val();
+    var rentCode = $("#code").val();
+
+    if (!rentId) {
+      swal({
+        title: "Error!",
+        text: "Please select an equipment rent record first.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    swal(
+      {
+        title: "Cancel Return?",
+        text:
+          "This will cancel all returns for bill '" +
+          rentCode +
+          "' and set the bill back to active (rented) status. All return records will be deleted. Are you sure?",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Yes, cancel return!",
+        cancelButtonText: "No, keep it",
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          $("#page-preloader").show();
+          $.ajax({
+            url: "ajax/php/equipment-rent-master.php",
+            type: "POST",
+            data: {
+              action: "cancel_return",
+              rent_id: rentId,
+            },
+            dataType: "JSON",
+            success: function (result) {
+              $("#page-preloader").hide();
+
+              if (result.status === "success") {
+                swal({
+                  title: "Success!",
+                  text: result.message || "Return cancelled successfully.",
+                  type: "success",
+                  timer: 2000,
+                  showConfirmButton: false,
+                });
+                setTimeout(function () {
+                  loadRentDetails(rentId);
+                }, 2000);
+              } else {
+                swal({
+                  title: "Error!",
+                  text: result.message || "Failed to cancel return.",
+                  type: "error",
+                  showConfirmButton: true,
+                });
+              }
+            },
+            error: function (xhr) {
+              $("#page-preloader").hide();
+              console.error("Cancel return error:", xhr.responseText);
+              swal({
+                title: "Error!",
+                text: "Unable to cancel return. Check console for details.",
+                type: "error",
+                showConfirmButton: true,
+              });
+            },
+          });
+        }
+      },
+    );
+  });
+
   // Delete Equipment Rent
   $(document).on("click", ".delete-equipment-rent", function (e) {
     e.preventDefault();
@@ -1768,4 +1932,5 @@ jQuery(document).ready(function () {
   $("#update").hide();
   $("#return-all").hide();
   $("#print").hide();
+  $("#cancel-return").hide();
 });
