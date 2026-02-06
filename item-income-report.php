@@ -78,12 +78,6 @@ include 'auth.php';
                                 <div class="col-md-3 col-sm-6">
                                     <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Damage</p><h5 class="mb-0 text-danger" id="sumDamage">0.00</h5></div></div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Refund</p><h5 class="mb-0 text-danger" id="sumRefund">0.00</h5></div></div>
-                                </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid bg-soft-light border"><div class="card-body"><p class="text-muted fw-bold mb-1">NET INCOME</p><h4 class="mb-0" id="sumNet">0.00</h4></div></div>
-                                </div>
                             </div>
 
                             <div class="card">
@@ -99,8 +93,6 @@ include 'auth.php';
                                                     <th class="text-end">Penalty</th>
                                                     <th class="text-end">Additional</th>
                                                     <th class="text-end">Damage</th>
-                                                    <th class="text-end">Refund</th>
-                                                    <th class="text-end">Net Income</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="reportTableBody"></tbody>
@@ -113,8 +105,6 @@ include 'auth.php';
                                                     <td class="text-end" id="sumPenaltyFoot">-</td>
                                                     <td class="text-end" id="sumAdditionalFoot">-</td>
                                                     <td class="text-end" id="sumDamageFoot">-</td>
-                                                    <td class="text-end" id="sumRefundFoot">-</td>
-                                                    <td class="text-end" id="sumNetFoot">-</td>
                                                 </tr>
                                             </tfoot>
                                         </table>

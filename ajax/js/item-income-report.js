@@ -9,8 +9,6 @@ $(document).ready(function () {
         $('#sumPenalty').text(summary.penalty);
         $('#sumAdditional').text(summary.additional);
         $('#sumDamage').text(summary.damage);
-        $('#sumRefund').text(summary.refund);
-        $('#sumNet').text(summary.net);
 
         // Footer totals
         $('#sumRentalFoot').text(summary.rental);
@@ -18,8 +16,6 @@ $(document).ready(function () {
         $('#sumPenaltyFoot').text(summary.penalty);
         $('#sumAdditionalFoot').text(summary.additional);
         $('#sumDamageFoot').text(summary.damage);
-        $('#sumRefundFoot').text(summary.refund);
-        $('#sumNetFoot').text(summary.net);
     }
 
     function loadReport() {
@@ -61,12 +57,10 @@ $(document).ready(function () {
                                 <td class="text-end">${formatNumber(item.penalty_amount)}</td>
                                 <td class="text-end text-success">${formatNumber(item.additional_payment)}</td>
                                 <td class="text-end text-danger">${formatNumber(item.damage_amount)}</td>
-                                <td class="text-end text-danger">${formatNumber(item.refund_amount)}</td>
-                                <td class="text-end fw-bold">${formatNumber(item.net_income)}</td>
                             </tr>`;
                     });
                 } else {
-                    rows = '<tr><td colspan="10" class="text-center">No records found</td></tr>';
+                    rows = '<tr><td colspan="7" class="text-center">No records found</td></tr>';
                 }
 
                 $('#reportTableBody').html(rows);
