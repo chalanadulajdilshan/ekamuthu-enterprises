@@ -32,10 +32,11 @@ $query = "SELECT err.*,
 
 $result = $db->readQuery($query);
 
+$total_rental = 0;
+$total_extra_day = 0;
+$total_penalty = 0;
 $total_additional = 0;
-$total_refund = 0;
-$total_deposit = 0;
-$total_net_income = 0;
+$total_damage = 0;
 $report_data = [];
 
 while ($row = mysqli_fetch_assoc($result)) {
@@ -47,33 +48,21 @@ while ($row = mysqli_fetch_assoc($result)) {
     // Calculated Rental from Query
     $rental_amount = floatval($row['calc_rental_amount'] ?? 0);
     
-    // Total Revenue (Charge) for this Item Return
-    $item_revenue = $rental_amount + $extra_day_amount + $damage_amount + $penalty_amount;
-    
-    // Additional Payment from DB (Cash paid by customer)
-    // We display this as 'Additional' if we want, but user cares about total Revenue/Refund split
     $additional = floatval($row['additional_payment'] ?? 0);
 
-    // Use the FULL invoice deposit
-    $invoice_deposit = floatval($row['invoice_deposit'] ?? 0);
-    
-    // Implied Refund = Deposit - Revenue
-    // (If Revenue > Deposit, this becomes negative? No, typically Deposit covers it, or they pay extra)
-    // User wants: Revenue = Deposit - Refund
-    // So: Refund = Deposit - Revenue
-    $implied_refund = $invoice_deposit - $item_revenue;
-    
+    $row['rental_amount'] = $rental_amount;
+    $row['extra_day_amount'] = $extra_day_amount;
+    $row['penalty_amount'] = $penalty_amount;
     $row['additional_payment'] = $additional;
-    $row['refund_amount'] = $implied_refund; 
-    $row['deposit_value'] = $invoice_deposit;
-    $row['net_revenue'] = $item_revenue;
+    $row['damage_amount'] = $damage_amount;
     
     $report_data[] = $row;
     
-    $total_additional += $additional;
-    $total_refund += $implied_refund;
-    $total_deposit += $invoice_deposit;
-    $total_net_income += $item_revenue;
+    $total_rental      += $rental_amount;
+    $total_extra_day   += $extra_day_amount;
+    $total_penalty     += $penalty_amount;
+    $total_additional  += $additional;
+    $total_damage      += $damage_amount;
 }
 ?>
 <!DOCTYPE html>
@@ -124,20 +113,24 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     <div class="summary-box">
         <div class="stat-item">
-            <span class="stat-label">තැන්පතු (Total Deposit)</span>
-            <span class="stat-value">Rs. <?php echo number_format($total_deposit, 2); ?></span>
+            <span class="stat-label">කුලී (Rental)</span>
+            <span class="stat-value">Rs. <?php echo number_format($total_rental, 2); ?></span>
         </div>
         <div class="stat-item">
-            <span class="stat-label">අමතර ගෙවීම් (Total Additional)</span>
+            <span class="stat-label">අතිරික්ත දිනය (Extra Day)</span>
+            <span class="stat-value">Rs. <?php echo number_format($total_extra_day, 2); ?></span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">දඩ (Penalty)</span>
+            <span class="stat-value">Rs. <?php echo number_format($total_penalty, 2); ?></span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">අමතර ගෙවීම් (Additional)</span>
             <span class="stat-value text-success">Rs. <?php echo number_format($total_additional, 2); ?></span>
         </div>
         <div class="stat-item">
-            <span class="stat-label">ආපසු ගෙවීම් (Total Refund)</span>
-            <span class="stat-value text-danger">Rs. <?php echo number_format($total_refund, 2); ?></span>
-        </div>
-        <div class="stat-item">
-             <span class="stat-label">ශුද්ධ ආදායම (Net Revenue)</span>
-             <span class="stat-value">Rs. <?php echo number_format($total_net_income, 2); ?></span>
+            <span class="stat-label">හානිය (Damage)</span>
+            <span class="stat-value text-danger">Rs. <?php echo number_format($total_damage, 2); ?></span>
         </div>
     </div>
 
@@ -150,11 +143,11 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <th>පාරිභෝගිකයා</th>
                 <th>අයිතමය</th>
                 <th class="text-right">ප්‍රමාණය</th>
-                <th class="text-right">තැන්පතු</th>
-                <th class="text-right">ප්‍රවාහන</th>
+                <th class="text-right">කුලී</th>
+                <th class="text-right">අතිරික්ත දිනය</th>
+                <th class="text-right">දඩ</th>
                 <th class="text-right">අමතර</th>
-                <th class="text-right">ආපසු</th>
-                <th class="text-right">ආදායම</th>
+                <th class="text-right">හානිය</th>
             </tr>
         </thead>
         <tbody>
@@ -167,20 +160,20 @@ while ($row = mysqli_fetch_assoc($result)) {
                     <td><?php echo $row['customer_name']; ?></td>
                     <td><?php echo $row['item_name']; ?></td>
                     <td class="text-right"><?php echo $row['return_qty']; ?></td>
-                    <td class="text-right"><?php echo number_format($row['deposit_value'], 2); ?></td>
-                    <td class="text-right">0.00</td>
+                    <td class="text-right"><?php echo number_format($row['rental_amount'], 2); ?></td>
+                    <td class="text-right"><?php echo number_format($row['extra_day_amount'], 2); ?></td>
+                    <td class="text-right"><?php echo number_format($row['penalty_amount'], 2); ?></td>
                     <td class="text-right text-success"><?php echo number_format($row['additional_payment'], 2); ?></td>
-                    <td class="text-right text-danger"><?php echo number_format($row['refund_amount'], 2); ?></td>
-                    <td class="text-right fw-bold"><?php echo number_format($row['net_revenue'], 2); ?></td>
+                    <td class="text-right text-danger"><?php echo number_format($row['damage_amount'], 2); ?></td>
                 </tr>
                 <?php endforeach; ?>
                 <tr style="font-weight: bold; background-color: #f0f0f0;">
                     <td colspan="6" class="text-right">එකතුව (TOTAL):</td>
-                    <td class="text-right"><?php echo number_format($total_deposit, 2); ?></td>
-                    <td class="text-right">0.00</td>
+                    <td class="text-right"><?php echo number_format($total_rental, 2); ?></td>
+                    <td class="text-right"><?php echo number_format($total_extra_day, 2); ?></td>
+                    <td class="text-right"><?php echo number_format($total_penalty, 2); ?></td>
                     <td class="text-right text-success"><?php echo number_format($total_additional, 2); ?></td>
-                    <td class="text-right text-danger"><?php echo number_format($total_refund, 2); ?></td>
-                    <td class="text-right"><?php echo number_format($total_net_income, 2); ?></td>
+                    <td class="text-right text-danger"><?php echo number_format($total_damage, 2); ?></td>
                 </tr>
             <?php else: ?>
                 <tr><td colspan="11" style="text-align:center;">නොමැත (No records found).</td></tr>

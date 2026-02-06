@@ -25,7 +25,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
                     SUM(COALESCE(err.penalty_amount,0)) AS penalty_amount,
                     SUM(COALESCE(err.additional_payment,0)) AS additional_payment,
                     SUM(COALESCE(err.damage_amount,0)) AS damage_amount,
-                    SUM(COALESCE(err.refund_amount,0)) AS refund_amount
+                    SUM(COALESCE(err.refund_amount,0)) AS refund_amount,
+                    -- deposit portion (per-unit deposit * returned qty) so deposit refunds don't reduce income
+                    SUM((COALESCE(eri.deposit_amount,0) / NULLIF(eri.quantity,0)) * err.return_qty) AS deposit_return_amount
                 FROM equipment_rent_returns err
                 INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
                 INNER JOIN equipment_rent er ON eri.rent_id = er.id
@@ -55,9 +57,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
         $additional = floatval($row['additional_payment'] ?? 0);
         $damage     = floatval($row['damage_amount'] ?? 0);
         $refund     = floatval($row['refund_amount'] ?? 0);
+        $depositRet = floatval($row['deposit_return_amount'] ?? 0);
 
-        // Net income per grouped item
-        $net = $rental + $extraDay + $penalty + $additional + $damage - $refund;
+        // Net income per grouped item: refund can include returned deposits, add deposit portion back
+        $net = $rental + $extraDay + $penalty + $additional + $damage - $refund + $depositRet;
 
         $displayName = $row['equipment_code'] . ' - ' . ($row['equipment_name'] ?? '');
         $subLabel = $row['sub_equipment_code'] ?? null;
@@ -75,6 +78,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
             'additional_payment' => $additional,
             'damage_amount' => $damage,
             'refund_amount' => $refund,
+            'deposit_return_amount' => $depositRet,
             'net_income' => $net
         ];
 
@@ -84,6 +88,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
         $totals['additional'] += $additional;
         $totals['damage']     += $damage;
         $totals['refund']     += $refund;
+        // deposit portion is only for net, not shown separately in summary cards
         $totals['net']        += $net;
     }
 
