@@ -35,7 +35,7 @@ try {
                     CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END AS duration_days,
                     DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY) AS due_date,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id), 0)) AS pending_qty,
-                    GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, '$asOfDateSafe 23:59:59') / 86400)) AS used_days,
+                    GREATEST(0, DATEDIFF('$asOfDateSafe', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY))) AS overdue_days,
                     (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily
                   FROM equipment_rent_items eri
                   LEFT JOIN equipment_rent er ON eri.rent_id = er.id
@@ -58,8 +58,7 @@ try {
 
         while ($row = mysqli_fetch_assoc($result)) {
             $durationDays = max(1, (int)$row['duration_days']);
-            $usedDays = max(1, (int)$row['used_days']);
-            $overdueDays = max(0, $usedDays - $durationDays);
+            $overdueDays = max(0, (int)$row['overdue_days']);
             $pendingQty = max(0, (float)$row['pending_qty']);
             $perUnitDaily = floatval($row['per_unit_daily']);
             $outstandingAmount = $overdueDays > 0 && $pendingQty > 0 ? round($perUnitDaily * $overdueDays * $pendingQty, 2) : 0;
