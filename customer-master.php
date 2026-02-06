@@ -20,6 +20,50 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
     <meta content="<?php echo $COMPANY_PROFILE_DETAILS->name ?>" name="author" />
     <!-- include main CSS -->
     <?php include 'main-css.php' ?>
+    <style>
+        .camera-container {
+            position: relative;
+            overflow: hidden;
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        #cameraStream {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: cover;
+            transform: scaleX(1); /* Default, will flip for front camera */
+        }
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 12px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .camera-overlay::after {
+            content: '';
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        #capturedImagesContainer .img-fluid {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        #capturedImagesContainer .img-fluid:hover {
+            transform: scale(1.05);
+        }
+    </style>
 
 </head>
 
@@ -391,17 +435,30 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                             <!-- Camera View -->
                             <div class="camera-container text-center mb-3">
-                                <video id="cameraStream" autoplay playsinline style="width: 100%; max-height: 400px; border-radius: 8px; background: #000;"></video>
+                                <video id="cameraStream" autoplay playsinline></video>
+                                <div class="camera-overlay"></div>
                                 <canvas id="captureCanvas" style="display: none;"></canvas>
                             </div>
 
                             <!-- Capture Controls -->
+                            <div class="row mb-3">
+                                <div class="col-md-6 offset-md-3">
+                                    <label for="cameraSelect" class="form-label">Select Camera</label>
+                                    <select id="cameraSelect" class="form-select mb-2" onchange="changeCamera(this.value)">
+                                        <option value="">Default Camera</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="text-center mb-3">
                                 <button type="button" class="btn btn-primary btn-lg" id="captureBtn" onclick="captureImage()">
                                     <i class="uil uil-capture me-1"></i> Capture
                                 </button>
-                                <button type="button" class="btn btn-secondary" id="switchCameraBtn" onclick="switchCamera()">
-                                    <i class="uil uil-sync me-1"></i> Switch Camera
+                                <button type="button" class="btn btn-info" id="switchCameraBtn" onclick="switchCamera()">
+                                    <i class="uil uil-sync me-1"></i> Flip Camera
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="updateCameraList()">
+                                    <i class="uil uil-refresh me-1"></i> Refresh List
                                 </button>
                             </div>
 
@@ -470,12 +527,12 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     startCamera();
                 }
 
-                async function startCamera() {
+                async function startCamera(deviceId = null) {
                     // Check if browser supports mediaDevices
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                         swal({
                             title: "Camera Error",
-                            text: "Camera API is not supported in this browser. Please use a modern browser.",
+                            text: "Camera API is not supported in this browser. Please use a modern browser (Chrome/Edge/Firefox) over HTTPS.",
                             type: "error"
                         });
                         return;
@@ -487,18 +544,23 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                         const constraints = {
                             video: {
-                                facingMode: currentCameraFacing,
-                                width: {
-                                    ideal: 1280
-                                },
-                                height: {
-                                    ideal: 720
-                                }
+                                width: { ideal: 1920 },
+                                height: { ideal: 1080 },
+                                facingMode: deviceId ? undefined : currentCameraFacing
                             }
                         };
 
+                        if (deviceId) {
+                            constraints.video.deviceId = { exact: deviceId };
+                        }
+
                         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                        document.getElementById('cameraStream').srcObject = currentStream;
+                        const videoElement = document.getElementById('cameraStream');
+                        videoElement.srcObject = currentStream;
+
+                        // Once camera is started, update device list (to get labels)
+                        updateCameraList();
+                        
                     } catch (err) {
                         console.error('Error accessing camera:', err);
 
@@ -511,7 +573,11 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
                             errorMessage = "No camera device found.";
                         } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                            errorMessage = "Camera is already in use by another application.";
+                            errorMessage = "Camera is already in use by another application or device.";
+                        } else if (err.name === 'OverconstrainedError') {
+                            // If resolution is too high for this camera, try with lower
+                            startCameraWithBasicConstraints(deviceId);
+                            return;
                         }
 
                         swal({
@@ -519,6 +585,56 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                             text: errorMessage,
                             type: "error"
                         });
+                    }
+                }
+
+                async function startCameraWithBasicConstraints(deviceId = null) {
+                    try {
+                        const constraints = {
+                            video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: currentCameraFacing }
+                        };
+                        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                        document.getElementById('cameraStream').srcObject = currentStream;
+                        updateCameraList();
+                    } catch (e) {
+                        console.error("Basic camera fallback failed", e);
+                    }
+                }
+
+                async function updateCameraList() {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+
+                    try {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        const select = document.getElementById('cameraSelect');
+                        
+                        // Keep track of selected value
+                        const currentValue = select.value;
+                        
+                        // Clear list except first
+                        select.innerHTML = '<option value="">Default Camera</option>';
+                        
+                        videoDevices.forEach((device, index) => {
+                            const option = document.createElement('option');
+                            option.value = device.deviceId;
+                            option.text = device.label || `Camera ${index + 1}`;
+                            if (device.deviceId === currentValue) option.selected = true;
+                            select.appendChild(option);
+                        });
+
+                        // If label is "Camera 1", it means user hasn't granted permission yet
+                        // to see device labels, which usually happens AFTER first getUserMedia call
+                    } catch (err) {
+                        console.error("Error enumerating devices:", err);
+                    }
+                }
+
+                function changeCamera(deviceId) {
+                    if (deviceId) {
+                        startCamera(deviceId);
+                    } else {
+                        startCamera(); // Use default facingMode logic
                     }
                 }
 
@@ -531,6 +647,15 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                 function switchCamera() {
                     currentCameraFacing = currentCameraFacing === 'environment' ? 'user' : 'environment';
+                    
+                    // Update video transform for mirror effect if using front camera
+                    const video = document.getElementById('cameraStream');
+                    if (currentCameraFacing === 'user') {
+                        video.style.transform = 'scaleX(-1)';
+                    } else {
+                        video.style.transform = 'scaleX(1)';
+                    }
+                    
                     startCamera();
                 }
 
