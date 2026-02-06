@@ -81,11 +81,12 @@ switch ($action) {
 
     case 'DELETE':
         $sync_id = $_POST['sync_id'] ?? '';
+        if (!$sync_id) exit(json_encode(['status' => 'error', 'message' => 'Missing sync_id']));
         $file_path = $temp_dir . $sync_id . '.jpg';
         if (file_exists($file_path)) {
             unlink($file_path);
         }
-        echo json_encode(['status' => 'success']);
+        exit(json_encode(['status' => 'success']));
         break;
 
     default:

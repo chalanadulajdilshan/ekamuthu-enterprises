@@ -38,8 +38,12 @@ $sync_id = $_GET['id'] ?? '';
                 <i class="uil uil-camera me-2"></i> Take Photo
             </button>
 
-            <button class="btn btn-success btn-block btn-capture w-100" id="uploadBtn" disabled style="display: none;">
+            <button class="btn btn-success btn-block btn-capture w-100 mb-2" id="uploadBtn" disabled style="display: none;">
                 <i class="uil uil-upload me-2"></i> Upload to PC
+            </button>
+
+            <button class="btn btn-outline-secondary btn-sm w-100" id="finishBtn" style="display: none;" onclick="finishCapture()">
+                <i class="uil uil-check-circle me-1"></i> Finish Capture
             </button>
 
             <div class="mt-3">
@@ -61,6 +65,7 @@ $sync_id = $_GET['id'] ?? '';
         const placeholder = document.getElementById('placeholder-icon');
         const takePhotoBtn = document.getElementById('takePhotoBtn');
         const uploadBtn = document.getElementById('uploadBtn');
+        const finishBtn = document.getElementById('finishBtn');
         const loader = document.getElementById('loader');
         let base64Image = '';
 
@@ -101,12 +106,23 @@ $sync_id = $_GET['id'] ?? '';
                 dataType: 'json',
                 success: function(response) {
                     if (response.status === 'success') {
-                        document.getElementById('loader-text').innerText = 'Done! You can close this tab.';
+                        document.getElementById('loader-text').innerText = 'Sent!';
                         loader.querySelector('.spinner-border').className = 'uil uil-check-circle text-success mb-3';
                         loader.querySelector('.spinner-border').style.fontSize = '4rem';
+                        
                         setTimeout(() => {
-                            // Optionally redirect to a success page
-                        }, 2000);
+                            loader.style.display = 'none';
+                            // Reset UI for next capture
+                            base64Image = '';
+                            preview.src = '';
+                            preview.style.display = 'none';
+                            placeholder.style.display = 'block';
+                            uploadBtn.style.display = 'none';
+                            uploadBtn.disabled = true;
+                            takePhotoBtn.innerHTML = '<i class="uil uil-camera me-2"></i> Take Photo';
+                            takePhotoBtn.className = 'btn btn-primary btn-block btn-capture mb-3 w-100';
+                            finishBtn.style.display = 'block'; // Show finish button after successful upload
+                        }, 1500); // Show success briefly
                     } else {
                         alert('Upload failed: ' + response.message);
                         loader.style.display = 'none';
@@ -120,6 +136,17 @@ $sync_id = $_GET['id'] ?? '';
                 }
             });
         });
+
+        function finishCapture() {
+            document.querySelector('.card').innerHTML = `
+                <div class="text-center py-5 bounce-in">
+                    <i class="uil uil-check-circle text-success" style="font-size: 80px;"></i>
+                    <h2 class="mt-4">All Set!</h2>
+                    <p class="text-muted">You can close this tab now and check your PC screen.</p>
+                    <button class="btn btn-outline-primary mt-3" onclick="location.reload()">Take More?</button>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>

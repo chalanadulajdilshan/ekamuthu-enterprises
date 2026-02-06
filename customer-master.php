@@ -598,7 +598,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         console.error('Error accessing camera:', err);
 
                         // Fallback to basic constraints
-                        if (err.name === 'OverconstrainedError' || err.name === 'NotReadableError') {
+                        if (err.name === 'OverconstrainedError' || err.name === 'NotReadableError' || err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
                             console.log("Ideal constraints failed, trying basic...");
                             startCameraWithBasicConstraints(deviceId);
                             return;
@@ -635,7 +635,21 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         videoElement.play().catch(e => console.error("Error playing video:", e));
                         updateCameraList();
                     } catch (e) {
-                        console.error("Basic camera fallback failed", e);
+                        console.error("Basic camera fallback failed, trying ultra-basic...", e);
+                        startCameraWithNoConstraints();
+                    }
+                }
+
+                async function startCameraWithNoConstraints() {
+                    try {
+                        // The most basic constraint possible
+                        currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        const videoElement = document.getElementById('cameraStream');
+                        videoElement.srcObject = currentStream;
+                        videoElement.play().catch(e => console.error("Error playing video:", e));
+                        updateCameraList();
+                    } catch (e) {
+                        console.error("Ultra-basic camera fallback failed", e);
                         swal({
                             title: "Camera Error",
                             text: "Unable to start camera even with basic settings. Name: " + e.name,
@@ -1001,28 +1015,47 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     syncPollInterval = setInterval(function() {
                         $.getJSON('ajax/php/mobile-sync.php', { action: 'POLL', sync_id: syncId }, function(data) {
                             if (data.status === 'success') {
-                                clearInterval(syncPollInterval);
-                                handleSyncedImage(data.image);
+                                // DO NOT clearInterval(syncPollInterval); - Keep polling for next images
+                                handleSyncedImage(data.image, syncId);
                             }
                         });
-                    }, 3000);
+                    }, 2500); // Slightly faster polling
                 }
 
-                function handleSyncedImage(imageData) {
+                function handleSyncedImage(imageData, syncId) {
+                    // Check if this image data is different from the last one to avoid duplicates if backend doesn't delete fast enough
+                    if (window.lastReceivedImage === imageData) return;
+                    window.lastReceivedImage = imageData;
+
+                    // Immediately delete from temp on server so it's not polled again
+                    $.post('ajax/php/mobile-sync.php', { action: 'DELETE', sync_id: syncId });
+
                     $('#syncStatus').attr('class', 'alert alert-success py-2 small mb-0').html('<i class="uil uil-check-circle me-2"></i>Image received!');
+                    
                     const imageNum = capturedImages.length + 1;
                     if (imageNum <= maxImages) {
                         capturedImages.push(imageData);
                         $(`#capturedImage${imageNum}`).attr('src', imageData);
                         $(`#capturedImage${imageNum}Container`).show();
+
                         if (capturedImages.length < maxImages) {
                             $('#currentImageNum').text(capturedImages.length + 1);
+                            // Keep mobile sync section open for next image
+                            setTimeout(() => {
+                                $('#syncStatus').attr('class', 'alert alert-info py-2 small mb-0').html('<div class="spinner-border spinner-border-sm me-2" role="status"></div>Waiting for image ' + (capturedImages.length + 1) + '...');
+                            }, 2000);
                         } else {
                             $('#captureInstructions').html('<span class="text-success"><i class="uil uil-check-circle"></i> All images captured!</span>');
-                            setTimeout(() => $('#mobileSyncSection').hide(), 1500);
+                            clearInterval(syncPollInterval); // All done
+                            setTimeout(() => $('#mobileSyncSection').fadeOut(), 1500);
                         }
-                        if (capturedImages.length >= maxImages) { $('#saveImagesBtn').prop('disabled', false); }
-                        swal({ title: "Synced!", text: "Image received from mobile successfully!", type: "success", timer: 2000, showConfirmButton: false });
+
+                        if (capturedImages.length >= maxImages) {
+                            $('#saveImagesBtn').prop('disabled', false);
+                        }
+
+                        // Use a non-blocking notification for multi-capture
+                        toastr.success("Image " + capturedImages.length + " received from mobile!");
                     }
                 }
 
