@@ -1225,9 +1225,13 @@ $bill_number = $lastId + 1;
 
         async function startModalCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                let msg = "Camera API is not supported in this browser.";
+                if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                    msg = "Camera access requires HTTPS when accessing via network/IP. Please use HTTPS or access via localhost.";
+                }
                 swal({
                     title: "Camera Error",
-                    text: "Camera API is not supported in this browser.",
+                    text: msg,
                     type: "error"
                 });
                 return;
@@ -1245,13 +1249,22 @@ $bill_number = $lastId + 1;
                 };
 
                 modalCurrentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('modalCameraStream').srcObject = modalCurrentStream;
+                const videoElement = document.getElementById('modalCameraStream');
+                videoElement.srcObject = modalCurrentStream;
+                videoElement.play().catch(e => console.error("Error playing video:", e));
             } catch (err) {
                 console.error('Error accessing camera:', err);
+
+                // Fallback to basic constraints
+                if (err.name === 'OverconstrainedError' || err.name === 'NotReadableError') {
+                    startModalCameraWithBasicConstraints();
+                    return;
+                }
+
                 let errorMessage = "Unable to access camera. Please ensure permissions are granted.";
 
                 if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    errorMessage = "Camera access requires HTTPS on live servers.";
+                    errorMessage = "Camera access requires a secure HTTPS connection when accessing via IP address. If you are using a mobile phone, please connect via HTTPS.";
                 } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                     errorMessage = "Camera permission denied. Please allow access.";
                 } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -1263,6 +1276,25 @@ $bill_number = $lastId + 1;
                 swal({
                     title: "Camera Error",
                     text: errorMessage,
+                    type: "error"
+                });
+            }
+        }
+
+        async function startModalCameraWithBasicConstraints() {
+            try {
+                const constraints = {
+                    video: { facingMode: modalCameraFacing }
+                };
+                modalCurrentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoElement = document.getElementById('modalCameraStream');
+                videoElement.srcObject = modalCurrentStream;
+                videoElement.play().catch(e => console.error("Error playing video:", e));
+            } catch (e) {
+                console.error("Basic camera fallback failed", e);
+                swal({
+                    title: "Camera Error",
+                    text: "Unable to start camera even with basic settings. Name: " + e.name,
                     type: "error"
                 });
             }

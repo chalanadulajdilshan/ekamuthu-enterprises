@@ -457,9 +457,34 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 <button type="button" class="btn btn-info" id="switchCameraBtn" onclick="switchCamera()">
                                     <i class="uil uil-sync me-1"></i> Flip Camera
                                 </button>
+                                <button type="button" class="btn btn-warning" id="mobileSyncBtn" onclick="startMobileSync()">
+                                    <i class="uil uil-mobile-android me-1"></i> Mobile Sync
+                                </button>
                                 <button type="button" class="btn btn-secondary" onclick="updateCameraList()">
                                     <i class="uil uil-refresh me-1"></i> Refresh List
                                 </button>
+                            </div>
+
+                            <!-- Mobile Sync Section -->
+                            <div id="mobileSyncSection" style="display: none;" class="mt-3 p-3 border rounded bg-light">
+                                <h6 class="text-center mb-3">Mobile QR Sync</h6>
+                                <div class="row align-items-center">
+                                    <div class="col-md-5 text-center">
+                                        <div id="qrcode" class="d-inline-block p-2 bg-white border"></div>
+                                        <p class="mt-2 small text-muted">Scan with your phone</p>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <ol class="small text-start ps-3">
+                                            <li>Scan this QR code with your mobile camera.</li>
+                                            <li>Take a photo on the page that opens.</li>
+                                            <li>Wait for the image to appear here automatically.</li>
+                                        </ol>
+                                        <div id="syncStatus" class="alert alert-info py-2 small mb-0">
+                                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                            Waiting for mobile capture...
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Captured Images Preview -->
@@ -530,9 +555,13 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                 async function startCamera(deviceId = null) {
                     // Check if browser supports mediaDevices
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        let msg = "Camera API is not supported in this browser.";
+                        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                            msg = "Camera access requires HTTPS when accessing via network/IP. Please use HTTPS or access via localhost.";
+                        }
                         swal({
                             title: "Camera Error",
-                            text: "Camera API is not supported in this browser. Please use a modern browser (Chrome/Edge/Firefox) over HTTPS.",
+                            text: msg,
                             type: "error"
                         });
                         return;
@@ -542,10 +571,11 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         // Stop any existing stream first
                         stopCamera();
 
+                        // Try with ideal constraints first
                         const constraints = {
                             video: {
-                                width: { ideal: 1920 },
-                                height: { ideal: 1080 },
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 },
                                 facingMode: deviceId ? undefined : currentCameraFacing
                             }
                         };
@@ -557,6 +587,9 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                         const videoElement = document.getElementById('cameraStream');
                         videoElement.srcObject = currentStream;
+                        
+                        // Explicitly call play()
+                        videoElement.play().catch(e => console.error("Error playing video:", e));
 
                         // Once camera is started, update device list (to get labels)
                         updateCameraList();
@@ -564,20 +597,23 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     } catch (err) {
                         console.error('Error accessing camera:', err);
 
+                        // Fallback to basic constraints
+                        if (err.name === 'OverconstrainedError' || err.name === 'NotReadableError') {
+                            console.log("Ideal constraints failed, trying basic...");
+                            startCameraWithBasicConstraints(deviceId);
+                            return;
+                        }
+
                         let errorMessage = "Unable to access camera. Please ensure camera permissions are granted.";
 
                         if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                            errorMessage = "Camera access requires a secure HTTPS connection on live servers. Please switch to HTTPS.";
+                            errorMessage = "Camera access requires a secure HTTPS connection when accessing via IP address. If you are using a mobile phone, please connect via HTTPS.";
                         } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                             errorMessage = "Camera permission denied. Please allow camera access in your browser settings.";
                         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
                             errorMessage = "No camera device found.";
                         } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
                             errorMessage = "Camera is already in use by another application or device.";
-                        } else if (err.name === 'OverconstrainedError') {
-                            // If resolution is too high for this camera, try with lower
-                            startCameraWithBasicConstraints(deviceId);
-                            return;
                         }
 
                         swal({
@@ -594,10 +630,17 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                             video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: currentCameraFacing }
                         };
                         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                        document.getElementById('cameraStream').srcObject = currentStream;
+                        const videoElement = document.getElementById('cameraStream');
+                        videoElement.srcObject = currentStream;
+                        videoElement.play().catch(e => console.error("Error playing video:", e));
                         updateCameraList();
                     } catch (e) {
                         console.error("Basic camera fallback failed", e);
+                        swal({
+                            title: "Camera Error",
+                            text: "Unable to start camera even with basic settings. Name: " + e.name,
+                            type: "error"
+                        });
                     }
                 }
 
@@ -930,6 +973,63 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                         $('#po_document_preview').empty();
                     }
                 }
+            </script>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+            <script>
+                let syncPollInterval = null;
+                let currentSyncId = null;
+
+                function startMobileSync() {
+                    $('#mobileSyncSection').show();
+                    $('#qrcode').empty();
+                    $('#syncStatus').attr('class', 'alert alert-info py-2 small mb-0').html('<div class="spinner-border spinner-border-sm me-2" role="status"></div>Waiting for mobile capture...');
+
+                    $.post('ajax/php/mobile-sync.php', { action: 'INIT' }, function(data) {
+                        if (data.status === 'success') {
+                            currentSyncId = data.sync_id;
+                            const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+                            const syncUrl = `${baseUrl}/mobile-capture.php?id=${currentSyncId}`;
+                            new QRCode(document.getElementById("qrcode"), { text: syncUrl, width: 150, height: 150 });
+                            startPolling(currentSyncId);
+                        }
+                    }, 'json');
+                }
+
+                function startPolling(syncId) {
+                    if (syncPollInterval) clearInterval(syncPollInterval);
+                    syncPollInterval = setInterval(function() {
+                        $.getJSON('ajax/php/mobile-sync.php', { action: 'POLL', sync_id: syncId }, function(data) {
+                            if (data.status === 'success') {
+                                clearInterval(syncPollInterval);
+                                handleSyncedImage(data.image);
+                            }
+                        });
+                    }, 3000);
+                }
+
+                function handleSyncedImage(imageData) {
+                    $('#syncStatus').attr('class', 'alert alert-success py-2 small mb-0').html('<i class="uil uil-check-circle me-2"></i>Image received!');
+                    const imageNum = capturedImages.length + 1;
+                    if (imageNum <= maxImages) {
+                        capturedImages.push(imageData);
+                        $(`#capturedImage${imageNum}`).attr('src', imageData);
+                        $(`#capturedImage${imageNum}Container`).show();
+                        if (capturedImages.length < maxImages) {
+                            $('#currentImageNum').text(capturedImages.length + 1);
+                        } else {
+                            $('#captureInstructions').html('<span class="text-success"><i class="uil uil-check-circle"></i> All images captured!</span>');
+                            setTimeout(() => $('#mobileSyncSection').hide(), 1500);
+                        }
+                        if (capturedImages.length >= maxImages) { $('#saveImagesBtn').prop('disabled', false); }
+                        swal({ title: "Synced!", text: "Image received from mobile successfully!", type: "success", timer: 2000, showConfirmButton: false });
+                    }
+                }
+
+                $('#cameraModal').on('hidden.bs.modal', function () {
+                    if (syncPollInterval) { clearInterval(syncPollInterval); syncPollInterval = null; }
+                    $('#mobileSyncSection').hide();
+                });
             </script>
 
             <!-- Page Preloader Script -->
