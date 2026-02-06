@@ -76,6 +76,10 @@ $bill_number = $lastId + 1;
                                 <i class="uil uil-redo me-1"></i> Return All
                             </a>
 
+                            <a href="#" class="btn btn-outline-danger" id="cancel-return" style="display: none;">
+                                <i class="uil uil-times-circle me-1"></i> Cancel Return
+                            </a>
+
                             <a href="#" class="btn btn-dark" id="print" style="display: none;">
                                 <i class="uil uil-print me-1"></i> Print
                             </a>

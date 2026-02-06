@@ -1654,10 +1654,10 @@ jQuery(document).ready(function () {
     var rentalStart = $("#rental_date").val();
     var dayCountText = "-";
     if (rentalStart) {
-      var returnDateTime = new Date(returnDate + " " + returnTime);
+      var returnDateOnly = new Date(returnDate + " 00:00");
       var rentalStartDate = new Date(rentalStart + " 00:00");
-      if (!isNaN(returnDateTime) && !isNaN(rentalStartDate)) {
-        var msDiff = returnDateTime - rentalStartDate;
+      if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
+        var msDiff = returnDateOnly - rentalStartDate;
         var baseDays = msDiff > 0 ? Math.ceil(msDiff / (1000 * 60 * 60 * 24)) : 0;
         var after9am = $("#return_all_after_9am").is(":checked");
         var totalDays = baseDays + (after9am ? 1 : 0);
