@@ -103,11 +103,9 @@ jQuery(document).ready(function () {
         // amount = currentRentOneDay * duration * qty;
 
         amount = currentRentOneDay * qty;
-
       } else {
         // amount = currentRentOneMonth * duration * qty;
         amount = currentRentOneMonth * qty;
-
       }
       $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
     }
@@ -132,15 +130,21 @@ jQuery(document).ready(function () {
             : '<span class="badge bg-soft-warning">Rented</span>';
 
         var actionBtns = "";
-        if (item.status === "rented" || (item.pending_qty && item.pending_qty > 0)) {
+        if (
+          item.status === "rented" ||
+          (item.pending_qty && item.pending_qty > 0)
+        ) {
           actionBtns =
             '<button class="btn btn-sm btn-success process-return-btn me-1" data-item-id="' +
-            (item.id || '') +
+            (item.id || "") +
             '" data-index="' +
             index +
             '" title="Process Return"><i class="uil uil-redo"></i></button>';
         }
-        if (item.id && (item.total_returned_qty > 0 || item.status === "returned")) {
+        if (
+          item.id &&
+          (item.total_returned_qty > 0 || item.status === "returned")
+        ) {
           actionBtns +=
             '<button class="btn btn-sm btn-info view-returns-btn me-1" data-item-id="' +
             item.id +
@@ -163,24 +167,36 @@ jQuery(document).ready(function () {
         var usedDays = parseInt(item.latest_used_days, 10);
         var hasReturn = !!item.latest_return_date;
         var returnDateTime = hasReturn
-          ? (item.latest_return_time ? (item.latest_return_date + " " + item.latest_return_time) : item.latest_return_date)
+          ? item.latest_return_time
+            ? item.latest_return_date + " " + item.latest_return_time
+            : item.latest_return_date
           : null;
-        
+
         // Calculate day count display similar to return modal
-        var dayCountDisplay = '';
+        var dayCountDisplay = "";
         if (hasReturn && usedDays) {
           // Check if extra day was actually charged (based on the after_9am_extra_day flag from the return record)
-          var hasExtraDay = !!(item.latest_after_9am_flag && parseInt(item.latest_after_9am_flag, 10) === 1);
-          
-          dayCountDisplay = '<br><small class="text-danger">' + usedDays + ' day' + (usedDays > 1 ? 's' : '');
+          var hasExtraDay = !!(
+            item.latest_after_9am_flag &&
+            parseInt(item.latest_after_9am_flag, 10) === 1
+          );
+
+          dayCountDisplay =
+            '<br><small class="text-danger">' +
+            usedDays +
+            " day" +
+            (usedDays > 1 ? "s" : "");
           if (hasExtraDay) {
-            dayCountDisplay += ' +1 Extra day';
+            dayCountDisplay += " +1 Extra day";
           }
-          dayCountDisplay += '</small>';
+          dayCountDisplay += "</small>";
         }
-        
+
         var returnDisplay = hasReturn
-          ? '<div class="text-danger fw-semibold">' + returnDateTime + dayCountDisplay + '</div>'
+          ? '<div class="text-danger fw-semibold">' +
+            returnDateTime +
+            dayCountDisplay +
+            "</div>"
           : "-";
 
         var row =
@@ -209,14 +225,21 @@ jQuery(document).ready(function () {
           parseFloat(item.quantity).toFixed(0) +
           "</td>" +
           "<td>" +
-          '<span class="badge bg-soft-success">' + (item.total_returned_qty || 0) + '</span> / ' +
-          '<span class="badge bg-soft-warning">' + (item.pending_qty !== undefined ? item.pending_qty : item.quantity) + ' pending</span>' +
+          '<span class="badge bg-soft-success">' +
+          (item.total_returned_qty || 0) +
+          "</span> / " +
+          '<span class="badge bg-soft-warning">' +
+          (item.pending_qty !== undefined ? item.pending_qty : item.quantity) +
+          " pending</span>" +
           "</td>" +
           "<td>" +
           parseFloat(item.amount).toFixed(2) +
           "</td>" +
           "<td>" +
-          (parseFloat(item.deposit_one_day || 0) * parseFloat(item.quantity || 1)).toFixed(2) +
+          (
+            parseFloat(item.deposit_one_day || 0) *
+            parseFloat(item.quantity || 1)
+          ).toFixed(2) +
           "</td>" +
           "<td>" +
           item.rental_date +
@@ -239,101 +262,116 @@ jQuery(document).ready(function () {
     updateTotalsSummary();
 
     // Bind process return button event
-    $(".process-return-btn").off("click").on("click", function () {
-      var itemId = $(this).data("item-id");
-      var index = $(this).data("index");
+    $(".process-return-btn")
+      .off("click")
+      .on("click", function () {
+        var itemId = $(this).data("item-id");
+        var index = $(this).data("index");
 
-      if (itemId) {
-        // If item is saved, open return modal
-        openReturnModal(itemId);
-      } else {
-        // If item is not saved yet
-        swal({
-          title: "Error!",
-          text: "Please save the rental record first before processing returns",
-          type: "warning",
-          timer: 3000,
-          showConfirmButton: false
-        });
-      }
-    });
+        if (itemId) {
+          // If item is saved, open return modal
+          openReturnModal(itemId);
+        } else {
+          // If item is not saved yet
+          swal({
+            title: "Error!",
+            text: "Please save the rental record first before processing returns",
+            type: "warning",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+        }
+      });
 
     // Bind view returns history button event
-    $(".view-returns-btn").off("click").on("click", function () {
-      var itemId = $(this).data("item-id");
-      viewReturnsHistory(itemId);
-    });
+    $(".view-returns-btn")
+      .off("click")
+      .on("click", function () {
+        var itemId = $(this).data("item-id");
+        viewReturnsHistory(itemId);
+      });
 
     // Bind cancel item return button event
-    $(".cancel-item-return-btn").off("click").on("click", function () {
-      var itemId = $(this).data("item-id");
-      var index = $(this).data("index");
-      var item = rentItems[index];
-      var itemLabel = item ? (item.equipment_display + (item.sub_equipment_display ? ' (' + item.sub_equipment_display + ')' : '')) : 'this item';
+    $(".cancel-item-return-btn")
+      .off("click")
+      .on("click", function () {
+        var itemId = $(this).data("item-id");
+        var index = $(this).data("index");
+        var item = rentItems[index];
+        var itemLabel = item
+          ? item.equipment_display +
+            (item.sub_equipment_display
+              ? " (" + item.sub_equipment_display + ")"
+              : "")
+          : "this item";
 
-      swal(
-        {
-          title: "Cancel Item Return?",
-          text: "This will cancel all returns for '" + itemLabel + "' and set it back to rented status. Are you sure?",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          confirmButtonText: "Yes, cancel return!",
-          cancelButtonText: "No, keep it",
-        },
-        function (isConfirm) {
-          if (isConfirm) {
-            $("#page-preloader").show();
-            $.ajax({
-              url: "ajax/php/equipment-rent-master.php",
-              type: "POST",
-              data: {
-                action: "cancel_item_return",
-                rent_item_id: itemId,
-              },
-              dataType: "JSON",
-              success: function (result) {
-                $("#page-preloader").hide();
+        swal(
+          {
+            title: "Cancel Item Return?",
+            text:
+              "This will cancel all returns for '" +
+              itemLabel +
+              "' and set it back to rented status. Are you sure?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            confirmButtonText: "Yes, cancel return!",
+            cancelButtonText: "No, keep it",
+          },
+          function (isConfirm) {
+            if (isConfirm) {
+              $("#page-preloader").show();
+              $.ajax({
+                url: "ajax/php/equipment-rent-master.php",
+                type: "POST",
+                data: {
+                  action: "cancel_item_return",
+                  rent_item_id: itemId,
+                },
+                dataType: "JSON",
+                success: function (result) {
+                  $("#page-preloader").hide();
 
-                if (result.status === "success") {
-                  swal({
-                    title: "Success!",
-                    text: result.message || "Item return cancelled successfully.",
-                    type: "success",
-                    timer: 2000,
-                    showConfirmButton: false,
-                  });
-                  // Reload the rent details
-                  var rentId = $("#rent_id").val();
-                  if (rentId) {
-                    setTimeout(function () {
-                      loadRentDetails(rentId);
-                    }, 2000);
+                  if (result.status === "success") {
+                    swal({
+                      title: "Success!",
+                      text:
+                        result.message || "Item return cancelled successfully.",
+                      type: "success",
+                      timer: 2000,
+                      showConfirmButton: false,
+                    });
+                    // Reload the rent details
+                    var rentId = $("#rent_id").val();
+                    if (rentId) {
+                      setTimeout(function () {
+                        loadRentDetails(rentId);
+                      }, 2000);
+                    }
+                  } else {
+                    swal({
+                      title: "Error!",
+                      text: result.message || "Failed to cancel item return.",
+                      type: "error",
+                      showConfirmButton: true,
+                    });
                   }
-                } else {
+                },
+                error: function (xhr) {
+                  $("#page-preloader").hide();
+                  console.error("Cancel item return error:", xhr.responseText);
                   swal({
                     title: "Error!",
-                    text: result.message || "Failed to cancel item return.",
+                    text: "Unable to cancel item return.",
                     type: "error",
                     showConfirmButton: true,
                   });
-                }
-              },
-              error: function (xhr) {
-                $("#page-preloader").hide();
-                console.error("Cancel item return error:", xhr.responseText);
-                swal({
-                  title: "Error!",
-                  text: "Unable to cancel item return.",
-                  type: "error",
-                  showConfirmButton: true,
-                });
-              },
-            });
-          }
-        },
-      );
-    });
+                },
+              });
+            }
+          },
+        );
+      });
   }
 
   // Check if sub-equipment already added
@@ -418,7 +456,7 @@ jQuery(document).ready(function () {
       deposit_one_day: currentDepositOneDay,
       status: "rented",
       remark: "",
-      no_sub_items: noSubItems ? 1 : 0
+      no_sub_items: noSubItems ? 1 : 0,
     });
 
     // Update calculated deposit
@@ -473,14 +511,19 @@ jQuery(document).ready(function () {
     $("#item_amount").data("manual-edited", true);
 
     // Change button to save icon
-    $(this).html('<i class="uil uil-save"></i>').removeClass('btn-danger').addClass('btn-success');
-    $(this).attr('title', 'Save amount to equipment');
-    $(this).attr('id', 'btn-save-amount-edit');
+    $(this)
+      .html('<i class="uil uil-save"></i>')
+      .removeClass("btn-danger")
+      .addClass("btn-success");
+    $(this).attr("title", "Save amount to equipment");
+    $(this).attr("id", "btn-save-amount-edit");
 
     // Rebind the click event for save
-    $("#btn-save-amount-edit").off('click').on('click', function () {
-      saveEquipmentAmount();
-    });
+    $("#btn-save-amount-edit")
+      .off("click")
+      .on("click", function () {
+        saveEquipmentAmount();
+      });
   });
 
   // Function to save changed amount to equipment table
@@ -500,72 +543,84 @@ jQuery(document).ready(function () {
       return;
     }
 
-    swal({
-      title: "Save Amount?",
-      text: "This will update the " + (rentType === 'day' ? 'daily' : 'monthly') + " rent amount for this equipment. Continue?",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, save it!",
-      cancelButtonText: "No, cancel"
-    }, function (isConfirm) {
-      if (isConfirm) {
-        $.ajax({
-          url: "ajax/php/equipment-rent-master.php",
-          type: "POST",
-          data: {
-            action: "update_equipment_amount",
-            equipment_id: equipmentId,
-            rent_type: rentType,
-            amount: newAmount
-          },
-          dataType: "JSON",
-          success: function (result) {
-            if (result.status === "success") {
-              // Update the current rent values
-              if (rentType === 'day') {
-                currentRentOneDay = newAmount;
+    swal(
+      {
+        title: "Save Amount?",
+        text:
+          "This will update the " +
+          (rentType === "day" ? "daily" : "monthly") +
+          " rent amount for this equipment. Continue?",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, save it!",
+        cancelButtonText: "No, cancel",
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          $.ajax({
+            url: "ajax/php/equipment-rent-master.php",
+            type: "POST",
+            data: {
+              action: "update_equipment_amount",
+              equipment_id: equipmentId,
+              rent_type: rentType,
+              amount: newAmount,
+            },
+            dataType: "JSON",
+            success: function (result) {
+              if (result.status === "success") {
+                // Update the current rent values
+                if (rentType === "day") {
+                  currentRentOneDay = newAmount;
+                } else {
+                  currentRentOneMonth = newAmount;
+                }
+
+                swal({
+                  title: "Success!",
+                  text: "Equipment amount updated successfully",
+                  type: "success",
+                  timer: 2000,
+                  showConfirmButton: false,
+                });
+
+                // Reset button to + icon
+                $("#btn-save-amount-edit")
+                  .html('<i class="uil uil-plus"></i>')
+                  .removeClass("btn-success")
+                  .addClass("btn-danger");
+                $("#btn-save-amount-edit").attr(
+                  "title",
+                  "Enable manual amount editing",
+                );
+                $("#btn-save-amount-edit").attr("id", "btn-enable-amount-edit");
+                manualAmountEditEnabled = false;
+
+                // Keep the amount field editable but mark as saved
+                $("#item_amount").data("manual-edited", false);
               } else {
-                currentRentOneMonth = newAmount;
+                swal({
+                  title: "Error!",
+                  text: result.message || "Failed to update equipment amount",
+                  type: "error",
+                  timer: 3000,
+                  showConfirmButton: false,
+                });
               }
-
-              swal({
-                title: "Success!",
-                text: "Equipment amount updated successfully",
-                type: "success",
-                timer: 2000,
-                showConfirmButton: false,
-              });
-
-              // Reset button to + icon
-              $("#btn-save-amount-edit").html('<i class="uil uil-plus"></i>').removeClass('btn-success').addClass('btn-danger');
-              $("#btn-save-amount-edit").attr('title', 'Enable manual amount editing');
-              $("#btn-save-amount-edit").attr('id', 'btn-enable-amount-edit');
-              manualAmountEditEnabled = false;
-
-              // Keep the amount field editable but mark as saved
-              $("#item_amount").data("manual-edited", false);
-            } else {
+            },
+            error: function () {
               swal({
                 title: "Error!",
-                text: result.message || "Failed to update equipment amount",
+                text: "Failed to update equipment amount",
                 type: "error",
                 timer: 3000,
                 showConfirmButton: false,
               });
-            }
-          },
-          error: function () {
-            swal({
-              title: "Error!",
-              text: "Failed to update equipment amount",
-              type: "error",
-              timer: 3000,
-              showConfirmButton: false,
-            });
-          }
-        });
-      }
-    });
+            },
+          });
+        }
+      },
+    );
   }
 
   // Calculate on input changes
@@ -660,7 +715,7 @@ jQuery(document).ready(function () {
   function loadEquipmentRentList(searchTerm) {
     var $tbody = $("#equipmentRentTableBody");
     $tbody.html(
-      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>'
+      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>',
     );
 
     $.ajax({
@@ -680,7 +735,7 @@ jQuery(document).ready(function () {
 
         if (!rows.length) {
           $tbody.html(
-            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>'
+            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>',
           );
           return;
         }
@@ -690,13 +745,27 @@ jQuery(document).ready(function () {
             "<tr class='rent-row' data-id='" +
             (row.id || "") +
             "'>" +
-            "<td>" + (row.id || "") + "</td>" +
-            "<td>" + (row.bill_number || "") + "</td>" +
-            "<td>" + (row.customer_name || "") + "</td>" +
-            "<td>" + (row.rental_date || "") + "</td>" +
-            "<td>" + (row.received_date || "") + "</td>" +
-            "<td>" + (row.total_items || 0) + "</td>" +
-            "<td>" + (row.status_label || "") + "</td>" +
+            "<td>" +
+            (row.id || "") +
+            "</td>" +
+            "<td>" +
+            (row.bill_number || "") +
+            "</td>" +
+            "<td>" +
+            (row.customer_name || "") +
+            "</td>" +
+            "<td>" +
+            (row.rental_date || "") +
+            "</td>" +
+            "<td>" +
+            (row.received_date || "") +
+            "</td>" +
+            "<td>" +
+            (row.total_items || 0) +
+            "</td>" +
+            "<td>" +
+            (row.status_label || "") +
+            "</td>" +
             "</tr>";
           $tbody.append(html);
         });
@@ -714,7 +783,7 @@ jQuery(document).ready(function () {
       error: function (xhr) {
         console.error("Server Error:", xhr.responseText);
         $tbody.html(
-          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>'
+          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>',
         );
       },
     });
@@ -739,13 +808,21 @@ jQuery(document).ready(function () {
           $paymentSelect.find("option[data-temp='1']").remove();
 
           if (rent.payment_type_id) {
-            if ($paymentSelect.find("option[value='" + rent.payment_type_id + "']").length === 0) {
+            if (
+              $paymentSelect.find(
+                "option[value='" + rent.payment_type_id + "']",
+              ).length === 0
+            ) {
               // Saved payment type is not in the active list; show it as selected but hidden in dropdown
-              var tempLabel = rent.payment_type_name ? (rent.payment_type_name + " (Inactive)") : "(Inactive)";
+              var tempLabel = rent.payment_type_name
+                ? rent.payment_type_name + " (Inactive)"
+                : "(Inactive)";
               $paymentSelect.append(
-                "<option data-temp='1' value='" + rent.payment_type_id + "' selected hidden>" +
-                tempLabel +
-                "</option>"
+                "<option data-temp='1' value='" +
+                  rent.payment_type_id +
+                  "' selected hidden>" +
+                  tempLabel +
+                  "</option>",
               );
             }
             $paymentSelect.val(rent.payment_type_id);
@@ -811,7 +888,12 @@ jQuery(document).ready(function () {
               latest_used_days: item.latest_used_days || null,
               status: item.status,
               remark: item.remark,
-              no_sub_items: item.no_sub_items == 1 ? 1 : ((!item.sub_equipment_id || item.sub_equipment_id == 0) ? 1 : 0)
+              no_sub_items:
+                item.no_sub_items == 1
+                  ? 1
+                  : !item.sub_equipment_id || item.sub_equipment_id == 0
+                    ? 1
+                    : 0,
             };
           });
 
@@ -839,7 +921,7 @@ jQuery(document).ready(function () {
       },
     });
   }
-  
+
   // Make loadRentDetails globally accessible for return handler
   window.loadRentDetails = loadRentDetails;
 
@@ -876,7 +958,7 @@ jQuery(document).ready(function () {
   function loadReturnedBillsList(searchTerm) {
     var $tbody = $("#returnedBillsTableBody");
     $tbody.html(
-      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>'
+      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>',
     );
 
     $.ajax({
@@ -896,7 +978,7 @@ jQuery(document).ready(function () {
 
         if (!rows.length) {
           $tbody.html(
-            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>'
+            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>',
           );
           return;
         }
@@ -906,13 +988,27 @@ jQuery(document).ready(function () {
             "<tr class='returned-row' data-id='" +
             (row.id || "") +
             "'>" +
-            "<td>" + (row.id || "") + "</td>" +
-            "<td>" + (row.bill_number || "") + "</td>" +
-            "<td>" + (row.customer_name || "") + "</td>" +
-            "<td>" + (row.rental_date || "") + "</td>" +
-            "<td>" + (row.received_date || "") + "</td>" +
-            "<td>" + (row.total_items || 0) + "</td>" +
-            "<td>" + (row.status_label || "") + "</td>" +
+            "<td>" +
+            (row.id || "") +
+            "</td>" +
+            "<td>" +
+            (row.bill_number || "") +
+            "</td>" +
+            "<td>" +
+            (row.customer_name || "") +
+            "</td>" +
+            "<td>" +
+            (row.rental_date || "") +
+            "</td>" +
+            "<td>" +
+            (row.received_date || "") +
+            "</td>" +
+            "<td>" +
+            (row.total_items || 0) +
+            "</td>" +
+            "<td>" +
+            (row.status_label || "") +
+            "</td>" +
             "</tr>";
           $tbody.append(html);
         });
@@ -930,7 +1026,7 @@ jQuery(document).ready(function () {
       error: function (xhr) {
         console.error("Server Error:", xhr.responseText);
         $tbody.html(
-          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>'
+          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>',
         );
       },
     });
@@ -952,7 +1048,9 @@ jQuery(document).ready(function () {
     var $status = $("#customerTableStatus");
 
     $status.text("Loading...");
-    $tbody.html("<tr><td colspan='7' class='text-center text-muted py-3'>Loading...</td></tr>");
+    $tbody.html(
+      "<tr><td colspan='7' class='text-center text-muted py-3'>Loading...</td></tr>",
+    );
 
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
@@ -960,18 +1058,22 @@ jQuery(document).ready(function () {
       dataType: "json",
       data: {
         action: "search_customers_simple",
-        search: searchTerm || ""
+        search: searchTerm || "",
       },
       success: function (res) {
         if (!res || res.status !== "success") {
-          $tbody.html("<tr><td colspan='7' class='text-center text-danger py-3'>Failed to load customers</td></tr>");
+          $tbody.html(
+            "<tr><td colspan='7' class='text-center text-danger py-3'>Failed to load customers</td></tr>",
+          );
           $status.text("");
           return;
         }
 
         var rows = res.data || [];
         if (rows.length === 0) {
-          $tbody.html("<tr><td colspan='7' class='text-center text-muted py-3'>No customers found</td></tr>");
+          $tbody.html(
+            "<tr><td colspan='7' class='text-center text-muted py-3'>No customers found</td></tr>",
+          );
           $status.text("0 customers");
           return;
         }
@@ -983,14 +1085,36 @@ jQuery(document).ready(function () {
             nameCell += ' <span class="badge bg-danger ms-1">Blocked</span>';
           }
           html +=
-            "<tr data-id='" + row.id + "' data-name='" + row.name + "' data-code='" + row.code + "' data-blacklist='" + (row.is_blacklisted || 0) + "'>" +
-            "<td>" + (row.id || "") + "</td>" +
-            "<td>" + (row.code || "") + "</td>" +
-            "<td>" + nameCell + "</td>" +
-            "<td>" + (row.mobile_number || "") + "</td>" +
-            "<td>" + (row.nic || "") + "</td>" +
-            "<td>" + (row.address || "") + "</td>" +
-            "<td>" + (row.outstanding || "0.00") + "</td>" +
+            "<tr data-id='" +
+            row.id +
+            "' data-name='" +
+            row.name +
+            "' data-code='" +
+            row.code +
+            "' data-blacklist='" +
+            (row.is_blacklisted || 0) +
+            "'>" +
+            "<td>" +
+            (row.id || "") +
+            "</td>" +
+            "<td>" +
+            (row.code || "") +
+            "</td>" +
+            "<td>" +
+            nameCell +
+            "</td>" +
+            "<td>" +
+            (row.mobile_number || "") +
+            "</td>" +
+            "<td>" +
+            (row.nic || "") +
+            "</td>" +
+            "<td>" +
+            (row.address || "") +
+            "</td>" +
+            "<td>" +
+            (row.outstanding || "0.00") +
+            "</td>" +
             "</tr>";
         });
 
@@ -998,9 +1122,11 @@ jQuery(document).ready(function () {
         $status.text(rows.length + " customers");
       },
       error: function () {
-        $tbody.html("<tr><td colspan='7' class='text-center text-danger py-3'>Failed to load customers</td></tr>");
+        $tbody.html(
+          "<tr><td colspan='7' class='text-center text-danger py-3'>Failed to load customers</td></tr>",
+        );
         $status.text("");
-      }
+      },
     });
   }
 
@@ -1013,7 +1139,7 @@ jQuery(document).ready(function () {
         text: "This customer is blacklisted and cannot be selected.",
         type: "error",
         timer: 3000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       return;
     }
@@ -1078,7 +1204,9 @@ jQuery(document).ready(function () {
           title: "Image",
           orderable: false,
           render: function (data, type, row) {
-            var imgSrc = data ? "uploads/equipment/" + data : "assets/images/no-image.png";
+            var imgSrc = data
+              ? "uploads/equipment/" + data
+              : "assets/images/no-image.png";
             return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
           },
         },
@@ -1106,17 +1234,27 @@ jQuery(document).ready(function () {
     // Function to format expandable row details
     function formatEquipmentDetails(row) {
       var d = row.data();
-      var availabilityBadge = '';
+      var availabilityBadge = "";
       if (d.no_sub_items == 1) {
-        var availableStock = (parseFloat(d.total_quantity) || 0) - (parseFloat(d.rented_qty) || 0);
+        var availableStock =
+          (parseFloat(d.total_quantity) || 0) - (parseFloat(d.rented_qty) || 0);
         if (availableStock > 0) {
-          availabilityBadge = '<span class="badge bg-success">' + availableStock + ' Available</span>';
+          availabilityBadge =
+            '<span class="badge bg-success">' +
+            availableStock +
+            " Available</span>";
         } else {
-          availabilityBadge = '<span class="badge bg-danger">Not Available</span>';
+          availabilityBadge =
+            '<span class="badge bg-danger">Not Available</span>';
         }
       } else {
         if (d.available_sub > 0) {
-          availabilityBadge = '<span class="badge bg-success">' + d.available_sub + '/' + d.total_sub + ' Available</span>';
+          availabilityBadge =
+            '<span class="badge bg-success">' +
+            d.available_sub +
+            "/" +
+            d.total_sub +
+            " Available</span>";
         } else {
           availabilityBadge = '<span class="badge bg-danger">All Rented</span>';
         }
@@ -1127,9 +1265,9 @@ jQuery(document).ready(function () {
           <div class="row">
             <div class="col-md-6">
               <table class="table table-sm table-borderless mb-0">
-                <tr><td class="fw-bold" style="width: 140px;">Serial Number:</td><td>${d.serial_number || '-'}</td></tr>
-                <tr><td class="fw-bold">Size:</td><td>${d.size || '-'}</td></tr>
-                <tr><td class="fw-bold">Category:</td><td>${d.category_label || '-'}</td></tr>
+                <tr><td class="fw-bold" style="width: 140px;">Serial Number:</td><td>${d.serial_number || "-"}</td></tr>
+                <tr><td class="fw-bold">Size:</td><td>${d.size || "-"}</td></tr>
+                <tr><td class="fw-bold">Category:</td><td>${d.category_label || "-"}</td></tr>
                 <tr><td class="fw-bold">Availability:</td><td>${availabilityBadge}</td></tr>
               </table>
             </div>
@@ -1147,24 +1285,30 @@ jQuery(document).ready(function () {
     }
 
     // Handle expand/collapse on + icon click
-    $("#equipmentSelectTable tbody").off("click", "td.details-control").on("click", "td.details-control", function (e) {
-      e.stopPropagation(); // Prevent row click from firing
-      var tr = $(this).closest("tr");
-      var row = equipmentTable.row(tr);
-      var icon = tr.find("td.details-control span.mdi");
+    $("#equipmentSelectTable tbody")
+      .off("click", "td.details-control")
+      .on("click", "td.details-control", function (e) {
+        e.stopPropagation(); // Prevent row click from firing
+        var tr = $(this).closest("tr");
+        var row = equipmentTable.row(tr);
+        var icon = tr.find("td.details-control span.mdi");
 
-      if (row.child.isShown()) {
-        // Close
-        row.child.hide();
-        tr.removeClass("shown");
-        icon.removeClass("mdi-minus-circle-outline").addClass("mdi-plus-circle-outline");
-      } else {
-        // Open
-        row.child(formatEquipmentDetails(row)).show();
-        tr.addClass("shown");
-        icon.removeClass("mdi-plus-circle-outline").addClass("mdi-minus-circle-outline");
-      }
-    });
+        if (row.child.isShown()) {
+          // Close
+          row.child.hide();
+          tr.removeClass("shown");
+          icon
+            .removeClass("mdi-minus-circle-outline")
+            .addClass("mdi-plus-circle-outline");
+        } else {
+          // Open
+          row.child(formatEquipmentDetails(row)).show();
+          tr.addClass("shown");
+          icon
+            .removeClass("mdi-plus-circle-outline")
+            .addClass("mdi-minus-circle-outline");
+        }
+      });
 
     // Handle row click to select equipment (exclude details-control column)
     $("#equipmentSelectTable tbody")
@@ -1180,7 +1324,9 @@ jQuery(document).ready(function () {
           // Check availability
           var isAvailable = false;
           if (data.no_sub_items == 1) {
-            var availableStock = (parseFloat(data.total_quantity) || 0) - (parseFloat(data.rented_qty) || 0);
+            var availableStock =
+              (parseFloat(data.total_quantity) || 0) -
+              (parseFloat(data.rented_qty) || 0);
             if (availableStock > 0) isAvailable = true;
           } else {
             if (data.available_sub > 0) isAvailable = true;
@@ -1209,15 +1355,23 @@ jQuery(document).ready(function () {
           if (currentAllowManualAmount) {
             $("#item_amount").prop("readonly", false).removeAttr("readonly");
           } else {
-            $("#item_amount").prop("readonly", true).attr("readonly", "readonly");
+            $("#item_amount")
+              .prop("readonly", true)
+              .attr("readonly", "readonly");
           }
           $("#item_amount").data("manual-edited", false);
           manualAmountEditEnabled = false;
 
           // Show/hide the red + button
           $("#btn-enable-amount-edit").show();
-          $("#btn-enable-amount-edit").html('<i class="uil uil-plus"></i>').removeClass('btn-success').addClass('btn-danger');
-          $("#btn-enable-amount-edit").attr('title', 'Enable manual amount editing');
+          $("#btn-enable-amount-edit")
+            .html('<i class="uil uil-plus"></i>')
+            .removeClass("btn-success")
+            .addClass("btn-danger");
+          $("#btn-enable-amount-edit").attr(
+            "title",
+            "Enable manual amount editing",
+          );
 
           // Reset calculations
           $("#item_duration").val("");
@@ -1233,14 +1387,18 @@ jQuery(document).ready(function () {
           // Handle No Sub-Items logic
           if (data.no_sub_items == 1) {
             $("#item_qty").prop("readonly", false); // Enable Qty
-            $("#item_sub_equipment_display").prop("disabled", true).attr("placeholder", "Not Required");
+            $("#item_sub_equipment_display")
+              .prop("disabled", true)
+              .attr("placeholder", "Not Required");
             $("#btn-select-sub-equipment").prop("disabled", true);
             $("#returned_qty_container").show(); // Show returned qty field
             // Store flag
             $("#item_equipment_id").data("no_sub_items", 1);
           } else {
             $("#item_qty").prop("readonly", true).val(1); // Disable Qty and reset to 1
-            $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select sub equipment");
+            $("#item_sub_equipment_display")
+              .prop("disabled", false)
+              .attr("placeholder", "Select sub equipment");
             $("#btn-select-sub-equipment").prop("disabled", false);
             $("#returned_qty_container").hide(); // Hide returned qty field
             $("#item_returned_qty").val(0);
@@ -1561,7 +1719,9 @@ jQuery(document).ready(function () {
     $("#transport_cost, #custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#calculated_deposit_display").text("0.00");
     $("#customer_refund_balance").text("0.00");
-    $("#customer_refund_badge").removeClass("badge bg-danger bg-success").text("");
+    $("#customer_refund_badge")
+      .removeClass("badge bg-danger bg-success")
+      .text("");
     totalCalculatedDeposit = 0;
     rentItems = [];
     updateItemsTable();
@@ -1599,85 +1759,100 @@ jQuery(document).ready(function () {
     var dd = String(now.getDate()).padStart(2, "0");
     var hh = String(now.getHours()).padStart(2, "0");
     var min = String(now.getMinutes()).padStart(2, "0");
-    
+
     $("#return_all_date").val(yyyy + "-" + mm + "-" + dd);
     $("#return_all_time").val(hh + ":" + min);
     $("#return_all_after_9am").prop("checked", false);
     $("#returnAllPreview").hide();
-    
+
     // Remove readonly attribute to make the field editable
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
-    
+
     // Show the modal
     $("#returnAllModal").modal("show");
-    
+
     // Initialize/reinitialize date picker for return_all_date with editable configuration
     if ($.fn.datepicker) {
-      $("#return_all_date").datepicker("destroy").datepicker({
-        dateFormat: "yy-mm-dd",
-        changeMonth: true,
-        changeYear: true,
-        autoclose: true,
-        todayHighlight: true,
-        onClose: function() {
-          // Ensure field remains editable after closing datepicker
-          $(this).prop("readonly", false).removeAttr("readonly");
-        }
-      });
+      $("#return_all_date")
+        .datepicker("destroy")
+        .datepicker({
+          dateFormat: "yy-mm-dd",
+          changeMonth: true,
+          changeYear: true,
+          autoclose: true,
+          todayHighlight: true,
+          onClose: function () {
+            // Ensure field remains editable after closing datepicker
+            $(this).prop("readonly", false).removeAttr("readonly");
+          },
+        });
       // Ensure field remains editable after datepicker init
       $("#return_all_date").prop("readonly", false).removeAttr("readonly");
     }
-    
+
     // Force remove readonly after modal is fully shown
-    setTimeout(function() {
+    setTimeout(function () {
       $("#return_all_date").prop("readonly", false).removeAttr("readonly");
     }, 100);
   });
-  
+
   // Ensure return_all_date remains editable when modal is shown
-  $("#returnAllModal").on("shown.bs.modal", function() {
+  $("#returnAllModal").on("shown.bs.modal", function () {
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
   // Calculate return all preview when inputs change
-  $("#return_all_date, #return_all_time, #return_all_after_9am").on("change input", function() {
-    var rentId = $("#rent_id").val();
-    var returnDate = $("#return_all_date").val();
-    var returnTime = $("#return_all_time").val();
-    
-    if (!rentId || !returnDate || !returnTime) {
-      $("#returnAllPreview").hide();
-      return;
-    }
-    
-    // Calculate day count from rental date to return date/time
-    var rentalStart = $("#rental_date").val();
-    var dayCountText = "-";
-    if (rentalStart) {
-      var returnDateOnly = new Date(returnDate + " 00:00");
-      var rentalStartDate = new Date(rentalStart + " 00:00");
-      if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
-        var msDiff = returnDateOnly - rentalStartDate;
-        var baseDays = msDiff > 0 ? Math.ceil(msDiff / (1000 * 60 * 60 * 24)) : 0;
-        var after9am = $("#return_all_after_9am").is(":checked");
-        var totalDays = baseDays + (after9am ? 1 : 0);
-        dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
-      }
-    }
+  $("#return_all_date, #return_all_time, #return_all_after_9am").on(
+    "change input",
+    function () {
+      var rentId = $("#rent_id").val();
+      var returnDate = $("#return_all_date").val();
+      var returnTime = $("#return_all_time").val();
 
-    // Show preview with basic info
-    var after9am = $("#return_all_after_9am").is(":checked");
-    var previewHtml = '<p><strong>Return Date:</strong> ' + returnDate + ' ' + returnTime + '</p>';
-    previewHtml += '<p><strong>Day Count:</strong> ' + dayCountText + '</p>';
-    previewHtml += '<p><strong>After 9:00 AM:</strong> ' + (after9am ? 'Yes (extra day will be counted)' : 'No') + '</p>';
-    previewHtml += '<p class="text-muted">All pending items will be marked as returned with this date/time.</p>';
-    
-    $("#returnAllPreviewContent").html(previewHtml);
-    $("#returnAllPreview").show();
-  });
+      if (!rentId || !returnDate || !returnTime) {
+        $("#returnAllPreview").hide();
+        return;
+      }
+
+      // Calculate day count from rental date to return date/time
+      var rentalStart = $("#rental_date").val();
+      var dayCountText = "-";
+      if (rentalStart) {
+        var returnDateOnly = new Date(returnDate + " 00:00");
+        var rentalStartDate = new Date(rentalStart + " 00:00");
+        if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
+          var msDiff = returnDateOnly - rentalStartDate;
+          var baseDays =
+            msDiff > 0 ? Math.ceil(msDiff / (1000 * 60 * 60 * 24)) : 0;
+          var after9am = $("#return_all_after_9am").is(":checked");
+          var totalDays = baseDays + (after9am ? 1 : 0);
+          dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
+        }
+      }
+
+      // Show preview with basic info
+      var after9am = $("#return_all_after_9am").is(":checked");
+      var previewHtml =
+        "<p><strong>Return Date:</strong> " +
+        returnDate +
+        " " +
+        returnTime +
+        "</p>";
+      previewHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+      previewHtml +=
+        "<p><strong>After 9:00 AM:</strong> " +
+        (after9am ? "Yes (extra day will be counted)" : "No") +
+        "</p>";
+      previewHtml +=
+        '<p class="text-muted">All pending items will be marked as returned with this date/time.</p>';
+
+      $("#returnAllPreviewContent").html(previewHtml);
+      $("#returnAllPreview").show();
+    },
+  );
 
   // Confirm Return All Items
-  $("#confirmReturnAllBtn").click(function() {
+  $("#confirmReturnAllBtn").click(function () {
     var rentId = $("#rent_id").val();
     var billNo = $("#code").val();
     var returnDate = $("#return_all_date").val();
@@ -1732,6 +1907,10 @@ jQuery(document).ready(function () {
           });
           setTimeout(function () {
             if (billNo) {
+              setTimeout(function () {
+                window.location.reload();
+              }, 100);
+
               window.open("rent-invoice.php?bill_no=" + billNo, "_blank");
             } else {
               window.location.reload();
@@ -1898,7 +2077,8 @@ jQuery(document).ready(function () {
               } else {
                 swal({
                   title: "Error!",
-                  text: (response && response.message) || "Something went wrong.",
+                  text:
+                    (response && response.message) || "Something went wrong.",
                   type: "error",
                   showConfirmButton: true,
                 });
