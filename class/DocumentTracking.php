@@ -21,6 +21,7 @@ class DocumentTracking
     public $equipment_rent_quotation_id;
     public $repair_job_id;
     public $issue_note_id;
+    public $issue_return_id;
     public $vat_percentage;
     public $created_at;
     public $updated_at;
@@ -83,6 +84,7 @@ class DocumentTracking
             `sales_return_id` = '{$this->sales_return_id}',
             `equipment_rent_id` = '{$this->equipment_rent_id}',
             `equipment_rent_quotation_id` = '{$this->equipment_rent_quotation_id}',
+            `issue_return_id` = '{$this->issue_return_id}',
             `vat_percentage` = '{$this->vat_percentage}',
             `updated_at` = NOW()
         WHERE `id` = '{$this->id}'";
@@ -160,7 +162,8 @@ class DocumentTracking
             'equipment_rent' => 'equipment_rent_id',
             'equipment_rent_quotation' => 'equipment_rent_quotation_id',
             'repair_job' => 'repair_job_id',
-            'issue_note' => 'issue_note_id'
+            'issue_note' => 'issue_note_id',
+            'issue_return' => 'issue_return_id'
         ];
 
         // Check if valid type

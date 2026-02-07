@@ -110,23 +110,33 @@ class IssueNote
         // Search filter
         $where = "WHERE 1=1";
         if (!empty($search)) {
-            $where .= " AND (issue_note_code LIKE '%$search%' OR er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%')";
+            $where .= " AND (i.issue_note_code LIKE '%$search%' OR er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%')";
         }
 
-        // Filtered records
-        $filteredSql = "SELECT COUNT(*) as filtered FROM issue_notes i
-                        LEFT JOIN equipment_rent er ON i.rent_invoice_id = er.id
-                        LEFT JOIN customer_master cm ON i.customer_id = cm.id
-                        $where";
+        $excludeReturned = isset($request['exclude_returned']) && $request['exclude_returned'] == 'true';
+
+        // Base query with totals
+        $baseQuery = "SELECT i.*, er.bill_number, cm.name as customer_name, cm.code as customer_code,
+                      (SELECT SUM(issued_quantity) FROM issue_note_items WHERE issue_note_id = i.id) as total_issued,
+                      (SELECT SUM(iri.return_quantity) FROM issue_return_items iri 
+                       INNER JOIN issue_returns ir ON iri.return_id = ir.id 
+                       WHERE ir.issue_note_id = i.id) as total_returned
+                      FROM issue_notes i
+                      LEFT JOIN equipment_rent er ON i.rent_invoice_id = er.id
+                      LEFT JOIN customer_master cm ON i.customer_id = cm.id
+                      $where";
+
+        if ($excludeReturned) {
+            $baseQuery .= " HAVING (total_issued > IFNULL(total_returned, 0))";
+        }
+
+        // Filtered records count
+        $filteredSql = "SELECT COUNT(*) as filtered FROM ($baseQuery) as sub";
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
         // Paginated query
-        $sql = "SELECT i.*, er.bill_number, cm.name as customer_name, cm.code as customer_code
-                FROM issue_notes i
-                LEFT JOIN equipment_rent er ON i.rent_invoice_id = er.id
-                LEFT JOIN customer_master cm ON i.customer_id = cm.id
-                $where ORDER BY i.id DESC LIMIT $start, $length";
+        $sql = "$baseQuery ORDER BY i.id DESC LIMIT $start, $length";
         $dataQuery = $db->readQuery($sql);
 
         $data = [];
