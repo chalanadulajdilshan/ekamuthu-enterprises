@@ -1823,7 +1823,7 @@ jQuery(document).ready(function () {
         if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
           var msDiff = returnDateOnly - rentalStartDate;
           var baseDays =
-            msDiff > 0 ? Math.ceil(msDiff / (1000 * 60 * 60 * 24)) : 0;
+            msDiff >= 0 ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24))) : 0;
           var after9am = $("#return_all_after_9am").is(":checked");
           var totalDays = baseDays + (after9am ? 1 : 0);
           dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
