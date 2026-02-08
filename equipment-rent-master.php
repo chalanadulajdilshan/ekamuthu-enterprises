@@ -192,6 +192,68 @@ $bill_number = $lastId + 1;
                                                     </div>
                                                 </div>
 
+                                                <!-- Cheque Details (shown when Cheque is selected) -->
+                                                <div class="col-md-12" id="cheque_details_section" style="display: none;">
+                                                    <div class="card border border-primary shadow-sm mb-3">
+                                                        <div class="card-header bg-soft-primary py-2">
+                                                            <h6 class="mb-0 text-primary"><i class="uil uil-file-alt me-1"></i>Cheque Details - චෙක්පත් විස්තර</h6>
+                                                        </div>
+                                                        <div class="card-body py-3">
+                                                            <div class="row">
+                                                                <div class="col-md-3">
+                                                                    <label for="cheque_number" class="form-label">Cheque Number - චෙක්පත් අංකය</label>
+                                                                    <input id="cheque_number" name="cheque_number" type="text" class="form-control" placeholder="Enter cheque number">
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <label for="cheque_date" class="form-label">Cheque Date - චෙක්පත් දිනය</label>
+                                                                    <input id="cheque_date" name="cheque_date" type="text" class="form-control date-picker" placeholder="Select cheque date">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="cheque_branch_display" class="form-label">Bank & Branch - බැංකුව සහ ශාඛාව</label>
+                                                                    <div class="input-group">
+                                                                        <input type="hidden" id="cheque_branch_id" name="cheque_branch_id">
+                                                                        <input id="cheque_branch_display" type="text" class="form-control" placeholder="Select Bank & Branch" readonly>
+                                                                        <button class="btn btn-info btn-select-cheque-branch" type="button" data-bs-toggle="modal" data-bs-target="#ChequeBranchSelectModal">
+                                                                            <i class="uil uil-search me-1"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Bank Transfer Details (shown when Bank Transfer is selected) -->
+                                                <div class="col-md-12" id="bank_transfer_details_section" style="display: none;">
+                                                    <div class="card border border-info shadow-sm mb-3">
+                                                        <div class="card-header bg-soft-info py-2">
+                                                            <h6 class="mb-0 text-info"><i class="uil uil-university me-1"></i>Bank Transfer Details - බැංකු මාරු විස්තර</h6>
+                                                        </div>
+                                                        <div class="card-body py-3">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <label for="transfer_branch_display" class="form-label">Bank & Branch - බැංකුව සහ ශාඛාව</label>
+                                                                    <div class="input-group">
+                                                                        <input type="hidden" id="transfer_branch_id" name="transfer_branch_id">
+                                                                        <input id="transfer_branch_display" type="text" class="form-control" placeholder="Select Bank & Branch" readonly>
+                                                                        <button class="btn btn-info btn-select-transfer-branch" type="button" data-bs-toggle="modal" data-bs-target="#TransferBranchSelectModal">
+                                                                            <i class="uil uil-search me-1"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <label for="bank_account_number" class="form-label">Account Number - ගිණුම් අංකය</label>
+                                                                    <input id="bank_account_number" name="bank_account_number" type="text" class="form-control" placeholder="Enter account number">
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <label for="bank_reference" class="form-label">Reference No - යොමු අංකය</label>
+                                                                    <input id="bank_reference" name="bank_reference" type="text" class="form-control" placeholder="Enter reference number">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <!-- Received Date -->
                                                 <div class="col-md-3" id="received_date_container"
                                                     style="display: none;">
@@ -791,6 +853,126 @@ $bill_number = $lastId + 1;
                     <button type="button" class="btn btn-primary" id="confirmReturnAllBtn">
                         <i class="uil uil-check me-1"></i> Confirm Return All
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cheque Branch Select Modal -->
+    <div class="modal fade" id="ChequeBranchSelectModal" tabindex="-1" role="dialog" aria-labelledby="ChequeBranchSelectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ChequeBranchSelectModalLabel">Select Bank & Branch (Cheque)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="chequeBranchTable" class="table table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Bank</th>
+                                        <th>Branch</th>
+                                        <th>Address</th>
+                                        <th>Phone Number</th>
+                                        <th>City</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $BRANCH_LIST = new Branch(null);
+                                    foreach ($BRANCH_LIST->getByStatus(1) as $bkey => $br) {
+                                        $bkey++;
+                                        $BR_BANK = new Bank($br['bank_id']);
+                                    ?>
+                                        <tr class="select-cheque-branch" 
+                                            data-id="<?php echo $br['id']; ?>"
+                                            data-bank-id="<?php echo $br['bank_id']; ?>"
+                                            data-bank-name="<?php echo htmlspecialchars($BR_BANK->name); ?>"
+                                            data-branch-name="<?php echo htmlspecialchars($br['name']); ?>"
+                                            data-branch-code="<?php echo htmlspecialchars($br['code']); ?>">
+                                            <td><?php echo $bkey; ?></td>
+                                            <td><?php echo htmlspecialchars($BR_BANK->code . ' - ' . $BR_BANK->name); ?></td>
+                                            <td><?php echo htmlspecialchars($br['code'] . ' - ' . $br['name']); ?></td>
+                                            <td><?php echo htmlspecialchars($br['address']); ?></td>
+                                            <td><?php echo htmlspecialchars($br['phone_number']); ?></td>
+                                            <td><?php echo htmlspecialchars($br['city']); ?></td>
+                                            <td>
+                                                <?php if ($br['active_status'] == 1): ?>
+                                                    <span class="badge bg-soft-success font-size-12">Active</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-soft-danger font-size-12">Inactive</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Branch Select Modal -->
+    <div class="modal fade" id="TransferBranchSelectModal" tabindex="-1" role="dialog" aria-labelledby="TransferBranchSelectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="TransferBranchSelectModalLabel">Select Bank & Branch (Bank Transfer)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="transferBranchTable" class="table table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Bank</th>
+                                        <th>Branch</th>
+                                        <th>Address</th>
+                                        <th>Phone Number</th>
+                                        <th>City</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $BRANCH_LIST2 = new Branch(null);
+                                    foreach ($BRANCH_LIST2->getByStatus(1) as $bkey2 => $br2) {
+                                        $bkey2++;
+                                        $BR_BANK2 = new Bank($br2['bank_id']);
+                                    ?>
+                                        <tr class="select-transfer-branch" 
+                                            data-id="<?php echo $br2['id']; ?>"
+                                            data-bank-id="<?php echo $br2['bank_id']; ?>"
+                                            data-bank-name="<?php echo htmlspecialchars($BR_BANK2->name); ?>"
+                                            data-branch-name="<?php echo htmlspecialchars($br2['name']); ?>"
+                                            data-branch-code="<?php echo htmlspecialchars($br2['code']); ?>">
+                                            <td><?php echo $bkey2; ?></td>
+                                            <td><?php echo htmlspecialchars($BR_BANK2->code . ' - ' . $BR_BANK2->name); ?></td>
+                                            <td><?php echo htmlspecialchars($br2['code'] . ' - ' . $br2['name']); ?></td>
+                                            <td><?php echo htmlspecialchars($br2['address']); ?></td>
+                                            <td><?php echo htmlspecialchars($br2['phone_number']); ?></td>
+                                            <td><?php echo htmlspecialchars($br2['city']); ?></td>
+                                            <td>
+                                                <?php if ($br2['active_status'] == 1): ?>
+                                                    <span class="badge bg-soft-success font-size-12">Active</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-soft-danger font-size-12">Inactive</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

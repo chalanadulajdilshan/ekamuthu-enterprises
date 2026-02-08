@@ -16,6 +16,12 @@ class EquipmentRent
     public $deposit_total;
     public $payment_type_id;
     public $total_items;
+    public $cheque_number;
+    public $cheque_date;
+    public $cheque_branch_id;
+    public $transfer_branch_id;
+    public $bank_account_number;
+    public $bank_reference;
     public $created_by;
     public $created_at;
     public $updated_at;
@@ -41,6 +47,12 @@ class EquipmentRent
                 $this->payment_type_id = $result['payment_type_id'] ?? null;
                 $this->remark = $result['remark'];
                 $this->total_items = $result['total_items'] ?? 0;
+                $this->cheque_number = $result['cheque_number'] ?? null;
+                $this->cheque_date = $result['cheque_date'] ?? null;
+                $this->cheque_branch_id = $result['cheque_branch_id'] ?? null;
+                $this->transfer_branch_id = $result['transfer_branch_id'] ?? null;
+                $this->bank_account_number = $result['bank_account_number'] ?? null;
+                $this->bank_reference = $result['bank_reference'] ?? null;
                 $this->created_by = $result['created_by'] ?? null;
                 $this->created_at = $result['created_at'] ?? null;
                 $this->updated_at = $result['updated_at'] ?? null;
@@ -51,11 +63,17 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `created_by`
+            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
             ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
+            ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ", " .
+            ($this->cheque_date ? "'$this->cheque_date'" : "NULL") . ", " .
+            ($this->cheque_branch_id ? "'$this->cheque_branch_id'" : "NULL") . ", " .
+            ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ", " .
+            ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ", " .
+            ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . ", " .
             ($this->created_by ? "'$this->created_by'" : "NULL") .
             "
         )";
@@ -82,7 +100,13 @@ class EquipmentRent
             `total_items` = '$this->total_items',
             `transport_cost` = '$this->transport_cost',
             `deposit_total` = '$this->deposit_total',
-            `payment_type_id` = " . ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . "
+            `payment_type_id` = " . ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ",
+            `cheque_number` = " . ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ",
+            `cheque_date` = " . ($this->cheque_date ? "'$this->cheque_date'" : "NULL") . ",
+            `cheque_branch_id` = " . ($this->cheque_branch_id ? "'$this->cheque_branch_id'" : "NULL") . ",
+            `transfer_branch_id` = " . ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ",
+            `bank_account_number` = " . ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ",
+            `bank_reference` = " . ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . "
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -189,6 +213,12 @@ class EquipmentRent
             $this->transport_cost = $result['transport_cost'];
             $this->deposit_total = $result['deposit_total'];
             $this->payment_type_id = $result['payment_type_id'] ?? null;
+            $this->cheque_number = $result['cheque_number'] ?? null;
+            $this->cheque_date = $result['cheque_date'] ?? null;
+            $this->cheque_branch_id = $result['cheque_branch_id'] ?? null;
+            $this->transfer_branch_id = $result['transfer_branch_id'] ?? null;
+            $this->bank_account_number = $result['bank_account_number'] ?? null;
+            $this->bank_reference = $result['bank_reference'] ?? null;
             $this->remark = $result['remark'];
             return true;
         }

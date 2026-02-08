@@ -912,6 +912,21 @@ jQuery(document).ready(function () {
             return it.status === "returned";
           });
 
+          // Load cheque details
+          $("#cheque_number").val(rent.cheque_number || "");
+          $("#cheque_date").val(rent.cheque_date || "");
+          $("#cheque_branch_id").val(rent.cheque_branch_id || "");
+          $("#cheque_branch_display").val(rent.cheque_branch_display || "");
+
+          // Load bank transfer details
+          $("#transfer_branch_id").val(rent.transfer_branch_id || "");
+          $("#transfer_branch_display").val(rent.transfer_branch_display || "");
+          $("#bank_account_number").val(rent.bank_account_number || "");
+          $("#bank_reference").val(rent.bank_reference || "");
+
+          // Show/hide payment detail sections based on loaded payment type
+          togglePaymentDetails();
+
           $("#create").hide();
           $("#update").show();
           $("#return-all").toggle(!hasAnyReturnedQty);
@@ -1733,6 +1748,18 @@ jQuery(document).ready(function () {
     $("#received_date_container").hide();
     $("#received_date").prop("readonly", true).val("").removeClass("bg-light");
 
+    // Clear cheque and bank transfer fields
+    $("#cheque_number").val("");
+    $("#cheque_date").val("");
+    $("#cheque_branch_id").val("");
+    $("#cheque_branch_display").val("");
+    $("#transfer_branch_id").val("");
+    $("#transfer_branch_display").val("");
+    $("#bank_account_number").val("");
+    $("#bank_reference").val("");
+    $("#cheque_details_section").hide();
+    $("#bank_transfer_details_section").hide();
+
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
       type: "POST",
@@ -2106,6 +2133,72 @@ jQuery(document).ready(function () {
   // Sync item rental date with master rental date
   $("#rental_date").on("change", function () {
     $("#item_rental_date").val($(this).val());
+  });
+
+  // Payment method change - show/hide cheque and bank transfer details
+  function togglePaymentDetails() {
+    var selectedText = $("#payment_type_id option:selected").text().trim().toLowerCase();
+
+    // Hide all payment detail sections first
+    $("#cheque_details_section").hide();
+    $("#bank_transfer_details_section").hide();
+
+    if (selectedText === "cheque") {
+      $("#cheque_details_section").slideDown(200);
+    } else if (selectedText === "bank transfer") {
+      $("#bank_transfer_details_section").slideDown(200);
+    }
+  }
+
+  $("#payment_type_id").on("change", function () {
+    togglePaymentDetails();
+
+    // Clear fields when switching payment methods
+    var selectedText = $(this).find("option:selected").text().trim().toLowerCase();
+    if (selectedText !== "cheque") {
+      $("#cheque_number").val("");
+      $("#cheque_date").val("");
+      $("#cheque_branch_id").val("");
+      $("#cheque_branch_display").val("");
+    }
+    if (selectedText !== "bank transfer") {
+      $("#transfer_branch_id").val("");
+      $("#transfer_branch_display").val("");
+      $("#bank_account_number").val("");
+      $("#bank_reference").val("");
+    }
+  });
+
+  // Cheque Branch Select Modal - row click
+  $(document).on("click", ".select-cheque-branch", function () {
+    var branchId = $(this).data("id");
+    var bankName = $(this).find("td:eq(1)").text();
+    var branchName = $(this).find("td:eq(2)").text();
+    $("#cheque_branch_id").val(branchId);
+    $("#cheque_branch_display").val(bankName + " | " + branchName);
+    $("#ChequeBranchSelectModal").modal("hide");
+  });
+
+  // Transfer Branch Select Modal - row click
+  $(document).on("click", ".select-transfer-branch", function () {
+    var branchId = $(this).data("id");
+    var bankName = $(this).find("td:eq(1)").text();
+    var branchName = $(this).find("td:eq(2)").text();
+    $("#transfer_branch_id").val(branchId);
+    $("#transfer_branch_display").val(bankName + " | " + branchName);
+    $("#TransferBranchSelectModal").modal("hide");
+  });
+
+  // Initialize DataTables for branch modals when shown
+  $("#ChequeBranchSelectModal").on("shown.bs.modal", function () {
+    if (!$.fn.DataTable.isDataTable("#chequeBranchTable")) {
+      $("#chequeBranchTable").DataTable({ pageLength: 10, order: [[1, "asc"]] });
+    }
+  });
+  $("#TransferBranchSelectModal").on("shown.bs.modal", function () {
+    if (!$.fn.DataTable.isDataTable("#transferBranchTable")) {
+      $("#transferBranchTable").DataTable({ pageLength: 10, order: [[1, "asc"]] });
+    }
   });
 
   // Initialize button visibility on page load

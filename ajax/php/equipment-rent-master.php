@@ -67,6 +67,12 @@ if (isset($_POST['create'])) {
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
     $EQUIPMENT_RENT->payment_type_id = !empty($_POST['payment_type_id']) ? (int) $_POST['payment_type_id'] : null;
+    $EQUIPMENT_RENT->cheque_number = $_POST['cheque_number'] ?? null;
+    $EQUIPMENT_RENT->cheque_date = !empty($_POST['cheque_date']) ? $_POST['cheque_date'] : null;
+    $EQUIPMENT_RENT->cheque_branch_id = !empty($_POST['cheque_branch_id']) ? (int) $_POST['cheque_branch_id'] : null;
+    $EQUIPMENT_RENT->transfer_branch_id = !empty($_POST['transfer_branch_id']) ? (int) $_POST['transfer_branch_id'] : null;
+    $EQUIPMENT_RENT->bank_account_number = $_POST['bank_account_number'] ?? null;
+    $EQUIPMENT_RENT->bank_reference = $_POST['bank_reference'] ?? null;
     $EQUIPMENT_RENT->created_by = isset($_SESSION['id']) ? $_SESSION['id'] : null;
 
     $rent_id = $EQUIPMENT_RENT->create();
@@ -241,6 +247,12 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
     $EQUIPMENT_RENT->payment_type_id = !empty($_POST['payment_type_id']) ? (int) $_POST['payment_type_id'] : null;
+    $EQUIPMENT_RENT->cheque_number = $_POST['cheque_number'] ?? null;
+    $EQUIPMENT_RENT->cheque_date = !empty($_POST['cheque_date']) ? $_POST['cheque_date'] : null;
+    $EQUIPMENT_RENT->cheque_branch_id = !empty($_POST['cheque_branch_id']) ? (int) $_POST['cheque_branch_id'] : null;
+    $EQUIPMENT_RENT->transfer_branch_id = !empty($_POST['transfer_branch_id']) ? (int) $_POST['transfer_branch_id'] : null;
+    $EQUIPMENT_RENT->bank_account_number = $_POST['bank_account_number'] ?? null;
+    $EQUIPMENT_RENT->bank_reference = $_POST['bank_reference'] ?? null;
 
     // Check if all items are returned
     $allReturned = true;
@@ -349,6 +361,24 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 
+        // Resolve branch display names
+        $chequeBranchDisplay = null;
+        if (!empty($EQUIPMENT_RENT->cheque_branch_id)) {
+            $CB = new Branch($EQUIPMENT_RENT->cheque_branch_id);
+            if ($CB->id) {
+                $CBK = new Bank($CB->bank_id);
+                $chequeBranchDisplay = ($CBK->code ?? '') . ' - ' . ($CBK->name ?? '') . ' | ' . ($CB->code ?? '') . ' - ' . ($CB->name ?? '');
+            }
+        }
+        $transferBranchDisplay = null;
+        if (!empty($EQUIPMENT_RENT->transfer_branch_id)) {
+            $TB = new Branch($EQUIPMENT_RENT->transfer_branch_id);
+            if ($TB->id) {
+                $TBK = new Bank($TB->bank_id);
+                $transferBranchDisplay = ($TBK->code ?? '') . ' - ' . ($TBK->name ?? '') . ' | ' . ($TB->code ?? '') . ' - ' . ($TB->name ?? '');
+            }
+        }
+
         echo json_encode([
             "status" => "success",
             "rent" => [
@@ -365,6 +395,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "refund_balance" => $refundBalance,
                 "payment_type_id" => $EQUIPMENT_RENT->payment_type_id,
                 "payment_type_name" => $paymentTypeName,
+                "cheque_number" => $EQUIPMENT_RENT->cheque_number,
+                "cheque_date" => $EQUIPMENT_RENT->cheque_date,
+                "cheque_branch_id" => $EQUIPMENT_RENT->cheque_branch_id,
+                "cheque_branch_display" => $chequeBranchDisplay,
+                "transfer_branch_id" => $EQUIPMENT_RENT->transfer_branch_id,
+                "transfer_branch_display" => $transferBranchDisplay,
+                "bank_account_number" => $EQUIPMENT_RENT->bank_account_number,
+                "bank_reference" => $EQUIPMENT_RENT->bank_reference,
                 "total_items" => $EQUIPMENT_RENT->total_items
             ],
             "items" => $items
