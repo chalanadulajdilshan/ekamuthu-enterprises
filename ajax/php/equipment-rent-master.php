@@ -1078,7 +1078,7 @@ if (isset($_POST['filter_sub_equipment'])) {
     // Search filter
     $where = $baseWhere;
     if (!empty($search)) {
-        $where .= " AND (se.code LIKE '%$search%' OR se.name LIKE '%$search%')";
+        $where .= " AND (se.code LIKE '%$search%')";
     }
 
     // Filtered records

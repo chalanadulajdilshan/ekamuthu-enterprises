@@ -148,7 +148,7 @@ $bill_number = $lastId + 1;
                                                 </div>
 
                                                 <!-- Customer Selection -->
-                                                <div class="col-md-4">
+                                                <div class="col-md-5">
                                                     <label for="customer_display" class="form-label">Customer -
                                                         පාරිභෝගිකයා<span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
