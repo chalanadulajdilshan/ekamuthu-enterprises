@@ -351,11 +351,11 @@ $(document).ready(function () {
   <html>
   <head>
       <meta charset="utf-8">
-      <title>Rent & Return Bills Report - ${dateRange}</title>
+      <title>කුලියට දීම සහ ආපසු ලබා ගැනීම් වාර්තාව - ${dateRange}</title>
       <style>
           @page { margin: 20px; }
           body {
-              font-family: 'Arial', sans-serif;
+              font-family: 'Iskoola Pota', 'Noto Sans Sinhala', 'Arial', sans-serif;
               margin: 0;
               padding: 0;
               color: #333;
@@ -443,42 +443,42 @@ $(document).ready(function () {
   </head>
   <body>
       <div class="header">
-          <h1>Rent & Return Bills Report</h1>
-          <p>Generated on ${new Date().toLocaleString()}</p>
+          <h1>කුලියට දීම සහ ආපසු ලබා ගැනීම් වාර්තාව</h1>
+          <p>සකස් කළ දිනය: ${new Date().toLocaleString()}</p>
       </div>
 
+
       <div class="summary">
-          <h3>Report Summary</h3>
+          <h3>වාර්තා සාරාංශය</h3>
           <div class="summary-grid">
-              <div class="summary-item"><strong>Date Range:</strong> ${dateRange}</div>
-              <div class="summary-item"><strong>Total Bills:</strong> ${totalBills}</div>
-              <div class="summary-item"><strong>Rent Bills:</strong> ${totalRentBills}</div>
-              <div class="summary-item"><strong>Return Bills:</strong> ${totalReturnBills}</div>
-               <div class="summary-item"><strong>Total Profit:</strong> Rs. ${totalAmount}</div>
-               <div class="summary-item"><strong>Total Refund / Cash In:</strong> Rs. ${totalProfitExport}</div>
+              <div class="summary-item"><strong>කාල පරාසය:</strong> ${dateRange}</div>
+              <div class="summary-item"><strong>මුළු බිල්පත් ගණන:</strong> ${totalBills}</div>
+              <div class="summary-item"><strong>කුලියට දීම බිල්පත්:</strong> ${totalRentBills}</div>
+              <div class="summary-item"><strong>ආපසු ලබා ගැනීම් බිල්පත්:</strong> ${totalReturnBills}</div>
+               <div class="summary-item"><strong>මුළු ලාභය:</strong> Rs. ${totalAmount}</div>
+               <div class="summary-item"><strong>මුළු ආපසු ගෙවීම් / මුදල් ලැබීම්:</strong> Rs. ${totalProfitExport}</div>
           </div>
       </div>
 
+
       <table>
           <thead>
-                <th style="border: 1px solid #ddd; padding: 8px;">Bill Type</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Bill No</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Customer</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Tel</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Address</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">NIC</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Items</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Daily Rent</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Day Count</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Rent Date</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Return Date</th>
-                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Qty</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Deposit</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Profit</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Extra Amount</th>
-                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Refund / Cash In</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Remarks</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">බිල්පත් වර්ගය</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">බිල්පත් අංකය</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">දිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">පාරිභෝගිකයා</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">දුරකථන</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">ලිපිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">හැඳුනුම්පත් අංකය</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">දින ගණන</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">කුලියට ගත් දිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">ආපසු ලබා දුන් දිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ප්‍රමාණය</th>
+                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">තැන්පතුව</th>
+                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ලාභය</th>
+                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">අතිරේක මුදල</th>
+                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ආපසු ගෙවීම් / මුදල් ලැබීම්</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">සටහන්</th>
             </tr>
         </thead>
         <tbody>`;
@@ -487,6 +487,8 @@ $(document).ready(function () {
             let badgeClass = 'badge-rent';
             let badgeStyle = 'background-color: #f1b44c; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 10px;';
 
+            const billTypeSinhala = item.bill_type === 'Rent' ? 'කුලියට දීම' : 'ආපසු ලබා ගැනීම';
+
             if (item.bill_type === 'Return') {
                 badgeClass = 'badge-return';
                 badgeStyle = 'background-color: #50a5f1; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 10px;';
@@ -494,15 +496,13 @@ $(document).ready(function () {
 
             html += `
               <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;"><span style="${badgeStyle}">${item.bill_type}</span></td>
+                  <td style="border: 1px solid #ddd; padding: 8px;"><span style="${badgeStyle}">${billTypeSinhala}</span></td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.bill_no || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.date || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_name || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_tel || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${item.customer_address || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_nic || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.equipment_item || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.daily_rent || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.day_count || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.rent_date || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.return_date || '-'}</td>
@@ -517,11 +517,22 @@ $(document).ready(function () {
 
         html += `
           </tbody>
+          <tfoot>
+              <tr style="background-color: #f8f9fa; font-weight: bold;">
+                  <td colspan="10" style="border: 1px solid #ddd; padding: 8px; text-align: right;">එකතුව</td>
+                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_quantity}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">-</td>
+                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_amount}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_extra_amount}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_profit}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;"></td>
+              </tr>
+          </tfoot>
       </table>
 
       <div class="footer">
-          <p>This report was generated by the Rent & Return Bills Management System</p>
-          <p style="margin: 5px 0 0 0; font-size: 10px; color: #bdc3c7;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></p>
+          <p>මෙම වාර්තාව ජනනය කරන ලද්දේ එකමුතු එන්ටර්ප්‍රයිසස් බිල්පත් කළමනාකරණ පද්ධතිය මගිනි</p>
+          <p style="margin: 5px 0 0 0; font-size: 10px; color: #bdc3c7;">පිටුව <span class="pageNumber"></span> න් <span class="totalPages"></span></p>
       </div>
   </body>
   </html>`;

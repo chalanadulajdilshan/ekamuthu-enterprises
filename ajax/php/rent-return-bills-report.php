@@ -262,7 +262,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             'return_date' => $bill['return_date'],
             'quantity' => $billTotalQty,
             'deposit' => $bill['deposit'],
-            'profit_balance' => ($bill['rent_status'] === 'returned') ? number_format($bill['deposit'] - ($billTotalAmount + $billTotalExtraAmount), 2) : '-',
+            'profit_balance' => ($bill['rent_status'] === 'returned' && $bill['bill_type'] === 'Return') ? number_format($bill['deposit'] - ($billTotalAmount + $billTotalExtraAmount), 2) : '-',
             'amount' => number_format($billTotalAmount, 2),
             'extra_amount_list' => implode(', ', array_map(function($v) { return number_format($v, 2); }, $displayExtraAmounts)),
             'extra_amount' => number_format($billTotalExtraAmount, 2),
@@ -277,7 +277,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         $summary['total_quantity'] += $billTotalQty;
         $summary['total_amount'] += $billTotalAmount;
         $summary['total_extra_amount'] = ($summary['total_extra_amount'] ?? 0) + $billTotalExtraAmount;
-        if ($bill['rent_status'] === 'returned') {
+        if ($bill['rent_status'] === 'returned' && $bill['bill_type'] === 'Return') {
             $summary['total_profit'] += ($bill['deposit'] - ($billTotalAmount + $billTotalExtraAmount));
         }
     }
