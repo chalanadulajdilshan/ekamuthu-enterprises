@@ -26,6 +26,18 @@ $bill_number = $lastId + 1;
     <!-- include main CSS -->
     <?php include 'main-css.php' ?>
 
+    <style>
+        .duration-col {
+            display: none !important;
+        }
+
+        /* Hide Duration column cells */
+        #rentItemsTable th:nth-child(5),
+        #rentItemsTable td:nth-child(5) {
+            display: none !important;
+        }
+    </style>
+
 </head>
 
 <body data-layout="horizontal" data-topbar="colored" class="someBlock">
@@ -414,7 +426,7 @@ $bill_number = $lastId + 1;
                                                         <th>Equipment</th>
                                                         <th>Sub Equipment</th>
                                                         <th>Type</th>
-                                                        <th>Duration</th>
+                                                        <th class="duration-col">Duration</th>
                                                         <th>Qty</th>
                                                         <th>Returned</th>
                                                         <th>Amount</th>
