@@ -251,7 +251,10 @@ if (!empty($customerMobile)) {
                         </div>
                         <div class="invoice-meta">
                             <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Rental Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                            <p class="mb-1" style="font-size:14px;"><strong>Issue Date - නිකුත් කරන දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                            <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
+                                <p class="mb-1" style="font-size:14px;"><strong>Rental Date - කුලියට ගත් දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
+                            <?php endif; ?>
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
                                 <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
                             <?php endif; ?>

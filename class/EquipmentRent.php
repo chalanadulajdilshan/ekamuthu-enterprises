@@ -8,6 +8,7 @@ class EquipmentRent
     public $customer_id;
     public $equipment_id;
     public $rental_date;
+    public $rental_start_date;
     public $received_date;
     public $status;
     public $quantity;
@@ -39,6 +40,7 @@ class EquipmentRent
                 $this->customer_id = $result['customer_id'];
                 $this->equipment_id = $result['equipment_id'] ?? null;
                 $this->rental_date = $result['rental_date'];
+                $this->rental_start_date = $result['rental_start_date'] ?? null;
                 $this->received_date = $result['received_date'];
                 $this->status = $result['status'];
                 $this->quantity = $result['quantity'] ?? 0;
@@ -63,9 +65,10 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`
+            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
+            ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ", " .
             ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
             ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
             ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ", " .
@@ -94,6 +97,7 @@ class EquipmentRent
             `bill_number` = '$this->bill_number', 
             `customer_id` = '$this->customer_id',
             `rental_date` = '$this->rental_date', 
+            `rental_start_date` = " . ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ",
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
             `remark` = '$this->remark',
@@ -207,6 +211,7 @@ class EquipmentRent
             $this->customer_id = $result['customer_id'];
             $this->equipment_id = $result['equipment_id'];
             $this->rental_date = $result['rental_date'];
+            $this->rental_start_date = $result['rental_start_date'] ?? null;
             $this->received_date = $result['received_date'];
             $this->status = $result['status'];
             $this->quantity = $result['quantity'];

@@ -58,6 +58,7 @@ if (isset($_POST['create'])) {
     $EQUIPMENT_RENT->bill_number = $bill_number;
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
+    $EQUIPMENT_RENT->rental_start_date = $_POST['rental_start_date'] ?? $_POST['rental_date'] ?? date('Y-m-d');
     // Received date is system-controlled; ignore manual input and set when all items returned
     // Keep previously stored received_date if already set and all items remain returned
     $existingReceivedDate = $EQUIPMENT_RENT->received_date;
@@ -87,7 +88,7 @@ if (isset($_POST['create'])) {
             $RENT_ITEM->rent_id = $rent_id;
             $RENT_ITEM->equipment_id = $item['equipment_id'];
             $RENT_ITEM->sub_equipment_id = $item['sub_equipment_id'];
-            $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
+            $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_start_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
@@ -207,7 +208,7 @@ if (isset($_POST['update'])) {
             $RENT_ITEM = new EquipmentRentItem($itemId);
             $RENT_ITEM->equipment_id = $item['equipment_id'];
             $RENT_ITEM->sub_equipment_id = $subEquipmentId;
-            $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
+            $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_start_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
@@ -227,7 +228,7 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->rent_id = $_POST['rent_id'];
             $RENT_ITEM->equipment_id = $item['equipment_id'];
             $RENT_ITEM->sub_equipment_id = $subEquipmentId;
-            $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
+            $RENT_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_start_date'] ?? $_POST['rental_date'];
             $RENT_ITEM->quantity = $item['quantity'] ?? 1;
             $RENT_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $RENT_ITEM->duration = $item['duration'] ?? 0;
@@ -243,6 +244,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->bill_number = $_POST['code'];
     $EQUIPMENT_RENT->customer_id = $_POST['customer_id'] ?? '';
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
+    $EQUIPMENT_RENT->rental_start_date = $_POST['rental_start_date'] ?? $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
@@ -387,6 +389,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "customer_id" => $EQUIPMENT_RENT->customer_id,
                 "customer_name" => $CUSTOMER->code . ' - ' . $CUSTOMER->name,
                 "rental_date" => $EQUIPMENT_RENT->rental_date,
+                "rental_start_date" => $EQUIPMENT_RENT->rental_start_date,
                 "received_date" => $EQUIPMENT_RENT->received_date,
                 "status" => $EQUIPMENT_RENT->status,
                 "remark" => $EQUIPMENT_RENT->remark,

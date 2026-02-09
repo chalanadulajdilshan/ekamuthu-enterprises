@@ -14,7 +14,7 @@ jQuery(document).ready(function () {
     var rentType = $("#item_rent_type").val();
     var duration = parseFloat($("#item_duration").val()) || 0;
     var qty = parseFloat($("#item_qty").val()) || 1;
-    var rentalDate = $("#item_rental_date").val();
+    var rentalDate = $("#rental_start_date").val();
 
     if (!rentalDate || duration <= 0) {
       $("#item_amount").val("0.00");
@@ -54,7 +54,7 @@ jQuery(document).ready(function () {
   // Calculate duration from return date
   function calculateDurationFromDates() {
     var rentType = $("#item_rent_type").val();
-    var rentalDateStr = $("#item_rental_date").val();
+    var rentalDateStr = $("#rental_start_date").val();
     var returnDateStr = $("#item_return_date").val();
 
     if (!rentalDateStr || !returnDateStr) return;
@@ -242,9 +242,6 @@ jQuery(document).ready(function () {
           ).toFixed(2) +
           "</td>" +
           "<td>" +
-          item.rental_date +
-          "</td>" +
-          "<td>" +
           returnDisplay +
           "</td>" +
           "<td>" +
@@ -389,7 +386,7 @@ jQuery(document).ready(function () {
     var equipmentDisplay = $("#item_equipment_display").val();
     var subEquipmentId = $("#item_sub_equipment_id").val();
     var subEquipmentDisplay = $("#item_sub_equipment_display").val();
-    var rentalDate = $("#item_rental_date").val() || $("#rental_date").val();
+    var rentalDate = $("#rental_start_date").val();
     var returnDate = $("#item_return_date").val();
 
     if (!equipmentId) {
@@ -624,7 +621,7 @@ jQuery(document).ready(function () {
   }
 
   // Calculate on input changes
-  $("#item_rent_type, #item_duration, #item_qty, #item_rental_date").on(
+  $("#item_rent_type, #item_duration, #item_qty, #rental_start_date").on(
     "change keyup",
     function () {
       calculateRentDetails();
@@ -804,6 +801,7 @@ jQuery(document).ready(function () {
           $("#customer_id").val(rent.customer_id);
           $("#customer_display").val(rent.customer_name);
           $("#rental_date").val(rent.rental_date);
+          $("#rental_start_date").val(rent.rental_start_date || rent.rental_date);
           var $paymentSelect = $("#payment_type_id");
           $paymentSelect.find("option[data-temp='1']").remove();
 
@@ -1530,6 +1528,17 @@ jQuery(document).ready(function () {
       $("#create").prop("disabled", false);
       swal({
         title: "Error!",
+        text: "Please enter issue date",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return false;
+    }
+    if (!$("#rental_start_date").val()) {
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
         text: "Please enter rental date",
         type: "error",
         timer: 2000,
@@ -1842,7 +1851,7 @@ jQuery(document).ready(function () {
       }
 
       // Calculate day count from rental date to return date/time
-      var rentalStart = $("#rental_date").val();
+      var rentalStart = $("#rental_start_date").val();
       var dayCountText = "-";
       if (rentalStart) {
         var returnDateOnly = new Date(returnDate + " 00:00");
@@ -2130,9 +2139,9 @@ jQuery(document).ready(function () {
     );
   });
 
-  // Sync item rental date with master rental date
+  // Sync rental_start_date with issue date when issue date changes (if rental_start_date hasn't been manually set)
   $("#rental_date").on("change", function () {
-    $("#item_rental_date").val($(this).val());
+    // No per-item rental date to sync anymore
   });
 
   // Payment method change - show/hide cheque and bank transfer details

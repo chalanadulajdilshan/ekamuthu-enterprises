@@ -168,12 +168,22 @@ $bill_number = $lastId + 1;
                                                     </div>
                                                 </div>
 
-                                                <!-- Rental Date -->
+                                                <!-- Issue Date -->
                                                 <div class="col-md-2">
-                                                    <label for="rental_date" class="form-label">Rental Date - කුලියට ගත්
+                                                    <label for="rental_date" class="form-label">Issue Date - නිකුත් කරන
                                                         දිනය<span class="text-danger">*</span></label>
                                                     <div class="mb-3">
                                                         <input id="rental_date" name="rental_date" type="text"
+                                                            class="form-control date-picker"
+                                                            value="<?php echo date('Y-m-d'); ?>">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Rental Date -->
+                                                <div class="col-md-2">
+                                                    <label for="rental_start_date" class="form-label">Rental Date - කුලියට ගත් දිනය<span class="text-danger">*</span></label>
+                                                    <div class="mb-3">
+                                                        <input id="rental_start_date" name="rental_start_date" type="text"
                                                             class="form-control date-picker"
                                                             value="<?php echo date('Y-m-d'); ?>">
                                                     </div>
@@ -213,7 +223,7 @@ $bill_number = $lastId + 1;
                                                                     <div class="input-group">
                                                                         <input type="hidden" id="cheque_branch_id" name="cheque_branch_id">
                                                                         <input id="cheque_branch_display" type="text" class="form-control" placeholder="Select Bank & Branch" readonly>
-                                                                        <button class="btn btn-info btn-select-cheque-branch" type="button" data-bs-toggle="modal" data-bs-target="#ChequeBranchSelectModal">
+                                                                        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#ChequeBranchSelectModal">
                                                                             <i class="uil uil-search me-1"></i>
                                                                         </button>
                                                                     </div>
@@ -236,7 +246,7 @@ $bill_number = $lastId + 1;
                                                                     <div class="input-group">
                                                                         <input type="hidden" id="transfer_branch_id" name="transfer_branch_id">
                                                                         <input id="transfer_branch_display" type="text" class="form-control" placeholder="Select Bank & Branch" readonly>
-                                                                        <button class="btn btn-info btn-select-transfer-branch" type="button" data-bs-toggle="modal" data-bs-target="#TransferBranchSelectModal">
+                                                                        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#TransferBranchSelectModal">
                                                                             <i class="uil uil-search me-1"></i>
                                                                         </button>
                                                                     </div>
@@ -380,15 +390,6 @@ $bill_number = $lastId + 1;
 
                                         <div class="row align-items-end">
 
-                                            <!-- Item Rental Date -->
-                                            <div class="col-md-3">
-                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට
-                                                    ගත් දිනය</label>
-                                                <input id="item_rental_date" type="text"
-                                                    class="form-control date-picker"
-                                                    value="<?php echo date('Y-m-d'); ?>">
-                                            </div>
-
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
                                                 <label for="item_return_date" class="form-label">Return Date - ආපසු දිය යුතු දිනය</label>
@@ -418,7 +419,6 @@ $bill_number = $lastId + 1;
                                                         <th>Returned</th>
                                                         <th>Amount</th>
                                                         <th>Deposit</th>
-                                                        <th>Rental Date</th>
                                                         <th>Return Date</th>
                                                         <th>Status</th>
                                                         <th style="width: 120px;">Action</th>
@@ -533,7 +533,7 @@ $bill_number = $lastId + 1;
                                         <th>#ID</th>
                                         <th>Bill</th>
                                         <th>Customer</th>
-                                        <th>Rental Date</th>
+                                        <th>Issue Date</th>
                                         <th>Received Date</th>
                                         <th>Items</th>
                                         <th>Status</th>
@@ -575,7 +575,7 @@ $bill_number = $lastId + 1;
                                         <th>#ID</th>
                                         <th>Bill</th>
                                         <th>Customer</th>
-                                        <th>Rental Date</th>
+                                        <th>Issue Date</th>
                                         <th>Received Date</th>
                                         <th>Items</th>
                                         <th>Status</th>
