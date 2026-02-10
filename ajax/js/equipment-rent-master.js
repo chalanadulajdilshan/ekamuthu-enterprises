@@ -1839,6 +1839,7 @@ jQuery(document).ready(function () {
     $("#return_all_date").val(yyyy + "-" + mm + "-" + dd);
     $("#return_all_time").val(hh + ":" + min);
     $("#return_all_after_9am").prop("checked", false);
+    $("#return_all_rental_override").val("");
     $("#returnAllPreview").hide();
 
     // Remove readonly attribute to make the field editable
@@ -1879,7 +1880,7 @@ jQuery(document).ready(function () {
 
   // Calculate return all preview when inputs change (with server-side preview)
   var returnAllPreviewTimer = null;
-  $("#return_all_date, #return_all_time, #return_all_after_9am").on(
+  $("#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override").on(
     "change input",
     function () {
       // Debounce to avoid rapid-fire AJAX calls from datepicker events
@@ -1895,6 +1896,8 @@ jQuery(document).ready(function () {
       var returnDate = $("#return_all_date").val();
       var returnTime = $("#return_all_time").val();
       var after9am = $("#return_all_after_9am").is(":checked") ? 1 : 0;
+      var rentalOverrideInput = $("#return_all_rental_override").val();
+      var rentalOverride = rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
 
       if (!rentId || !returnDate || !returnTime) {
         $("#returnAllPreview").hide();
@@ -1926,6 +1929,7 @@ jQuery(document).ready(function () {
           return_date: returnDate,
           return_time: returnTime,
           after_9am_extra_day: after9am,
+          rental_override: rentalOverride,
         },
         dataType: "json",
         success: function (res) {
@@ -1945,7 +1949,11 @@ jQuery(document).ready(function () {
 
           // Settlement summary
           var settlement = [];
-          settlement.push("Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2));
+          var rentalLabel = rentalOverride !== null && !isNaN(rentalOverride) ? "Rental (override)" : "Rental";
+          var rentalValue = rentalOverride !== null && !isNaN(rentalOverride)
+            ? rentalOverride
+            : Number(calc.rental_amount || 0);
+          settlement.push(rentalLabel + ": Rs. " + Number(rentalValue || 0).toFixed(2));
           settlement.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
           settlement.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
           settlement.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
@@ -1987,6 +1995,8 @@ jQuery(document).ready(function () {
     var returnDate = $("#return_all_date").val();
     var returnTime = $("#return_all_time").val();
     var after9amExtraDay = $("#return_all_after_9am").is(":checked") ? 1 : 0;
+    var rentalOverrideInput = $("#return_all_rental_override").val();
+    var rentalOverride = rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
 
     if (!rentId) {
       swal({
