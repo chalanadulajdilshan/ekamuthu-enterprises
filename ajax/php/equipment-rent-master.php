@@ -721,6 +721,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_return') {
     // Reset master rent record
     $EQUIPMENT_RENT->status = 'rented';
     $EQUIPMENT_RENT->received_date = null;
+    $EQUIPMENT_RENT->is_cancelled = 0;
     $EQUIPMENT_RENT->update();
 
     // Audit log
@@ -788,6 +789,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_item_return') {
     if (!$allReturned) {
         $EQUIPMENT_RENT->status = 'rented';
         $EQUIPMENT_RENT->received_date = null;
+        $EQUIPMENT_RENT->is_cancelled = 0;
         $EQUIPMENT_RENT->update();
     }
 
@@ -802,6 +804,76 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_item_return') {
     $AUDIT_LOG->create();
 
     echo json_encode(["status" => "success", "message" => "Item return cancelled successfully."]);
+    exit;
+}
+
+// Cancel bill - cancel a rented bill and release all equipment
+if (isset($_POST['action']) && $_POST['action'] === 'cancel_bill') {
+    $rent_id = $_POST['rent_id'] ?? 0;
+
+    if (!$rent_id) {
+        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
+        exit;
+    }
+
+    $db = Database::getInstance();
+    $EQUIPMENT_RENT = new EquipmentRent($rent_id);
+
+    if (!$EQUIPMENT_RENT->id) {
+        echo json_encode(["status" => "error", "message" => "Rent record not found"]);
+        exit;
+    }
+
+    if ($EQUIPMENT_RENT->status !== 'rented') {
+        echo json_encode(["status" => "error", "message" => "Only rented bills can be cancelled"]);
+        exit;
+    }
+
+    // Get all items for this rent
+    $items = $EQUIPMENT_RENT->getItems();
+
+    if ($items) {
+        foreach ($items as $item) {
+            $itemId = (int) $item['id'];
+
+            // Delete any return records for this item
+            $deleteReturnsQuery = "DELETE FROM `equipment_rent_returns` WHERE `rent_item_id` = $itemId";
+            $db->readQuery($deleteReturnsQuery);
+
+            // Set item status to cancelled
+            $cancelItemQuery = "UPDATE `equipment_rent_items` SET 
+                `status` = 'cancelled', 
+                `is_cancelled` = 1,
+                `total_returned_qty` = 0, 
+                `pending_qty` = 0 
+                WHERE `id` = $itemId";
+            $db->readQuery($cancelItemQuery);
+
+            // Release sub-equipment back to available
+            if (!empty($item['sub_equipment_id'])) {
+                $subEqId = (int) $item['sub_equipment_id'];
+                $updateSubEqQuery = "UPDATE `sub_equipment` SET `rental_status` = 'available' WHERE `id` = $subEqId";
+                $db->readQuery($updateSubEqQuery);
+            }
+        }
+    }
+
+    // Update master rent status to cancelled
+    $EQUIPMENT_RENT->status = 'cancelled';
+    $EQUIPMENT_RENT->is_cancelled = 1;
+    $EQUIPMENT_RENT->update();
+
+    // Audit log
+    $AUDIT_LOG = new AuditLog(NULL);
+    $AUDIT_LOG->ref_id = $rent_id;
+    $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
+    $AUDIT_LOG->action = 'CANCEL_BILL';
+    $AUDIT_LOG->description = 'CANCEL EQUIPMENT BILL NO #' . $EQUIPMENT_RENT->bill_number;
+    $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+    $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+    $AUDIT_LOG->create();
+
+    echo json_encode(["status" => "success", "message" => "Bill cancelled successfully. All equipment has been released."]);
     exit;
 }
 

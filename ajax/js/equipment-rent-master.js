@@ -124,10 +124,12 @@ jQuery(document).ready(function () {
       $("#rentItemsTable").show();
 
       rentItems.forEach(function (item, index) {
-        var statusBadge =
-          item.status === "returned"
-            ? '<span class="badge bg-soft-info">Returned</span>'
-            : '<span class="badge bg-soft-warning">Rented</span>';
+        var statusBadge = '<span class="badge bg-soft-warning">Rented</span>';
+        if (item.status === "returned") {
+          statusBadge = '<span class="badge bg-soft-info">Returned</span>';
+        } else if (item.status === "cancelled") {
+          statusBadge = '<span class="badge bg-danger">Cancelled</span>';
+        }
 
         var actionBtns = "";
         if (
@@ -199,8 +201,9 @@ jQuery(document).ready(function () {
             "</div>"
           : "-";
 
+        var rowClass = item.status === "cancelled" ? ' class="table-danger"' : '';
         var row =
-          "<tr>" +
+          "<tr" + rowClass + ">" +
           "<td>" +
           (index + 1) +
           "</td>" +
@@ -728,6 +731,7 @@ jQuery(document).ready(function () {
       },
       success: function (res) {
         var rows = res && res.data ? res.data : [];
+        console.log("Equipment rent list response:", rows);
         $tbody.empty();
 
         if (!rows.length) {
@@ -738,10 +742,13 @@ jQuery(document).ready(function () {
         }
 
         rows.forEach(function (row) {
+          console.log("Processing row - Bill:", row.bill_number, "Status:", row.status, "IsCancelled:", row.is_cancelled);
+          var isCancelled = (row.status === 'cancelled' || row.is_cancelled == 1);
+          var statusLabel = row.status_label || (isCancelled ? "<span class='badge bg-danger'>Cancelled</span>" : (row.status || ""));
           var html =
-            "<tr class='rent-row' data-id='" +
+            "<tr class='rent-row" + (isCancelled ? ' table-danger' : '') + "' data-id='" +
             (row.id || "") +
-            "'>" +
+            "' data-status='" + (row.status || '') + "'>" +
             "<td>" +
             (row.id || "") +
             "</td>" +
@@ -761,7 +768,7 @@ jQuery(document).ready(function () {
             (row.total_items || 0) +
             "</td>" +
             "<td>" +
-            (row.status_label || "") +
+            statusLabel +
             "</td>" +
             "</tr>";
           $tbody.append(html);
@@ -926,10 +933,29 @@ jQuery(document).ready(function () {
           togglePaymentDetails();
 
           $("#create").hide();
-          $("#update").show();
-          $("#return-all").toggle(!hasAnyReturnedQty);
-          $("#print").show();
-          $("#cancel-return").toggle(hasAnyReturnedQty);
+          $("#cancel-bill-alert").remove();
+
+          if (rent.status === 'cancelled') {
+            $("#update").hide();
+            $("#return-all").hide();
+            $("#print").show();
+            $("#cancel-return").hide();
+            $("#cancel-bill").hide();
+            // Show cancelled alert banner
+            if ($("#cancel-bill-alert").length === 0) {
+              $("#addproduct-accordion").before(
+                '<div id="cancel-bill-alert" class="alert alert-danger text-center fw-bold font-size-16 py-2 mb-3">' +
+                '<i class="uil uil-ban me-1"></i> This bill has been cancelled' +
+                '</div>'
+              );
+            }
+          } else {
+            $("#update").show();
+            $("#return-all").toggle(!hasAnyReturnedQty);
+            $("#print").show();
+            $("#cancel-return").toggle(hasAnyReturnedQty);
+            $("#cancel-bill").toggle(rent.status === 'rented');
+          }
         }
       },
     });
@@ -987,6 +1013,7 @@ jQuery(document).ready(function () {
       },
       success: function (res) {
         var rows = res && res.data ? res.data : [];
+        console.log("Returned bills list response:", rows);
         $tbody.empty();
 
         if (!rows.length) {
@@ -997,10 +1024,13 @@ jQuery(document).ready(function () {
         }
 
         rows.forEach(function (row) {
+          console.log("Processing returned row - Bill:", row.bill_number, "Status:", row.status, "IsCancelled:", row.is_cancelled);
+          var isCancelled = (row.status === 'cancelled' || row.is_cancelled == 1);
+          var statusLabel = row.status_label || (isCancelled ? "<span class='badge bg-danger'>Cancelled</span>" : (row.status || ""));
           var html =
-            "<tr class='returned-row' data-id='" +
+            "<tr class='returned-row" + (isCancelled ? ' table-danger' : '') + "' data-id='" +
             (row.id || "") +
-            "'>" +
+            "' data-status='" + (row.status || '') + "'>" +
             "<td>" +
             (row.id || "") +
             "</td>" +
@@ -1020,7 +1050,7 @@ jQuery(document).ready(function () {
             (row.total_items || 0) +
             "</td>" +
             "<td>" +
-            (row.status_label || "") +
+            statusLabel +
             "</td>" +
             "</tr>";
           $tbody.append(html);
@@ -1754,6 +1784,8 @@ jQuery(document).ready(function () {
     $("#print").hide();
     $("#return-all").hide();
     $("#cancel-return").hide();
+    $("#cancel-bill").hide();
+    $("#cancel-bill-alert").remove();
     $("#received_date_container").hide();
     $("#received_date").prop("readonly", true).val("").removeClass("bg-light");
 
@@ -2054,6 +2086,103 @@ jQuery(document).ready(function () {
     );
   });
 
+  // Cancel Bill - cancel a rented bill and release all equipment
+  $("#cancel-bill").click(function (e) {
+    e.preventDefault();
+    var rentId = $("#rent_id").val();
+    var rentCode = $("#code").val();
+
+    if (!rentId) {
+      swal({
+        title: "Error!",
+        text: "Please select an equipment rent record first.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    swal(
+      {
+        title: "Cancel Bill?",
+        text:
+          "This will cancel bill '" +
+          rentCode +
+          "' and release all rented equipment. This action cannot be undone. Are you sure?",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Yes, cancel bill!",
+        cancelButtonText: "No, keep it",
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          $("#page-preloader").show();
+          $.ajax({
+            url: "ajax/php/equipment-rent-master.php",
+            type: "POST",
+            data: {
+              action: "cancel_bill",
+              rent_id: rentId,
+            },
+            dataType: "json",
+            success: function (result) {
+              $("#page-preloader").hide();
+              console.log("Cancel bill response:", result);
+
+              if (result && result.status === "success") {
+                swal({
+                  title: "Cancelled!",
+                  text: result.message || "Bill cancelled successfully.",
+                  type: "success",
+                  timer: 2000,
+                  showConfirmButton: false,
+                });
+                setTimeout(function () {
+                  window.location.reload();
+                }, 2000);
+              } else {
+                swal({
+                  title: "Error!",
+                  text: (result && result.message) || "Failed to cancel bill.",
+                  type: "error",
+                  showConfirmButton: true,
+                });
+              }
+            },
+            error: function (xhr, status, error) {
+              $("#page-preloader").hide();
+              console.error("Cancel bill error:", {
+                status: status,
+                error: error,
+                response: xhr.responseText
+              });
+              
+              // Try to parse error response
+              var errorMsg = "Unable to cancel bill.";
+              try {
+                var errData = JSON.parse(xhr.responseText);
+                if (errData && errData.message) {
+                  errorMsg = errData.message;
+                }
+              } catch (e) {
+                errorMsg = "Server error: " + xhr.responseText.substring(0, 100);
+              }
+              
+              swal({
+                title: "Error!",
+                text: errorMsg,
+                type: "error",
+                showConfirmButton: true,
+              });
+            },
+          });
+        }
+      },
+    );
+  });
+
   // Delete Equipment Rent
   $(document).on("click", ".delete-equipment-rent", function (e) {
     e.preventDefault();
@@ -2215,4 +2344,5 @@ jQuery(document).ready(function () {
   $("#return-all").hide();
   $("#print").hide();
   $("#cancel-return").hide();
+  $("#cancel-bill").hide();
 });

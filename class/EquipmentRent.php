@@ -11,6 +11,7 @@ class EquipmentRent
     public $rental_start_date;
     public $received_date;
     public $status;
+    public $is_cancelled;
     public $quantity;
     public $remark;
     public $transport_cost;
@@ -43,6 +44,7 @@ class EquipmentRent
                 $this->rental_start_date = $result['rental_start_date'] ?? null;
                 $this->received_date = $result['received_date'];
                 $this->status = $result['status'];
+                $this->is_cancelled = $result['is_cancelled'] ?? 0;
                 $this->quantity = $result['quantity'] ?? 0;
                 $this->transport_cost = $result['transport_cost'] ?? 0;
                 $this->deposit_total = $result['deposit_total'] ?? 0;
@@ -65,11 +67,11 @@ class EquipmentRent
     public function create()
     {
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`
+            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ", " .
-            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
+            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '" . ($this->is_cancelled ? 1 : 0) . "', '$this->remark', '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
             ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
             ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ", " .
             ($this->cheque_date ? "'$this->cheque_date'" : "NULL") . ", " .
@@ -100,6 +102,7 @@ class EquipmentRent
             `rental_start_date` = " . ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ",
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
+            `is_cancelled` = '" . ($this->is_cancelled ? 1 : 0) . "', 
             `remark` = '$this->remark',
             `total_items` = '$this->total_items',
             `transport_cost` = '$this->transport_cost',
@@ -301,7 +304,8 @@ class EquipmentRent
             $statusLabels = [
                 'available' => '<span class="badge bg-soft-success font-size-12">Available</span>',
                 'rented' => '<span class="badge bg-soft-warning font-size-12">Rented</span>',
-                'returned' => '<span class="badge bg-soft-info font-size-12">Returned</span>'
+                'returned' => '<span class="badge bg-soft-info font-size-12">Returned</span>',
+                'cancelled' => '<span class="badge bg-soft-danger font-size-12">Cancelled</span>'
             ];
             $statusLabel = isset($statusLabels[$row['status']]) ? $statusLabels[$row['status']] : $row['status'];
 
@@ -315,6 +319,7 @@ class EquipmentRent
                 "rental_date" => $row['rental_date'],
                 "received_date" => $row['received_date'],
                 "status" => $row['status'],
+                "is_cancelled" => $row['is_cancelled'] ?? 0,
                 "status_label" => $statusLabel,
                 "total_items" => $row['total_items'],
                 "outstanding_items" => $row['outstanding_items'],
