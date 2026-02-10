@@ -168,6 +168,21 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                     </select>
                                                 </div>
 
+                                                <!-- Department -->
+                                                <div class="col-md-2">
+                                                    <label for="department" class="form-label">Department <span
+                                                            class="text-danger">*</span></label>
+                                                    <select id="department" name="department" class="form-select" required>
+                                                        <option value="">- Select Department -</option>
+                                                        <?php
+                                                        $DEPARTMENT = new DepartmentMaster(NULL);
+                                                        foreach ($DEPARTMENT->all() as $dept) {
+                                                            echo '<option value="' . $dept['id'] . '">' . htmlspecialchars($dept['name']) . '</option>';
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+
                                                 <!-- One Day's Rent -->
                                                 <div class="col-md-1">
                                                     <label for="rent_one_day" class="form-label">Day Rent <span
