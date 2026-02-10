@@ -867,6 +867,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_item_return') {
 // Cancel bill - cancel a rented bill and release all equipment
 if (isset($_POST['action']) && $_POST['action'] === 'cancel_bill') {
     $rent_id = $_POST['rent_id'] ?? 0;
+    $cancel_amount = isset($_POST['cancel_amount']) ? floatval($_POST['cancel_amount']) : 0;
+    $cancel_date_input = $_POST['cancel_date'] ?? null;
+    $cancel_date = $cancel_date_input ? date('Y-m-d', strtotime($cancel_date_input)) : date('Y-m-d');
 
     if (!$rent_id) {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
@@ -918,6 +921,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_bill') {
     // Update master rent status to cancelled
     $EQUIPMENT_RENT->status = 'cancelled';
     $EQUIPMENT_RENT->is_cancelled = 1;
+    $EQUIPMENT_RENT->cancel_amount = $cancel_amount;
+    $EQUIPMENT_RENT->cancel_date = $cancel_date;
     $EQUIPMENT_RENT->update();
 
     // Audit log

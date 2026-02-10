@@ -12,6 +12,8 @@ class EquipmentRent
     public $received_date;
     public $status;
     public $is_cancelled;
+    public $cancel_amount;
+    public $cancel_date;
     public $quantity;
     public $remark;
     public $transport_cost;
@@ -45,6 +47,8 @@ class EquipmentRent
                 $this->received_date = $result['received_date'];
                 $this->status = $result['status'];
                 $this->is_cancelled = $result['is_cancelled'] ?? 0;
+                $this->cancel_amount = $result['cancel_amount'] ?? 0;
+                $this->cancel_date = $result['cancel_date'] ?? null;
                 $this->quantity = $result['quantity'] ?? 0;
                 $this->transport_cost = $result['transport_cost'] ?? 0;
                 $this->deposit_total = $result['deposit_total'] ?? 0;
@@ -103,6 +107,8 @@ class EquipmentRent
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
             `is_cancelled` = '" . ($this->is_cancelled ? 1 : 0) . "', 
+            `cancel_amount` = '" . ($this->cancel_amount ? $this->cancel_amount : 0) . "', 
+            `cancel_date` = " . ($this->cancel_date ? "'$this->cancel_date'" : "NULL") . ",
             `remark` = '$this->remark',
             `total_items` = '$this->total_items',
             `transport_cost` = '$this->transport_cost',

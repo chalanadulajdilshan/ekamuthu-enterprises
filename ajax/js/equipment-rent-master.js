@@ -949,20 +949,26 @@ jQuery(document).ready(function () {
           $("#create").hide();
           $("#cancel-bill-alert").remove();
 
-          var isRented = rent.status === 'rented';
+          var statusText = String(rent.status || '').toLowerCase().trim();
+          var isRented = ['rented', 'rent', 'active'].includes(statusText);
+          var hasItems = rentItems.length > 0;
+          var isCancelled = ['cancelled', 'canceled'].includes(statusText);
+          // Show cancel-return if bill has items and is not cancelled (regardless of status text)
+          var shouldShowCancelReturn = hasItems && !isCancelled;
           if (!isRented) {
             $("#update").hide();
             $("#return-all").hide();
-            $("#cancel-return").hide();
             $("#cancel-bill").hide();
             $("#print").show();
           } else {
             $("#update").show();
             $("#return-all").toggle(!hasAnyReturnedQty);
             $("#print").show();
-            $("#cancel-return").toggle(hasAnyReturnedQty);
             $("#cancel-bill").toggle(isRented);
           }
+
+          // Show cancel return for any non-cancelled bill that has items, even if status is 'returned'
+          $("#cancel-return").toggle(shouldShowCancelReturn);
         }
       },
     });
@@ -2176,11 +2182,43 @@ jQuery(document).ready(function () {
     );
   });
 
-  // Cancel Bill - cancel a rented bill and release all equipment
+  // Cancel Bill - open modal to capture amount and date, then cancel
+  var cancelBillModalInstance = null;
+  if (typeof bootstrap !== "undefined" && document.getElementById("cancelBillModal")) {
+    cancelBillModalInstance = new bootstrap.Modal(document.getElementById("cancelBillModal"));
+  }
+
   $("#cancel-bill").click(function (e) {
     e.preventDefault();
     var rentId = $("#rent_id").val();
+    if (!rentId) {
+      swal({
+        title: "Error!",
+        text: "Please select an equipment rent record first.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // reset modal fields
+    var today = new Date().toISOString().slice(0, 10);
+    $("#cancel_amount").val(0);
+    $("#cancel_date").val($("#cancel_date").val() || today);
+
+    if (cancelBillModalInstance) {
+      cancelBillModalInstance.show();
+    } else {
+      $("#cancelBillModal").modal("show");
+    }
+  });
+
+  $("#confirm-cancel-bill").click(function () {
+    var rentId = $("#rent_id").val();
     var rentCode = $("#code").val();
+    var cancelAmount = $("#cancel_amount").val() || 0;
+    var cancelDate = $("#cancel_date").val() || new Date().toISOString().slice(0, 10);
 
     if (!rentId) {
       swal({
@@ -2193,84 +2231,73 @@ jQuery(document).ready(function () {
       return;
     }
 
-    swal(
-      {
-        title: "Cancel Bill?",
-        text:
-          "This will cancel bill '" +
-          rentCode +
-          "' and release all rented equipment. This action cannot be undone. Are you sure?",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        confirmButtonText: "Yes, cancel bill!",
-        cancelButtonText: "No, keep it",
+    $("#page-preloader").show();
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: {
+        action: "cancel_bill",
+        rent_id: rentId,
+        cancel_amount: cancelAmount,
+        cancel_date: cancelDate,
       },
-      function (isConfirm) {
-        if (isConfirm) {
-          $("#page-preloader").show();
-          $.ajax({
-            url: "ajax/php/equipment-rent-master.php",
-            type: "POST",
-            data: {
-              action: "cancel_bill",
-              rent_id: rentId,
-            },
-            dataType: "json",
-            success: function (result) {
-              $("#page-preloader").hide();
-              console.log("Cancel bill response:", result);
+      dataType: "json",
+      success: function (result) {
+        $("#page-preloader").hide();
+        if (cancelBillModalInstance) {
+          cancelBillModalInstance.hide();
+        } else {
+          $("#cancelBillModal").modal("hide");
+        }
 
-              if (result && result.status === "success") {
-                swal({
-                  title: "Cancelled!",
-                  text: result.message || "Bill cancelled successfully.",
-                  type: "success",
-                  timer: 2000,
-                  showConfirmButton: false,
-                });
-                setTimeout(function () {
-                  window.location.reload();
-                }, 2000);
-              } else {
-                swal({
-                  title: "Error!",
-                  text: (result && result.message) || "Failed to cancel bill.",
-                  type: "error",
-                  showConfirmButton: true,
-                });
-              }
-            },
-            error: function (xhr, status, error) {
-              $("#page-preloader").hide();
-              console.error("Cancel bill error:", {
-                status: status,
-                error: error,
-                response: xhr.responseText
-              });
-              
-              // Try to parse error response
-              var errorMsg = "Unable to cancel bill.";
-              try {
-                var errData = JSON.parse(xhr.responseText);
-                if (errData && errData.message) {
-                  errorMsg = errData.message;
-                }
-              } catch (e) {
-                errorMsg = "Server error: " + xhr.responseText.substring(0, 100);
-              }
-              
-              swal({
-                title: "Error!",
-                text: errorMsg,
-                type: "error",
-                showConfirmButton: true,
-              });
-            },
+        if (result && result.status === "success") {
+          swal({
+            title: "Cancelled!",
+            text: result.message || "Bill cancelled successfully.",
+            type: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          setTimeout(function () {
+            window.location.reload();
+          }, 2000);
+        } else {
+          swal({
+            title: "Error!",
+            text: (result && result.message) || "Failed to cancel bill.",
+            type: "error",
+            showConfirmButton: true,
           });
         }
       },
-    );
+      error: function (xhr, status, error) {
+        $("#page-preloader").hide();
+        if (cancelBillModalInstance) {
+          cancelBillModalInstance.hide();
+        } else {
+          $("#cancelBillModal").modal("hide");
+        }
+
+        var errorMsg = "Unable to cancel bill.";
+        try {
+          var errData = JSON.parse(xhr.responseText);
+          if (errData && errData.message) {
+            errorMsg = errData.message;
+          }
+        } catch (e) {
+          if (xhr && xhr.responseText) {
+            errorMsg = "Server error: " + xhr.responseText.substring(0, 100);
+          }
+        }
+
+        swal({
+          title: "Error!",
+          text: errorMsg,
+          type: "error",
+          showConfirmButton: true,
+        });
+      },
+    });
   });
 
   // Delete Equipment Rent

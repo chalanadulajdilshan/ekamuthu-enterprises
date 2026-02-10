@@ -49,6 +49,41 @@ $bill_number = $lastId + 1;
         </div>
     </div>
 
+    <!-- Cancel Bill Modal -->
+    <div id="cancelBillModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="cancelBillModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-soft-danger">
+                    <h5 class="modal-title" id="cancelBillModalLabel">Cancel Bill</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">This will cancel the bill and release all rented equipment. Enter details
+                        below and confirm.</p>
+                    <div class="mb-3">
+                        <label for="cancel_amount" class="form-label">Cancel Amount</label>
+                        <input type="number" min="0" step="0.01" class="form-control" id="cancel_amount"
+                            placeholder="0.00">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cancel_date" class="form-label">Cancel Date</label>
+                        <input type="text" class="form-control date-picker" id="cancel_date"
+                            placeholder="YYYY-MM-DD" value="<?php echo date('Y-m-d'); ?>">
+                    </div>
+                    <div class="alert alert-warning mb-0" role="alert">
+                        <i class="uil uil-exclamation-circle me-1"></i>
+                        This action cannot be undone.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="confirm-cancel-bill">Confirm Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Begin page -->
     <div id="layout-wrapper">
 
