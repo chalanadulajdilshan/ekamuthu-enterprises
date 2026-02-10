@@ -369,3 +369,50 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_totals') {
     ]);
     exit;
 }
+
+// Get rented invoices for bulk equipment (no sub items)
+if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
+    $equipment_id = isset($_POST['equipment_id']) ? (int)$_POST['equipment_id'] : 0;
+    
+    if ($equipment_id > 0) {
+        $db = Database::getInstance();
+        
+        $sql = "SELECT 
+                    eri.id,
+                    eri.rent_id,
+                    eri.quantity,
+                    eri.created_at as rental_date,
+                    er.bill_number,
+                    cm.name AS customer_name
+                FROM equipment_rent_items eri
+                JOIN equipment_rent er ON eri.rent_id = er.id
+                LEFT JOIN customer_master cm ON er.customer_id = cm.id
+                WHERE eri.equipment_id = $equipment_id 
+                AND eri.status = 'rented' 
+                AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                ORDER BY eri.id DESC";
+                
+        $result = $db->readQuery($sql);
+        $data = [];
+        
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data[] = [
+                'id' => $row['id'],
+                'rent_id' => $row['rent_id'],
+                'bill_number' => $row['bill_number'],
+                'customer_name' => $row['customer_name'] ?? 'Unknown',
+                'quantity' => (float)$row['quantity'],
+                'date' => date('Y-m-d H:i', strtotime($row['rental_date']))
+            ];
+        }
+        
+        echo json_encode([
+            "status" => "success",
+            "data" => $data
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid Equipment ID"]);
+    }
+    exit;
+}
+
