@@ -17,19 +17,38 @@ $(document).ready(function () {
     const fromDateParam = urlParams.get('from_date');
     const toDateParam = urlParams.get('to_date');
 
-    // Set default dates or use URL parameters
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Initialize the datepicker with proper configuration
+    $(".date-picker").datepicker({
+        dateFormat: 'yy-mm-dd',
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1900:2099',
+        showButtonPanel: true,
+        showOn: 'focus',
+        showAnim: 'fadeIn',
+        buttonImageOnly: false
+    });
 
+    const today = new Date();
     if (fromDateParam && toDateParam) {
-        $("#fromDate").val(fromDateParam);
-        $("#toDate").val(toDateParam);
-        // Auto-load report if URL parameters are present
-        loadReportData();
+        $("#fromDate").datepicker('setDate', fromDateParam);
+        $("#toDate").datepicker('setDate', toDateParam);
     } else {
-        $("#fromDate").val(formatDate(firstDay));
-        $("#toDate").val(formatDate(today));
+        $("#fromDate").datepicker('setDate', today);
+        $("#toDate").datepicker('setDate', today);
     }
+
+    // Auto-load report data immediately on page open
+    loadReportData();
+
+    // Set to today's date when clicking the Today button
+    $('#setToday').click(function (e) {
+        e.preventDefault();
+        const today = new Date();
+        $('#toDate').datepicker('setDate', today);
+        $('#fromDate').datepicker('setDate', today);
+        loadReportData(); // Auto-search when clicking Today
+    });
 
     // Format date to YYYY-MM-DD
     function formatDate(date) {
@@ -71,11 +90,10 @@ $(document).ready(function () {
         $("#totalRentBills").text("0");
         $("#totalReturnBills").text("0");
 
-        // Reset dates to current month
+        // Reset dates to current date
         const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        $("#fromDate").val(formatDate(firstDay));
-        $("#toDate").val(formatDate(today));
+        $("#fromDate").datepicker('setDate', today);
+        $("#toDate").datepicker('setDate', today);
     });
 
     // Load report data via AJAX
@@ -192,7 +210,7 @@ $(document).ready(function () {
                     <td>${item.customer_tel || '-'}</td>
                     <td>${item.customer_address || '-'}</td>
                     <td>${item.customer_nic || '-'}</td>
-                    <td>${item.day_count || '-'}</td>
+                    <td>${item.day_count || '-'}${item.after_9am == 1 ? ' <span class="badge bg-danger">+1 DAY</span>' : ''}</td>
                     <td>${item.rent_date || '-'}</td>
                     <td>${item.return_date || '-'}</td>
                     <td class="text-end">${item.quantity || 0}</td>
@@ -259,7 +277,7 @@ $(document).ready(function () {
             <tr>
                 <td>${item.name}</td>
                 <td class="text-end">${parseFloat(item.daily_rent || 0).toFixed(2)}</td>
-                <td class="text-end">${item.day_count}</td>
+                <td class="text-end">${item.day_count}${item.after_9am == 1 ? ' <span class="badge bg-danger">+1 DAY</span>' : ''}</td>
                 <td class="text-end">${item.quantity}</td>
                 <td class="text-end">${formatNumber(item.amount || 0)}</td>
             </tr>
@@ -358,35 +376,37 @@ $(document).ready(function () {
               font-family: 'Iskoola Pota', 'Noto Sans Sinhala', 'Arial', sans-serif;
               margin: 0;
               padding: 0;
-              color: #333;
+              color: #000;
               line-height: 1.4;
           }
           .header {
               text-align: center;
               margin-bottom: 30px;
               padding-bottom: 15px;
-              border-bottom: 2px solid #eee;
+              border-bottom: 2px solid #000;
           }
           .header h1 {
               margin: 0 0 10px 0;
-              color: #2c3e50;
+              color: #000;
               font-size: 24px;
+              font-weight: bold;
           }
           .header p {
               margin: 5px 0;
-              color: #7f8c8d;
+              color: #000;
               font-size: 14px;
           }
           .summary {
-              background-color: #f8f9fa;
+              background-color: #f0f0f0;
               padding: 15px;
               border-radius: 5px;
               margin-bottom: 20px;
-              border-left: 4px solid #667eea;
+              border-left: 5px solid #000;
           }
           .summary h3 {
               margin: 0 0 10px 0;
-              color: #2c3e50;
+              color: #000;
+              font-weight: bold;
           }
           .summary-grid {
               display: grid;
@@ -395,9 +415,11 @@ $(document).ready(function () {
           }
           .summary-item {
               font-size: 14px;
+              color: #000;
           }
           .summary-item strong {
-              color: #495057;
+              color: #000;
+              font-weight: bold;
           }
           table {
               width: 100%;
@@ -405,20 +427,23 @@ $(document).ready(function () {
               margin: 15px 0;
               font-size: 11px;
               page-break-inside: auto;
+              border: 1px solid #000;
           }
           th, td {
-              border: 1px solid #e0e0e0;
+              border: 1px solid #333;
               padding: 8px 10px;
               text-align: left;
               vertical-align: top;
+              color: #000;
           }
           thead th {
-              background-color: #f8f9fa;
-              color: #2c3e50;
-              font-weight: 600;
+              background-color: #e9ecef;
+              color: #000;
+              font-weight: bold;
               text-transform: uppercase;
               font-size: 10px;
               padding: 10px;
+              border: 1px solid #000;
           }
           .text-right { text-align: right; }
           .text-center { text-align: center; }
@@ -428,16 +453,16 @@ $(document).ready(function () {
               font-size: 9px;
               font-weight: bold;
           }
-          .badge-rent { background-color: #28a745; color: white; }
-          .badge-return { background-color: #dc3545; color: white; }
-          .badge-issue { background-color: #ffc107; color: black; }
+          .badge-rent { background-color: #000; color: white; }
+          .badge-return { background-color: #000; color: white; }
+          .badge-issue { background-color: #000; color: white; }
           .footer {
               margin-top: 40px;
               padding-top: 20px;
               text-align: center;
               font-size: 11px;
-              color: #7f8c8d;
-              border-top: 1px solid #eee;
+              color: #000;
+              border-top: 1px solid #000;
           }
       </style>
   </head>
@@ -503,7 +528,7 @@ $(document).ready(function () {
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_tel || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${item.customer_address || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_nic || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.day_count || '-'}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">${item.day_count || '-'}${item.after_9am == 1 ? ' <span style="background-color: #dc3545; color: #fff; padding: 2px 4px; border-radius: 3px; font-size: 9px; margin-left: 5px; font-weight: bold;">+1 DAY</span>' : ''}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.rent_date || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.return_date || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item.quantity || 0}</td>

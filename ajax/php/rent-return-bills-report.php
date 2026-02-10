@@ -114,6 +114,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 err.extra_day_amount,
                 err.penalty_amount,
                 err.damage_amount,
+                err.after_9am_extra_day,
                 er.deposit_total as deposit,
                 CAST(err.remark AS CHAR) as remarks,
                 CAST(CONCAT(cm.code, ' - ', cm.name) AS CHAR) as customer_name,
@@ -182,8 +183,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                     'deposit' => $row['deposit'],
                     'transport_cost' => 0,
                     'remarks' => $row['remarks'],
+                    'after_9am' => intval($row['after_9am_extra_day']),
                     'items' => []
                 ];
+            }
+
+            // Update after_9am if any item in the group is after 9am
+            if (intval($row['after_9am_extra_day']) === 1) {
+                $bills[$key]['after_9am'] = 1;
             }
 
             // Append Item
@@ -194,7 +201,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 'quantity' => $returnQty,
                 'extra_day_amount' => floatval($row['extra_day_amount']),
                 'penalty_amount' => floatval($row['penalty_amount']),
-                'amount' => $totalItemProfit
+                'amount' => $totalItemProfit,
+                'after_9am' => intval($row['after_9am_extra_day'])
             ];
         }
     }
@@ -209,10 +217,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     $summary = [
         'total_quantity' => 0,
         'total_amount' => 0,
+        'total_extra_amount' => 0,
+        'total_profit' => 0,
         'total_bills' => 0,
         'total_rent_bills' => 0,
         'total_return_bills' => 0,
-        'total_profit' => 0,
         'date_range' => "$from_date to $to_date",
         'version' => '1.2'
     ];
@@ -255,6 +264,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             'customer_tel' => $bill['customer_tel'],
             'customer_address' => $bill['customer_address'],
             'customer_nic' => $bill['customer_nic'],
+            'after_9am' => $bill['after_9am'] ?? 0,
             'equipment_item' => implode(', ', array_unique($displayItems)),
             'daily_rent' => implode(', ', array_unique($displayDailyRents)),
             'day_count' => implode(', ', array_unique($displayDayCounts)),
@@ -276,7 +286,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         if ($bill['bill_type'] == 'Return') $summary['total_return_bills']++;
         $summary['total_quantity'] += $billTotalQty;
         $summary['total_amount'] += $billTotalAmount;
-        $summary['total_extra_amount'] = ($summary['total_extra_amount'] ?? 0) + $billTotalExtraAmount;
+        $summary['total_extra_amount'] += $billTotalExtraAmount;
         if ($bill['rent_status'] === 'returned' && $bill['bill_type'] === 'Return') {
             $summary['total_profit'] += ($bill['deposit'] - ($billTotalAmount + $billTotalExtraAmount));
         }

@@ -242,63 +242,6 @@ include 'auth.php';
     <!-- Custom JS for Rent & Return Bills Report -->
     <script src="ajax/js/rent-return-bills-report.js"></script>
 
-    <script>
-        $(document).ready(function() {
-            // Initialize the datepicker with proper configuration
-            $(".date-picker").datepicker({
-                dateFormat: 'yy-mm-dd',
-                changeMonth: true,
-                changeYear: true,
-                yearRange: '1900:2099',
-                showButtonPanel: true,
-                showOn: 'focus',
-                showAnim: 'fadeIn',
-                buttonImageOnly: false
-            });
-
-            // Set to today's date and first day of month when clicking the Today button
-            $('#setToday').click(function(e) {
-                e.preventDefault();
-                const today = new Date();
-                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-                $('#toDate').datepicker('setDate', today);
-                $('#fromDate').datepicker('setDate', firstDay);
-            });
-
-            // Reset form
-            $('#resetBtn').click(function() {
-                $('#fromDate').val('');
-                $('#toDate').val('');
-                $('#billType').val('all');
-                $('#reportInfoSection').hide();
-                // Clear the table if needed
-                $('#reportTableBody').empty();
-                $('#totalAmount').text('0.00');
-                $('#totalQty').text('0');
-                $('#totalBills').text('0');
-                $('#totalRentBills').text('0');
-                $('#totalReturnBills').text('0');
-            });
-
-            // Validate date range
-            $('.date-picker').change(function() {
-                const fromDate = $('#fromDate').datepicker('getDate');
-                const toDate = $('#toDate').datepicker('getDate');
-
-                if (fromDate && toDate && fromDate > toDate) {
-                    alert('From date cannot be after To date');
-                    $(this).val('');
-                }
-            });
-
-            // Initialize with current month as default
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            $('#fromDate').datepicker('setDate', firstDay);
-            $('#toDate').datepicker('setDate', today);
-        });
-    </script>
 
 </body>
 
