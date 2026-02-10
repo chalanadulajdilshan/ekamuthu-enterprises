@@ -846,6 +846,16 @@ $bill_number = $lastId + 1;
                         </div>
 
                         <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="return_all_rental_override" class="form-label">Rental (manual override)</label>
+                                    <input type="number" min="0" step="0.01" class="form-control" id="return_all_rental_override" placeholder="Leave blank to use calculated rental">
+                                    <small class="text-muted">If entered, this value replaces the calculated rental total.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
                                     <div class="form-check">

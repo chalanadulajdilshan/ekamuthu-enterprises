@@ -584,6 +584,9 @@ if (isset($_POST['delete'])) {
 if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $rent_id = $_POST['rent_id'] ?? 0;
     $previewOnly = isset($_POST['preview_only']) && intval($_POST['preview_only']) === 1;
+    $rentalOverride = isset($_POST['rental_override']) && $_POST['rental_override'] !== ''
+        ? floatval($_POST['rental_override'])
+        : null;
     
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
@@ -675,6 +678,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             } else {
                 echo json_encode(["status" => "error", "message" => "Failed to create return record for item #" . ($item['id'] ?? '')]);
                 exit;
+            }
+        }
+
+        // Apply manual rental override if provided (affects totals and net settlement shown to user)
+        if ($rentalOverride !== null && $rentalOverride >= 0) {
+            $rentalDiff = $rentalOverride - $totals['rental_amount'];
+            $totals['rental_amount'] = $rentalOverride;
+            $totals['settle_amount'] += $rentalDiff;
+
+            // Recompute refund/additional based on adjusted settle amount
+            if ($totals['settle_amount'] < 0) {
+                $totals['refund_amount'] = abs($totals['settle_amount']);
+                $totals['additional_payment'] = 0;
+            } else {
+                $totals['refund_amount'] = 0;
+                $totals['additional_payment'] = $totals['settle_amount'];
             }
         }
 
