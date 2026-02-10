@@ -192,6 +192,42 @@ $EQUIPMENT = new Equipment(NULL);
         </div>
     </div>
 
+    <!-- Rented Invoices Modal (List) -->
+    <div class="modal fade" id="rentInvoicesModal" tabindex="-1" aria-labelledby="rentInvoicesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="rentInvoicesModalLabel">Rented Invoices</h5>
+                        <p class="text-muted mb-0" id="ri-equipment-name"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered mb-0" id="rentInvoicesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bill No</th>
+                                    <th>Customer</th>
+                                    <th class="text-center">Qty</th>
+                                    <th>Rented Date</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>

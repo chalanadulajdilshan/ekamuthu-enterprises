@@ -165,7 +165,7 @@ jQuery(document).ready(function () {
                 '</div>' +
 
                 '<div class="col-md-4">' +
-                '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
+                '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100 rented-card" style="cursor: pointer;" data-id="' + meta.equipment_id + '" data-name="' + meta.equipment_name + '">' +
                 '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Rented</span>' +
                 '<span class="text-muted fw-bold me-2">-</span>' +
                 '<span class="text-danger fw-bold font-size-22">' + rented + '</span>' +
@@ -288,7 +288,19 @@ jQuery(document).ready(function () {
                 },
                 success: function (resp) {
                     if (resp && resp.status === "success") {
+                        // Pass equipment name for the meta header as well
+                        if (resp.meta) {
+                            resp.meta.equipment_id = data.id;
+                            resp.meta.equipment_name = data.item_name;
+                        }
                         row.child(renderSubEquipmentTable(resp.data, resp.meta, table.search(), $("#searchSubOnly").is(":checked"))).show();
+
+                        // Attach click handler to Rented Card
+                        row.child().find(".rented-card").on("click", function () {
+                            const eqId = $(this).data("id");
+                            const eqName = $(this).data("name");
+                            loadRentedInvoices(eqId, eqName);
+                        });
 
                         // Attach click handler to rented sub-equipment rows to open rent details
                         row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-rented", function (evt) {
@@ -377,4 +389,46 @@ jQuery(document).ready(function () {
             }
         });
     }
+
+    function loadRentedInvoices(equipmentId, equipmentName) {
+        $("#ri-equipment-name").text(equipmentName);
+        const tbody = $("#rentInvoicesTable tbody");
+        tbody.html('<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>');
+        $("#rentInvoicesModal").modal("show");
+
+        $.ajax({
+            url: "ajax/php/equipment-master.php",
+            type: "POST",
+            data: { action: "get_rented_invoices", equipment_id: equipmentId },
+            dataType: "json",
+            success: function (resp) {
+                tbody.empty();
+                if (resp && resp.status === "success" && resp.data.length > 0) {
+                    resp.data.forEach(function (item) {
+                        const tr = $("<tr>");
+                        tr.append("<td>" + item.bill_number + "</td>");
+                        tr.append("<td>" + item.customer_name + "</td>");
+                        tr.append('<td class="text-center">' + item.quantity + "</td>");
+                        tr.append("<td>" + item.date + "</td>");
+                        tr.append('<td class="text-center"><button class="btn btn-sm btn-soft-primary view-rent-btn" data-id="' + item.rent_id + '"><i class="uil uil-eye"></i> View</button></td>');
+                        tbody.append(tr);
+                    });
+
+                    // Attach handler for the view button
+                    tbody.find(".view-rent-btn").on("click", function () {
+                        const rentId = $(this).data("id");
+                        // We need to make sure the rent details modal can show on top of or instead of the list modal
+                        $("#rentInvoicesModal").modal("hide");
+                        loadRentDetailsFromStock(rentId);
+                    });
+                } else {
+                    tbody.html('<tr><td colspan="5" class="text-center text-muted">No rented invoices found</td></tr>');
+                }
+            },
+            error: function () {
+                tbody.html('<tr><td colspan="5" class="text-center text-danger">Failed to load rented invoices</td></tr>');
+            }
+        });
+    }
 });
+
