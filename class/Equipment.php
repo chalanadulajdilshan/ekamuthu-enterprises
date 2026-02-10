@@ -16,6 +16,7 @@ class Equipment
     public $quantity;
     public $no_sub_items;
     public $change_value;
+    public $department_id;
     public $is_fixed_rate;
     public $image_name;
     public $remark;
@@ -43,6 +44,7 @@ class Equipment
                 $this->no_sub_items = $result['no_sub_items'];
                 $this->change_value = $result['change_value'] ?? 0;
                 $this->is_fixed_rate = $result['is_fixed_rate'] ?? 0;
+                $this->department_id = $result['department_id'] ?? 0;
                 $this->image_name = $result['image_name'];
                 $this->remark = $result['remark'];
             }
@@ -52,9 +54,9 @@ class Equipment
     public function create()
     {
         $query = "INSERT INTO `equipment` (
-            `code`, `item_name`, `category`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`, `no_sub_items`, `change_value`, `is_fixed_rate`, `image_name`, `remark`
+            `code`, `item_name`, `category`, `department_id`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`, `no_sub_items`, `change_value`, `is_fixed_rate`, `image_name`, `remark`
         ) VALUES (
-            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity', '$this->no_sub_items', '$this->change_value', '$this->is_fixed_rate', '$this->image_name', '$this->remark'
+            '$this->code', '$this->item_name', '$this->category', '$this->department_id', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity', '$this->no_sub_items', '$this->change_value', '$this->is_fixed_rate', '$this->image_name', '$this->remark'
         )";
 
         $db = Database::getInstance();
@@ -73,6 +75,7 @@ class Equipment
             `code` = '$this->code', 
             `item_name` = '$this->item_name',
             `category` = '$this->category', 
+            `department_id` = '$this->department_id', 
             `serial_number` = '$this->serial_number', 
             `damage` = '$this->damage', 
             `size` = '$this->size',
@@ -138,6 +141,7 @@ class Equipment
             $this->code = $result['code'];
             $this->item_name = $result['item_name'];
             $this->category = $result['category'];
+            $this->department_id = $result['department_id'];
             $this->serial_number = $result['serial_number'];
             $this->damage = $result['damage'];
             $this->size = $result['size'];
@@ -193,6 +197,7 @@ class Equipment
                 "code" => $row['code'],
                 "item_name" => $row['item_name'],
                 "category" => $row['category'],
+                "department_id" => $row['department_id'],
                 "serial_number" => $row['serial_number'],
                 "damage" => $row['damage'],
                 "size" => $row['size'],

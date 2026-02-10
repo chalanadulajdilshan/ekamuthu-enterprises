@@ -1,8 +1,8 @@
 <?php
 
 // Suppress PHP warnings/notices from corrupting JSON output
-error_reporting(0);
-ini_set('display_errors', 0);
+error_reporting(1);
+ini_set('display_errors', 1);
 
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
@@ -25,6 +25,7 @@ if (isset($_POST['create'])) {
     $EQUIPMENT->code = $_POST['code'];
     $EQUIPMENT->item_name = strtoupper($_POST['item_name'] ?? '');
     $EQUIPMENT->category = $_POST['category'] ?? '';
+    $EQUIPMENT->department_id = $_POST['department'] ?? '';
     $EQUIPMENT->serial_number = $_POST['serial_number'] ?? '';
     $EQUIPMENT->damage = $_POST['damage'] ?? '';
     $EQUIPMENT->size = $_POST['size'] ?? '';
@@ -96,6 +97,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT->code = $_POST['code'];
     $EQUIPMENT->item_name = strtoupper($_POST['item_name'] ?? '');
     $EQUIPMENT->category = $_POST['category'] ?? '';
+    $EQUIPMENT->department_id = $_POST['department'] ?? '';
     $EQUIPMENT->serial_number = $_POST['serial_number'] ?? '';
     $EQUIPMENT->damage = $_POST['damage'] ?? '';
     $EQUIPMENT->size = $_POST['size'] ?? '';
@@ -234,6 +236,7 @@ if (isset($_POST['filter'])) {
             "code" => $row['code'],
             "item_name" => $row['item_name'],
             "category" => $row['category'],
+            "department_id" => $row['department_id'],
             "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
             "damage" => $row['damage'],

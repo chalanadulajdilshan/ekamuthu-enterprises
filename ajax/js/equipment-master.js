@@ -13,6 +13,7 @@ jQuery(document).ready(function () {
     { selector: "#code", message: "Please enter equipment code" },
     { selector: "#item_name", message: "Please enter item name" },
     { selector: "#category", message: "Please select category" },
+    { selector: "#department", message: "Please select department" },
     { selector: "#serial_number", message: "Please enter serial number" },
     { selector: "#damage", message: "Please enter damage status/notes" },
     { selector: "#size", message: "Please enter size" },
@@ -83,6 +84,7 @@ jQuery(document).ready(function () {
           $("#code").val(data.code || "");
           $("#item_name").val(data.item_name || "");
           $("#category").val(data.category || "");
+          $("#department").val(data.department_id || "");
           $("#serial_number").val(data.serial_number || "");
           $("#damage").val(data.damage || "");
           $("#size").val(data.size || "");
@@ -202,6 +204,7 @@ jQuery(document).ready(function () {
           $("#code").val(data.code || "");
           $("#item_name").val(data.item_name || "");
           $("#category").val(data.category || "");
+          $("#department").val(data.department_id || "");
           $("#serial_number").val(data.serial_number || "");
           $("#damage").val(data.damage || "");
           $("#size").val(data.size || "");
@@ -304,7 +307,7 @@ jQuery(document).ready(function () {
 
             setTimeout(() => {
               window.location.href =
-              "sub-equipment-master.php?equipment_id=" + result.equipment_id;
+                "sub-equipment-master.php?equipment_id=" + result.equipment_id;
             }, 2000);
           } else if (result.status === "duplicate") {
             swal({
