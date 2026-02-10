@@ -671,11 +671,33 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     // Draw video frame to canvas
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    // Get image data as base64
-                    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                    // Resize image if it's too large
+                    const maxDim = 1200;
+                    if (canvas.width > maxDim || canvas.height > maxDim) {
+                        const ratio = Math.min(maxDim / canvas.width, maxDim / canvas.height);
+                        const newWidth = canvas.width * ratio;
+                        const newHeight = canvas.height * ratio;
 
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = newWidth;
+                        tempCanvas.height = newHeight;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+
+                        // Get image data as base64 from resized canvas
+                        const imageData = tempCanvas.toDataURL('image/jpeg', 0.8);
+                        processCapturedImage(imageData);
+                    } else {
+                        // Get image data as base64
+                        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                        processCapturedImage(imageData);
+                    }
+                }
+
+                function processCapturedImage(imageData) {
                     // Determine which image slot to use
                     const imageNum = capturedImages.length + 1;
+
 
                     if (imageNum <= maxImages) {
                         capturedImages.push(imageData);
@@ -790,68 +812,85 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     reader.onload = function(e) {
                         const base64Data = e.target.result;
 
-                        // Store in hidden input
-                        const hiddenInput = $(`#${fieldName}_image_${index}`);
-                        if (hiddenInput.length) {
-                            hiddenInput.val(base64Data);
+                        // If it's an image, resize it before storing
+                        if (file.type.startsWith('image/')) {
+                            resizeImage(base64Data, 1200, 1200, 0.8, function(resizedBase64) {
+                                storeAndPreviewFile(fieldName, resizedBase64, index, file.name);
+                            });
                         } else {
-                            // Fallback for fields that might just use _image_1 implicitly or non-indexed
-                            $(`#${fieldName}_image_1`).val(base64Data);
+                            storeAndPreviewFile(fieldName, base64Data, index, file.name);
                         }
-
-                        // Update document name field if exists (for PO/Letterhead)
-                        if ($(`#${fieldName}_name`).length) {
-                            $(`#${fieldName}_name`).val(file.name);
-                        }
-
-                        // Update document name field indexed if exists
-                        if ($(`#${fieldName}_name_${index}`).length) {
-                            $(`#${fieldName}_name_${index}`).val(file.name);
-                        }
-
-                        // Update preview
-                        const previewContainer = $(`#${fieldName}_preview`);
-
-
-                        if (fieldName === 'nic' || fieldName === 'guarantor_nic') {
-
-                        } else {
-                            previewContainer.empty();
-                        }
-
-                        const isPdf = file.type === 'application/pdf';
-
-                        if (isPdf) {
-                            // Update preview by refreshing all
-                            refreshPreviews(fieldName);
-                        } else {
-                            // Update preview by refreshing all
-                            refreshPreviews(fieldName);
-                            /*
-                            const previewHtml = `
-                                <div class="position-relative" style="width: 60px;">
-                                    <img src="${base64Data}" class="img-fluid rounded border" style="width: 60px; height: 40px; object-fit: cover;">
-                                    <span class="badge bg-primary position-absolute" style="top: -5px; right: -5px; font-size: 10px;">${index}</span>
-                                    <button type="button" class="btn btn-sm btn-link text-danger position-absolute" style="top: -10px; right: -10px; padding: 0;" onclick="removeFileUpload('${fieldName}', ${index})">
-                                        <i class="uil uil-times-circle"></i>
-                                    </button>
-                                </div>
-                            `;
-                            previewContainer.append(previewHtml);
-                            */
-                        }
-
-                        swal({
-                            title: "Success!",
-                            text: "File uploaded successfully!",
-                            type: "success",
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
                     };
 
                     reader.readAsDataURL(file);
                 }
+
+                /**
+                 * Helper to store file data and update previews
+                 */
+                function storeAndPreviewFile(fieldName, base64Data, index, fileName) {
+                    // Store in hidden input
+                    const hiddenInput = $(`#${fieldName}_image_${index}`);
+                    if (hiddenInput.length) {
+                        hiddenInput.val(base64Data);
+                    } else {
+                        // Fallback for fields that might just use _image_1 implicitly or non-indexed
+                        $(`#${fieldName}_image_1`).val(base64Data);
+                    }
+
+                    // Update document name field if exists (for PO/Letterhead)
+                    if ($(`#${fieldName}_name`).length) {
+                        $(`#${fieldName}_name`).val(fileName);
+                    }
+
+                    // Update document name field indexed if exists
+                    if ($(`#${fieldName}_name_${index}`).length) {
+                        $(`#${fieldName}_name_${index}`).val(fileName);
+                    }
+
+                    // Update preview
+                    refreshPreviews(fieldName);
+
+                    swal({
+                        title: "Success!",
+                        text: "File uploaded successfully!",
+                        type: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+
+                /**
+                 * Utility to resize base64 image using canvas
+                 */
+                function resizeImage(base64Str, maxWidth, maxHeight, quality, callback) {
+                    let img = new Image();
+                    img.src = base64Str;
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        let ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        callback(canvas.toDataURL('image/jpeg', quality));
+                    };
+                }
+
 
                 function removeFileUpload(fieldName, index = 1) {
                     // Clear specific inputs
