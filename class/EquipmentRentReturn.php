@@ -215,15 +215,21 @@ class EquipmentRentReturn
         // Check if this is a fixed-rate item
         $is_fixed_rate = intval($item['is_fixed_rate'] ?? 0) === 1;
 
-        // For fixed-rate items, no extra day charges
+        // For fixed-rate items, normalize to a single charged day and no extra/penalty
         if ($is_fixed_rate) {
+            $used_days = 1;
+            $overdue_days = 0;
+            $is_late = false;
             $suggestedExtraDayAmount = 0;
             $finalExtraDayAmount = 0;
+            $charged_days = 1;
+            // Daily shown as flat rate
+            $per_unit_daily = $per_unit_rent_total;
         } else {
             $suggestedExtraDayAmount = $isAfterCutoff ? ($per_unit_daily * $return_qty) : 0;
             $finalExtraDayAmount = $isAfterCutoff ? (floatval($extra_day_amount) > 0 ? floatval($extra_day_amount) : $suggestedExtraDayAmount) : 0;
+            $charged_days = $used_days + ($finalExtraDayAmount > 0 ? 1 : 0);
         }
-        $charged_days = $used_days + ($finalExtraDayAmount > 0 ? 1 : 0);
 
         // Calculate deposit for this return quantity
         $deposit_for_return = $per_unit_deposit * $return_qty;

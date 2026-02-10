@@ -583,6 +583,7 @@ if (isset($_POST['delete'])) {
 // Return all items
 if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $rent_id = $_POST['rent_id'] ?? 0;
+    $previewOnly = isset($_POST['preview_only']) && intval($_POST['preview_only']) === 1;
     
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
@@ -602,6 +603,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $nowTime = '09:01';
         }
 
+        $totals = [
+            'rental_amount' => 0,
+            'extra_day_amount' => 0,
+            'damage_amount' => 0,
+            'penalty_amount' => 0,
+            'settle_amount' => 0,
+            'refund_amount' => 0,
+            'additional_payment' => 0,
+        ];
+
         foreach ($items as $item) {
             // Only process items that still have pending quantity
             $pendingQty = max(0, ($item['quantity'] ?? 0) - EquipmentRentReturn::getTotalReturnedQty($item['id']));
@@ -613,7 +624,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, 0, 0);
 
             // If after-9 flag is set but extra day amount did not compute, force one extra-day charge
-            if ($after9Flag === 1 && floatval($calculation['extra_day_amount'] ?? 0) <= 0) {
+            // Skip override for fixed-rate items (flat charge only)
+            $isFixedRate = isset($calculation['is_fixed_rate']) && intval($calculation['is_fixed_rate']) === 1;
+            if (!$isFixedRate && $after9Flag === 1 && floatval($calculation['extra_day_amount'] ?? 0) <= 0) {
                 $extraOverride = floatval($calculation['per_unit_daily'] ?? 0) * $pendingQty;
                 $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, $extraOverride, 0);
             }
@@ -621,6 +634,20 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             if ($calculation['error']) {
                 echo json_encode(["status" => "error", "message" => $calculation['message']]);
                 exit;
+            }
+
+            // Accumulate totals for preview or confirmation output
+            $totals['rental_amount'] += floatval($calculation['rental_amount'] ?? 0);
+            $totals['extra_day_amount'] += floatval($calculation['extra_day_amount'] ?? 0);
+            $totals['damage_amount'] += floatval($calculation['damage_amount'] ?? 0);
+            $totals['penalty_amount'] += floatval($calculation['penalty_amount'] ?? 0);
+            $totals['settle_amount'] += floatval($calculation['settle_amount'] ?? 0);
+            $totals['refund_amount'] += floatval($calculation['refund_amount'] ?? 0);
+            $totals['additional_payment'] += floatval($calculation['additional_payment'] ?? 0);
+
+            // If preview only, skip creating records
+            if ($previewOnly) {
+                continue;
             }
 
             // Create return record for the item
@@ -651,6 +678,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             }
         }
 
+        // If preview only, just return the totals
+        if ($previewOnly) {
+            echo json_encode(["status" => "success", "preview" => true, "calculation" => $totals]);
+            exit;
+        }
+
         // Update master rent status
         $EQUIPMENT_RENT->status = 'returned';
         // Store the return date/time from the modal as received_date
@@ -667,7 +700,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
         
-        echo json_encode(["status" => "success", "message" => "All items returned successfully"]);
+        echo json_encode(["status" => "success", "message" => "All items returned successfully", "calculation" => $totals]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
     }

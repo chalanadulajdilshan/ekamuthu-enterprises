@@ -344,23 +344,22 @@ jQuery(document).ready(function () {
                 dataType: "JSON",
                 success: function (result) {
                   $("#page-preloader").hide();
-
                   if (result.status === "success") {
                     swal({
                       title: "Success!",
-                      text:
-                        result.message || "Item return cancelled successfully.",
+                      text: result.message || "Item return cancelled.",
                       type: "success",
                       timer: 2000,
                       showConfirmButton: false,
                     });
-                    // Reload the rent details
-                    var rentId = $("#rent_id").val();
-                    if (rentId) {
-                      setTimeout(function () {
-                        loadRentDetails(rentId);
-                      }, 2000);
-                    }
+                    setTimeout(function () {
+                      var currentRentId = $("#rent_id").val();
+                      if (currentRentId) {
+                        loadRentDetails(currentRentId);
+                      } else {
+                        window.location.reload();
+                      }
+                    }, 2000);
                   } else {
                     swal({
                       title: "Error!",
@@ -950,26 +949,19 @@ jQuery(document).ready(function () {
           $("#create").hide();
           $("#cancel-bill-alert").remove();
 
-          if (rent.status === 'cancelled') {
+          var isRented = rent.status === 'rented';
+          if (!isRented) {
             $("#update").hide();
             $("#return-all").hide();
-            $("#print").show();
             $("#cancel-return").hide();
             $("#cancel-bill").hide();
-            // Show cancelled alert banner
-            if ($("#cancel-bill-alert").length === 0) {
-              $("#addproduct-accordion").before(
-                '<div id="cancel-bill-alert" class="alert alert-danger text-center fw-bold font-size-16 py-2 mb-3">' +
-                '<i class="uil uil-ban me-1"></i> This bill has been cancelled' +
-                '</div>'
-              );
-            }
+            $("#print").show();
           } else {
             $("#update").show();
             $("#return-all").toggle(!hasAnyReturnedQty);
             $("#print").show();
             $("#cancel-return").toggle(hasAnyReturnedQty);
-            $("#cancel-bill").toggle(rent.status === 'rented');
+            $("#cancel-bill").toggle(isRented);
           }
         }
       },
@@ -1885,20 +1877,31 @@ jQuery(document).ready(function () {
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
-  // Calculate return all preview when inputs change
+  // Calculate return all preview when inputs change (with server-side preview)
+  var returnAllPreviewTimer = null;
   $("#return_all_date, #return_all_time, #return_all_after_9am").on(
     "change input",
     function () {
+      // Debounce to avoid rapid-fire AJAX calls from datepicker events
+      clearTimeout(returnAllPreviewTimer);
+      returnAllPreviewTimer = setTimeout(function () {
+        fetchReturnAllPreview();
+      }, 300);
+    },
+  );
+
+  function fetchReturnAllPreview() {
       var rentId = $("#rent_id").val();
       var returnDate = $("#return_all_date").val();
       var returnTime = $("#return_all_time").val();
+      var after9am = $("#return_all_after_9am").is(":checked") ? 1 : 0;
 
       if (!rentId || !returnDate || !returnTime) {
         $("#returnAllPreview").hide();
         return;
       }
 
-      // Calculate day count from rental date to return date/time
+      // Calculate day count text (client-side)
       var rentalStart = $("#rental_start_date").val();
       var dayCountText = "-";
       if (rentalStart) {
@@ -1906,34 +1909,76 @@ jQuery(document).ready(function () {
         var rentalStartDate = new Date(rentalStart + " 00:00");
         if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
           var msDiff = returnDateOnly - rentalStartDate;
-          var baseDays =
-            msDiff >= 0 ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24))) : 0;
-          var after9am = $("#return_all_after_9am").is(":checked");
+          var baseDays = msDiff >= 0 ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24))) : 0;
           var totalDays = baseDays + (after9am ? 1 : 0);
           dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
         }
       }
 
-      // Show preview with basic info
-      var after9am = $("#return_all_after_9am").is(":checked");
-      var previewHtml =
-        "<p><strong>Return Date:</strong> " +
-        returnDate +
-        " " +
-        returnTime +
-        "</p>";
-      previewHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
-      previewHtml +=
-        "<p><strong>After 9:00 AM:</strong> " +
-        (after9am ? "Yes (extra day will be counted)" : "No") +
-        "</p>";
-      previewHtml +=
-        '<p class="text-muted">All pending items will be marked as returned with this date/time.</p>';
+      // Call preview-only API to get settlement totals
+      $.ajax({
+        url: "ajax/php/equipment-rent-master.php",
+        type: "POST",
+        data: {
+          action: "return_all",
+          preview_only: 1,
+          rent_id: rentId,
+          return_date: returnDate,
+          return_time: returnTime,
+          after_9am_extra_day: after9am,
+        },
+        dataType: "json",
+        success: function (res) {
+          var calc = res && res.calculation ? res.calculation : {};
 
-      $("#returnAllPreviewContent").html(previewHtml);
-      $("#returnAllPreview").show();
-    },
-  );
+          var previewHtml =
+            "<p><strong>Return Date:</strong> " +
+            returnDate +
+            " " +
+            returnTime +
+            "</p>";
+          previewHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+          previewHtml +=
+            "<p><strong>After 9:00 AM:</strong> " +
+            (after9am ? "Yes (extra day will be counted)" : "No") +
+            "</p>";
+
+          // Settlement summary
+          var settlement = [];
+          settlement.push("Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2));
+          settlement.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
+          settlement.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
+          settlement.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
+          settlement.push("Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2));
+          if (Number(calc.refund_amount || 0) > 0) {
+            settlement.push("Refund: Rs. " + Number(calc.refund_amount).toFixed(2));
+          } else if (Number(calc.additional_payment || 0) > 0) {
+            settlement.push("Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2));
+          }
+
+          previewHtml += "<hr><p><strong>Settlement Preview:</strong><br>" + settlement.join("<br>") + "</p>";
+
+          $("#returnAllPreviewContent").html(previewHtml);
+          $("#returnAllPreview").show();
+        },
+        error: function () {
+          // Fallback to basic preview
+          var fallbackHtml =
+            "<p><strong>Return Date:</strong> " +
+            returnDate +
+            " " +
+            returnTime +
+            "</p>";
+          fallbackHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+          fallbackHtml +=
+            "<p><strong>After 9:00 AM:</strong> " +
+            (after9am ? "Yes (extra day will be counted)" : "No") +
+            "</p>";
+          $("#returnAllPreviewContent").html(fallbackHtml);
+          $("#returnAllPreview").show();
+        },
+      });
+  }
 
   // Confirm Return All Items
   $("#confirmReturnAllBtn").click(function () {
@@ -1974,27 +2019,46 @@ jQuery(document).ready(function () {
       data: {
         action: "return_all",
         rent_id: rentId,
-        after_9am_extra_day: after9amExtraDay,
         return_date: returnDate,
         return_time: returnTime,
+        after_9am_extra_day: after9amExtraDay,
       },
       dataType: "JSON",
       success: function (result) {
         if (result.status === "success") {
           $("#returnAllModal").modal("hide");
+
+          // Build settlement summary if backend sent calculation
+          var calc = result.calculation || {};
+          var settlementText = result.message || "All items marked as returned.";
+          var summaryLines = [];
+          if (calc && (calc.refund_amount || calc.additional_payment || calc.rental_amount)) {
+            summaryLines.push("Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2));
+            summaryLines.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
+            summaryLines.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
+            summaryLines.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
+            summaryLines.push("Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2));
+
+            if (Number(calc.refund_amount || 0) > 0) {
+              summaryLines.push("Refund: Rs. " + Number(calc.refund_amount).toFixed(2));
+            } else if (Number(calc.additional_payment || 0) > 0) {
+              summaryLines.push("Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2));
+            }
+          }
+
           swal({
             title: "Success!",
-            text: result.message || "All items marked as returned.",
+            text: settlementText + (summaryLines.length ? "\n\n" + summaryLines.join("\n") : ""),
             type: "success",
-            timer: 1500,
+            timer: 2500,
             showConfirmButton: false,
           });
+
           setTimeout(function () {
             if (billNo) {
               setTimeout(function () {
                 window.location.reload();
               }, 100);
-
               window.open("rent-invoice.php?bill_no=" + billNo, "_blank");
             } else {
               window.location.reload();
