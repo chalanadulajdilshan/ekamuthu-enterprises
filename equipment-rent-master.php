@@ -96,6 +96,10 @@ $bill_number = $lastId + 1;
                                 <i class="uil uil-print me-1"></i> Print
                             </a>
 
+                            <a href="#" class="btn btn-outline-dark" id="cancel-bill" style="display: none;">
+                                <i class="uil uil-ban me-1"></i> Cancel Bill
+                            </a>
+
                             <a href="#" class="btn btn-outline-secondary" id="show-all-bills">
                                 <i class="uil uil-list-ul me-1"></i> All Return Bills
                             </a>
