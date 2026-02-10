@@ -312,7 +312,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $db = Database::getInstance();
         $itemsQuery = "SELECT ri.*, 
                        e.code as equipment_code, e.item_name as equipment_name, 
-                       e.deposit_one_day as equipment_deposit, e.no_sub_items, e.change_value,
+                       e.deposit_one_day as equipment_deposit, e.no_sub_items, e.change_value, e.is_fixed_rate,
                        se.code as sub_equipment_code,
                        -- latest return info per item
                        (SELECT err.return_date FROM equipment_rent_returns err 
@@ -345,15 +345,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Get total charges from all returns: rental amounts + extra day + damage + penalty
         // For monthly rentals, divide by 30 to get daily rate
         $chargesQuery = "SELECT COALESCE(SUM(
-                            GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                            * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                            * err.return_qty
+                            CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                                THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                                ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                                    * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                                    * err.return_qty)
+                            END
                             + COALESCE(err.extra_day_amount, 0)
                             + COALESCE(err.damage_amount, 0)
                             + COALESCE(err.penalty_amount, 0)
                         ), 0) as total_charges
                         FROM equipment_rent_returns err
                         INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                        LEFT JOIN equipment e ON eri.equipment_id = e.id
                         WHERE eri.rent_id = $rent_id";
         $chargesResult = $db->readQuery($chargesQuery);
         $chargesData = mysqli_fetch_assoc($chargesResult);
@@ -533,6 +537,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
                 "rent_one_month" => $EQUIPMENT->rent_one_month,
                 "deposit_one_day" => $EQUIPMENT->deposit_one_day,
                 "no_sub_items" => $EQUIPMENT->no_sub_items,
+                "is_fixed_rate" => $EQUIPMENT->is_fixed_rate,
                 "quantity" => $EQUIPMENT->quantity
             ],
             "total_sub_equipment" => count($all),
@@ -1053,6 +1058,7 @@ if (isset($_POST['filter_equipment'])) {
             "rent_one_month" => $row['rent_one_month'],
             "no_sub_items" => $row['no_sub_items'],
             "change_value" => $row['change_value'] ?? 0,
+            "is_fixed_rate" => $row['is_fixed_rate'] ?? 0,
             "total_quantity" => $row['quantity'],
             "availability_label" => $statusLabel
         ];

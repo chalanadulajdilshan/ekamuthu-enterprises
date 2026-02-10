@@ -127,6 +127,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 eri.quantity as base_item_qty,
                 eri.rent_type,
                 er_status.rent_status,
+                COALESCE(e.is_fixed_rate, 0) as is_fixed_rate,
                 -- Dynamic used days calculation matching rent-invoice.php logic
                 GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) as calculated_days
             FROM `equipment_rent_returns` err
@@ -156,15 +157,26 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             $baseQty = floatval($row['base_item_qty']);
             $dayCount = floatval($row['calculated_days']);
             
-            // Effective Daily Rate for the line = (Line Rate / (Month? 30 : 1))
-            // The rate is already for the total quantity, so we scale by (returnQty / baseQty) if partial return
-            $effectiveLineRate = ($row['rent_type'] === 'month') ? ($lineRate / 30) : $lineRate;
-            $qtyScale = ($baseQty > 0) ? ($returnQty / $baseQty) : 1;
-            $scaledDailyRate = $effectiveLineRate * $qtyScale;
-            
-            // Profit for return = (Scaled Daily Rate * Day Count) + Damage Amount
-            // Extra Day and Penalty amounts are shown in the "Extra Amount" column separately
-            $rentalProfit = $scaledDailyRate * $dayCount;
+            // Check if fixed-rate item
+            $isFixedRate = intval($row['is_fixed_rate'] ?? 0) === 1;
+
+            if ($isFixedRate) {
+                // Fixed-rate: flat amount regardless of days
+                $qtyScale = ($baseQty > 0) ? ($returnQty / $baseQty) : 1;
+                $rentalProfit = $lineRate * $qtyScale;
+                $effectiveLineRate = $lineRate;
+                $scaledDailyRate = $lineRate * $qtyScale;
+            } else {
+                // Effective Daily Rate for the line = (Line Rate / (Month? 30 : 1))
+                // The rate is already for the total quantity, so we scale by (returnQty / baseQty) if partial return
+                $effectiveLineRate = ($row['rent_type'] === 'month') ? ($lineRate / 30) : $lineRate;
+                $qtyScale = ($baseQty > 0) ? ($returnQty / $baseQty) : 1;
+                $scaledDailyRate = $effectiveLineRate * $qtyScale;
+                
+                // Profit for return = (Scaled Daily Rate * Day Count) + Damage Amount
+                // Extra Day and Penalty amounts are shown in the "Extra Amount" column separately
+                $rentalProfit = $scaledDailyRate * $dayCount;
+            }
             $totalItemProfit = $rentalProfit + floatval($row['damage_amount']);
 
             // Initialize Grouped Return Bill if not exists

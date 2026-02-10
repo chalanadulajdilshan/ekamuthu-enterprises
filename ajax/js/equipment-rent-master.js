@@ -7,6 +7,7 @@ jQuery(document).ready(function () {
   var currentAllowManualAmount = false;
   var totalCalculatedDeposit = 0;
   var currentEquipmentId = null;
+  var currentIsFixedRate = false;
   var manualAmountEditEnabled = false;
 
   // Calculate amount and return date
@@ -29,16 +30,28 @@ jQuery(document).ready(function () {
     var amount = 0;
     var returnDate = new Date(rentalDate);
 
-    if (rentType === "day") {
-      // amount = currentRentOneDay * duration * qty;
-      amount = currentRentOneDay * qty;
-      returnDate.setDate(returnDate.getDate() + duration);
-      $("#duration_label").text("Days");
+    // For fixed-rate items, use flat rate (no duration multiplication)
+    if (currentIsFixedRate) {
+      if (rentType === "day") {
+        amount = currentRentOneDay * qty;
+        returnDate.setDate(returnDate.getDate() + 1);
+        $("#duration_label").text("Days");
+      } else {
+        amount = currentRentOneMonth * qty;
+        returnDate.setMonth(returnDate.getMonth() + 1);
+        $("#duration_label").text("Months");
+      }
     } else {
-      // amount = currentRentOneMonth * duration * qty;
-      amount = currentRentOneMonth * qty;
-      returnDate.setMonth(returnDate.getMonth() + duration);
-      $("#duration_label").text("Months");
+      // Normal items: multiply by duration
+      if (rentType === "day") {
+        amount = currentRentOneDay * qty;
+        returnDate.setDate(returnDate.getDate() + duration);
+        $("#duration_label").text("Days");
+      } else {
+        amount = currentRentOneMonth * qty;
+        returnDate.setMonth(returnDate.getMonth() + duration);
+        $("#duration_label").text("Months");
+      }
     }
 
     // Format amount
@@ -99,13 +112,13 @@ jQuery(document).ready(function () {
     if (!(manualEnabled && $("#item_amount").data("manual-edited"))) {
       var amount = 0;
       var qty = parseFloat($("#item_qty").val()) || 1;
-      if (rentType === "day") {
-        // amount = currentRentOneDay * duration * qty;
-
-        amount = currentRentOneDay * qty;
+      
+      // For fixed-rate items, always use flat rate
+      if (currentIsFixedRate) {
+        amount = (rentType === "day") ? (currentRentOneDay * qty) : (currentRentOneMonth * qty);
       } else {
-        // amount = currentRentOneMonth * duration * qty;
-        amount = currentRentOneMonth * qty;
+        // Normal items: use stored rate (already calculated per duration in the system)
+        amount = (rentType === "day") ? (currentRentOneDay * qty) : (currentRentOneMonth * qty);
       }
       $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
     }
@@ -454,6 +467,7 @@ jQuery(document).ready(function () {
       amount: $("#item_amount").val(),
       // Store equipment deposit value for calculation
       deposit_one_day: currentDepositOneDay,
+      is_fixed_rate: currentIsFixedRate ? 1 : 0,
       status: "rented",
       remark: "",
       no_sub_items: noSubItems ? 1 : 0,
@@ -893,6 +907,7 @@ jQuery(document).ready(function () {
               latest_used_days: item.latest_used_days || null,
               status: item.status,
               remark: item.remark,
+              is_fixed_rate: item.is_fixed_rate == 1 ? 1 : 0,
               no_sub_items:
                 item.no_sub_items == 1
                   ? 1
@@ -1392,6 +1407,7 @@ jQuery(document).ready(function () {
           currentRentOneMonth = parseFloat(data.rent_one_month) || 0;
           currentDepositOneDay = parseFloat(data.deposit_one_day) || 0;
           currentAllowManualAmount = data.change_value == 1;
+          currentIsFixedRate = data.is_fixed_rate == 1;
           currentEquipmentId = data.id;
 
           // Amount field editability (force remove attribute when allowed)

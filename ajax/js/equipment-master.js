@@ -93,6 +93,7 @@ jQuery(document).ready(function () {
           $("#quantity").val(data.quantity || "0");
           $("#no_sub_items").prop("checked", data.no_sub_items == 1);
           $("#change_value").prop("checked", data.change_value == 1);
+          $("#is_fixed_rate").prop("checked", data.is_fixed_rate == 1);
           $("#remark").val(data.remark || "");
           $("#old_image_name").val(data.image_name || "");
 
@@ -211,6 +212,7 @@ jQuery(document).ready(function () {
           $("#quantity").val(data.quantity || "0");
           $("#no_sub_items").prop("checked", data.no_sub_items == 1);
           $("#change_value").prop("checked", data.change_value == 1);
+          $("#is_fixed_rate").prop("checked", data.is_fixed_rate == 1);
           $("#remark").val(data.remark || "");
           $("#old_image_name").val(data.image_name || "");
 
@@ -269,6 +271,7 @@ jQuery(document).ready(function () {
       formData.append("create", true);
       formData.append("no_sub_items", getCheckboxVal("#no_sub_items"));
       formData.append("change_value", getCheckboxVal("#change_value"));
+      formData.append("is_fixed_rate", getCheckboxVal("#is_fixed_rate"));
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -371,6 +374,7 @@ jQuery(document).ready(function () {
       formData.append("update", true);
       formData.append("no_sub_items", getCheckboxVal("#no_sub_items"));
       formData.append("change_value", getCheckboxVal("#change_value"));
+      formData.append("is_fixed_rate", getCheckboxVal("#is_fixed_rate"));
 
       if (croppedBlob) {
         formData.append("equipment_image", croppedBlob, "equipment.jpg");
@@ -452,6 +456,7 @@ jQuery(document).ready(function () {
     $("#equipment_id").val("");
     $("#no_sub_items").prop("checked", false);
     $("#change_value").prop("checked", false);
+    $("#is_fixed_rate").prop("checked", false);
     $("#old_image_name").val("");
     $("#image_preview").attr("src", "assets/images/no-image.png");
     $("#update").hide();

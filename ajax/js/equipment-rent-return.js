@@ -183,6 +183,9 @@ $(document).ready(function() {
                         $("#penaltySection").hide();
                     }
                     
+                    // Check if this is a fixed-rate item
+                    const isFixedRate = calc.is_fixed_rate === true || calc.is_fixed_rate === 1;
+                    
                     let settlementHtml = `
                         <div class="alert alert-warning">
                             <h6><strong>Settlement Calculation:</strong></h6>
@@ -194,7 +197,16 @@ $(document).ready(function() {
                                 <tr>
                                     <td>Deposit for this qty:</td>
                                     <td class="text-right">Rs. ${calc.customer_deposit_share.toFixed(2)}</td>
-                                </tr>
+                                </tr>`;
+                    
+                    if (isFixedRate) {
+                        settlementHtml += `
+                                <tr>
+                                    <td><span class="badge bg-info">Fixed Rate Item</span></td>
+                                    <td class="text-right">Flat charge applies</td>
+                                </tr>`;
+                    } else {
+                        settlementHtml += `
                                 <tr>
                                     <td>Used Days:</td>
                                     <td class="text-right">${calc.used_days} day(s)</td>
@@ -206,19 +218,28 @@ $(document).ready(function() {
                                 <tr>
                                     <td>Daily Rate (per unit):</td>
                                     <td class="text-right">Rs. ${calc.per_unit_daily.toFixed(2)}</td>
-                                </tr>
+                                </tr>`;
+                    }
+                    
+                    settlementHtml += `
                                 <tr>
                                     <td>Extra Day Amount:</td>
                                     <td class="text-right">Rs. ${(parseFloat(calc.extra_day_amount || 0)).toFixed(2)}</td>
-                                </tr>
-                                ${calc.is_late ? `<tr class="text-danger">
+                                </tr>`;
+                    
+                    if (calc.is_late) {
+                        settlementHtml += `
+                                <tr class="text-danger">
                                     <td>Overdue Days:</td>
                                     <td class="text-right">${calc.overdue_days} day(s)</td>
                                 </tr>
                                 <tr class="text-danger">
                                     <td>Penalty (${calc.penalty_percentage}%):</td>
                                     <td class="text-right">Rs. ${(parseFloat(calc.penalty_amount || 0)).toFixed(2)}</td>
-                                </tr>` : ''}
+                                </tr>`;
+                    }
+                    
+                    settlementHtml += `
                                 <tr>
                                     <td>Rental for this qty:</td>
                                     <td class="text-right">Rs. ${calc.rental_amount.toFixed(2)}</td>

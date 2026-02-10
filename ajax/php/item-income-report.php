@@ -9,9 +9,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
     $db = Database::getInstance();
 
     // Rental amount calculation per return row (per returned qty)
-    $rentalCalc = "GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                   * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                   * err.return_qty";
+    $rentalCalc = "CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                       THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                       ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                           * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                           * err.return_qty)
+                   END";
 
     $query = "SELECT 
                     e.id AS equipment_id,

@@ -16,6 +16,7 @@ class Equipment
     public $quantity;
     public $no_sub_items;
     public $change_value;
+    public $is_fixed_rate;
     public $image_name;
     public $remark;
 
@@ -41,6 +42,7 @@ class Equipment
                 $this->quantity = $result['quantity'];
                 $this->no_sub_items = $result['no_sub_items'];
                 $this->change_value = $result['change_value'] ?? 0;
+                $this->is_fixed_rate = $result['is_fixed_rate'] ?? 0;
                 $this->image_name = $result['image_name'];
                 $this->remark = $result['remark'];
             }
@@ -50,9 +52,9 @@ class Equipment
     public function create()
     {
         $query = "INSERT INTO `equipment` (
-            `code`, `item_name`, `category`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`, `no_sub_items`, `change_value`, `image_name`, `remark`
+            `code`, `item_name`, `category`, `serial_number`, `damage`, `size`, `rent_one_day`, `deposit_one_day`, `rent_one_month`, `value`, `quantity`, `no_sub_items`, `change_value`, `is_fixed_rate`, `image_name`, `remark`
         ) VALUES (
-            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity', '$this->no_sub_items', '$this->change_value', '$this->image_name', '$this->remark'
+            '$this->code', '$this->item_name', '$this->category', '$this->serial_number', '$this->damage', '$this->size', '$this->rent_one_day', '$this->deposit_one_day', '$this->rent_one_month', '$this->value', '$this->quantity', '$this->no_sub_items', '$this->change_value', '$this->is_fixed_rate', '$this->image_name', '$this->remark'
         )";
 
         $db = Database::getInstance();
@@ -81,6 +83,7 @@ class Equipment
             `quantity` = '$this->quantity',
             `no_sub_items` = '$this->no_sub_items',
             `change_value` = '$this->change_value',
+            `is_fixed_rate` = '$this->is_fixed_rate',
             `image_name` = '$this->image_name',
             `remark` = '$this->remark'
             WHERE `id` = '$this->id'";
@@ -144,6 +147,7 @@ class Equipment
             $this->value = $result['value'];
             $this->quantity = $result['quantity'];
             $this->no_sub_items = $result['no_sub_items'];
+            $this->is_fixed_rate = $result['is_fixed_rate'] ?? 0;
             $this->image_name = $result['image_name'];
             $this->remark = $result['remark'];
             return true;
@@ -199,6 +203,7 @@ class Equipment
                 "quantity" => $row['quantity'],
                 "no_sub_items" => $row['no_sub_items'],
                 "change_value" => $row['change_value'] ?? 0,
+                "is_fixed_rate" => $row['is_fixed_rate'] ?? 0,
                 "image_name" => $row['image_name'],
                 "remark" => $row['remark']
             ];

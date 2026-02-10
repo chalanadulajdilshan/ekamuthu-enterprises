@@ -156,6 +156,7 @@ class EquipmentRentReturn
         // Get rent item details with rent type and duration, including customer deposit
         $query = "SELECT eri.*, 
                   e.deposit_one_day as deposit_per_item,
+                  e.is_fixed_rate,
                   er.deposit_total as customer_deposit,
                   er.id as rent_id,
                   (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as already_returned,
@@ -211,8 +212,17 @@ class EquipmentRentReturn
             }
         }
 
-        $suggestedExtraDayAmount = $isAfterCutoff ? ($per_unit_daily * $return_qty) : 0;
-        $finalExtraDayAmount = $isAfterCutoff ? (floatval($extra_day_amount) > 0 ? floatval($extra_day_amount) : $suggestedExtraDayAmount) : 0;
+        // Check if this is a fixed-rate item
+        $is_fixed_rate = intval($item['is_fixed_rate'] ?? 0) === 1;
+
+        // For fixed-rate items, no extra day charges
+        if ($is_fixed_rate) {
+            $suggestedExtraDayAmount = 0;
+            $finalExtraDayAmount = 0;
+        } else {
+            $suggestedExtraDayAmount = $isAfterCutoff ? ($per_unit_daily * $return_qty) : 0;
+            $finalExtraDayAmount = $isAfterCutoff ? (floatval($extra_day_amount) > 0 ? floatval($extra_day_amount) : $suggestedExtraDayAmount) : 0;
+        }
         $charged_days = $used_days + ($finalExtraDayAmount > 0 ? 1 : 0);
 
         // Calculate deposit for this return quantity
@@ -224,16 +234,21 @@ class EquipmentRentReturn
         $rent_id = $item['rent_id'];
         
         // Get total rent already charged from previous returns for this entire rent order
+        // For fixed-rate items, the rental charge is just (amount/quantity) * return_qty (no day multiplication)
         $prevRentQuery = "SELECT COALESCE(SUM(
-                            GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
-                            * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / (CASE WHEN eri2.rent_type = 'month' THEN 30 ELSE 1 END))
-                            * err2.return_qty
+                            CASE WHEN COALESCE(e2.is_fixed_rate, 0) = 1
+                                THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
+                                ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
+                                    * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / (CASE WHEN eri2.rent_type = 'month' THEN 30 ELSE 1 END))
+                                    * err2.return_qty)
+                            END
                             + COALESCE(err2.extra_day_amount, 0)
                             + COALESCE(err2.damage_amount, 0)
                             + COALESCE(err2.penalty_amount, 0)
                           ), 0) as total_previous_charges
                           FROM equipment_rent_returns err2
                           INNER JOIN equipment_rent_items eri2 ON err2.rent_item_id = eri2.id
+                          LEFT JOIN equipment e2 ON eri2.equipment_id = e2.id
                           WHERE eri2.rent_id = " . (int) $rent_id;
         $prevResult = mysqli_fetch_assoc($db->readQuery($prevRentQuery));
         $total_previous_charges = floatval($prevResult['total_previous_charges'] ?? 0);
@@ -244,15 +259,22 @@ class EquipmentRentReturn
         // Customer deposit share for this return is the remaining deposit (capped by what's available)
         $customer_deposit_share = $remaining_deposit;
 
-        // Rental charge for returned quantity based on days used (extra day amount is separate)
-        $rental_amount = $per_unit_daily * $used_days * $return_qty;
+        // Rental charge for returned quantity
+        // For fixed-rate items: flat rate regardless of days used
+        if ($is_fixed_rate) {
+            $rental_amount = $per_unit_rent_total * $return_qty;
+        } else {
+            // Standard: based on days used (extra day amount is separate)
+            $rental_amount = $per_unit_daily * $used_days * $return_qty;
+        }
         
         // Calculate penalty if late and penalty_percentage is provided (10% to 20%)
         $penalty_percentage = floatval($penalty_percentage);
         if ($penalty_percentage < 0) $penalty_percentage = 0;
         if ($penalty_percentage > 20) $penalty_percentage = 20;
         $penalty_amount = 0;
-        if ($is_late && $penalty_percentage > 0) {
+        // No penalty for fixed-rate items
+        if (!$is_fixed_rate && $is_late && $penalty_percentage > 0) {
             $penalty_amount = ($rental_amount * $penalty_percentage) / 100;
         }
         
@@ -296,26 +318,32 @@ class EquipmentRentReturn
             'additional_payment' => round($additional_payment, 2),
             'pending_qty' => $item['pending_qty'],
             'already_returned' => $item['already_returned'],
-            'total_quantity' => $item['quantity']
+            'total_quantity' => $item['quantity'],
+            'is_fixed_rate' => $is_fixed_rate
         ];
     }
 
     public static function getByRentItemId($rent_item_id)
     {
         $query = "SELECT err.*, u.name as created_by_name,
+                         COALESCE(e.is_fixed_rate, 0) AS is_fixed_rate,
                          -- duration days (month=>30)
                          CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END AS duration_days,
                          -- per-unit daily rate
                          (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily,
                          -- used days from rental_date to this return_date (>=1), matching PHP ceil day diff
                          GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) AS used_days,
-                         -- rental for this return qty based on days used
-                         GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                           * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                           * err.return_qty AS rental_amount
+                         -- rental for this return qty based on days used (or flat for fixed-rate)
+                         CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                           THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
+                           ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                             * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                             * err.return_qty
+                         END AS rental_amount
                   FROM `equipment_rent_returns` err
                   LEFT JOIN `user` u ON err.created_by = u.id
                   LEFT JOIN `equipment_rent_items` eri ON err.rent_item_id = eri.id
+                  LEFT JOIN `equipment` e ON eri.equipment_id = e.id
                   WHERE err.rent_item_id = " . (int) $rent_item_id . "
                   ORDER BY err.return_date DESC, err.id DESC";
         

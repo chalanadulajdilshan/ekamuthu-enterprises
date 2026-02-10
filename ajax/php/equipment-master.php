@@ -35,6 +35,7 @@ if (isset($_POST['create'])) {
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
     $EQUIPMENT->no_sub_items = $_POST['no_sub_items'] ?? 0;
     $EQUIPMENT->change_value = $_POST['change_value'] ?? 0;
+    $EQUIPMENT->is_fixed_rate = $_POST['is_fixed_rate'] ?? 0;
     $EQUIPMENT->remark = $_POST['remark'] ?? '';
 
     // Handle image upload
@@ -105,6 +106,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT->quantity = $_POST['quantity'] ?? 0;
     $EQUIPMENT->no_sub_items = $_POST['no_sub_items'] ?? 0;
     $EQUIPMENT->change_value = $_POST['change_value'] ?? 0;
+    $EQUIPMENT->is_fixed_rate = $_POST['is_fixed_rate'] ?? 0;
     $EQUIPMENT->remark = $_POST['remark'] ?? '';
     $EQUIPMENT->image_name = $_POST['old_image_name'] ?? '';
 
@@ -243,6 +245,7 @@ if (isset($_POST['filter'])) {
             "quantity" => $row['quantity'],
             "no_sub_items" => $row['no_sub_items'],
             "change_value" => $row['change_value'] ?? 0,
+            "is_fixed_rate" => $row['is_fixed_rate'] ?? 0,
             "image_name" => $row['image_name'],
             "remark" => $row['remark'],
             "has_sub_match" => false, 
