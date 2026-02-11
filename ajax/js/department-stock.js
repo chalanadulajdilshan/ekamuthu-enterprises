@@ -105,7 +105,7 @@ $(document).ready(function () {
                     }
 
                 } else {
-                    swal("Error", "Failed to add stock", "error");
+                    swal("Error", result.message || "Failed to add stock", "error");
                 }
             },
             error: function () {
