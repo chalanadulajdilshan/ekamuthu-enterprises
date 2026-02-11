@@ -184,7 +184,7 @@ jQuery(document).ready(function () {
             );
 
             if (meta.department_stock && meta.department_stock.length > 0) {
-                var deptHtml = '<div class="row m-2"><div class="col-12"><h5 class="text-muted font-size-14 mb-3">Department Wise Stock</h5><div class="table-responsive"><table class="table table-bordered mb-0"><thead><tr><th>Department</th><th class="text-center">Total</th><th class="text-center">Available</th><th class="text-center">Rented</th></tr></thead><tbody>';
+                var deptHtml = '<div class="row m-2"><div class="col-12"><h5 class="text-muted font-size-14 mb-3">Department Wise Stock</h5><div class="table-responsive"><table class="table table-bordered border-secondary mb-0"><thead><tr><th>Department</th><th class="text-center">Total</th><th class="text-center">Available</th><th class="text-center">Rented</th></tr></thead><tbody>';
 
                 meta.department_stock.forEach(function (dept) {
                     var qty = parseFloat(dept.qty) || 0;
