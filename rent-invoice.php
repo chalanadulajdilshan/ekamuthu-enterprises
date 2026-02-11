@@ -72,27 +72,14 @@ foreach ($rent_items as $item) {
 $transport_amount = floatval($EQUIPMENT_RENT->transport_cost);
 $total_deposit = floatval($EQUIPMENT_RENT->deposit_total);
 
-// Calculate refund balance = deposit - total charges (rental + extra day + damage + penalty)
-$db = Database::getInstance();
-$chargesQuery = "SELECT COALESCE(SUM(
-                        CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
-                            THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
-                            ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                                * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                                * err.return_qty)
-                        END
-                        + COALESCE(err.extra_day_amount, 0)
-                        + COALESCE(err.damage_amount, 0)
-                        + COALESCE(err.penalty_amount, 0)
-                    ), 0) as total_charges
-                    FROM equipment_rent_returns err
-                    INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
-                    LEFT JOIN equipment e ON eri.equipment_id = e.id
-                    WHERE eri.rent_id = " . (int) $rent_id;
-$chargesResult = $db->readQuery($chargesQuery);
-$chargesData = mysqli_fetch_assoc($chargesResult);
-$total_charges = floatval($chargesData['total_charges'] ?? 0);
-$refund_balance = $total_deposit - $total_charges;
+// Calculate refund balance using actual settled totals (respects deposit caps per return)
+require_once 'class/EquipmentRentReturn.php';
+$settlementTotals = EquipmentRentReturn::getSettlementTotalsByRentId($rent_id);
+$total_refund = $settlementTotals['total_refund'];
+$total_additional = $settlementTotals['total_additional'];
+
+// Net customer position: refunds (deposit returned) minus any additional payments owed
+$refund_balance = $total_refund - $total_additional;
 
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;
