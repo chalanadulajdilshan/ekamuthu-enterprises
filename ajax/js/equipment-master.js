@@ -30,14 +30,41 @@ jQuery(document).ready(function () {
 
   function toggleAddSubButton() {
     var hasEquipment = $("#equipment_id").val();
+    var noSubItems = $("#no_sub_items").is(":checked");
+
+    if (noSubItems) {
+      $("#department_container").hide();
+      $("#department").prop("required", false);
+    } else {
+      $("#department_container").show();
+      $("#department").prop("required", true);
+    }
+
     if (hasEquipment) {
-      $("#add-sub-equipment").removeClass("d-none");
+      if (noSubItems) {
+        $("#add-sub-equipment").addClass("d-none");
+        $("#add-department-stock").removeClass("d-none");
+      } else {
+        $("#add-sub-equipment").removeClass("d-none");
+        $("#add-department-stock").addClass("d-none");
+      }
     } else {
       $("#add-sub-equipment").addClass("d-none");
+      $("#add-department-stock").addClass("d-none");
     }
   }
 
+  $("#no_sub_items").change(function () {
+    toggleAddSubButton();
+  });
+
   toggleAddSubButton();
+
+  // Handle "Stock" button click to set equipment_id in the modal
+  $("#add-department-stock").click(function () {
+    var equipmentId = $("#equipment_id").val();
+    $("#stock_equipment_id").val(equipmentId);
+  });
 
   // Equipment code autocomplete
   var equipmentCodeCache = [];
@@ -254,6 +281,9 @@ jQuery(document).ready(function () {
 
     // Validation
     var invalidField = requiredFields.find(function (field) {
+      if (field.selector === "#department" && $("#no_sub_items").is(":checked")) {
+        return false;
+      }
       return !$(field.selector).val();
     });
 
@@ -356,7 +386,11 @@ jQuery(document).ready(function () {
     // Disable the button to prevent multiple submissions
     $("#update").prop("disabled", true);
 
+    // Validation
     var invalidUpdateField = requiredFields.find(function (field) {
+      if (field.selector === "#department" && $("#no_sub_items").is(":checked")) {
+        return false;
+      }
       return !$(field.selector).val();
     });
 
