@@ -112,7 +112,7 @@ jQuery(document).ready(function () {
     if (!(manualEnabled && $("#item_amount").data("manual-edited"))) {
       var amount = 0;
       var qty = parseFloat($("#item_qty").val()) || 1;
-      
+
       // For fixed-rate items, always use flat rate
       if (currentIsFixedRate) {
         amount = (rentType === "day") ? (currentRentOneDay * qty) : (currentRentOneMonth * qty);
@@ -209,9 +209,9 @@ jQuery(document).ready(function () {
 
         var returnDisplay = hasReturn
           ? '<div class="text-danger fw-semibold">' +
-            returnDateTime +
-            dayCountDisplay +
-            "</div>"
+          returnDateTime +
+          dayCountDisplay +
+          "</div>"
           : "-";
 
         var rowClass = item.status === "cancelled" ? ' class="table-danger"' : '';
@@ -225,6 +225,9 @@ jQuery(document).ready(function () {
           "</td>" +
           "<td>" +
           (item.sub_equipment_display || "-") +
+          "</td>" +
+          "<td>" +
+          (item.department_name || "-") +
           "</td>" +
           "<td>" +
           (item.rent_type === "month" ? "Month" : "Day") +
@@ -313,9 +316,9 @@ jQuery(document).ready(function () {
         var item = rentItems[index];
         var itemLabel = item
           ? item.equipment_display +
-            (item.sub_equipment_display
-              ? " (" + item.sub_equipment_display + ")"
-              : "")
+          (item.sub_equipment_display
+            ? " (" + item.sub_equipment_display + ")"
+            : "")
           : "this item";
 
         swal(
@@ -467,6 +470,8 @@ jQuery(document).ready(function () {
       // Store equipment deposit value for calculation
       deposit_one_day: currentDepositOneDay,
       is_fixed_rate: currentIsFixedRate ? 1 : 0,
+      department_id: $("#item_department_id").val() || null,
+      department_name: $("#item_department_id option:selected").text().split(" (Avail")[0] || "",
       status: "rented",
       remark: "",
       no_sub_items: noSubItems ? 1 : 0,
@@ -495,6 +500,8 @@ jQuery(document).ready(function () {
     $("#item_qty").val(1);
     $("#item_returned_qty").val(0);
     $("#item_amount").val("");
+    // Reset department dropdown
+    $("#item_department_id").html('<option value="">- Select -</option>').prop("disabled", true);
   });
 
   // Track manual edits on amount when allowed
@@ -837,10 +844,10 @@ jQuery(document).ready(function () {
                 : "(Inactive)";
               $paymentSelect.append(
                 "<option data-temp='1' value='" +
-                  rent.payment_type_id +
-                  "' selected hidden>" +
-                  tempLabel +
-                  "</option>",
+                rent.payment_type_id +
+                "' selected hidden>" +
+                tempLabel +
+                "</option>",
               );
             }
             $paymentSelect.val(rent.payment_type_id);
@@ -906,6 +913,8 @@ jQuery(document).ready(function () {
               latest_used_days: item.latest_used_days || null,
               status: item.status,
               remark: item.remark,
+              department_id: item.department_id || null,
+              department_name: item.department_name || "",
               is_fixed_rate: item.is_fixed_rate == 1 ? 1 : 0,
               no_sub_items:
                 item.no_sub_items == 1
@@ -1436,6 +1445,7 @@ jQuery(document).ready(function () {
 
           // Auto-fill amount if equipment is selected (will be updated when sub-equipment is selected)
           calculateRentDetails();
+          loadDepartments(data.id);
 
           // Clear sub equipment when equipment changes
           $("#item_sub_equipment_id").val("");
@@ -1500,6 +1510,7 @@ jQuery(document).ready(function () {
         data: function (d) {
           d.filter_sub_equipment = true;
           d.equipment_id = equipmentId;
+          d.department_id = $("#item_department_id").val();
         },
         dataSrc: function (json) {
           if (json.data.length === 0) {
@@ -1535,8 +1546,9 @@ jQuery(document).ready(function () {
           $("#item_sub_equipment_display").val(data.code);
           $("#SubEquipmentSelectModal").modal("hide");
 
-          // Auto-fill amount when sub-equipment is selected
+          // Auto-fill amount and department when sub-equipment is selected
           calculateRentDetails();
+          loadDepartments($("#item_equipment_id").val(), data.id);
         }
       });
   }
@@ -1914,100 +1926,100 @@ jQuery(document).ready(function () {
   );
 
   function fetchReturnAllPreview() {
-      var rentId = $("#rent_id").val();
-      var returnDate = $("#return_all_date").val();
-      var returnTime = $("#return_all_time").val();
-      var after9am = $("#return_all_after_9am").is(":checked") ? 1 : 0;
-      var rentalOverrideInput = $("#return_all_rental_override").val();
-      var rentalOverride = rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
+    var rentId = $("#rent_id").val();
+    var returnDate = $("#return_all_date").val();
+    var returnTime = $("#return_all_time").val();
+    var after9am = $("#return_all_after_9am").is(":checked") ? 1 : 0;
+    var rentalOverrideInput = $("#return_all_rental_override").val();
+    var rentalOverride = rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
 
-      if (!rentId || !returnDate || !returnTime) {
-        $("#returnAllPreview").hide();
-        return;
+    if (!rentId || !returnDate || !returnTime) {
+      $("#returnAllPreview").hide();
+      return;
+    }
+
+    // Calculate day count text (client-side)
+    var rentalStart = $("#rental_start_date").val();
+    var dayCountText = "-";
+    if (rentalStart) {
+      var returnDateOnly = new Date(returnDate + " 00:00");
+      var rentalStartDate = new Date(rentalStart + " 00:00");
+      if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
+        var msDiff = returnDateOnly - rentalStartDate;
+        var baseDays = msDiff >= 0 ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24))) : 0;
+        var totalDays = baseDays + (after9am ? 1 : 0);
+        dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
       }
+    }
 
-      // Calculate day count text (client-side)
-      var rentalStart = $("#rental_start_date").val();
-      var dayCountText = "-";
-      if (rentalStart) {
-        var returnDateOnly = new Date(returnDate + " 00:00");
-        var rentalStartDate = new Date(rentalStart + " 00:00");
-        if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
-          var msDiff = returnDateOnly - rentalStartDate;
-          var baseDays = msDiff >= 0 ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24))) : 0;
-          var totalDays = baseDays + (after9am ? 1 : 0);
-          dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
+    // Call preview-only API to get settlement totals
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: {
+        action: "return_all",
+        preview_only: 1,
+        rent_id: rentId,
+        return_date: returnDate,
+        return_time: returnTime,
+        after_9am_extra_day: after9am,
+        rental_override: rentalOverride,
+      },
+      dataType: "json",
+      success: function (res) {
+        var calc = res && res.calculation ? res.calculation : {};
+
+        var previewHtml =
+          "<p><strong>Return Date:</strong> " +
+          returnDate +
+          " " +
+          returnTime +
+          "</p>";
+        previewHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+        previewHtml +=
+          "<p><strong>After 9:00 AM:</strong> " +
+          (after9am ? "Yes (extra day will be counted)" : "No") +
+          "</p>";
+
+        // Settlement summary
+        var settlement = [];
+        var rentalLabel = rentalOverride !== null && !isNaN(rentalOverride) ? "Rental (override)" : "Rental";
+        var rentalValue = rentalOverride !== null && !isNaN(rentalOverride)
+          ? rentalOverride
+          : Number(calc.rental_amount || 0);
+        settlement.push(rentalLabel + ": Rs. " + Number(rentalValue || 0).toFixed(2));
+        settlement.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
+        settlement.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
+        settlement.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
+        settlement.push("Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2));
+        if (Number(calc.refund_amount || 0) > 0) {
+          settlement.push("Refund: Rs. " + Number(calc.refund_amount).toFixed(2));
+        } else if (Number(calc.additional_payment || 0) > 0) {
+          settlement.push("Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2));
         }
-      }
 
-      // Call preview-only API to get settlement totals
-      $.ajax({
-        url: "ajax/php/equipment-rent-master.php",
-        type: "POST",
-        data: {
-          action: "return_all",
-          preview_only: 1,
-          rent_id: rentId,
-          return_date: returnDate,
-          return_time: returnTime,
-          after_9am_extra_day: after9am,
-          rental_override: rentalOverride,
-        },
-        dataType: "json",
-        success: function (res) {
-          var calc = res && res.calculation ? res.calculation : {};
+        previewHtml += "<hr><p><strong>Settlement Preview:</strong><br>" + settlement.join("<br>") + "</p>";
 
-          var previewHtml =
-            "<p><strong>Return Date:</strong> " +
-            returnDate +
-            " " +
-            returnTime +
-            "</p>";
-          previewHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
-          previewHtml +=
-            "<p><strong>After 9:00 AM:</strong> " +
-            (after9am ? "Yes (extra day will be counted)" : "No") +
-            "</p>";
-
-          // Settlement summary
-          var settlement = [];
-          var rentalLabel = rentalOverride !== null && !isNaN(rentalOverride) ? "Rental (override)" : "Rental";
-          var rentalValue = rentalOverride !== null && !isNaN(rentalOverride)
-            ? rentalOverride
-            : Number(calc.rental_amount || 0);
-          settlement.push(rentalLabel + ": Rs. " + Number(rentalValue || 0).toFixed(2));
-          settlement.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
-          settlement.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
-          settlement.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
-          settlement.push("Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2));
-          if (Number(calc.refund_amount || 0) > 0) {
-            settlement.push("Refund: Rs. " + Number(calc.refund_amount).toFixed(2));
-          } else if (Number(calc.additional_payment || 0) > 0) {
-            settlement.push("Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2));
-          }
-
-          previewHtml += "<hr><p><strong>Settlement Preview:</strong><br>" + settlement.join("<br>") + "</p>";
-
-          $("#returnAllPreviewContent").html(previewHtml);
-          $("#returnAllPreview").show();
-        },
-        error: function () {
-          // Fallback to basic preview
-          var fallbackHtml =
-            "<p><strong>Return Date:</strong> " +
-            returnDate +
-            " " +
-            returnTime +
-            "</p>";
-          fallbackHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
-          fallbackHtml +=
-            "<p><strong>After 9:00 AM:</strong> " +
-            (after9am ? "Yes (extra day will be counted)" : "No") +
-            "</p>";
-          $("#returnAllPreviewContent").html(fallbackHtml);
-          $("#returnAllPreview").show();
-        },
-      });
+        $("#returnAllPreviewContent").html(previewHtml);
+        $("#returnAllPreview").show();
+      },
+      error: function () {
+        // Fallback to basic preview
+        var fallbackHtml =
+          "<p><strong>Return Date:</strong> " +
+          returnDate +
+          " " +
+          returnTime +
+          "</p>";
+        fallbackHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+        fallbackHtml +=
+          "<p><strong>After 9:00 AM:</strong> " +
+          (after9am ? "Yes (extra day will be counted)" : "No") +
+          "</p>";
+        $("#returnAllPreviewContent").html(fallbackHtml);
+        $("#returnAllPreview").show();
+      },
+    });
   }
 
   // Confirm Return All Items
@@ -2478,4 +2490,54 @@ jQuery(document).ready(function () {
   $("#print").hide();
   $("#cancel-return").hide();
   $("#cancel-bill").hide();
+  // --- New Logic for Department Selection ---
+
+  // Check availability when Department or Equipment changes
+  // --- New Logic for Department Selection (Refactored) ---
+
+  function loadDepartments(equipmentId, subEquipmentId = '') {
+    var $deptSelect = $("#item_department_id");
+    $deptSelect.html('<option value="">Loading...</option>').prop("disabled", true);
+
+    if (!equipmentId) {
+      $deptSelect.html('<option value="">- Select -</option>').prop("disabled", true);
+      return;
+    }
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "JSON",
+      data: {
+        action: "get_item_departments",
+        equipment_id: equipmentId,
+        sub_equipment_id: subEquipmentId
+      },
+      success: function (res) {
+        if (res.status === 'success') {
+          var depts = res.departments;
+          var options = '<option value="">- Select -</option>';
+
+          depts.forEach(function (d) {
+            var label = d.name + " (Avail: " + d.available_qty + ")";
+            var selected = d.is_selected ? 'selected' : '';
+            options += '<option value="' + d.id + '" ' + selected + '>' + label + '</option>';
+          });
+
+          $deptSelect.html(options).prop("disabled", false);
+
+          // If only one department is available, auto-select it
+          if (depts.length === 1) {
+            $deptSelect.val(depts[0].id);
+          }
+        } else {
+          $deptSelect.html('<option value="">Error</option>');
+        }
+      },
+      error: function () {
+        $deptSelect.html('<option value="">Error</option>');
+      }
+    });
+  }
+
 });

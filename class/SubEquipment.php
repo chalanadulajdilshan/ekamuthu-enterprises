@@ -8,6 +8,7 @@ class SubEquipment
     public $code;
     public $rental_status;
     public $qty;
+    public $rented_qty;
 
     public function __construct($id = null)
     {
@@ -23,6 +24,7 @@ class SubEquipment
                 $this->code = $result['code'];
                 $this->rental_status = $result['rental_status'];
                 $this->qty = $result['qty'];
+                $this->rented_qty = $result['rented_qty'] ?? 0;
             }
         }
     }
@@ -30,9 +32,9 @@ class SubEquipment
     public function create()
     {
         $query = "INSERT INTO `sub_equipment` (
-            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`
+            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`, `rented_qty`
         ) VALUES (
-            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty'
+            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty', '$this->rented_qty'
         )";
 
         $db = Database::getInstance();
@@ -52,7 +54,8 @@ class SubEquipment
             `department_id` = '$this->department_id',
             `code` = '$this->code',
             `rental_status` = '$this->rental_status',
-            `qty` = '$this->qty'
+            `qty` = '$this->qty',
+            `rented_qty` = '$this->rented_qty'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -147,6 +150,7 @@ class SubEquipment
                 "code" => $row['code'],
                 "rental_status" => $row['rental_status'],
                 "qty" => $row['qty'],
+                "rented_qty" => $row['rented_qty'] ?? 0,
             ];
 
             $data[] = $nestedData;

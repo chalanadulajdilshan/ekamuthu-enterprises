@@ -15,6 +15,7 @@ class EquipmentRentItem
     public $amount;
     public $deposit_amount;
     public $status;
+    public $department_id;
     public $remark;
     public $created_at;
     public $updated_at;
@@ -40,6 +41,7 @@ class EquipmentRentItem
                 $this->amount = $result['amount'];
                 $this->deposit_amount = $result['deposit_amount'] ?? 0;
                 $this->status = $result['status'];
+                $this->department_id = $result['department_id'] ?? null;
                 $this->remark = $result['remark'];
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
@@ -54,10 +56,12 @@ class EquipmentRentItem
             ? "'{$this->sub_equipment_id}'" 
             : "NULL";
         
+        $deptValue = !empty($this->department_id) ? "'{$this->department_id}'" : "NULL";
+
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`
         ) VALUES (
-            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity'
+            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue
         )";
 
         $db = Database::getInstance();
@@ -71,6 +75,11 @@ class EquipmentRentItem
                 // Default to rent unless explicitly returned
                 $newStatus = ($this->status === 'returned') ? 'available' : 'rent';
                 $this->updateSubEquipmentStatus($this->sub_equipment_id, $newStatus);
+            } else {
+                // Bulk item - deduct from department stock if status is rented
+                if ($this->status === 'rented') {
+                    $this->updateBulkStock($this->equipment_id, $this->department_id, $this->quantity, true);
+                }
             }
 
             return $this->id;
@@ -91,6 +100,8 @@ class EquipmentRentItem
             ? "'{$this->sub_equipment_id}'" 
             : "NULL";
 
+        $deptValue = !empty($this->department_id) ? "'{$this->department_id}'" : "NULL";
+
         $query = "UPDATE `equipment_rent_items` SET 
             `equipment_id` = '$this->equipment_id', 
             `sub_equipment_id` = $subEquipmentValue,
@@ -101,6 +112,7 @@ class EquipmentRentItem
             `amount` = '$this->amount',
             `deposit_amount` = '$this->deposit_amount',
             `status` = '$this->status',
+            `department_id` = $deptValue,
             `remark` = '$this->remark'
             WHERE `id` = '$this->id'";
 
@@ -122,6 +134,34 @@ class EquipmentRentItem
                 $newRentalStatus = ($this->status === 'returned') ? 'available' : 'rent';
                 $this->updateSubEquipmentStatus($this->sub_equipment_id, $newRentalStatus);
             }
+
+            // Handle bulk item stock changes
+            if (!$this->sub_equipment_id) {
+                if ($oldItem->equipment_id != $this->equipment_id || $oldItem->department_id != $this->department_id) {
+                    // Equipment or Department changed - restore old, deduct new
+                    if ($oldStatus === 'rented') {
+                        $this->updateBulkStock($oldItem->equipment_id, $oldItem->department_id, $oldItem->quantity, false);
+                    }
+                    if ($this->status === 'rented') {
+                        $this->updateBulkStock($this->equipment_id, $this->department_id, $this->quantity, true);
+                    }
+                } elseif ($oldItem->quantity != $this->quantity || $oldStatus !== $this->status) {
+                    // Same equipment/dept but qty or status changed
+                    if ($oldStatus === 'rented' && $this->status === 'rented') {
+                        // Just qty changed
+                        $diff = $this->quantity - $oldItem->quantity;
+                        if ($diff != 0) {
+                            $this->updateBulkStock($this->equipment_id, $this->department_id, abs($diff), $diff > 0);
+                        }
+                    } elseif ($oldStatus === 'rented' && $this->status !== 'rented') {
+                        // Changed from rented to something else - restore stock
+                        $this->updateBulkStock($oldItem->equipment_id, $oldItem->department_id, $oldItem->quantity, false);
+                    } elseif ($oldStatus !== 'rented' && $this->status === 'rented') {
+                        // Changed to rented - deduct stock
+                        $this->updateBulkStock($this->equipment_id, $this->department_id, $this->quantity, true);
+                    }
+                }
+            }
             
             return true;
         } else {
@@ -134,6 +174,9 @@ class EquipmentRentItem
         // Release sub_equipment before deleting
         if ($this->sub_equipment_id && $this->status === 'rented') {
             $this->updateSubEquipmentStatus($this->sub_equipment_id, 'available');
+        } elseif (!$this->sub_equipment_id && $this->status === 'rented') {
+            // Restore bulk stock
+            $this->updateBulkStock($this->equipment_id, $this->department_id, $this->quantity, false);
         }
 
         $query = "DELETE FROM `equipment_rent_items` WHERE `id` = '$this->id'";
@@ -146,10 +189,12 @@ class EquipmentRentItem
         $query = "SELECT eri.*, 
                   e.code as equipment_code, e.item_name as equipment_name, e.no_sub_items,
                   se.code as sub_equipment_code,
+                  dm.name as department_name,
                   eri.quantity - COALESCE(eri.total_returned_qty, 0) as pending_qty
                   FROM `equipment_rent_items` eri
                   LEFT JOIN `equipment` e ON eri.equipment_id = e.id
                   LEFT JOIN `sub_equipment` se ON eri.sub_equipment_id = se.id
+                  LEFT JOIN `department_master` dm ON eri.department_id = dm.id
                   WHERE eri.rent_id = " . (int) $rent_id . "
                   ORDER BY eri.id ASC";
         
@@ -171,6 +216,8 @@ class EquipmentRentItem
         foreach ($items as $item) {
             if ($item['sub_equipment_id'] && $item['status'] === 'rented') {
                 $this->updateSubEquipmentStatus($item['sub_equipment_id'], 'available');
+            } elseif (!$item['sub_equipment_id'] && $item['status'] === 'rented') {
+                $this->updateBulkStock($item['equipment_id'], $item['department_id'], $item['quantity'], false);
             }
         }
 
@@ -186,13 +233,37 @@ class EquipmentRentItem
         return $db->readQuery($query);
     }
 
-    public static function getAvailableSubEquipment($equipment_id)
+    private function updateBulkStock($equipment_id, $department_id, $quantity, $isRenting = true)
     {
-        $query = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name
+        if (!$equipment_id || !$department_id) {
+            return false;
+        }
+
+        $db = Database::getInstance();
+        $operator = $isRenting ? "+" : "-";
+        
+        // Update the rented_qty field in sub_equipment (qty remains as Total Stock)
+        $query = "UPDATE `sub_equipment` 
+                  SET `rented_qty` = `rented_qty` $operator " . (int)$quantity . " 
+                  WHERE `equipment_id` = " . (int)$equipment_id . " 
+                  AND `department_id` = " . (int)$department_id;
+        
+        return $db->readQuery($query);
+    }
+
+    public static function getAvailableSubEquipment($equipment_id, $department_id = null)
+    {
+        $where = "se.equipment_id = " . (int) $equipment_id . " AND se.rental_status = 'available'";
+
+        if ($department_id) {
+            $where .= " AND se.department_id = " . (int) $department_id;
+        }
+
+        $query = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name, dm.name as department_name
                   FROM `sub_equipment` se
                   LEFT JOIN `equipment` e ON se.equipment_id = e.id
-                  WHERE se.equipment_id = " . (int) $equipment_id . "
-                  AND se.rental_status = 'available'
+                  LEFT JOIN `department_master` dm ON se.department_id = dm.id
+                  WHERE $where
                   ORDER BY se.code ASC";
         
         $db = Database::getInstance();
