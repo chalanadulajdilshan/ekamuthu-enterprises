@@ -616,6 +616,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             'additional_payment' => 0,
         ];
 
+        // Collect per-item calculations first (without deposit applied per-item)
+        // so we can apply the customer deposit ONCE across all items
+        $itemCalculations = [];
+        $customerDeposit = 0;
+        $totalPreviousCharges = 0;
+
         foreach ($items as $item) {
             // Only process items that still have pending quantity
             $pendingQty = max(0, ($item['quantity'] ?? 0) - EquipmentRentReturn::getTotalReturnedQty($item['id']));
@@ -639,45 +645,93 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
                 exit;
             }
 
-            // Accumulate totals for preview or confirmation output
-            $totals['rental_amount'] += floatval($calculation['rental_amount'] ?? 0);
-            $totals['extra_day_amount'] += floatval($calculation['extra_day_amount'] ?? 0);
-            $totals['damage_amount'] += floatval($calculation['damage_amount'] ?? 0);
-            $totals['penalty_amount'] += floatval($calculation['penalty_amount'] ?? 0);
-            $totals['settle_amount'] += floatval($calculation['settle_amount'] ?? 0);
-            $totals['refund_amount'] += floatval($calculation['refund_amount'] ?? 0);
-            $totals['additional_payment'] += floatval($calculation['additional_payment'] ?? 0);
-
-            // If preview only, skip creating records
-            if ($previewOnly) {
-                continue;
+            // Capture customer deposit info from the first item (same for all items in this rent)
+            if (empty($itemCalculations)) {
+                $customerDeposit = floatval($calculation['customer_deposit_original'] ?? 0);
+                $totalPreviousCharges = floatval($calculation['total_previous_charges'] ?? 0);
             }
 
-            // Create return record for the item
-            $RETURN = new EquipmentRentReturn(NULL);
-            $RETURN->rent_item_id = $item['id'];
-            $RETURN->return_date = $nowDate;
-            $RETURN->return_time = $nowTime;
-            $RETURN->return_qty = $pendingQty;
-            $RETURN->damage_amount = 0;
-            $RETURN->after_9am_extra_day = $after9Flag;
-            $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
-            $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
-            $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
-            $RETURN->settle_amount = $calculation['settle_amount'];
-            $RETURN->refund_amount = $calculation['refund_amount'];
-            $RETURN->additional_payment = $calculation['additional_payment'];
-            $RETURN->remark = 'Returned via Return All';
+            $itemCalculations[] = [
+                'item' => $item,
+                'pendingQty' => $pendingQty,
+                'calculation' => $calculation,
+            ];
+        }
 
-            $return_id = $RETURN->create();
+        // Calculate the remaining customer deposit (applied ONCE, not per-item)
+        $remainingDeposit = max(0, $customerDeposit - $totalPreviousCharges);
 
-            if ($return_id) {
-                // Mark item as returned
-                $RENT_ITEM = new EquipmentRentItem($item['id']);
-                $RENT_ITEM->markAsReturned();
-            } else {
-                echo json_encode(["status" => "error", "message" => "Failed to create return record for item #" . ($item['id'] ?? '')]);
-                exit;
+        // Sum up raw charges across all items (rental + extra + damage + penalty)
+        $totalRawCharges = 0;
+        foreach ($itemCalculations as &$entry) {
+            $calc = $entry['calculation'];
+            $rawCharge = floatval($calc['rental_amount'] ?? 0)
+                       + floatval($calc['extra_day_amount'] ?? 0)
+                       + floatval($calc['damage_amount'] ?? 0)
+                       + floatval($calc['penalty_amount'] ?? 0);
+            $entry['raw_charge'] = $rawCharge;
+            $totalRawCharges += $rawCharge;
+
+            // Accumulate component totals
+            $totals['rental_amount'] += floatval($calc['rental_amount'] ?? 0);
+            $totals['extra_day_amount'] += floatval($calc['extra_day_amount'] ?? 0);
+            $totals['damage_amount'] += floatval($calc['damage_amount'] ?? 0);
+            $totals['penalty_amount'] += floatval($calc['penalty_amount'] ?? 0);
+        }
+        unset($entry);
+
+        // Apply customer deposit ONCE to get correct net settlement
+        $totals['settle_amount'] = $totalRawCharges - $remainingDeposit;
+        if ($totals['settle_amount'] < 0) {
+            $totals['refund_amount'] = abs($totals['settle_amount']);
+            $totals['additional_payment'] = 0;
+        } else {
+            $totals['refund_amount'] = 0;
+            $totals['additional_payment'] = $totals['settle_amount'];
+        }
+
+        // Now create return records (skip if preview only)
+        if (!$previewOnly) {
+            foreach ($itemCalculations as $entry) {
+                $item = $entry['item'];
+                $pendingQty = $entry['pendingQty'];
+                $calculation = $entry['calculation'];
+                $rawCharge = $entry['raw_charge'];
+
+                // Distribute the deposit proportionally across items based on their raw charge
+                $itemDepositShare = ($totalRawCharges > 0)
+                    ? ($rawCharge / $totalRawCharges) * $remainingDeposit
+                    : 0;
+                $itemSettle = $rawCharge - $itemDepositShare;
+                $itemRefund = $itemSettle < 0 ? abs($itemSettle) : 0;
+                $itemAdditional = $itemSettle > 0 ? $itemSettle : 0;
+
+                // Create return record for the item
+                $RETURN = new EquipmentRentReturn(NULL);
+                $RETURN->rent_item_id = $item['id'];
+                $RETURN->return_date = $nowDate;
+                $RETURN->return_time = $nowTime;
+                $RETURN->return_qty = $pendingQty;
+                $RETURN->damage_amount = 0;
+                $RETURN->after_9am_extra_day = $after9Flag;
+                $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
+                $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
+                $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
+                $RETURN->settle_amount = round($itemSettle, 2);
+                $RETURN->refund_amount = round($itemRefund, 2);
+                $RETURN->additional_payment = round($itemAdditional, 2);
+                $RETURN->remark = 'Returned via Return All';
+
+                $return_id = $RETURN->create();
+
+                if ($return_id) {
+                    // Mark item as returned
+                    $RENT_ITEM = new EquipmentRentItem($item['id']);
+                    $RENT_ITEM->markAsReturned();
+                } else {
+                    echo json_encode(["status" => "error", "message" => "Failed to create return record for item #" . ($item['id'] ?? '')]);
+                    exit;
+                }
             }
         }
 

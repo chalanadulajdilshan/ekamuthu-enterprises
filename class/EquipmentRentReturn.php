@@ -262,9 +262,8 @@ class EquipmentRentReturn
         // Remaining deposit = original deposit - total charges already deducted from previous returns
         $remaining_deposit = max(0, $customer_deposit - $total_previous_charges);
         
-        // Customer deposit share for this return = per-item deposit being returned,
-        // capped by the remaining deposit to avoid applying the full deposit on every item.
-        $customer_deposit_share = min($deposit_for_return, $remaining_deposit);
+        // Customer deposit share for this return is the remaining deposit (capped by what's available)
+        $customer_deposit_share = $remaining_deposit;
 
         // Rental charge for returned quantity
         // For fixed-rate items: flat rate regardless of days used
@@ -431,39 +430,6 @@ class EquipmentRentReturn
             ];
         }
         
-        return [
-            'total_refund' => 0,
-            'total_additional' => 0,
-            'net_settlement' => 0
-        ];
-    }
-
-    /**
-     * Get total settlement across all returns for a given rent (all items).
-     * Used for invoice refund balance (deposit remaining).
-     */
-    public static function getSettlementTotalsByRentId($rent_id)
-    {
-        $db = Database::getInstance();
-        $rent_id = (int) $rent_id;
-
-        $query = "SELECT 
-                    COALESCE(SUM(err.refund_amount), 0) AS total_refund,
-                    COALESCE(SUM(err.additional_payment), 0) AS total_additional
-                  FROM equipment_rent_returns err
-                  INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
-                  WHERE eri.rent_id = $rent_id";
-
-        $result = mysqli_fetch_assoc($db->readQuery($query));
-
-        if ($result) {
-            return [
-                'total_refund' => floatval($result['total_refund']),
-                'total_additional' => floatval($result['total_additional']),
-                'net_settlement' => floatval($result['total_additional']) - floatval($result['total_refund'])
-            ];
-        }
-
         return [
             'total_refund' => 0,
             'total_additional' => 0,
