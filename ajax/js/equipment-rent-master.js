@@ -1604,6 +1604,14 @@ jQuery(document).ready(function () {
 
     $("#page-preloader").show();
 
+    // Ensure all items use the current Rental Date field value
+    var currentRentalStartDate = $("#rental_start_date").val();
+    if (currentRentalStartDate) {
+      rentItems.forEach(function (item) {
+        item.rental_date = currentRentalStartDate;
+      });
+    }
+
     var formData = new FormData($("#form-data")[0]);
     formData.append("create", true);
     formData.append("items", JSON.stringify(rentItems));
@@ -1706,6 +1714,14 @@ jQuery(document).ready(function () {
     }
 
     $("#page-preloader").show();
+
+    // Ensure all items use the current Rental Date field value
+    var currentRentalStartDate = $("#rental_start_date").val();
+    if (currentRentalStartDate) {
+      rentItems.forEach(function (item) {
+        item.rental_date = currentRentalStartDate;
+      });
+    }
 
     var formData = new FormData($("#form-data")[0]);
     formData.append("update", true);
