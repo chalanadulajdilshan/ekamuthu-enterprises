@@ -22,6 +22,12 @@ if (isset($_POST['create'])) {
     $SUB_EQUIPMENT->code = 'DS/' . $_POST['equipment_id'] . '/' . $_POST['department_id'] . '/' . ($lastId + 1);
     $SUB_EQUIPMENT->rental_status = 'available'; // Default
 
+    // Check for duplicate
+    if ($SUB_EQUIPMENT->checkDuplicate($_POST['equipment_id'], $_POST['department_id'])) {
+        echo json_encode(["status" => "error", "message" => "Stock for this department already exists."]);
+        exit();
+    }
+
     $res = $SUB_EQUIPMENT->create();
 
     // Audit log

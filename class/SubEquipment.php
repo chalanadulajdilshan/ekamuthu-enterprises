@@ -199,4 +199,16 @@ class SubEquipment
         $result = mysqli_fetch_array($db->readQuery($query));
         return $result['id'] ?? 0;
     }
+    public function checkDuplicate($equipment_id, $department_id)
+    {
+        $query = "SELECT * FROM `sub_equipment` WHERE `equipment_id` = '$equipment_id' AND `department_id` = '$department_id'";
+        $db = Database::getInstance();
+        $result = mysqli_fetch_array($db->readQuery($query));
+
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

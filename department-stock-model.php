@@ -7,64 +7,8 @@
             </div>
 
             <div class="modal-body">
-                <div class="row mb-3">
-                    <?php
-                    // Check if we're on the stock transfer page
-                    $isStockTransferPage = (basename($_SERVER['PHP_SELF']) === 'stock-transfer.php');
-
-                    if (!$isStockTransferPage):
-                    ?>
-                        <div class="col-md-3">
-                            <label for="filter_department_id" class="form-label">Department</label>
-                            <div class="input-group">
-                                <select id="filter_department_id" name="filter_department_id" class="form-select">
-                                    <?php
-                                    $DEPARTMENT_MASTER = new DepartmentMaster(NULL);
-                                    foreach ($DEPARTMENT_MASTER->getActiveDepartment() as $department) {
-                                        if ($US->type != 1) {
-                                            if ($department['id'] == $US->department_id) {
-                                    ?>
-                                                <option value="<?php echo $department['id'] ?>" selected>
-                                                    <?php echo $department['name'] ?>
-                                                </option>
-                                            <?php }
-                                        } else {
-                                            ?>
-                                            <option value="<?php echo $department['id'] ?>">
-                                                <?php echo $department['name'] ?>
-                                            </option>
-                                    <?php
-                                        }
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
-
-                    <?php else: ?>
-
-                    <?php endif; ?>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <table id="departmentStockTable" class="table table-bordered dt-responsive nowrap" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th>#ID</th>
-                                    <th>Department</th>
-                                    <th>Qty</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-                
-                <hr>
-
                 <!-- Add Stock Form -->
-                <div class="row">
+                <div class="row mb-4">
                     <div class="col-12">
                         <h5>Add New Stock</h5>
                         <form id="form-department-stock" autocomplete="off">
@@ -97,6 +41,24 @@
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-12">
+                        <table id="departmentStockTable" class="table table-bordered dt-responsive nowrap" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Department</th>
+                                    <th>Qty</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
