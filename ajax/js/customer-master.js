@@ -299,9 +299,6 @@ jQuery(document).ready(function () {
   $("#update").click(function (event) {
     event.preventDefault();
 
-    // Show page preloader immediately when button is clicked
-    $("#page-preloader").show();
-
     // Disable the button to prevent multiple submissions
     $("#update").prop("disabled", true);
 
@@ -364,7 +361,7 @@ jQuery(document).ready(function () {
       // Assuming logic applies to non-company mostly, or general fallback
       // Re-enable the button on validation error
       $("#update").prop("disabled", false);
-      $("#page-preloader").hide();
+
       swal({
         title: "Error!",
         text: "Please enter NIC Number OR Utility Bill Number",
@@ -375,6 +372,8 @@ jQuery(document).ready(function () {
     } else {
       var formData = new FormData($("#form-data")[0]);
       formData.append("update", true);
+
+      $(".someBlock").preloader();
 
       $.ajax({
         url: "ajax/php/customer-master.php",
@@ -387,7 +386,7 @@ jQuery(document).ready(function () {
         dataType: "JSON",
         success: function (result) {
           // Hide page preloader
-          $("#page-preloader").hide();
+          $(".someBlock").preloader("remove");
 
           if (result.status == "success") {
             swal({
@@ -404,7 +403,7 @@ jQuery(document).ready(function () {
           } else if (result.status === "duplicate") {
             // Re-enable the button
             $("#update").prop("disabled", false);
-            $("#page-preloader").hide();
+
             swal({
               title: "Duplicate Entry!",
               text: result.message,
@@ -414,7 +413,6 @@ jQuery(document).ready(function () {
           } else {
             // Re-enable the button
             $("#update").prop("disabled", false);
-            $("#page-preloader").hide();
             swal({
               title: "Error!",
               text: "Something went wrong.",
