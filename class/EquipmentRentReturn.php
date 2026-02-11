@@ -262,8 +262,9 @@ class EquipmentRentReturn
         // Remaining deposit = original deposit - total charges already deducted from previous returns
         $remaining_deposit = max(0, $customer_deposit - $total_previous_charges);
         
-        // Customer deposit share for this return is the remaining deposit (capped by what's available)
-        $customer_deposit_share = $remaining_deposit;
+        // Customer deposit share for this return = per-item deposit being returned,
+        // capped by the remaining deposit to avoid applying the full deposit on every item.
+        $customer_deposit_share = min($deposit_for_return, $remaining_deposit);
 
         // Rental charge for returned quantity
         // For fixed-rate items: flat rate regardless of days used
