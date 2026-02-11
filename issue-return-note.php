@@ -43,6 +43,9 @@ $return_note_code = ($lastId + 1);
                             <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#ReturnHistoryModal">
                                 <i class="uil uil-history me-1"></i> View History
                             </button>
+                            <button class="btn btn-info" id="print_return" style="display: none;">
+                                <i class="uil uil-print me-1"></i> Print Return Note
+                            </button>
                         </div>
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
                              <ol class="breadcrumb m-0 justify-content-md-end">
@@ -205,6 +208,7 @@ $return_note_code = ($lastId + 1);
                                         <th>Customer</th>
                                         <th>Date</th>
                                         <th>Remarks</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                             </table>

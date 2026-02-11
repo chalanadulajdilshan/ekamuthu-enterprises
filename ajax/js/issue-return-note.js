@@ -83,19 +83,35 @@ $(document).ready(function () {
                 { data: "issue_note_ref", title: "Issue Note Ref" },
                 { data: "customer_name", title: "Customer" },
                 { data: "return_date", title: "Date" },
-                { data: "remarks", title: "Remarks" }
+                { data: "remarks", title: "Remarks" },
+                {
+                    data: "id",
+                    title: "Action",
+                    render: function (data, type, row) {
+                        return `<button type="button" class="btn btn-sm btn-info print-return-note" data-id="${data}">
+                                    <i class="uil uil-print"></i> Print
+                                </button>`;
+                    }
+                }
             ],
             order: [[0, "desc"]]
         });
 
-        // Row click handler for History
-        $("#returnHistoryTable tbody").on("click", "tr", function () {
-            var data = $("#returnHistoryTable").DataTable().row(this).data();
+        // Row click handler for History (Load Details) - exclude action buttons
+        $("#returnHistoryTable tbody").on("click", "td:not(:last-child)", function () {
+            var data = $("#returnHistoryTable").DataTable().row($(this).parents('tr')).data();
             if (data) {
                 var returnId = data.id;
                 $("#ReturnHistoryModal").modal("hide");
                 loadReturnDetails(returnId);
             }
+        });
+
+        // Print button handler
+        $(document).on("click", ".print-return-note", function (e) {
+            e.stopPropagation();
+            var id = $(this).data("id");
+            window.open("issue-return-note-print.php?id=" + id, "_blank");
         });
     });
 
@@ -139,6 +155,7 @@ $(document).ready(function () {
 
                     renderItemsTable();
                     $("#save_return").hide(); // Hide save button in view mode
+                    $("#print_return").show().attr("data-id", returnId); // Show print button
 
                 } else {
                     swal("Error!", result.message, "error");
@@ -198,6 +215,7 @@ $(document).ready(function () {
 
                     renderItemsTable();
                     $("#save_return").show(); // Ensure save button is visible for new entries
+                    $("#print_return").hide(); // Hide print button for new entries
 
                 } else {
                     swal("Error!", result.message, "error");
@@ -320,9 +338,14 @@ $(document).ready(function () {
                         title: "Success!",
                         text: "Issue Return Note created successfully!",
                         type: "success",
-                        showConfirmButton: true,
-                        timer: 1500
-                    }, function () {
+                        showCancelButton: true,
+                        confirmButtonText: "Print Note",
+                        cancelButtonText: "Close",
+                        closeOnConfirm: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            window.open("issue-return-note-print.php?id=" + result.id, "_blank");
+                        }
                         location.reload();
                     });
                 } else if (result.status === "duplicate") {
@@ -341,5 +364,13 @@ $(document).ready(function () {
     $("#new_return").click(function (e) {
         e.preventDefault();
         location.reload();
+    });
+
+    // Header Print Action
+    $("#print_return").click(function () {
+        var id = $(this).attr("data-id");
+        if (id) {
+            window.open("issue-return-note-print.php?id=" + id, "_blank");
+        }
     });
 });
