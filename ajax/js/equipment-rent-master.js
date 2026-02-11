@@ -2054,6 +2054,7 @@ jQuery(document).ready(function () {
         return_date: returnDate,
         return_time: returnTime,
         after_9am_extra_day: after9amExtraDay,
+        rental_override: rentalOverride,
       },
       dataType: "JSON",
       success: function (result) {

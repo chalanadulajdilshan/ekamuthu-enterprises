@@ -12,6 +12,7 @@ class EquipmentRentReturn
     public $extra_day_amount;
     public $penalty_percentage;
     public $penalty_amount;
+    public $rental_override;
     public $settle_amount;
     public $refund_amount;
     public $additional_payment;
@@ -38,6 +39,7 @@ class EquipmentRentReturn
                 $this->extra_day_amount = $result['extra_day_amount'] ?? 0;
                 $this->penalty_percentage = $result['penalty_percentage'] ?? 0;
                 $this->penalty_amount = $result['penalty_amount'] ?? 0;
+                $this->rental_override = $result['rental_override'] ?? null;
                 $this->settle_amount = $result['settle_amount'];
                 $this->refund_amount = $result['refund_amount'];
                 $this->additional_payment = $result['additional_payment'];
@@ -51,15 +53,20 @@ class EquipmentRentReturn
 
     public function create()
     {
+        $rentalOverrideSql = ($this->rental_override !== null && $this->rental_override !== '') 
+            ? "'" . floatval($this->rental_override) . "'" 
+            : "NULL";
         $query = "INSERT INTO `equipment_rent_returns` (
             `rent_item_id`, `return_date`, `return_time`, `return_qty`, `damage_amount`, 
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
+            `rental_override`,
             `settle_amount`, `refund_amount`, `additional_payment`, `remark`, `created_by`
         ) VALUES (
             '$this->rent_item_id', '$this->return_date', " .
             ($this->return_time ? "'{$this->return_time}'" : "NULL") . ", '$this->return_qty', 
             '$this->damage_amount', '$this->after_9am_extra_day', '$this->extra_day_amount',
             '$this->penalty_percentage', '$this->penalty_amount',
+            $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
             '$this->additional_payment', '$this->remark', " . 
             (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . "
@@ -82,6 +89,9 @@ class EquipmentRentReturn
 
     public function update()
     {
+        $rentalOverrideSql = ($this->rental_override !== null && $this->rental_override !== '') 
+            ? "'" . floatval($this->rental_override) . "'" 
+            : "NULL";
         $query = "UPDATE `equipment_rent_returns` SET 
             `return_date` = '$this->return_date',
             `return_time` = " . ($this->return_time ? "'{$this->return_time}'" : "NULL") . ",
@@ -91,6 +101,7 @@ class EquipmentRentReturn
             `extra_day_amount` = '$this->extra_day_amount',
             `penalty_percentage` = '$this->penalty_percentage',
             `penalty_amount` = '$this->penalty_amount',
+            `rental_override` = $rentalOverrideSql,
             `settle_amount` = '$this->settle_amount',
             `refund_amount` = '$this->refund_amount',
             `additional_payment` = '$this->additional_payment',
@@ -242,11 +253,14 @@ class EquipmentRentReturn
         // Get total rent already charged from previous returns for this entire rent order
         // For fixed-rate items, the rental charge is just (amount/quantity) * return_qty (no day multiplication)
         $prevRentQuery = "SELECT COALESCE(SUM(
-                            CASE WHEN COALESCE(e2.is_fixed_rate, 0) = 1
-                                THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
-                                ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
-                                    * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / (CASE WHEN eri2.rent_type = 'month' THEN 30 ELSE 1 END))
-                                    * err2.return_qty)
+                            CASE WHEN err2.rental_override IS NOT NULL
+                                THEN err2.rental_override
+                                ELSE CASE WHEN COALESCE(e2.is_fixed_rate, 0) = 1
+                                    THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
+                                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
+                                        * ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) / (CASE WHEN eri2.rent_type = 'month' THEN 30 ELSE 1 END))
+                                        * err2.return_qty)
+                                END
                             END
                             + COALESCE(err2.extra_day_amount, 0)
                             + COALESCE(err2.damage_amount, 0)
@@ -339,12 +353,15 @@ class EquipmentRentReturn
                          (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily,
                          -- used days from rental_date to this return_date (>=1), matching PHP ceil day diff
                          GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) AS used_days,
-                         -- rental for this return qty based on days used (or flat for fixed-rate)
-                         CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
-                           THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
-                           ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                             * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                             * err.return_qty
+                         -- rental for this return qty: use rental_override if set, else calculate
+                         CASE WHEN err.rental_override IS NOT NULL
+                           THEN err.rental_override
+                           ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                             THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
+                             ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                               * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                               * err.return_qty
+                           END
                          END AS rental_amount
                   FROM `equipment_rent_returns` err
                   LEFT JOIN `user` u ON err.created_by = u.id
