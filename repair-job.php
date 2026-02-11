@@ -141,9 +141,11 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
 
+                                            <div class="row">
                                                 <!-- Breakdown Date -->
-                                                <div class="col-md-3">
+                                                <div class="col-md-2">
                                                     <label for="item_breakdown_date" class="form-label">Item Breakdown Date - බිඳවැටීම් දිනය</label>
                                                     <div class="mb-3">
                                                         <input id="item_breakdown_date" name="item_breakdown_date" type="text"
@@ -151,8 +153,19 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     </div>
                                                 </div>
 
+                                                <!-- Outsource Checkbox -->
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Outsource - බාහිරින් ලබාගත්</label>
+                                                    <div class="mb-3">
+                                                        <div class="form-check pt-1">
+                                                            <input class="form-check-input" type="checkbox" name="is_outsource" id="is_outsource" value="1">
+                                                            <label class="form-check-label" for="is_outsource">Yes, Outsource this job</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <!-- Job Status -->
-                                                <div class="col-md-3">
+                                                <div class="col-md-4">
                                                     <label for="job_status" class="form-label">Job Status - තත්ත්වය</label>
                                                     <select class="form-select mb-3" id="job_status" name="job_status">
                                                         <option value="pending">Pending - පොරොත්තු</option>
@@ -161,45 +174,58 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <option value="completed">Completed - සම්පූර්ණයි</option>
                                                         <option value="cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</option>
                                                     </select>
-                                                </div>
-                                            </div> 
- 
-
-                                            <div class="row">
-                                                <div class="col-md-3">
+                                                </div>  
+                                                <div class="col-md-4">
                                                     <label for="machine_name" class="form-label">Machine/Item Name - යන්ත්‍ර/අයිතම නම</label>
                                                     <input id="machine_name" name="machine_name" type="text" class="form-control mb-3" placeholder="Enter machine/item name for repair">
                                                 </div>
-                                                <div class="col-md-3"  id="machine_code_section" style="display: none;">
+                                                <div class="col-md-4"  id="machine_code_section" style="display: none;">
                                                     <label for="machine_code" class="form-label">Machine Code - යන්ත්‍ර කේතය</label>
                                                     <input id="machine_code" name="machine_code" type="text" class="form-control mb-3" placeholder="Enter machine code">
                                                 </div>
-                                                <!-- Customer Name -->
-                                                <div class="col-md-3">
-                                                    <label for="customer_name" class="form-label">Customer Name - පාරිභෝගික නම</label>
-                                                    <input id="customer_name" name="customer_name" type="text" class="form-control mb-3" placeholder="Enter customer name">
+                                            </div>
+
+                                            <div id="customer_contact_section">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label for="customer_name" class="form-label">Customer Name - පාරිභෝගික නම</label>
+                                                        <input id="customer_name" name="customer_name" type="text" class="form-control mb-3" placeholder="Enter customer name">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="customer_phone" class="form-label">Phone - දුරකථන අංකය</label>
+                                                        <input id="customer_phone" name="customer_phone" type="text" class="form-control mb-3" placeholder="Enter phone number">
+                                                    </div>
                                                 </div>
-
-                                                <!-- Customer Phone -->
-                                                <div class="col-md-3">
-                                                    <label for="customer_phone" class="form-label">Phone - දුරකථන අංකය</label>
-                                                    <input id="customer_phone" name="customer_phone" type="text" class="form-control mb-3" placeholder="Enter phone number">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label for="customer_address" class="form-label">Address - ලිපිනය</label>
+                                                        <textarea id="customer_address" name="customer_address" class="form-control mb-3" rows="2" placeholder="Enter customer address"></textarea>
+                                                    </div>
                                                 </div>
+                                            </div>
 
-
-
-
+                                            <div id="outsource_contact_section" style="display: none;">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label for="outsource_name" class="form-label">Outsource Company Name - බාහිර සමාගම් නම</label>
+                                                        <input id="outsource_name" name="outsource_name" type="text" class="form-control mb-3" placeholder="Enter outsource company name">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="outsource_phone" class="form-label">Outsource Phone - දුරකථන අංකය</label>
+                                                        <input id="outsource_phone" name="outsource_phone" type="text" class="form-control mb-3" placeholder="Enter outsource phone number">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label for="outsource_address" class="form-label">Outsource Address - ලිපිනය</label>
+                                                        <textarea id="outsource_address" name="outsource_address" class="form-control mb-3" rows="2" placeholder="Enter outsource company address"></textarea>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="row">
-                                                <!-- Customer Address -->
-                                                <div class="col-md-6">
-                                                    <label for="customer_address" class="form-label">Address - ලිපිනය</label>
-                                                    <textarea id="customer_address" name="customer_address" class="form-control mb-3" rows="2" placeholder="Enter customer address"></textarea>
-                                                </div>
-
                                                 <!-- Technical Issue -->
-                                                <div class="col-md-6">
+                                                <div class="col-md-12">
                                                     <label for="technical_issue" class="form-label">Technical Issue Details - තාක්ෂණික ගැටලු විස්තර</label>
                                                     <textarea id="technical_issue" name="technical_issue" class="form-control mb-3" rows="2" placeholder="Describe the technical issue..."></textarea>
                                                 </div>

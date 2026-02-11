@@ -107,14 +107,29 @@ jQuery(document).ready(function () {
         checkJobCodeDuplicate(code);
     });
 
-    // Show/hide machine CODE section based on item type (machine name is always visible)
+    // Show/hide machine CODE section and customer info based on item type
     function toggleMachineSection() {
         var itemType = $("input[name='item_type']:checked").val();
         if (itemType === "company") {
             $("#machine_code_section").slideDown();
+            $("#customer_contact_section").slideUp();
+            // Clear customer fields when company item is selected
+            $("#customer_name, #customer_phone, #customer_address").val("");
         } else {
             $("#machine_code_section").slideUp();
             $("#machine_code").val("");
+            $("#customer_contact_section").slideDown();
+        }
+    }
+
+    // Show/hide outsource contact section
+    function toggleOutsourceSection() {
+        if ($("#is_outsource").is(":checked")) {
+            $("#outsource_contact_section").slideDown();
+        } else {
+            $("#outsource_contact_section").slideUp();
+            // Clear outsource fields when unchecked
+            $("#outsource_name, #outsource_phone, #outsource_address").val("");
         }
     }
 
@@ -136,6 +151,11 @@ jQuery(document).ready(function () {
     // Event: Toggle machine section on item type change
     $("input[name='item_type']").on("change", function () {
         toggleMachineSection();
+    });
+
+    // Event: Toggle outsource section on checkbox change
+    $("#is_outsource").on("change", function () {
+        toggleOutsourceSection();
     });
 
     // Event: Add repair item
@@ -260,11 +280,16 @@ jQuery(document).ready(function () {
                     $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2)).trigger('change');
                     $("#commission_percentage").val(parseFloat(job.commission_percentage || 15).toFixed(2)).trigger('change');
                     $("#commission_amount").val(parseFloat(job.commission_amount || 0).toFixed(2));
+                    $("#is_outsource").prop("checked", job.is_outsource == 1);
+                    $("#outsource_name").val(job.outsource_name || "");
+                    $("#outsource_address").val(job.outsource_address || "");
+                    $("#outsource_phone").val(job.outsource_phone || "");
                     $("#remark").val(job.remark || "");
                     $("#total_cost_display").val(parseFloat(job.total_cost || 0).toFixed(2));
 
                     // Toggle sections based on loaded data
                     toggleMachineSection();
+                    toggleOutsourceSection();
 
                     // Load items
                     repairItems = result.items.map(function (item) {
@@ -320,20 +345,20 @@ jQuery(document).ready(function () {
         } else if ($("#machine_name").val().trim() === "") {
             errorMessage = "Machine/Item Name is required";
             isValid = false;
-        } else if ($("#customer_name").val().trim() === "") {
+        } else if ($("input[name='item_type']:checked").val() === "customer" && $("#customer_name").val().trim() === "") {
             errorMessage = "Customer Name is required";
             isValid = false;
-        } else if ($("#customer_phone").val().trim() === "") {
+        } else if ($("input[name='item_type']:checked").val() === "customer" && $("#customer_phone").val().trim() === "") {
             errorMessage = "Customer Phone is required";
-            isValid = false;
-        } else if ($("#customer_address").val().trim() === "") {
-            errorMessage = "Customer Address is required";
-            isValid = false;
-        } else if ($("#technical_issue").val().trim() === "") {
-            errorMessage = "Technical Issue Details are required";
             isValid = false;
         } else if ($("#item_breakdown_date").val().trim() === "") {
             errorMessage = "Item Breakdown Date is required";
+            isValid = false;
+        } else if ($("#is_outsource").is(":checked") && $("#outsource_name").val().trim() === "") {
+            errorMessage = "Outsource Company Name is required";
+            isValid = false;
+        } else if ($("#technical_issue").val().trim() === "") {
+            errorMessage = "Technical Issue Details are required";
             isValid = false;
         } else if (parseFloat($("#repair_charge").val()) < 0) {
             errorMessage = "Repair Charge cannot be negative";
@@ -374,11 +399,13 @@ jQuery(document).ready(function () {
             item_breakdown_date: $("#item_breakdown_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
-            job_status: $("#job_status").val(),
+            is_outsource: $("#is_outsource").is(":checked") ? 1 : 0,
+            outsource_name: $("#outsource_name").val(),
+            outsource_address: $("#outsource_address").val(),
+            outsource_phone: $("#outsource_phone").val(),
             repair_charge: $("#repair_charge").val(),
             commission_percentage: $("#commission_percentage").val(),
             commission_amount: $("#commission_amount").val(),
-            remark: $("#remark").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -442,11 +469,13 @@ jQuery(document).ready(function () {
             item_breakdown_date: $("#item_breakdown_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
-            job_status: $("#job_status").val(),
+            is_outsource: $("#is_outsource").is(":checked") ? 1 : 0,
+            outsource_name: $("#outsource_name").val(),
+            outsource_address: $("#outsource_address").val(),
+            outsource_phone: $("#outsource_phone").val(),
             repair_charge: $("#repair_charge").val(),
             commission_percentage: $("#commission_percentage").val(),
             commission_amount: $("#commission_amount").val(),
-            remark: $("#remark").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -541,6 +570,7 @@ jQuery(document).ready(function () {
         updateRepairItemsTable();
         toggleRepairItemsSection();
         toggleMachineSection();
+        toggleOutsourceSection();
         $("#create").show();
         $("#update").hide();
         $(".delete-job").hide();
