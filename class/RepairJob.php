@@ -18,6 +18,10 @@ class RepairJob
     public $commission_amount;
     public $total_cost;
     public $remark;
+    public $is_outsource;
+    public $outsource_name;
+    public $outsource_address;
+    public $outsource_phone;
     public $created_at;
     public $updated_at;
 
@@ -45,6 +49,10 @@ class RepairJob
                 $this->commission_amount = $result['commission_amount'];
                 $this->total_cost = $result['total_cost'];
                 $this->remark = $result['remark'];
+                $this->is_outsource = $result['is_outsource'] ?? 0;
+                $this->outsource_name = $result['outsource_name'] ?? '';
+                $this->outsource_address = $result['outsource_address'] ?? '';
+                $this->outsource_phone = $result['outsource_phone'] ?? '';
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
             }
@@ -56,7 +64,8 @@ class RepairJob
         $db = Database::getInstance();
         $query = "INSERT INTO `repair_jobs` (
             `job_code`, `item_type`, `machine_code`, `machine_name`, `customer_name`, `customer_address`, `customer_phone`,
-            `item_breakdown_date`, `technical_issue`, `job_status`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`
+            `item_breakdown_date`, `technical_issue`, `job_status`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`,
+            `is_outsource`, `outsource_name`, `outsource_address`, `outsource_phone`
         ) VALUES (
             '" . $db->escapeString($this->job_code) . "',
             '" . $db->escapeString($this->item_type) . "',
@@ -72,7 +81,11 @@ class RepairJob
             '" . floatval($this->commission_percentage) . "',
             '" . floatval($this->commission_amount) . "',
             '" . floatval($this->total_cost) . "',
-            '" . $db->escapeString($this->remark) . "'
+            '" . $db->escapeString($this->remark) . "',
+            '" . (int) $this->is_outsource . "',
+            '" . $db->escapeString($this->outsource_name) . "',
+            '" . $db->escapeString($this->outsource_address) . "',
+            '" . $db->escapeString($this->outsource_phone) . "'
         )";
 
         $result = $db->readQuery($query);
@@ -102,7 +115,11 @@ class RepairJob
             `commission_percentage` = '" . floatval($this->commission_percentage) . "',
             `commission_amount` = '" . floatval($this->commission_amount) . "',
             `total_cost` = '" . floatval($this->total_cost) . "',
-            `remark` = '" . $db->escapeString($this->remark) . "'
+            `remark` = '" . $db->escapeString($this->remark) . "',
+            `is_outsource` = '" . (int) $this->is_outsource . "',
+            `outsource_name` = '" . $db->escapeString($this->outsource_name) . "',
+            `outsource_address` = '" . $db->escapeString($this->outsource_address) . "',
+            `outsource_phone` = '" . $db->escapeString($this->outsource_phone) . "'
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
@@ -157,6 +174,10 @@ class RepairJob
             $this->commission_amount = $result['commission_amount'];
             $this->total_cost = $result['total_cost'];
             $this->remark = $result['remark'];
+            $this->is_outsource = $result['is_outsource'] ?? 0;
+            $this->outsource_name = $result['outsource_name'] ?? '';
+            $this->outsource_address = $result['outsource_address'] ?? '';
+            $this->outsource_phone = $result['outsource_phone'] ?? '';
             return true;
         }
         return false;
