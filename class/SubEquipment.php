@@ -4,8 +4,10 @@ class SubEquipment
 {
     public $id;
     public $equipment_id;
+    public $department_id;
     public $code;
     public $rental_status;
+    public $qty;
 
     public function __construct($id = null)
     {
@@ -17,8 +19,10 @@ class SubEquipment
             if ($result) {
                 $this->id = $result['id'];
                 $this->equipment_id = $result['equipment_id'];
+                $this->department_id = $result['department_id'];
                 $this->code = $result['code'];
                 $this->rental_status = $result['rental_status'];
+                $this->qty = $result['qty'];
             }
         }
     }
@@ -26,9 +30,9 @@ class SubEquipment
     public function create()
     {
         $query = "INSERT INTO `sub_equipment` (
-            `equipment_id`, `code`, `rental_status`
+            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`
         ) VALUES (
-            '$this->equipment_id', '$this->code', '$this->rental_status'
+            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty'
         )";
 
         $db = Database::getInstance();
@@ -45,8 +49,10 @@ class SubEquipment
     {
         $query = "UPDATE `sub_equipment` SET 
             `equipment_id` = '$this->equipment_id', 
+            `department_id` = '$this->department_id',
             `code` = '$this->code',
-            `rental_status` = '$this->rental_status'
+            `rental_status` = '$this->rental_status',
+            `qty` = '$this->qty'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -59,7 +65,12 @@ class SubEquipment
         }
     }
     
-    // ... delete and all methods remain same ...
+    public function delete()
+    {
+        $query = "DELETE FROM `sub_equipment` WHERE `id` = '$this->id'";
+        $db = Database::getInstance();
+        return $db->readQuery($query);
+    }
 
     public function getByCode($code)
     {
@@ -70,8 +81,10 @@ class SubEquipment
         if ($result) {
             $this->id = $result['id'];
             $this->equipment_id = $result['equipment_id'];
+            $this->department_id = $result['department_id'];
             $this->code = $result['code'];
             $this->rental_status = $result['rental_status'];
+            $this->qty = $result['qty'];
             return true;
         }
         return false;
@@ -82,11 +95,16 @@ class SubEquipment
         $db = Database::getInstance();
 
         $start = isset($request['start']) ? (int) $request['start'] : 0;
-        $length = isset($request['length']) ? (int) $request['length'] : 100;
-        $search = $request['search']['value'] ?? '';
-
+        $length = isset($request['length']) ? (int) $request['length'] : 10;
+        
         // Base where clause
         $where = "WHERE 1=1";
+
+        // Handle "All" records (length = -1 in DataTable)
+        $limitClause = "";
+        if ($length != -1) {
+            $limitClause = "LIMIT $start, $length";
+        }
         if ($equipment_id) {
             $where .= " AND se.equipment_id = " . (int) $equipment_id;
         }
@@ -108,10 +126,11 @@ class SubEquipment
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
         // Paginated query
-        $sql = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name
+        $sql = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name, dm.name as department_name
                 FROM sub_equipment se 
                 LEFT JOIN equipment e ON se.equipment_id = e.id 
-                $where ORDER BY se.id DESC LIMIT $start, $length";
+                LEFT JOIN department_master dm ON se.department_id = dm.id
+                $where ORDER BY se.id DESC $limitClause";
         $dataQuery = $db->readQuery($sql);
 
         $data = [];
@@ -123,8 +142,11 @@ class SubEquipment
                 "id" => $row['id'],
                 "equipment_id" => $row['equipment_id'],
                 "equipment_name" => ($row['equipment_code'] ?? '') . ' - ' . ($row['equipment_name'] ?? ''),
+                "department_id" => $row['department_id'],
+                "department_name" => $row['department_name'] ?? '-',
                 "code" => $row['code'],
                 "rental_status" => $row['rental_status'],
+                "qty" => $row['qty'],
             ];
 
             $data[] = $nestedData;
@@ -137,13 +159,6 @@ class SubEquipment
             "recordsFiltered" => intval($filteredData),
             "data" => $data
         ];
-    }
-
-    public function delete()
-    {
-        $query = "DELETE FROM `sub_equipment` WHERE `id` = '$this->id'";
-        $db = Database::getInstance();
-        return $db->readQuery($query);
     }
 
     public function all()

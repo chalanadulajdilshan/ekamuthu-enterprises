@@ -28,94 +28,6 @@ jQuery(document).ready(function () {
         });
     }
 
-    // Load Sub Equipment Table when modal opens
-    $("#SubEquipmentModal").on("shown.bs.modal", function () {
-        loadSubEquipmentTable();
-    });
-
-    // Load main table on page load
-    loadAllSubEquipmentTable();
-
-    function loadSubEquipmentTable() {
-        // Destroy if already initialized
-        if ($.fn.DataTable.isDataTable("#subEquipmentTable")) {
-            $("#subEquipmentTable").DataTable().destroy();
-        }
-
-        $("#subEquipmentTable").DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: "ajax/php/sub-equipment-master.php",
-                type: "POST",
-                data: function (d) {
-                    d.filter = true;
-                    d.equipment_id = parentEquipmentId;
-                },
-                dataSrc: function (json) {
-                    return json.data;
-                },
-                error: function (xhr) {
-                    console.error("Server Error Response:", xhr.responseText);
-                },
-            },
-            columns: [
-                { data: "key", title: "#ID" },
-                { data: "code", title: "Code" },
-                { 
-                    data: "rental_status", 
-                    title: "Status",
-                    render: function(data) {
-                        if (!data) return '<span class="badge bg-secondary">UNKNOWN</span>';
-                        var badgeClass = 'bg-secondary';
-                        var label = data.toUpperCase();
-                        
-                        if (data === 'available' || data === 'returned') {
-                            badgeClass = 'bg-success';
-                            label = 'AVAILABLE';
-                        } else if (data === 'rent' || data === 'rented') {
-                            badgeClass = 'bg-primary';
-                            label = 'RENTED';
-                        } else if (data === 'damage') {
-                            badgeClass = 'bg-danger';
-                            label = 'DAMAGED';
-                        } else if (data === 'repair') {
-                            badgeClass = 'bg-warning';
-                            label = 'REPAIR';
-                        }
-                        
-                        return '<span class="badge ' + badgeClass + '">' + label + '</span>';
-                    }
-                }
-            ],
-            order: [[0, "desc"]],
-            pageLength: 100,
-        });
-
-        // Row click event to populate form and close modal
-        $("#subEquipmentTable tbody")
-            .off("click")
-            .on("click", "tr", function () {
-                var data = $("#subEquipmentTable").DataTable().row(this).data();
-
-                if (data) {
-                    $("#sub_equipment_id").val(data.id || "");
-                    $("#code").val(data.code || "");
-                    $("#rental_status").val(data.rental_status || "available");
-
-                    // Show update button, hide create button
-                    $("#create").hide();
-                    $("#update").show();
-
-                    // Refresh main page table if equipment changed (though it shouldn't here)
-                    // loadAllSubEquipmentTable();
-
-                    // Close the modal
-                    $("#SubEquipmentModal").modal("hide");
-                }
-            });
-    }
-
     // Create Sub Equipment
     $("#create").click(function (event) {
         event.preventDefault();
@@ -129,6 +41,15 @@ jQuery(document).ready(function () {
             swal({
                 title: "Error!",
                 text: "Please enter sub equipment code",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } else if (!$("#department").val()) {
+            $("#create").prop("disabled", false);
+            swal({
+                title: "Error!",
+                text: "Please select a department",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -228,6 +149,15 @@ jQuery(document).ready(function () {
             swal({
                 title: "Error!",
                 text: "Please enter sub equipment code",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } else if (!$("#department").val()) {
+            $("#update").prop("disabled", false);
+            swal({
+                title: "Error!",
+                text: "Please select a department",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -406,14 +336,14 @@ jQuery(document).ready(function () {
     });
 
     // Handle search button click to open equipment modal from here
-    $("#equipment_search").click(function() {
+    $("#equipment_search").click(function () {
         // This page doesn't have an equipment search modal trigger usually,
         // but if it did, we'd handle it.
         // Actually, equipment search is usually on equipment-master.php
     });
 
     // If equipment_id input changes, refresh table
-    $("#equipment_id").change(function() {
+    $("#equipment_id").change(function () {
         parentEquipmentId = $(this).val();
         loadAllSubEquipmentTable();
     });
@@ -454,15 +384,17 @@ jQuery(document).ready(function () {
                 }
             },
             columns: [
-                { data: "key" },
-                { data: "code" },
-                { 
+                { data: "key", title: "#ID" },
+                { data: "code", title: "Code" },
+                { data: "department_name", title: "Department" },
+                { data: "qty", title: "Qty" },
+                {
                     data: "rental_status",
-                    render: function(data) {
+                    render: function (data) {
                         if (!data) return '<span class="badge bg-secondary">UNKNOWN</span>';
                         var badgeClass = 'bg-secondary';
                         var label = data.toUpperCase();
-                        
+
                         if (data === 'available' || data === 'returned') {
                             badgeClass = 'bg-success';
                             label = 'AVAILABLE';
@@ -476,13 +408,13 @@ jQuery(document).ready(function () {
                             badgeClass = 'bg-warning';
                             label = 'REPAIR';
                         }
-                        
+
                         return '<span class="badge ' + badgeClass + '">' + label + '</span>';
                     }
                 },
                 {
                     data: null,
-                    render: function(data) {
+                    render: function (data) {
                         return '<button class="btn btn-sm btn-info edit-sub" data-id="' + data.id + '"><i class="uil uil-edit"></i></button>';
                     }
                 }
@@ -492,12 +424,14 @@ jQuery(document).ready(function () {
         });
 
         // Row click event for edit button
-        $("#allSubEquipmentTable").off("click", ".edit-sub").on("click", ".edit-sub", function(e) {
+        $("#allSubEquipmentTable").off("click", ".edit-sub").on("click", ".edit-sub", function (e) {
             e.preventDefault();
             var data = $("#allSubEquipmentTable").DataTable().row($(this).closest('tr')).data();
             if (data) {
                 $("#sub_equipment_id").val(data.id || "");
                 $("#code").val(data.code || "");
+                $("#department").val(data.department_id || "");
+                $("#qty").val(data.qty || "0");
                 $("#rental_status").val(data.rental_status || "available");
                 $("#create").hide();
                 $("#update").show();

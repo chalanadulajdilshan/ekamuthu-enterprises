@@ -139,16 +139,24 @@ if ($parent_equipment_id) {
                                                 </div>
 
                                                 <!-- Sub Equipment Code -->
-                                                <div class="col-md-6">
+                                                <div class="col-md-3">
                                                     <label for="code" class="form-label">Sub Equipment Code <span class="text-danger">*</span></label>
-                                                    <div class="input-group mb-3">
-                                                        <input id="code" name="code" type="text"
+                                                    <input id="code" name="code" type="text"
                                                             class="form-control" placeholder="Enter sub equipment code" required>
-                                                        <button class="btn btn-info" type="button"
-                                                            data-bs-toggle="modal" data-bs-target="#SubEquipmentModal">
-                                                            <i class="uil uil-search me-1"></i>
-                                                        </button>
-                                                    </div>
+                                                </div>
+
+                                                <!-- Department -->
+                                                <div class="col-md-3">
+                                                    <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="department" name="department" required>
+                                                        <option value="">- Select Department -</option>
+                                                        <?php
+                                                        $DEPARTMENT_MASTER = new DepartmentMaster(NULL);
+                                                        foreach ($DEPARTMENT_MASTER->all() as $department) {
+                                                            echo '<option value="' . $department['id'] . '">' . htmlspecialchars($department['name']) . '</option>';
+                                                        }
+                                                        ?>
+                                                    </select>
                                                 </div>
 
                                                 <!-- Rental Status -->
@@ -180,6 +188,8 @@ if ($parent_equipment_id) {
                                                     <tr>
                                                         <th>#ID</th>
                                                         <th>Code</th>
+                                                        <th>Department</th>
+                                                        <th>Qty</th>
                                                         <th>Status</th>
                                                         <th>Action</th>
                                                     </tr>
@@ -203,34 +213,7 @@ if ($parent_equipment_id) {
         </div>
     </div>
 
-    <!-- Sub Equipment Modal -->
-    <div id="SubEquipmentModal" class="modal fade bs-example-modal-xl" tabindex="-1" role="dialog"
-        aria-labelledby="ModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ModalLabel">Manage Sub Equipment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
 
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <table id="subEquipmentTable" class="table table-bordered dt-responsive nowrap w-100">
-                                <thead>
-                                    <tr>
-                                        <th>#ID</th>
-                                        <th>Code</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Right bar overlay-->
     <div class="rightbar-overlay"></div>

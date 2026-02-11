@@ -23,8 +23,10 @@ if (isset($_POST['create'])) {
     $SUB_EQUIPMENT = new SubEquipment(NULL);
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
+    $SUB_EQUIPMENT->department_id = $_POST['department'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
     $SUB_EQUIPMENT->rental_status = $_POST['rental_status'] ?? 'available';
+    $SUB_EQUIPMENT->qty = $_POST['qty'] ?? 0;
 
     $res = $SUB_EQUIPMENT->create();
 
@@ -63,8 +65,10 @@ if (isset($_POST['update'])) {
     $SUB_EQUIPMENT = new SubEquipment($_POST['sub_equipment_id']);
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
+    $SUB_EQUIPMENT->department_id = $_POST['department'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
     $SUB_EQUIPMENT->rental_status = $_POST['rental_status'] ?? 'available';
+    $SUB_EQUIPMENT->qty = $_POST['qty'] ?? 0;
 
     $res = $SUB_EQUIPMENT->update();
 

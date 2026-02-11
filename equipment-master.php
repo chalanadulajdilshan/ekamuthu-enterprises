@@ -83,6 +83,12 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                 <i class="uil uil-plus me-1"></i> Add Sub Equipment
                             </a>
 
+                            <button type="button" class="btn btn-outline-primary d-none" id="add-department-stock"
+                                data-bs-toggle="modal" data-bs-target="#department_stock"
+                                title="Manage Department Stock">
+                                <i class="uil uil-box me-1"></i> Stock
+                            </button>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
@@ -169,7 +175,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 </div>
 
                                                 <!-- Department -->
-                                                <div class="col-md-2">
+                                                <div class="col-md-2" id="department_container">
                                                     <label for="department" class="form-label">Department <span
                                                             class="text-danger">*</span></label>
                                                     <select id="department" name="department" class="form-select" required>
@@ -212,7 +218,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 </div>
 
                                                 <!-- Size -->
-                                                <div class="col-md-2">
+                                                <div class="col-md-1">
                                                     <label for="size" class="form-label">Size <span
                                                             class="text-danger">*</span></label>
                                                     <input id="size" name="size" type="text" class="form-control"
@@ -250,29 +256,15 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 </div>
 
                                                 <!-- Quantity -->
-                                                <div class="col-md-2">
+                                                <div class="col-md-1">
                                                     <label for="quantity" class="form-label">Quantity <span
                                                             class="text-danger">*</span></label>
                                                     <input id="quantity" name="quantity" type="number"
                                                         class="form-control" placeholder="0" value="0" min="0" required>
                                                 </div>
-                                                <div class="col-md-4 mt-3">
-                                                    <label for="equipment_image" class="form-label">Equipment Image
-                                                        (600x600)</label>
-                                                    <input type="file" id="equipment_image" name="equipment_image"
-                                                        class="form-control" accept="image/*">
-                                                    <div id="image_preview_container"
-                                                        class="mt-2 text-center border rounded p-2"
-                                                        style="min-height: 150px; background: #f8f9fa;">
-                                                        <img id="image_preview" src="assets/images/no-image.png"
-                                                            alt="Preview"
-                                                            style="max-width: 100%; max-height: 200px; display: block; margin: 0 auto;">
-                                                        <p id="preview_text" class="text-muted mt-2 small">600 x 600
-                                                            Recommended</p>
-                                                    </div>
-                                                </div>
+
                                                 <!-- No Sub-Items / Change Value / Fixed Rate -->
-                                                <div class="col-md-4 mt-4 pt-2">
+                                                <div class="col-md-5 mt-4 pt-2">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <div class="form-check form-check-inline mb-0">
                                                             <input class="form-check-input" type="checkbox"
@@ -296,10 +288,24 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                 </div>
 
                                                 <!-- Image Upload -->
-
+                                                <div class="col-md-4 mt-3">
+                                                    <label for="equipment_image" class="form-label">Equipment Image
+                                                        (600x600)</label>
+                                                    <input type="file" id="equipment_image" name="equipment_image"
+                                                        class="form-control" accept="image/*">
+                                                    <div id="image_preview_container"
+                                                        class="mt-2 text-center border rounded p-2"
+                                                        style="min-height: 150px; background: #f8f9fa;">
+                                                        <img id="image_preview" src="assets/images/no-image.png"
+                                                            alt="Preview"
+                                                            style="max-width: 100%; max-height: 200px; display: block; margin: 0 auto;">
+                                                        <p id="preview_text" class="text-muted mt-2 small">600 x 600
+                                                            Recommended</p>
+                                                    </div>
+                                                </div>
 
                                                 <!-- Remark -->
-                                                <div class="col-md-4 mt-3">
+                                                <div class="col-md-8 mt-3">
                                                     <label for="remark" class="form-label">Remark</label>
                                                     <textarea id="remark" name="remark" class="form-control" rows="8"
                                                         placeholder="Enter any additional remarks or notes..."></textarea>
@@ -393,12 +399,16 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
     <!-- Cropper JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
+    <!-- Equipment Modal -->
+    <?php include 'department-stock-model.php'; ?>
+    
     <script src="ajax/js/equipment-master.js"></script>
+    <script src="ajax/js/department-stock.js"></script>
 
     <!-- Page Preloader Script -->
     <script>
-        $(window).on('load', function() {
-            $('#page-preloader').fadeOut('slow', function() {
+        $(window).on('load', function () {
+            $('#page-preloader').fadeOut('slow', function () {
                 $(this).remove();
             });
         });
