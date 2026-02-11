@@ -345,11 +345,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Get total charges from all returns: rental amounts + extra day + damage + penalty
         // For monthly rentals, divide by 30 to get daily rate
         $chargesQuery = "SELECT COALESCE(SUM(
-                            CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
-                                THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
-                                ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                                    * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                                    * err.return_qty)
+                            CASE WHEN err.rental_override IS NOT NULL
+                                THEN err.rental_override
+                                ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                                    THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                                        * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                                        * err.return_qty)
+                                END
                             END
                             + COALESCE(err.extra_day_amount, 0)
                             + COALESCE(err.damage_amount, 0)
@@ -663,22 +666,57 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 
         // Sum up raw charges across all items (rental + extra + damage + penalty)
         $totalRawCharges = 0;
+        $totalOriginalRental = 0;
         foreach ($itemCalculations as &$entry) {
             $calc = $entry['calculation'];
-            $rawCharge = floatval($calc['rental_amount'] ?? 0)
+            $itemRental = floatval($calc['rental_amount'] ?? 0);
+            $rawCharge = $itemRental
                        + floatval($calc['extra_day_amount'] ?? 0)
                        + floatval($calc['damage_amount'] ?? 0)
                        + floatval($calc['penalty_amount'] ?? 0);
             $entry['raw_charge'] = $rawCharge;
+            $entry['original_rental'] = $itemRental;
             $totalRawCharges += $rawCharge;
+            $totalOriginalRental += $itemRental;
 
             // Accumulate component totals
-            $totals['rental_amount'] += floatval($calc['rental_amount'] ?? 0);
+            $totals['rental_amount'] += $itemRental;
             $totals['extra_day_amount'] += floatval($calc['extra_day_amount'] ?? 0);
             $totals['damage_amount'] += floatval($calc['damage_amount'] ?? 0);
             $totals['penalty_amount'] += floatval($calc['penalty_amount'] ?? 0);
         }
         unset($entry);
+
+        // Apply manual rental override BEFORE creating records so it gets saved to DB
+        $rentalOverridePerItem = []; // keyed by item id
+        if ($rentalOverride !== null && $rentalOverride >= 0) {
+            $rentalDiff = $rentalOverride - $totals['rental_amount'];
+            $totals['rental_amount'] = $rentalOverride;
+
+            // Redistribute the override proportionally across items based on their original rental share
+            foreach ($itemCalculations as &$entry) {
+                $itemId = $entry['item']['id'];
+                if ($totalOriginalRental > 0) {
+                    $share = $entry['original_rental'] / $totalOriginalRental;
+                    $rentalOverridePerItem[$itemId] = round($rentalOverride * $share, 2);
+                } else {
+                    // Equal distribution if all originals are zero
+                    $rentalOverridePerItem[$itemId] = round($rentalOverride / max(1, count($itemCalculations)), 2);
+                }
+                // Recalculate this item's raw charge with the overridden rental
+                $entry['raw_charge'] = $rentalOverridePerItem[$itemId]
+                    + floatval($entry['calculation']['extra_day_amount'] ?? 0)
+                    + floatval($entry['calculation']['damage_amount'] ?? 0)
+                    + floatval($entry['calculation']['penalty_amount'] ?? 0);
+            }
+            unset($entry);
+
+            // Recalculate total raw charges with override
+            $totalRawCharges = 0;
+            foreach ($itemCalculations as $entry) {
+                $totalRawCharges += $entry['raw_charge'];
+            }
+        }
 
         // Apply customer deposit ONCE to get correct net settlement
         $totals['settle_amount'] = $totalRawCharges - $remainingDeposit;
@@ -690,71 +728,57 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $totals['additional_payment'] = $totals['settle_amount'];
         }
 
-        // Now create return records (skip if preview only)
-        if (!$previewOnly) {
-            foreach ($itemCalculations as $entry) {
-                $item = $entry['item'];
-                $pendingQty = $entry['pendingQty'];
-                $calculation = $entry['calculation'];
-                $rawCharge = $entry['raw_charge'];
-
-                // Distribute the deposit proportionally across items based on their raw charge
-                $itemDepositShare = ($totalRawCharges > 0)
-                    ? ($rawCharge / $totalRawCharges) * $remainingDeposit
-                    : 0;
-                $itemSettle = $rawCharge - $itemDepositShare;
-                $itemRefund = $itemSettle < 0 ? abs($itemSettle) : 0;
-                $itemAdditional = $itemSettle > 0 ? $itemSettle : 0;
-
-                // Create return record for the item
-                $RETURN = new EquipmentRentReturn(NULL);
-                $RETURN->rent_item_id = $item['id'];
-                $RETURN->return_date = $nowDate;
-                $RETURN->return_time = $nowTime;
-                $RETURN->return_qty = $pendingQty;
-                $RETURN->damage_amount = 0;
-                $RETURN->after_9am_extra_day = $after9Flag;
-                $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
-                $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
-                $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
-                $RETURN->settle_amount = round($itemSettle, 2);
-                $RETURN->refund_amount = round($itemRefund, 2);
-                $RETURN->additional_payment = round($itemAdditional, 2);
-                $RETURN->remark = 'Returned via Return All';
-
-                $return_id = $RETURN->create();
-
-                if ($return_id) {
-                    // Mark item as returned
-                    $RENT_ITEM = new EquipmentRentItem($item['id']);
-                    $RENT_ITEM->markAsReturned();
-                } else {
-                    echo json_encode(["status" => "error", "message" => "Failed to create return record for item #" . ($item['id'] ?? '')]);
-                    exit;
-                }
-            }
-        }
-
-        // Apply manual rental override if provided (affects totals and net settlement shown to user)
-        if ($rentalOverride !== null && $rentalOverride >= 0) {
-            $rentalDiff = $rentalOverride - $totals['rental_amount'];
-            $totals['rental_amount'] = $rentalOverride;
-            $totals['settle_amount'] += $rentalDiff;
-
-            // Recompute refund/additional based on adjusted settle amount
-            if ($totals['settle_amount'] < 0) {
-                $totals['refund_amount'] = abs($totals['settle_amount']);
-                $totals['additional_payment'] = 0;
-            } else {
-                $totals['refund_amount'] = 0;
-                $totals['additional_payment'] = $totals['settle_amount'];
-            }
-        }
-
         // If preview only, just return the totals
         if ($previewOnly) {
             echo json_encode(["status" => "success", "preview" => true, "calculation" => $totals]);
             exit;
+        }
+
+        // Now create return records with override-adjusted amounts
+        foreach ($itemCalculations as $entry) {
+            $item = $entry['item'];
+            $pendingQty = $entry['pendingQty'];
+            $calculation = $entry['calculation'];
+            $rawCharge = $entry['raw_charge'];
+
+            // Distribute the deposit proportionally across items based on their raw charge
+            $itemDepositShare = ($totalRawCharges > 0)
+                ? ($rawCharge / $totalRawCharges) * $remainingDeposit
+                : 0;
+            $itemSettle = $rawCharge - $itemDepositShare;
+            $itemRefund = $itemSettle < 0 ? abs($itemSettle) : 0;
+            $itemAdditional = $itemSettle > 0 ? $itemSettle : 0;
+
+            // Create return record for the item
+            $RETURN = new EquipmentRentReturn(NULL);
+            $RETURN->rent_item_id = $item['id'];
+            $RETURN->return_date = $nowDate;
+            $RETURN->return_time = $nowTime;
+            $RETURN->return_qty = $pendingQty;
+            $RETURN->damage_amount = 0;
+            $RETURN->after_9am_extra_day = $after9Flag;
+            $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
+            $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
+            $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
+            // Store the rental override for this item (null if no override was used)
+            $RETURN->rental_override = isset($rentalOverridePerItem[$item['id']]) 
+                ? $rentalOverridePerItem[$item['id']] 
+                : null;
+            $RETURN->settle_amount = round($itemSettle, 2);
+            $RETURN->refund_amount = round($itemRefund, 2);
+            $RETURN->additional_payment = round($itemAdditional, 2);
+            $RETURN->remark = 'Returned via Return All';
+
+            $return_id = $RETURN->create();
+
+            if ($return_id) {
+                // Mark item as returned
+                $RENT_ITEM = new EquipmentRentItem($item['id']);
+                $RENT_ITEM->markAsReturned();
+            } else {
+                echo json_encode(["status" => "error", "message" => "Failed to create return record for item #" . ($item['id'] ?? '')]);
+                exit;
+            }
         }
 
         // Update master rent status
