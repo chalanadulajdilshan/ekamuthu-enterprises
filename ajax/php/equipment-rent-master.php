@@ -2,7 +2,7 @@
 
 // Enable logging but keep output clean for JSON responses
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 
 include '../../class/include.php';
@@ -1317,14 +1317,17 @@ if (isset($_POST['filter_equipment'])) {
         $categoryLabel = $row['category_name'] ?: ($row['category'] ?: '-');
 
         $statusLabel = '';
+        // Calculate global available for badge
+        $globalAvailable = SubEquipment::getGlobalAvailableStock($row['id'], $row['no_sub_items'] == 1);
+        
+        $statusLabel = '';
         if ($row['no_sub_items'] == 1) {
-            $available = max(0, $row['quantity'] - $row['rented_qty']);
-            $statusLabel = $available > 0
-                ? '<span class="badge bg-soft-success font-size-12">' . $available . ' / ' . $row['quantity'] . ' Available</span>'
+            $statusLabel = $globalAvailable > 0
+                ? '<span class="badge bg-soft-success font-size-12">' . $globalAvailable . ' Available</span>'
                 : '<span class="badge bg-soft-danger font-size-12">Out of Stock</span>';
         } else {
-            $statusLabel = $row['available_sub'] > 0
-                ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'
+            $statusLabel = $globalAvailable > 0
+                ? '<span class="badge bg-soft-success font-size-12">' . $globalAvailable . ' / ' . $row['total_sub'] . ' Available</span>'
                 : '<span class="badge bg-soft-danger font-size-12">All Rented</span>';
         }
 
@@ -1340,7 +1343,9 @@ if (isset($_POST['filter_equipment'])) {
             "size" => $row['size'],
             "value" => $row['value'],
             "total_sub" => $row['total_sub'],
+            "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
+            "global_available_qty" => SubEquipment::getGlobalAvailableStock($row['id'], $row['no_sub_items'] == 1),
             "rented_qty" => $row['rented_qty'],
             "rent_one_day" => $row['rent_one_day'],
             "deposit_one_day" => $row['deposit_one_day'],

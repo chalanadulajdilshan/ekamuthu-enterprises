@@ -215,4 +215,25 @@ class SubEquipment
             return false;
         }
     }
+
+    public static function getGlobalAvailableStock($equipment_id, $is_bulk = false)
+    {
+        $db = Database::getInstance();
+        if ($is_bulk) {
+            // For bulk items: Total Stock in all departments - Total Rented in all departments
+            // Assuming sub_equipment tracks stock per department
+            $query = "SELECT SUM(qty) - SUM(rented_qty) as available 
+                      FROM sub_equipment 
+                      WHERE equipment_id = " . (int)$equipment_id;
+        } else {
+            // For serialized items: Count of items with 'available' status
+            $query = "SELECT COUNT(*) as available 
+                      FROM sub_equipment 
+                      WHERE equipment_id = " . (int)$equipment_id . " 
+                      AND rental_status = 'available'";
+        }
+        
+        $result = mysqli_fetch_assoc($db->readQuery($query));
+        return $result ? (float)$result['available'] : 0;
+    }
 }
