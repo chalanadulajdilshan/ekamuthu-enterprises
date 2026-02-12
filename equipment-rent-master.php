@@ -27,15 +27,6 @@ $bill_number = $lastId + 1;
     <?php include 'main-css.php' ?>
 
     <style>
-        .duration-col {
-            display: none !important;
-        }
-
-        /* Hide Duration column cells */
-        #rentItemsTable th:nth-child(5),
-        #rentItemsTable td:nth-child(5) {
-            display: none !important;
-        }
     </style>
 
 </head>
