@@ -215,9 +215,9 @@ jQuery(document).ready(function () {
 
         var returnDisplay = hasReturn
           ? '<div class="text-danger fw-semibold">' +
-            returnDateTime +
-            dayCountDisplay +
-            "</div>"
+          returnDateTime +
+          dayCountDisplay +
+          "</div>"
           : "-";
 
         var rowClass =
@@ -325,9 +325,9 @@ jQuery(document).ready(function () {
         var item = rentItems[index];
         var itemLabel = item
           ? item.equipment_display +
-            (item.sub_equipment_display
-              ? " (" + item.sub_equipment_display + ")"
-              : "")
+          (item.sub_equipment_display
+            ? " (" + item.sub_equipment_display + ")"
+            : "")
           : "this item";
 
         swal(
@@ -907,10 +907,10 @@ jQuery(document).ready(function () {
                 : "(Inactive)";
               $paymentSelect.append(
                 "<option data-temp='1' value='" +
-                  rent.payment_type_id +
-                  "' selected hidden>" +
-                  tempLabel +
-                  "</option>",
+                rent.payment_type_id +
+                "' selected hidden>" +
+                tempLabel +
+                "</option>",
               );
             }
             $paymentSelect.val(rent.payment_type_id);
@@ -1488,15 +1488,15 @@ jQuery(document).ready(function () {
             if (data.available_sub > 0) isAvailable = true;
           }
 
-          if (!isAvailable) {
-            swal({
-              title: "Not Available!",
-              text: "All units of this equipment are currently rented out.",
-              type: "warning",
-              showConfirmButton: true,
-            });
-            return;
-          }
+          // if (!isAvailable) {
+          //   swal({
+          //     title: "Not Available!",
+          //     text: "All units of this equipment are currently rented out.",
+          //     type: "warning",
+          //     showConfirmButton: true,
+          //   });
+          //   return;
+          // }
           $("#item_equipment_id").val(data.id);
           $("#item_equipment_display").val(data.code + " - " + data.item_name);
 
@@ -2136,7 +2136,7 @@ jQuery(document).ready(function () {
 
         // Bind live outstanding calculation for return all
         if (additionalPayment > 0) {
-          $("#return_all_customer_paid").on('input', function() {
+          $("#return_all_customer_paid").on('input', function () {
             var paid = parseFloat($(this).val()) || 0;
             var outstanding = Math.max(0, additionalPayment - paid);
             $("#return_all_outstanding_display").text('Rs. ' + outstanding.toFixed(2));
@@ -2255,7 +2255,7 @@ jQuery(document).ready(function () {
             } else if (Number(calc.additional_payment || 0) > 0) {
               summaryLines.push(
                 "Customer Pays: Rs. " +
-                  Number(calc.additional_payment).toFixed(2),
+                Number(calc.additional_payment).toFixed(2),
               );
             }
           }
