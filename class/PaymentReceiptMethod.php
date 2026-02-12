@@ -7,17 +7,21 @@ class PaymentReceiptMethod
     public $invoice_id;
     public $payment_type_id;
     public $amount;
+    public $payment_date;
     public $cheq_no;
+    public $ref_no;
     public $bank_id;
     public $branch_id;
     public $cheq_date;
+    public $transfer_date;
     public $is_settle;
+    public $account_no;
 
     public function __construct($id = null)
     {
         if ($id) {
-            $query = "SELECT `id`, `receipt_id`, `invoice_id`, `payment_type_id`, `amount`, 
-                             `cheq_no`, `bank_id`, `branch_id`, `cheq_date`
+            $query = "SELECT `id`, `receipt_id`, `invoice_id`, `payment_type_id`, `amount`, `payment_date`,
+                             `cheq_no`, `ref_no`, `bank_id`, `branch_id`, `cheq_date`, `transfer_date`, `is_settle`, `account_no`
                       FROM `payment_receipt_method`
                       WHERE `id` = " . (int)$id;
 
@@ -30,11 +34,15 @@ class PaymentReceiptMethod
                 $this->invoice_id = $result['invoice_id'];
                 $this->payment_type_id = $result['payment_type_id'];
                 $this->amount = $result['amount'];
+                $this->payment_date = $result['payment_date'];
                 $this->cheq_no = $result['cheq_no'];
+                $this->ref_no = $result['ref_no'];
                 $this->bank_id = $result['bank_id'];
                 $this->branch_id = $result['branch_id'];
                 $this->cheq_date = $result['cheq_date'];
+                $this->transfer_date = $result['transfer_date'];
                 $this->is_settle = $result['is_settle'];
+                $this->account_no = $result['account_no'];
             }
         }
     }
@@ -58,18 +66,25 @@ class PaymentReceiptMethod
 
     public function create()
     {
+        $cheq_date = empty($this->cheq_date) ? "NULL" : "'{$this->cheq_date}'";
+        $transfer_date = empty($this->transfer_date) ? "NULL" : "'{$this->transfer_date}'";
+
         $query = "INSERT INTO `payment_receipt_method` 
-                    (`receipt_id`, `invoice_id`, `payment_type_id`, `amount`, `cheq_no`, `bank_id`, `branch_id`, `cheq_date`, `is_settle`) 
+                    (`receipt_id`, `invoice_id`, `payment_type_id`, `amount`, `payment_date`, `cheq_no`, `ref_no`, `bank_id`, `branch_id`, `cheq_date`, `transfer_date`, `is_settle`, `account_no`) 
                   VALUES (
                     '{$this->receipt_id}',
                     '{$this->invoice_id}',
                     '{$this->payment_type_id}',
                     '{$this->amount}',
+                    '{$this->payment_date}',
                     '{$this->cheq_no}',
+                    '{$this->ref_no}',
                     '{$this->bank_id}',
                     '{$this->branch_id}',
-                    '{$this->cheq_date}',
-                    '{$this->is_settle}'
+                    $cheq_date,
+                    $transfer_date,
+                    '{$this->is_settle}',
+                    '{$this->account_no}'
                   )";
 
         $db = Database::getInstance();

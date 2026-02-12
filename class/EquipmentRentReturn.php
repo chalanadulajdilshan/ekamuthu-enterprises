@@ -237,6 +237,54 @@ class EquipmentRentReturn
         }
     }
 
+    public function settleOutstanding($amount, $paymentDetails = [])
+    {
+        $db = Database::getInstance();
+        $amount = floatval($amount);
+        
+        if ($amount <= 0) {
+            return ['error' => true, 'message' => 'Invalid amount'];
+        }
+
+        // Re-fetch current state to ensure accuracy
+        $query = "SELECT * FROM `equipment_rent_returns` WHERE `id` = " . (int)$this->id;
+        $current = mysqli_fetch_assoc($db->readQuery($query));
+
+        if (!$current) {
+            return ['error' => true, 'message' => 'Return record not found'];
+        }
+
+        $currentOutstanding = floatval($current['outstanding_amount']);
+        $currentPaid = floatval($current['customer_paid']);
+
+        if ($amount > $currentOutstanding) {
+            return ['error' => true, 'message' => 'Amount exceeds outstanding balance'];
+        }
+
+        $newOutstanding = $currentOutstanding - $amount;
+        $newPaid = $currentPaid + $amount;
+
+        $updateQuery = "UPDATE `equipment_rent_returns` SET 
+                        `outstanding_amount` = '$newOutstanding',
+                        `customer_paid` = '$newPaid'
+                        WHERE `id` = " . (int)$this->id;
+        
+        if ($db->readQuery($updateQuery)) {
+            // Update the object state
+            $this->outstanding_amount = $newOutstanding;
+            $this->customer_paid = $newPaid;
+
+            // Reduce from customer master global outstanding
+            $this->updateCustomerRentOutstanding(-$amount);
+            
+            // Log payment (optional/future: insert into payment_receipts if we were using that system fully)
+            
+            return ['error' => false, 'new_outstanding' => $newOutstanding];
+        }
+
+        return ['error' => true, 'message' => 'Database update failed'];
+    }
+
     public static function calculateSettlement($rent_item_id, $return_qty, $damage_amount, $return_date = null, $return_time = null, $after_9am_extra_day = 0, $extra_day_amount = 0, $penalty_percentage = 0)
     {
         $db = Database::getInstance();

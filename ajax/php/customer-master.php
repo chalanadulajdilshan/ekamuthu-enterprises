@@ -513,6 +513,23 @@ if (isset($_POST['filter'])) {
     $CUSTOMER_MASTER = new CustomerMaster();
     $response = $CUSTOMER_MASTER->fetchForDataTable($_REQUEST, []);
 
+    // Ensure expected columns exist for DataTables (e.g., 'email')
+    if (isset($response['data']) && is_array($response['data'])) {
+        foreach ($response['data'] as &$row) {
+            if (!isset($row['email'])) {
+                $row['email'] = '';
+            }
+            if (!isset($row['vat_no'])) {
+                $row['vat_no'] = '';
+            }
+            if (!isset($row['outstanding'])) {
+                // Use old_outstanding if available, otherwise default to 0
+                $row['outstanding'] = isset($row['old_outstanding']) ? $row['old_outstanding'] : 0;
+            }
+        }
+        unset($row);
+    }
+
 
 
     echo json_encode($response);
