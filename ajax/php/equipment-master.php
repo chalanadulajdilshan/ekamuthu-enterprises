@@ -412,6 +412,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
                 JOIN equipment_rent er ON eri.rent_id = er.id
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id
                 WHERE eri.equipment_id = $equipment_id 
+                " . (isset($_POST['department_id']) && $_POST['department_id'] ? "AND eri.department_id = " . (int)$_POST['department_id'] : "") . "
                 AND eri.status = 'rented' 
                 AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
                 ORDER BY eri.id DESC";

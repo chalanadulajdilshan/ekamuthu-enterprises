@@ -195,7 +195,7 @@ jQuery(document).ready(function () {
                         '<td>' + (dept.department_name || '-') + '</td>' +
                         '<td class="text-center"><span class="badge bg-secondary font-size-12">' + qty + '</span></td>' +
                         '<td class="text-center"><span class="badge bg-success font-size-12">' + available + '</span></td>' +
-                        '<td class="text-center"><span class="badge bg-danger font-size-12">' + rented + '</span></td>' +
+                        '<td class="text-center dept-rented-cell" style="cursor: pointer;" data-id="' + meta.equipment_id + '" data-name="' + meta.equipment_name + '" data-dept-id="' + dept.department_id + '"><span class="badge bg-danger font-size-12">' + rented + '</span></td>' +
                         '</tr>';
                 });
 
@@ -324,6 +324,14 @@ jQuery(document).ready(function () {
                             loadRentedInvoices(eqId, eqName);
                         });
 
+                        // Attach click handler to Department Rented Cell
+                        row.child().find(".dept-rented-cell").on("click", function () {
+                            const eqId = $(this).data("id");
+                            const eqName = $(this).data("name");
+                            const deptId = $(this).data("dept-id");
+                            loadRentedInvoices(eqId, eqName, deptId);
+                        });
+
                         // Attach click handler to rented sub-equipment rows to open rent details
                         row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-rented", function (evt) {
                             evt.stopPropagation();
@@ -351,14 +359,14 @@ jQuery(document).ready(function () {
     function resetRentDetailsModal() {
         $("#rd-bill, #rd-customer, #rd-status, #rd-rental-date, #rd-received-date, #rd-payment, #rd-transport, #rd-deposit, #rd-refund, #rd-remark").text("-");
         const tbody = $("#rentItemsTable tbody");
-        tbody.html('<tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>');
+        tbody.html('<tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>');
     }
 
     function renderRentItems(items) {
         const tbody = $("#rentItemsTable tbody");
         tbody.empty();
         if (!Array.isArray(items) || !items.length) {
-            tbody.html('<tr><td colspan="8" class="text-center text-muted">No items</td></tr>');
+            tbody.html('<tr><td colspan="9" class="text-center text-muted">No items</td></tr>');
             return;
         }
         items.forEach(function (item, idx) {
@@ -368,6 +376,7 @@ jQuery(document).ready(function () {
                 "<td>" + (item.equipment_code || "") + " - " + (item.equipment_name || "") + "</td>" +
                 "<td>" + (item.sub_equipment_code || "-") + "</td>" +
                 "<td>" + (item.quantity || 0) + "</td>" +
+                "<td>" + (item.total_returned_qty || 0) + "</td>" +
                 "<td>" + (item.rent_type || "-") + "</td>" +
                 "<td>" + (item.duration || "-") + "</td>" +
                 "<td>" + (item.amount || "0.00") + "</td>" +
@@ -402,56 +411,91 @@ jQuery(document).ready(function () {
                     $("#rentDetailsModal").modal("show");
                 } else {
                     renderRentItems([]);
-                    $("#rentItemsTable tbody").html('<tr><td colspan="8" class="text-center text-danger">Failed to load rent details</td></tr>');
+                    $("#rentItemsTable tbody").html('<tr><td colspan="9" class="text-center text-danger">Failed to load rent details</td></tr>');
                 }
             },
             error: function (xhr) {
                 console.error("Rent details load failed", xhr.responseText);
-                $("#rentItemsTable tbody").html('<tr><td colspan="8" class="text-center text-danger">Server error</td></tr>');
+                $("#rentItemsTable tbody").html('<tr><td colspan="9" class="text-center text-danger">Server error</td></tr>');
             }
         });
     }
 
-    function loadRentedInvoices(equipmentId, equipmentName) {
+    var rentedInvoicesTable;
+
+    function loadRentedInvoices(equipmentId, equipmentName, departmentId = null) {
         $("#ri-equipment-name").text(equipmentName);
-        const tbody = $("#rentInvoicesTable tbody");
-        tbody.html('<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>');
         $("#rentInvoicesModal").modal("show");
+
+        // Destroy existing table if it exists
+        if ($.fn.DataTable.isDataTable('#rentInvoicesTable')) {
+            $('#rentInvoicesTable').DataTable().destroy();
+        }
+        $('#rentInvoicesTable tbody').empty();
 
         $.ajax({
             url: "ajax/php/equipment-master.php",
             type: "POST",
-            data: { action: "get_rented_invoices", equipment_id: equipmentId },
+            data: {
+                action: "get_rented_invoices",
+                equipment_id: equipmentId,
+                department_id: departmentId
+            },
             dataType: "json",
             success: function (resp) {
-                tbody.empty();
-                if (resp && resp.status === "success" && resp.data.length > 0) {
-                    resp.data.forEach(function (item) {
-                        const tr = $("<tr>");
-                        tr.append("<td>" + item.bill_number + "</td>");
-                        tr.append("<td>" + item.customer_name + "</td>");
-                        tr.append('<td class="text-center">' + item.quantity + "</td>");
-                        tr.append('<td class="text-center">' + item.returned_qty + "</td>");
-                        tr.append("<td>" + item.date + "</td>");
-                        tr.append('<td class="text-center"><button class="btn btn-sm btn-soft-primary view-rent-btn" data-id="' + item.rent_id + '"><i class="uil uil-eye"></i> View</button></td>');
-                        tbody.append(tr);
-                    });
-
-                    // Attach handler for the view button
-                    tbody.find(".view-rent-btn").on("click", function () {
-                        const rentId = $(this).data("id");
-                        // We need to make sure the rent details modal can show on top of or instead of the list modal
-                        $("#rentInvoicesModal").modal("hide");
-                        loadRentDetailsFromStock(rentId);
+                if (resp && resp.status === "success") {
+                    rentedInvoicesTable = $('#rentInvoicesTable').DataTable({
+                        data: resp.data,
+                        destroy: true,
+                        autoWidth: false,
+                        pageLength: 10,
+                        order: [[4, 'desc']], // Sort by date desc
+                        columns: [
+                            { data: 'bill_number' },
+                            { data: 'customer_name' },
+                            { data: 'quantity', className: 'text-center' },
+                            { data: 'returned_qty', className: 'text-center' },
+                            { data: 'date' },
+                            {
+                                data: null,
+                                className: 'text-center',
+                                render: function (data, type, row) {
+                                    return '<button class="btn btn-sm btn-soft-primary view-rent-btn" data-id="' + row.rent_id + '"><i class="uil uil-eye"></i> View</button>';
+                                }
+                            }
+                        ],
+                        language: {
+                            emptyTable: "No rented invoices found"
+                        }
                     });
                 } else {
-                    tbody.html('<tr><td colspan="6" class="text-center text-muted">No rented invoices found</td></tr>');
+                    $('#rentInvoicesTable').DataTable({
+                        data: [],
+                        destroy: true,
+                        language: {
+                            emptyTable: "No rented invoices found"
+                        }
+                    });
                 }
             },
             error: function () {
-                tbody.html('<tr><td colspan="6" class="text-center text-danger">Failed to load rented invoices</td></tr>');
+                $('#rentInvoicesTable').DataTable({
+                    data: [],
+                    destroy: true,
+                    language: {
+                        emptyTable: "Failed to load data"
+                    }
+                });
             }
         });
     }
-});
 
+    // Attach handler for the view button (delegated)
+    $('#rentInvoicesTable tbody').on('click', '.view-rent-btn', function () {
+        const rentId = $(this).data("id");
+        $("#rentInvoicesModal").modal("hide");
+        loadRentDetailsFromStock(rentId);
+    });
+
+
+});
