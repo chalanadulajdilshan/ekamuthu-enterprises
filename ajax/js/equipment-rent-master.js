@@ -1479,24 +1479,21 @@ jQuery(document).ready(function () {
         if (data) {
           // Check availability
           var isAvailable = false;
-          if (data.no_sub_items == 1) {
-            var availableStock =
-              (parseFloat(data.total_quantity) || 0) -
-              (parseFloat(data.rented_qty) || 0);
-            if (availableStock > 0) isAvailable = true;
-          } else {
-            if (data.available_sub > 0) isAvailable = true;
+
+          if (parseFloat(data.global_available_qty) > 0) {
+            isAvailable = true;
           }
 
-          // if (!isAvailable) {
-          //   swal({
-          //     title: "Not Available!",
-          //     text: "All units of this equipment are currently rented out.",
-          //     type: "warning",
-          //     showConfirmButton: true,
-          //   });
-          //   return;
-          // }
+          if (!isAvailable) {
+            swal({
+              title: "Not Available!",
+              text: "All units of this equipment are currently rented out.",
+              type: "warning",
+              showConfirmButton: true,
+            });
+            return;
+          }
+
           $("#item_equipment_id").val(data.id);
           $("#item_equipment_display").val(data.code + " - " + data.item_name);
 
