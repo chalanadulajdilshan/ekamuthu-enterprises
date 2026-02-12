@@ -300,16 +300,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
 
             // Fetch department stock
             $deptStock = [];
-            $deptSql = "SELECT dm.name, se.qty, se.department_id 
+            $deptSql = "SELECT dm.name, se.qty, se.rented_qty, se.department_id 
                         FROM sub_equipment se
                         JOIN department_master dm ON se.department_id = dm.id
                         WHERE se.equipment_id = $equipment_id";
             $deptResult = $db->readQuery($deptSql);
             while ($deptRow = mysqli_fetch_assoc($deptResult)) {
+                $available = (float)$deptRow['qty'] - (float)$deptRow['rented_qty'];
                 $deptStock[] = [
                     'department_id' => $deptRow['department_id'],
                     'department_name' => $deptRow['name'],
-                    'qty' => (float)$deptRow['qty']
+                    'qty' => (float)$deptRow['qty'],
+                    'rented_qty' => (float)$deptRow['rented_qty'],
+                    'available_qty' => max(0, $available)
                 ];
             }
 

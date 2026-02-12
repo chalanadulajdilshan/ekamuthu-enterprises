@@ -188,11 +188,14 @@ jQuery(document).ready(function () {
 
                 meta.department_stock.forEach(function (dept) {
                     var qty = parseFloat(dept.qty) || 0;
+                    var rented = parseFloat(dept.rented_qty) || 0;
+                    var available = parseFloat(dept.available_qty) || 0;
+
                     deptHtml += '<tr>' +
                         '<td>' + (dept.department_name || '-') + '</td>' +
                         '<td class="text-center"><span class="badge bg-secondary font-size-12">' + qty + '</span></td>' +
-                        '<td class="text-center"><span class="badge bg-success font-size-12">' + qty + '</span></td>' +
-                        '<td class="text-center text-muted">-</td>' +
+                        '<td class="text-center"><span class="badge bg-success font-size-12">' + available + '</span></td>' +
+                        '<td class="text-center"><span class="badge bg-danger font-size-12">' + rented + '</span></td>' +
                         '</tr>';
                 });
 

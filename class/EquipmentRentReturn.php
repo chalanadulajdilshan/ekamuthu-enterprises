@@ -78,6 +78,9 @@ class EquipmentRentReturn
         if ($result) {
             $this->id = mysqli_insert_id($db->DB_CON);
             
+            // Restore bulk stock if applicable
+            $this->handleBulkStockAdjustment($this->return_qty, true);
+            
             // Update sub_equipment status if fully returned
             $this->checkAndUpdateSubEquipmentStatus();
             
@@ -112,6 +115,13 @@ class EquipmentRentReturn
         $result = $db->readQuery($query);
         
         if ($result) {
+            // Handle qty change in update if needed (EquipmentRentReturn updates are rare but supported)
+            $oldReturn = new EquipmentRentReturn($this->id);
+            if ($oldReturn->return_qty != $this->return_qty) {
+                $diff = $this->return_qty - $oldReturn->return_qty;
+                $this->handleBulkStockAdjustment(abs($diff), $diff > 0);
+            }
+
             // Update sub_equipment status if fully returned
             $this->checkAndUpdateSubEquipmentStatus();
             return true;
@@ -127,6 +137,9 @@ class EquipmentRentReturn
         $result = $db->readQuery($query);
         
         if ($result) {
+            // Adjust bulk stock back (subtract from stock since we are deleting a return)
+            $this->handleBulkStockAdjustment($this->return_qty, false);
+
             // Check if we need to update sub_equipment status back to rented
             $this->checkAndUpdateSubEquipmentStatus();
             return true;
@@ -157,6 +170,24 @@ class EquipmentRentReturn
             $statusQuery = "UPDATE `sub_equipment` SET `rental_status` = '$newStatus' 
                            WHERE `id` = " . (int) $itemResult['sub_equipment_id'];
             $db->readQuery($statusQuery);
+        }
+    }
+
+    private function handleBulkStockAdjustment($quantity, $isAdding)
+    {
+        $db = Database::getInstance();
+        $itemQuery = "SELECT eri.equipment_id, eri.department_id, eri.sub_equipment_id 
+                      FROM equipment_rent_items eri 
+                      WHERE eri.id = " . (int) $this->rent_item_id;
+        $item = mysqli_fetch_assoc($db->readQuery($itemQuery));
+
+        if ($item && !$item['sub_equipment_id'] && $item['equipment_id'] && $item['department_id']) {
+            // When returning, we DECREASE the rented_qty
+            $op = $isAdding ? "-" : "+";
+            $updateStock = "UPDATE `sub_equipment` SET `rented_qty` = `rented_qty` $op " . (int)$quantity . " 
+                            WHERE `equipment_id` = " . (int)$item['equipment_id'] . " 
+                            AND `department_id` = " . (int)$item['department_id'];
+            $db->readQuery($updateStock);
         }
     }
 

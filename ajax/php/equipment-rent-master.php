@@ -95,6 +95,7 @@ if (isset($_POST['create'])) {
             $RENT_ITEM->amount = $item['amount'] ?? 0;
             $RENT_ITEM->deposit_amount = $itemDepositTotal;
             $RENT_ITEM->status = 'rented';
+            $RENT_ITEM->department_id = $item['department_id'] ?? null;
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
         }
@@ -220,6 +221,7 @@ if (isset($_POST['update'])) {
                 $status = 'rented';
             }
             $RENT_ITEM->status = $status;
+            $RENT_ITEM->department_id = $item['department_id'] ?? null;
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->update();
         } else {
@@ -235,6 +237,7 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->amount = $item['amount'] ?? 0;
             $RENT_ITEM->deposit_amount = $itemDepositTotal;
             $RENT_ITEM->status = 'rented';
+            $RENT_ITEM->department_id = $item['department_id'] ?? null;
             $RENT_ITEM->remark = $item['remark'] ?? '';
             $RENT_ITEM->create();
         }
@@ -314,6 +317,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                        e.code as equipment_code, e.item_name as equipment_name, 
                        e.deposit_one_day as equipment_deposit, e.no_sub_items, e.change_value, e.is_fixed_rate,
                        se.code as sub_equipment_code,
+                       dm.name as department_name,
                        -- latest return info per item
                        (SELECT err.return_date FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 
@@ -331,6 +335,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                        FROM equipment_rent_items ri 
                        LEFT JOIN equipment e ON ri.equipment_id = e.id
                        LEFT JOIN sub_equipment se ON ri.sub_equipment_id = se.id
+                       LEFT JOIN department_master dm ON ri.department_id = dm.id
                        WHERE ri.rent_id = $rent_id";
         $itemsResult = $db->readQuery($itemsQuery);
         $items = [];
@@ -488,7 +493,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_available_sub_equipment
     $equipment_id = $_POST['equipment_id'] ?? 0;
 
     if ($equipment_id) {
-        $available = EquipmentRentItem::getAvailableSubEquipment($equipment_id);
+        $department_id = $_POST['department_id'] ?? null;
+        $available = EquipmentRentItem::getAvailableSubEquipment($equipment_id, $department_id);
         echo json_encode([
             "status" => "success",
             "sub_equipment" => $available
@@ -526,9 +532,28 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
     $equipment_id = $_POST['equipment_id'] ?? 0;
 
     if ($equipment_id) {
+        $department_id = $_POST['department_id'] ?? null;
         $EQUIPMENT = new Equipment($equipment_id);
-        $available = EquipmentRentItem::getAvailableSubEquipment($equipment_id);
+        $available = EquipmentRentItem::getAvailableSubEquipment($equipment_id, $department_id);
         $all = EquipmentRentItem::getAllSubEquipmentWithStatus($equipment_id);
+
+        // For bulk items, if department is selected, we need to know the specific stock for that department
+        // and how much of IT is available (Total Stock in Dept - Rented Linked to Dept??)
+        // Currently we don't link rent items to department for bulk items (sub_equipment_id might be used if we start linking)
+        // But for display "Department Wise Qty", we can at least show the Total Stock of that department.
+        
+        $departmentStockQty = 0;
+        if ($department_id && $EQUIPMENT->no_sub_items == 1) {
+            // Get stock for this department
+            $stockQuery = "SELECT qty FROM sub_equipment WHERE equipment_id = $equipment_id AND department_id = $department_id";
+            $db = Database::getInstance();
+            $stockResult = mysqli_fetch_assoc($db->readQuery($stockQuery));
+            $departmentStockQty = $stockResult['qty'] ?? 0;
+            
+            // For now, we don't have per-department rented tracking for bulk items.
+            // So 'available' for that department is just its total stock (minus global rented? No, that would be confusing).
+            // Or we just return the Total Department Stock as valid.
+        }
 
         echo json_encode([
             "status" => "success",
@@ -544,7 +569,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_info') {
                 "quantity" => $EQUIPMENT->quantity
             ],
             "total_sub_equipment" => count($all),
-            "available_count" => count($available)
+            "available_count" => ($department_id && $EQUIPMENT->no_sub_items == 1) ? $departmentStockQty : count($available),
+            "department_stock_qty" => $departmentStockQty
         ]);
     } else {
         echo json_encode([
@@ -850,6 +876,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_return') {
             $subEqId = (int) $item['sub_equipment_id'];
             $updateSubEqQuery = "UPDATE `sub_equipment` SET `rental_status` = 'rent' WHERE `id` = $subEqId";
             $db->readQuery($updateSubEqQuery);
+        } elseif (!empty($item['department_id'])) {
+            // Bulk item - restore rented stock (add back what was returned)
+            $returnedQty = (int)($item['total_returned_qty'] ?? 0);
+            if ($returnedQty > 0) {
+                $eId = (int)$item['equipment_id'];
+                $dId = (int)$item['department_id'];
+                $restoreQuery = "UPDATE `sub_equipment` SET `rented_qty` = `rented_qty` + $returnedQty 
+                                 WHERE `equipment_id` = $eId AND `department_id` = $dId";
+                $db->readQuery($restoreQuery);
+            }
         }
     }
 
@@ -908,6 +944,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_item_return') {
     if (!empty($RENT_ITEM->sub_equipment_id)) {
         $updateSubEqQuery = "UPDATE `sub_equipment` SET `rental_status` = 'rent' WHERE `id` = " . (int) $RENT_ITEM->sub_equipment_id;
         $db->readQuery($updateSubEqQuery);
+    } elseif (!empty($RENT_ITEM->department_id)) {
+        // Bulk item - restore rented stock (add back what was returned)
+        $returnedQty = (int)($RENT_ITEM->total_returned_qty ?? 0);
+        if ($returnedQty > 0) {
+            $eId = (int)$RENT_ITEM->equipment_id;
+            $dId = (int)$RENT_ITEM->department_id;
+            $restoreQuery = "UPDATE `sub_equipment` SET `rented_qty` = `rented_qty` + $returnedQty 
+                             WHERE `equipment_id` = $eId AND `department_id` = $dId";
+            $db->readQuery($restoreQuery);
+        }
     }
 
     // Update master rent record - if any item is now rented, master should be rented
@@ -992,6 +1038,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_bill') {
                 $subEqId = (int) $item['sub_equipment_id'];
                 $updateSubEqQuery = "UPDATE `sub_equipment` SET `rental_status` = 'available' WHERE `id` = $subEqId";
                 $db->readQuery($updateSubEqQuery);
+            } elseif (!empty($item['department_id'])) {
+                // Bulk item - restore remaining rented stock (quantity - returned)
+                $qtyToRestore = (int)($item['pending_qty'] ?? 0);
+                if ($qtyToRestore > 0) {
+                    $eId = (int)$item['equipment_id'];
+                    $dId = (int)$item['department_id'];
+                    $updateBulkStock = "UPDATE `sub_equipment` SET `rented_qty` = `rented_qty` - $qtyToRestore 
+                                        WHERE `equipment_id` = $eId AND `department_id` = $dId";
+                    $db->readQuery($updateBulkStock);
+                }
             }
         }
     }
@@ -1117,6 +1173,80 @@ if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
         'data' => $data
     ]);
     exit;
+}
+
+// Get departments for selected equipment
+if (isset($_POST['action']) && $_POST['action'] === 'get_item_departments') {
+    $equipment_id = $_POST['equipment_id'] ?? 0;
+    $sub_equipment_id = $_POST['sub_equipment_id'] ?? '';
+    
+    if (!$equipment_id) {
+        echo json_encode(['status' => 'error', 'message' => 'Equipment ID required']);
+        exit;
+    }
+
+    $EQUIPMENT = new Equipment($equipment_id);
+    $result_departments = [];
+    $db = Database::getInstance();
+
+    // Scenario 1: Sub-Equipment Selected (Serialized)
+    // Return only the department this unit belongs to
+    if (!empty($sub_equipment_id)) {
+        $subEq = new SubEquipment($sub_equipment_id);
+        if ($subEq->department_id) {
+            $dept = new DepartmentMaster($subEq->department_id);
+            $result_departments[] = [
+                'id' => $dept->id,
+                'name' => $dept->name,
+                'available_qty' => 1, // Specific unit is 1
+                'is_selected' => true
+            ];
+        }
+    } 
+    // Scenario 2: Only Equipment Selected (Bulk or Serialized)
+    else {
+        
+        if ($EQUIPMENT->no_sub_items == 1) {
+            // BULK ITEMS: Get all departments and calculate availability
+            $query = "SELECT se.department_id, se.qty, se.rented_qty, dm.name 
+                      FROM sub_equipment se 
+                      JOIN department_master dm ON se.department_id = dm.id 
+                      WHERE se.equipment_id = $equipment_id";
+                      
+            $res = $db->readQuery($query);
+            while ($row = mysqli_fetch_assoc($res)) {
+                $available = (float)$row['qty'] - (float)$row['rented_qty'];
+                $result_departments[] = [
+                    'id' => $row['department_id'],
+                    'name' => $row['name'],
+                    'available_qty' => max(0, $available),
+                    'total_qty' => $row['qty'],
+                    'rented_qty' => $row['rented_qty'],
+                    'is_selected' => false
+                ];
+            }
+        } else {
+            // SERIALIZED ITEMS: Get departments that have 'available' units
+            $query = "SELECT se.department_id, COUNT(se.id) as available_count, dm.name 
+                      FROM sub_equipment se 
+                      JOIN department_master dm ON se.department_id = dm.id 
+                      WHERE se.equipment_id = $equipment_id AND se.rental_status = 'available'
+                      GROUP BY se.department_id";
+
+            $res = $db->readQuery($query);
+            while ($row = mysqli_fetch_assoc($res)) {
+                $result_departments[] = [
+                    'id' => $row['department_id'],
+                    'name' => $row['name'],
+                    'available_qty' => $row['available_count'],
+                    'is_selected' => false
+                ];
+            }
+        }
+    }
+    
+    echo json_encode(['status' => 'success', 'departments' => $result_departments]);
+    exit();
 }
 
 // Filter equipment for DataTable (only equipment that has sub-equipment)

@@ -367,10 +367,10 @@ $bill_number = $lastId + 1;
                                         </div>
 
                                         <div class="row align-items-end mb-3">
+                                            
                                             <!-- Equipment Selection -->
                                             <div class="col-md-3">
-                                                <label for="item_equipment_display" class="form-label">Equipment -
-                                                    උපකරණ</label>
+                                                <label for="item_equipment_display" class="form-label">Equipment - උපකරණ</label>
                                                 <div class="input-group">
                                                     <input id="item_equipment_display" type="text" class="form-control"
                                                         placeholder="Select equipment" readonly>
@@ -383,12 +383,11 @@ $bill_number = $lastId + 1;
                                             </div>
 
                                             <!-- Sub Equipment Selection -->
-                                            <div class="col-md-3">
-                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment
-                                                    (Code) - උප උපකරණ (කේතය)</label>
+                                            <div class="col-md-2">
+                                                <label for="item_sub_equipment_display" class="form-label">Unit Code - කේතය</label>
                                                 <div class="input-group">
                                                     <input id="item_sub_equipment_display" type="text"
-                                                        class="form-control" placeholder="Select sub equipment"
+                                                        class="form-control" placeholder="Select unit"
                                                         readonly>
                                                     <input type="hidden" id="item_sub_equipment_id">
                                                     <button class="btn btn-info" type="button"
@@ -399,8 +398,16 @@ $bill_number = $lastId + 1;
                                                 </div>
                                             </div>
 
+                                            <!-- Department Selection -->
+                                            <div class="col-md-2">
+                                                <label class="form-label">Department</label>
+                                                <select class="form-select" id="item_department_id" disabled>
+                                                    <option value="">- Select -</option>
+                                                </select>
+                                            </div>
+
                                             <div class="col-md-1">
-                                                <label class="form-label">Rent Type - කුලී වර්ගය</label>
+                                                <label class="form-label">Type</label>
                                                 <select class="form-select" id="item_rent_type">
                                                     <option value="day">Day</option>
                                                     <option value="month">Month</option>
@@ -408,29 +415,29 @@ $bill_number = $lastId + 1;
                                             </div>
 
                                             <div class="col-md-2">
-                                                <label class="form-label">Duration - කාල සීමාව</label>
+                                                <label class="form-label">Duration</label>
                                                 <div class="input-group">
                                                     <input type="number" class="form-control" id="item_duration" min="1"
                                                         step="1" placeholder="0">
-                                                    <span class="input-group-text" id="duration_label">Days</span>
+                                                    <span class="input-group-text p-1" id="duration_label" style="font-size: 0.8rem;">Days</span>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-1">
-                                                <label class="form-label">Qty - ප්‍රමාණය</label>
+                                                <label class="form-label">Qty</label>
                                                 <input type="number" class="form-control" id="item_qty" min="1" step="1"
                                                     value="1" readonly>
                                             </div>
 
 
-                                            <div class="col-md-2">
-                                                <label class="form-label">Amount - අගය</label>
+                                            <div class="col-md-1">
+                                                <label class="form-label">Amount</label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" id="item_amount" readonly
+                                                    <input type="text" class="form-control p-1" id="item_amount" readonly
                                                         placeholder="0.00">
                                                     <?php if ($PERMISSIONS['edit_page']): ?>
-                                                        <button class="btn btn-danger" type="button" id="btn-enable-amount-edit" 
-                                                            title="Enable manual amount editing" style="display: none;">
+                                                        <button class="btn btn-danger btn-sm p-1" type="button" id="btn-enable-amount-edit" 
+                                                            title="Edit" style="display: none;">
                                                             <i class="uil uil-plus"></i>
                                                         </button>
                                                     <?php endif; ?>
@@ -464,6 +471,7 @@ $bill_number = $lastId + 1;
                                                         <th>#</th>
                                                         <th>Equipment</th>
                                                         <th>Sub Equipment</th>
+                                                        <th>Department</th>
                                                         <th>Type</th>
                                                         <th class="duration-col">Duration</th>
                                                         <th>Qty</th>
