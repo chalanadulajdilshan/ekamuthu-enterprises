@@ -292,29 +292,30 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
         $meta = [];
 
         if ($isNoSub) {
-            $totalQty = (float) ($equipRow['quantity'] ?? 0);
-            $rentSql = "SELECT COALESCE(SUM(quantity),0) AS rented FROM equipment_rent_items WHERE equipment_id = $equipment_id AND status = 'rented' AND (sub_equipment_id IS NULL OR sub_equipment_id = 0)";
-            $rentRow = mysqli_fetch_assoc($db->readQuery($rentSql));
-            $rentedQty = (float) ($rentRow['rented'] ?? 0);
-            $availableQty = max(0, $totalQty - $rentedQty);
-
-            // Fetch department stock
+            // Fetch department stock from sub_equipment table
             $deptStock = [];
+            $totalQty = 0;
+            $rentedQty = 0;
             $deptSql = "SELECT dm.name, se.qty, se.rented_qty, se.department_id 
                         FROM sub_equipment se
                         JOIN department_master dm ON se.department_id = dm.id
                         WHERE se.equipment_id = $equipment_id";
             $deptResult = $db->readQuery($deptSql);
             while ($deptRow = mysqli_fetch_assoc($deptResult)) {
-                $available = (float)$deptRow['qty'] - (float)$deptRow['rented_qty'];
+                $deptQty = (float)$deptRow['qty'];
+                $deptRented = (float)$deptRow['rented_qty'];
+                $available = $deptQty - $deptRented;
+                $totalQty += $deptQty;
+                $rentedQty += $deptRented;
                 $deptStock[] = [
                     'department_id' => $deptRow['department_id'],
                     'department_name' => $deptRow['name'],
-                    'qty' => (float)$deptRow['qty'],
-                    'rented_qty' => (float)$deptRow['rented_qty'],
+                    'qty' => $deptQty,
+                    'rented_qty' => $deptRented,
                     'available_qty' => max(0, $available)
                 ];
             }
+            $availableQty = max(0, $totalQty - $rentedQty);
 
             $meta = [
                 'no_sub_items' => 1,

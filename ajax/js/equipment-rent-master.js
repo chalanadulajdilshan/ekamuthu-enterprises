@@ -115,10 +115,16 @@ jQuery(document).ready(function () {
 
       // For fixed-rate items, always use flat rate
       if (currentIsFixedRate) {
-        amount = (rentType === "day") ? (currentRentOneDay * qty) : (currentRentOneMonth * qty);
+        amount =
+          rentType === "day"
+            ? currentRentOneDay * qty
+            : currentRentOneMonth * qty;
       } else {
         // Normal items: use stored rate (already calculated per duration in the system)
-        amount = (rentType === "day") ? (currentRentOneDay * qty) : (currentRentOneMonth * qty);
+        amount =
+          rentType === "day"
+            ? currentRentOneDay * qty
+            : currentRentOneMonth * qty;
       }
       $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
     }
@@ -209,14 +215,17 @@ jQuery(document).ready(function () {
 
         var returnDisplay = hasReturn
           ? '<div class="text-danger fw-semibold">' +
-          returnDateTime +
-          dayCountDisplay +
-          "</div>"
+            returnDateTime +
+            dayCountDisplay +
+            "</div>"
           : "-";
 
-        var rowClass = item.status === "cancelled" ? ' class="table-danger"' : '';
+        var rowClass =
+          item.status === "cancelled" ? ' class="table-danger"' : "";
         var row =
-          "<tr" + rowClass + ">" +
+          "<tr" +
+          rowClass +
+          ">" +
           "<td>" +
           (index + 1) +
           "</td>" +
@@ -316,9 +325,9 @@ jQuery(document).ready(function () {
         var item = rentItems[index];
         var itemLabel = item
           ? item.equipment_display +
-          (item.sub_equipment_display
-            ? " (" + item.sub_equipment_display + ")"
-            : "")
+            (item.sub_equipment_display
+              ? " (" + item.sub_equipment_display + ")"
+              : "")
           : "this item";
 
         swal(
@@ -471,7 +480,9 @@ jQuery(document).ready(function () {
       deposit_one_day: currentDepositOneDay,
       is_fixed_rate: currentIsFixedRate ? 1 : 0,
       department_id: $("#item_department_id").val() || null,
-      department_name: $("#item_department_id option:selected").text().split(" (Avail")[0] || "",
+      department_name:
+        $("#item_department_id option:selected").text().split(" (Avail")[0] ||
+        "",
       status: "rented",
       remark: "",
       no_sub_items: noSubItems ? 1 : 0,
@@ -501,7 +512,9 @@ jQuery(document).ready(function () {
     $("#item_returned_qty").val(0);
     $("#item_amount").val("");
     // Reset department dropdown
-    $("#item_department_id").html('<option value="">- Select -</option>').prop("disabled", true);
+    $("#item_department_id")
+      .html('<option value="">- Select -</option>')
+      .prop("disabled", true);
   });
 
   // Track manual edits on amount when allowed
@@ -762,13 +775,28 @@ jQuery(document).ready(function () {
         }
 
         rows.forEach(function (row) {
-          console.log("Processing row - Bill:", row.bill_number, "Status:", row.status, "IsCancelled:", row.is_cancelled);
-          var isCancelled = (row.status === 'cancelled' || row.is_cancelled == 1);
-          var statusLabel = row.status_label || (isCancelled ? "<span class='badge bg-danger'>Cancelled</span>" : (row.status || ""));
+          console.log(
+            "Processing row - Bill:",
+            row.bill_number,
+            "Status:",
+            row.status,
+            "IsCancelled:",
+            row.is_cancelled,
+          );
+          var isCancelled = row.status === "cancelled" || row.is_cancelled == 1;
+          var statusLabel =
+            row.status_label ||
+            (isCancelled
+              ? "<span class='badge bg-danger'>Cancelled</span>"
+              : row.status || "");
           var html =
-            "<tr class='rent-row" + (isCancelled ? ' table-danger' : '') + "' data-id='" +
+            "<tr class='rent-row" +
+            (isCancelled ? " table-danger" : "") +
+            "' data-id='" +
             (row.id || "") +
-            "' data-status='" + (row.status || '') + "'>" +
+            "' data-status='" +
+            (row.status || "") +
+            "'>" +
             "<td>" +
             (row.id || "") +
             "</td>" +
@@ -828,7 +856,9 @@ jQuery(document).ready(function () {
           $("#customer_id").val(rent.customer_id);
           $("#customer_display").val(rent.customer_name);
           $("#rental_date").val(rent.rental_date);
-          $("#rental_start_date").val(rent.rental_start_date || rent.rental_date);
+          $("#rental_start_date").val(
+            rent.rental_start_date || rent.rental_date,
+          );
           var $paymentSelect = $("#payment_type_id");
           $paymentSelect.find("option[data-temp='1']").remove();
 
@@ -844,10 +874,10 @@ jQuery(document).ready(function () {
                 : "(Inactive)";
               $paymentSelect.append(
                 "<option data-temp='1' value='" +
-                rent.payment_type_id +
-                "' selected hidden>" +
-                tempLabel +
-                "</option>",
+                  rent.payment_type_id +
+                  "' selected hidden>" +
+                  tempLabel +
+                  "</option>",
               );
             }
             $paymentSelect.val(rent.payment_type_id);
@@ -958,10 +988,12 @@ jQuery(document).ready(function () {
           $("#create").hide();
           $("#cancel-bill-alert").remove();
 
-          var statusText = String(rent.status || '').toLowerCase().trim();
-          var isRented = ['rented', 'rent', 'active'].includes(statusText);
+          var statusText = String(rent.status || "")
+            .toLowerCase()
+            .trim();
+          var isRented = ["rented", "rent", "active"].includes(statusText);
           var hasItems = rentItems.length > 0;
-          var isCancelled = ['cancelled', 'canceled'].includes(statusText);
+          var isCancelled = ["cancelled", "canceled"].includes(statusText);
           // Show cancel-return if bill has items and is not cancelled (regardless of status text)
           var shouldShowCancelReturn = hasItems && !isCancelled;
           if (!isRented) {
@@ -1046,13 +1078,28 @@ jQuery(document).ready(function () {
         }
 
         rows.forEach(function (row) {
-          console.log("Processing returned row - Bill:", row.bill_number, "Status:", row.status, "IsCancelled:", row.is_cancelled);
-          var isCancelled = (row.status === 'cancelled' || row.is_cancelled == 1);
-          var statusLabel = row.status_label || (isCancelled ? "<span class='badge bg-danger'>Cancelled</span>" : (row.status || ""));
+          console.log(
+            "Processing returned row - Bill:",
+            row.bill_number,
+            "Status:",
+            row.status,
+            "IsCancelled:",
+            row.is_cancelled,
+          );
+          var isCancelled = row.status === "cancelled" || row.is_cancelled == 1;
+          var statusLabel =
+            row.status_label ||
+            (isCancelled
+              ? "<span class='badge bg-danger'>Cancelled</span>"
+              : row.status || "");
           var html =
-            "<tr class='returned-row" + (isCancelled ? ' table-danger' : '') + "' data-id='" +
+            "<tr class='returned-row" +
+            (isCancelled ? " table-danger" : "") +
+            "' data-id='" +
             (row.id || "") +
-            "' data-status='" + (row.status || '') + "'>" +
+            "' data-status='" +
+            (row.status || "") +
+            "'>" +
             "<td>" +
             (row.id || "") +
             "</td>" +
@@ -1914,16 +1961,15 @@ jQuery(document).ready(function () {
 
   // Calculate return all preview when inputs change (with server-side preview)
   var returnAllPreviewTimer = null;
-  $("#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override").on(
-    "change input",
-    function () {
-      // Debounce to avoid rapid-fire AJAX calls from datepicker events
-      clearTimeout(returnAllPreviewTimer);
-      returnAllPreviewTimer = setTimeout(function () {
-        fetchReturnAllPreview();
-      }, 300);
-    },
-  );
+  $(
+    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override",
+  ).on("change input", function () {
+    // Debounce to avoid rapid-fire AJAX calls from datepicker events
+    clearTimeout(returnAllPreviewTimer);
+    returnAllPreviewTimer = setTimeout(function () {
+      fetchReturnAllPreview();
+    }, 300);
+  });
 
   function fetchReturnAllPreview() {
     var rentId = $("#rent_id").val();
@@ -1931,7 +1977,8 @@ jQuery(document).ready(function () {
     var returnTime = $("#return_all_time").val();
     var after9am = $("#return_all_after_9am").is(":checked") ? 1 : 0;
     var rentalOverrideInput = $("#return_all_rental_override").val();
-    var rentalOverride = rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
+    var rentalOverride =
+      rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
 
     if (!rentId || !returnDate || !returnTime) {
       $("#returnAllPreview").hide();
@@ -1946,7 +1993,10 @@ jQuery(document).ready(function () {
       var rentalStartDate = new Date(rentalStart + " 00:00");
       if (!isNaN(returnDateOnly) && !isNaN(rentalStartDate)) {
         var msDiff = returnDateOnly - rentalStartDate;
-        var baseDays = msDiff >= 0 ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24))) : 0;
+        var baseDays =
+          msDiff >= 0
+            ? Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24)))
+            : 0;
         var totalDays = baseDays + (after9am ? 1 : 0);
         dayCountText = totalDays + " day" + (totalDays === 1 ? "" : "s");
       }
@@ -1975,7 +2025,8 @@ jQuery(document).ready(function () {
           " " +
           returnTime +
           "</p>";
-        previewHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+        previewHtml +=
+          "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
         previewHtml +=
           "<p><strong>After 9:00 AM:</strong> " +
           (after9am ? "Yes (extra day will be counted)" : "No") +
@@ -1983,22 +2034,43 @@ jQuery(document).ready(function () {
 
         // Settlement summary
         var settlement = [];
-        var rentalLabel = rentalOverride !== null && !isNaN(rentalOverride) ? "Rental (override)" : "Rental";
-        var rentalValue = rentalOverride !== null && !isNaN(rentalOverride)
-          ? rentalOverride
-          : Number(calc.rental_amount || 0);
-        settlement.push(rentalLabel + ": Rs. " + Number(rentalValue || 0).toFixed(2));
-        settlement.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
-        settlement.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
-        settlement.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
-        settlement.push("Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2));
+        var rentalLabel =
+          rentalOverride !== null && !isNaN(rentalOverride)
+            ? "Rental (override)"
+            : "Rental";
+        var rentalValue =
+          rentalOverride !== null && !isNaN(rentalOverride)
+            ? rentalOverride
+            : Number(calc.rental_amount || 0);
+        settlement.push(
+          rentalLabel + ": Rs. " + Number(rentalValue || 0).toFixed(2),
+        );
+        settlement.push(
+          "Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2),
+        );
+        settlement.push(
+          "Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2),
+        );
+        settlement.push(
+          "Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2),
+        );
+        settlement.push(
+          "Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2),
+        );
         if (Number(calc.refund_amount || 0) > 0) {
-          settlement.push("Refund: Rs. " + Number(calc.refund_amount).toFixed(2));
+          settlement.push(
+            "Refund: Rs. " + Number(calc.refund_amount).toFixed(2),
+          );
         } else if (Number(calc.additional_payment || 0) > 0) {
-          settlement.push("Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2));
+          settlement.push(
+            "Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2),
+          );
         }
 
-        previewHtml += "<hr><p><strong>Settlement Preview:</strong><br>" + settlement.join("<br>") + "</p>";
+        previewHtml +=
+          "<hr><p><strong>Settlement Preview:</strong><br>" +
+          settlement.join("<br>") +
+          "</p>";
 
         $("#returnAllPreviewContent").html(previewHtml);
         $("#returnAllPreview").show();
@@ -2011,7 +2083,8 @@ jQuery(document).ready(function () {
           " " +
           returnTime +
           "</p>";
-        fallbackHtml += "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+        fallbackHtml +=
+          "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
         fallbackHtml +=
           "<p><strong>After 9:00 AM:</strong> " +
           (after9am ? "Yes (extra day will be counted)" : "No") +
@@ -2030,7 +2103,8 @@ jQuery(document).ready(function () {
     var returnTime = $("#return_all_time").val();
     var after9amExtraDay = $("#return_all_after_9am").is(":checked") ? 1 : 0;
     var rentalOverrideInput = $("#return_all_rental_override").val();
-    var rentalOverride = rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
+    var rentalOverride =
+      rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
 
     if (!rentId) {
       swal({
@@ -2075,25 +2149,48 @@ jQuery(document).ready(function () {
 
           // Build settlement summary if backend sent calculation
           var calc = result.calculation || {};
-          var settlementText = result.message || "All items marked as returned.";
+          var settlementText =
+            result.message || "All items marked as returned.";
           var summaryLines = [];
-          if (calc && (calc.refund_amount || calc.additional_payment || calc.rental_amount)) {
-            summaryLines.push("Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2));
-            summaryLines.push("Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2));
-            summaryLines.push("Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2));
-            summaryLines.push("Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2));
-            summaryLines.push("Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2));
+          if (
+            calc &&
+            (calc.refund_amount ||
+              calc.additional_payment ||
+              calc.rental_amount)
+          ) {
+            summaryLines.push(
+              "Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2),
+            );
+            summaryLines.push(
+              "Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2),
+            );
+            summaryLines.push(
+              "Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2),
+            );
+            summaryLines.push(
+              "Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2),
+            );
+            summaryLines.push(
+              "Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2),
+            );
 
             if (Number(calc.refund_amount || 0) > 0) {
-              summaryLines.push("Refund: Rs. " + Number(calc.refund_amount).toFixed(2));
+              summaryLines.push(
+                "Refund: Rs. " + Number(calc.refund_amount).toFixed(2),
+              );
             } else if (Number(calc.additional_payment || 0) > 0) {
-              summaryLines.push("Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2));
+              summaryLines.push(
+                "Customer Pays: Rs. " +
+                  Number(calc.additional_payment).toFixed(2),
+              );
             }
           }
 
           swal({
             title: "Success!",
-            text: settlementText + (summaryLines.length ? "\n\n" + summaryLines.join("\n") : ""),
+            text:
+              settlementText +
+              (summaryLines.length ? "\n\n" + summaryLines.join("\n") : ""),
             type: "success",
             timer: 2500,
             showConfirmButton: false,
@@ -2213,8 +2310,13 @@ jQuery(document).ready(function () {
 
   // Cancel Bill - open modal to capture amount and date, then cancel
   var cancelBillModalInstance = null;
-  if (typeof bootstrap !== "undefined" && document.getElementById("cancelBillModal")) {
-    cancelBillModalInstance = new bootstrap.Modal(document.getElementById("cancelBillModal"));
+  if (
+    typeof bootstrap !== "undefined" &&
+    document.getElementById("cancelBillModal")
+  ) {
+    cancelBillModalInstance = new bootstrap.Modal(
+      document.getElementById("cancelBillModal"),
+    );
   }
 
   $("#cancel-bill").click(function (e) {
@@ -2247,7 +2349,8 @@ jQuery(document).ready(function () {
     var rentId = $("#rent_id").val();
     var rentCode = $("#code").val();
     var cancelAmount = $("#cancel_amount").val() || 0;
-    var cancelDate = $("#cancel_date").val() || new Date().toISOString().slice(0, 10);
+    var cancelDate =
+      $("#cancel_date").val() || new Date().toISOString().slice(0, 10);
 
     if (!rentId) {
       swal({
@@ -2421,7 +2524,10 @@ jQuery(document).ready(function () {
 
   // Payment method change - show/hide cheque and bank transfer details
   function togglePaymentDetails() {
-    var selectedText = $("#payment_type_id option:selected").text().trim().toLowerCase();
+    var selectedText = $("#payment_type_id option:selected")
+      .text()
+      .trim()
+      .toLowerCase();
 
     // Hide all payment detail sections first
     $("#cheque_details_section").hide();
@@ -2438,7 +2544,11 @@ jQuery(document).ready(function () {
     togglePaymentDetails();
 
     // Clear fields when switching payment methods
-    var selectedText = $(this).find("option:selected").text().trim().toLowerCase();
+    var selectedText = $(this)
+      .find("option:selected")
+      .text()
+      .trim()
+      .toLowerCase();
     if (selectedText !== "cheque") {
       $("#cheque_number").val("");
       $("#cheque_date").val("");
@@ -2476,12 +2586,18 @@ jQuery(document).ready(function () {
   // Initialize DataTables for branch modals when shown
   $("#ChequeBranchSelectModal").on("shown.bs.modal", function () {
     if (!$.fn.DataTable.isDataTable("#chequeBranchTable")) {
-      $("#chequeBranchTable").DataTable({ pageLength: 10, order: [[1, "asc"]] });
+      $("#chequeBranchTable").DataTable({
+        pageLength: 10,
+        order: [[1, "asc"]],
+      });
     }
   });
   $("#TransferBranchSelectModal").on("shown.bs.modal", function () {
     if (!$.fn.DataTable.isDataTable("#transferBranchTable")) {
-      $("#transferBranchTable").DataTable({ pageLength: 10, order: [[1, "asc"]] });
+      $("#transferBranchTable").DataTable({
+        pageLength: 10,
+        order: [[1, "asc"]],
+      });
     }
   });
 
@@ -2496,12 +2612,16 @@ jQuery(document).ready(function () {
   // Check availability when Department or Equipment changes
   // --- New Logic for Department Selection (Refactored) ---
 
-  function loadDepartments(equipmentId, subEquipmentId = '') {
+  function loadDepartments(equipmentId, subEquipmentId = "") {
     var $deptSelect = $("#item_department_id");
-    $deptSelect.html('<option value="">Loading...</option>').prop("disabled", true);
+    $deptSelect
+      .html('<option value="">Loading...</option>')
+      .prop("disabled", true);
 
     if (!equipmentId) {
-      $deptSelect.html('<option value="">- Select -</option>').prop("disabled", true);
+      $deptSelect
+        .html('<option value="">- Select -</option>')
+        .prop("disabled", true);
       return;
     }
 
@@ -2512,23 +2632,30 @@ jQuery(document).ready(function () {
       data: {
         action: "get_item_departments",
         equipment_id: equipmentId,
-        sub_equipment_id: subEquipmentId
+        sub_equipment_id: subEquipmentId,
       },
       success: function (res) {
-        if (res.status === 'success') {
+        if (res.status === "success") {
           var depts = res.departments;
           var options = '<option value="">- Select -</option>';
 
           depts.forEach(function (d) {
             var label = d.name + " (Avail: " + d.available_qty + ")";
-            var selected = d.is_selected ? 'selected' : '';
-            options += '<option value="' + d.id + '" ' + selected + '>' + label + '</option>';
+            var selected = d.is_selected ? "selected" : "";
+            options +=
+              '<option value="' +
+              d.id +
+              '" ' +
+              selected +
+              ">" +
+              label +
+              "</option>";
           });
 
           $deptSelect.html(options).prop("disabled", false);
 
-          // If only one department is available, auto-select it
-          if (depts.length === 1) {
+          // Auto-select the first department by default
+          if (depts.length >= 1) {
             $deptSelect.val(depts[0].id);
           }
         } else {
@@ -2537,8 +2664,7 @@ jQuery(document).ready(function () {
       },
       error: function () {
         $deptSelect.html('<option value="">Error</option>');
-      }
+      },
     });
   }
-
 });

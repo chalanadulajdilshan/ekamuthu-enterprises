@@ -70,8 +70,10 @@ class EquipmentRent
 
     public function create()
     {
+        $now = date('Y-m-d H:i:s');
+
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`
+            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`, `created_at`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ", " .
@@ -83,8 +85,8 @@ class EquipmentRent
             ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ", " .
             ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ", " .
             ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . ", " .
-            ($this->created_by ? "'$this->created_by'" : "NULL") .
-            "
+            ($this->created_by ? "'$this->created_by'" : "NULL") . ",
+            '$now'
         )";
 
         $db = Database::getInstance();
@@ -99,6 +101,8 @@ class EquipmentRent
 
     public function update()
     {
+        $now = date('Y-m-d H:i:s');
+
         $query = "UPDATE `equipment_rent` SET 
             `bill_number` = '$this->bill_number', 
             `customer_id` = '$this->customer_id',
@@ -119,7 +123,8 @@ class EquipmentRent
             `cheque_branch_id` = " . ($this->cheque_branch_id ? "'$this->cheque_branch_id'" : "NULL") . ",
             `transfer_branch_id` = " . ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ",
             `bank_account_number` = " . ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ",
-            `bank_reference` = " . ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . "
+            `bank_reference` = " . ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . ",
+            `updated_at` = '$now'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
