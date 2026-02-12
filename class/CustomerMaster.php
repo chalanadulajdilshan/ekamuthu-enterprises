@@ -9,6 +9,7 @@ class CustomerMaster
     public $mobile_number;
     public $mobile_number_2;
     public $old_outstanding;
+    public $rent_outstanding;
     public $remark;
     public $nic;
     public $utility_bill_no;

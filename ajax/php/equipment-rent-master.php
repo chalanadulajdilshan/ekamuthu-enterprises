@@ -372,6 +372,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $totalCharges = floatval($chargesData['total_charges'] ?? 0);
         $refundBalance = $customerDeposit - $totalCharges;
 
+        // Get total customer paid across all returns for this rent
+        $paidQuery = "SELECT COALESCE(SUM(err.customer_paid), 0) as total_customer_paid
+                      FROM equipment_rent_returns err
+                      INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                      WHERE eri.rent_id = $rent_id";
+        $paidResult = $db->readQuery($paidQuery);
+        $paidData = mysqli_fetch_assoc($paidResult);
+        $totalCustomerPaid = floatval($paidData['total_customer_paid'] ?? 0);
+
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 
@@ -418,7 +427,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "transfer_branch_display" => $transferBranchDisplay,
                 "bank_account_number" => $EQUIPMENT_RENT->bank_account_number,
                 "bank_reference" => $EQUIPMENT_RENT->bank_reference,
-                "total_items" => $EQUIPMENT_RENT->total_items
+                "total_items" => $EQUIPMENT_RENT->total_items,
+                "total_customer_paid" => $totalCustomerPaid,
+                "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0)
             ],
             "items" => $items
         ]);
@@ -761,6 +772,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         }
 
         // Now create return records with override-adjusted amounts
+        // Handle customer_paid for the whole return-all
+        $totalCustomerPaid = isset($_POST['customer_paid']) ? floatval($_POST['customer_paid']) : 0;
+        $totalAdditionalPayment = $totals['additional_payment'];
+
         foreach ($itemCalculations as $entry) {
             $item = $entry['item'];
             $pendingQty = $entry['pendingQty'];
@@ -793,6 +808,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $RETURN->settle_amount = round($itemSettle, 2);
             $RETURN->refund_amount = round($itemRefund, 2);
             $RETURN->additional_payment = round($itemAdditional, 2);
+            // Distribute customer_paid proportionally across items
+            if ($totalAdditionalPayment > 0 && $itemAdditional > 0) {
+                $paidShare = ($itemAdditional / $totalAdditionalPayment) * $totalCustomerPaid;
+                $RETURN->customer_paid = round($paidShare, 2);
+                $RETURN->outstanding_amount = round(max(0, $itemAdditional - $paidShare), 2);
+            } else {
+                $RETURN->customer_paid = 0;
+                $RETURN->outstanding_amount = 0;
+            }
             $RETURN->remark = 'Returned via Return All';
 
             $return_id = $RETURN->create();

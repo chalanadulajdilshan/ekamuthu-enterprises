@@ -16,6 +16,8 @@ class EquipmentRentReturn
     public $settle_amount;
     public $refund_amount;
     public $additional_payment;
+    public $customer_paid;
+    public $outstanding_amount;
     public $remark;
     public $created_by;
     public $created_at;
@@ -43,6 +45,8 @@ class EquipmentRentReturn
                 $this->settle_amount = $result['settle_amount'];
                 $this->refund_amount = $result['refund_amount'];
                 $this->additional_payment = $result['additional_payment'];
+                $this->customer_paid = $result['customer_paid'] ?? 0;
+                $this->outstanding_amount = $result['outstanding_amount'] ?? 0;
                 $this->remark = $result['remark'];
                 $this->created_by = $result['created_by'];
                 $this->created_at = $result['created_at'];
@@ -61,7 +65,8 @@ class EquipmentRentReturn
             `rent_item_id`, `return_date`, `return_time`, `return_qty`, `damage_amount`, 
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
             `rental_override`,
-            `settle_amount`, `refund_amount`, `additional_payment`, `remark`, `created_by`, `created_at`
+            `settle_amount`, `refund_amount`, `additional_payment`, `customer_paid`, `outstanding_amount`,
+            `remark`, `created_by`, `created_at`
         ) VALUES (
             '$this->rent_item_id', '$this->return_date', " .
             ($this->return_time ? "'{$this->return_time}'" : "NULL") . ", '$this->return_qty', 
@@ -69,7 +74,8 @@ class EquipmentRentReturn
             '$this->penalty_percentage', '$this->penalty_amount',
             $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
-            '$this->additional_payment', '$this->remark', " . 
+            '$this->additional_payment', '$this->customer_paid', '$this->outstanding_amount',
+            '$this->remark', " . 
             (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . ",
             '$now'
         )";
@@ -85,6 +91,9 @@ class EquipmentRentReturn
             
             // Update sub_equipment status if fully returned
             $this->checkAndUpdateSubEquipmentStatus();
+            
+            // Update customer rent_outstanding
+            $this->updateCustomerRentOutstanding(floatval($this->outstanding_amount));
             
             return $this->id;
         } else {
@@ -111,6 +120,8 @@ class EquipmentRentReturn
             `settle_amount` = '$this->settle_amount',
             `refund_amount` = '$this->refund_amount',
             `additional_payment` = '$this->additional_payment',
+            `customer_paid` = '$this->customer_paid',
+            `outstanding_amount` = '$this->outstanding_amount',
             `remark` = '$this->remark',
             `updated_at` = '$now'
             WHERE `id` = '$this->id'";
@@ -136,6 +147,9 @@ class EquipmentRentReturn
 
     public function delete()
     {
+        // Save outstanding before deleting so we can reverse it
+        $outstandingToReverse = floatval($this->outstanding_amount);
+        
         $query = "DELETE FROM `equipment_rent_returns` WHERE `id` = '$this->id'";
         $db = Database::getInstance();
         $result = $db->readQuery($query);
@@ -146,6 +160,12 @@ class EquipmentRentReturn
 
             // Check if we need to update sub_equipment status back to rented
             $this->checkAndUpdateSubEquipmentStatus();
+            
+            // Reverse outstanding from customer total
+            if ($outstandingToReverse > 0) {
+                $this->updateCustomerRentOutstanding(-$outstandingToReverse);
+            }
+            
             return true;
         }
         
@@ -192,6 +212,28 @@ class EquipmentRentReturn
                             WHERE `equipment_id` = " . (int)$item['equipment_id'] . " 
                             AND `department_id` = " . (int)$item['department_id'];
             $db->readQuery($updateStock);
+        }
+    }
+
+    /**
+     * Update the customer's rent_outstanding running total.
+     * Positive $amount = increase outstanding, negative = decrease.
+     */
+    private function updateCustomerRentOutstanding($amount)
+    {
+        if (abs($amount) < 0.01) return;
+        $db = Database::getInstance();
+        // Get customer_id via rent_item -> rent
+        $q = "SELECT er.customer_id FROM equipment_rent_items eri
+              INNER JOIN equipment_rent er ON eri.rent_id = er.id
+              WHERE eri.id = " . (int)$this->rent_item_id;
+        $row = mysqli_fetch_assoc($db->readQuery($q));
+        if ($row && $row['customer_id']) {
+            $customerId = (int)$row['customer_id'];
+            $amt = floatval($amount);
+            // Use GREATEST to prevent negative outstanding
+            $update = "UPDATE `customer_master` SET `rent_outstanding` = GREATEST(0, COALESCE(`rent_outstanding`,0) + ($amt)) WHERE `id` = $customerId";
+            $db->readQuery($update);
         }
     }
 

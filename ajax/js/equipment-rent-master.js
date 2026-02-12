@@ -934,6 +934,17 @@ jQuery(document).ready(function () {
             $refundBadge.addClass("badge bg-success").text("Refund");
           }
 
+          // Customer Paid and Outstanding
+          var totalCustomerPaid = parseFloat(rent.total_customer_paid || 0);
+          $("#customer_paid_total").text(totalCustomerPaid.toFixed(2));
+          var rentOutstanding = parseFloat(rent.rent_outstanding || 0);
+          $("#customer_rent_outstanding").text(rentOutstanding.toFixed(2));
+          if (rentOutstanding > 0) {
+            $("#customer_rent_outstanding").removeClass('text-success').addClass('text-danger');
+          } else {
+            $("#customer_rent_outstanding").removeClass('text-danger').addClass('text-success');
+          }
+
           // Lock manual edits when loading an existing rent
           $("#transport_cost, #custom_deposit").prop("readonly", true);
 
@@ -1898,6 +1909,8 @@ jQuery(document).ready(function () {
     $("#customer_refund_badge")
       .removeClass("badge bg-danger bg-success")
       .text("");
+    $("#customer_paid_total").text("0.00");
+    $("#customer_rent_outstanding").text("0.00");
     totalCalculatedDeposit = 0;
     rentItems = [];
     updateItemsTable();
@@ -2105,8 +2118,35 @@ jQuery(document).ready(function () {
           settlement.join("<br>") +
           "</p>";
 
+        // If customer owes, add Customer Paid input and Outstanding display
+        var additionalPayment = Number(calc.additional_payment || 0);
+        if (additionalPayment > 0) {
+          previewHtml += '<div class="mt-2">';
+          previewHtml += '<label class="fw-bold">Customer Paid Amount:</label> ';
+          previewHtml += '<input type="number" id="return_all_customer_paid" class="form-control form-control-sm d-inline-block" ';
+          previewHtml += 'style="width:140px; text-align:right;" step="0.01" min="0" ';
+          previewHtml += 'max="' + additionalPayment.toFixed(2) + '" value="' + additionalPayment.toFixed(2) + '">';
+          previewHtml += '<div class="mt-1"><strong>Outstanding: </strong>';
+          previewHtml += '<span id="return_all_outstanding_display" class="text-warning fw-bold">Rs. 0.00</span></div>';
+          previewHtml += '</div>';
+        }
+
         $("#returnAllPreviewContent").html(previewHtml);
         $("#returnAllPreview").show();
+
+        // Bind live outstanding calculation for return all
+        if (additionalPayment > 0) {
+          $("#return_all_customer_paid").on('input', function() {
+            var paid = parseFloat($(this).val()) || 0;
+            var outstanding = Math.max(0, additionalPayment - paid);
+            $("#return_all_outstanding_display").text('Rs. ' + outstanding.toFixed(2));
+            if (outstanding > 0) {
+              $("#return_all_outstanding_display").removeClass('text-success').addClass('text-warning');
+            } else {
+              $("#return_all_outstanding_display").removeClass('text-warning').addClass('text-success');
+            }
+          }).trigger('input');
+        }
       },
       error: function () {
         // Fallback to basic preview
@@ -2174,6 +2214,7 @@ jQuery(document).ready(function () {
         return_time: returnTime,
         after_9am_extra_day: after9amExtraDay,
         rental_override: rentalOverride,
+        customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
       },
       dataType: "JSON",
       success: function (result) {

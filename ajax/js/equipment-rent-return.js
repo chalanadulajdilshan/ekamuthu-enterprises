@@ -74,7 +74,7 @@ $(document).ready(function() {
                     // Display existing returns if any
                     if (data.returns && data.returns.length > 0) {
                         let returnsHtml = '<h6 class="mt-3">Previous Returns:</h6><div class="table-responsive"><table class="table table-sm table-bordered">';
-                        returnsHtml += '<thead><tr><th>Date</th><th>Time</th><th>Qty</th><th>Rental</th><th>Extra Day</th><th>Penalty</th><th>Damage</th><th>Settlement</th><th>Remark</th></tr></thead><tbody>';
+                        returnsHtml += '<thead><tr><th>Date</th><th>Time</th><th>Qty</th><th>Rental</th><th>Extra Day</th><th>Penalty</th><th>Damage</th><th>Settlement</th><th>Paid</th><th>Outstanding</th><th>Remark</th></tr></thead><tbody>';
                         
                         data.returns.forEach(function(ret) {
                             let settlementText = '';
@@ -99,6 +99,8 @@ $(document).ready(function() {
                                 <td>${penaltyText}</td>
                                 <td>Rs. ${parseFloat(ret.damage_amount).toFixed(2)}</td>
                                 <td>${settlementText}</td>
+                                <td>Rs. ${parseFloat(ret.customer_paid || 0).toFixed(2)}</td>
+                                <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + '</span>' : '-'}</td>
                                 <td>${ret.remark || '-'}</td>
                             </tr>`;
                         });
@@ -264,9 +266,45 @@ $(document).ready(function() {
                         settlementHtml += `<strong class="text-muted">No charge (Break-even)</strong>`;
                     }
                     
-                    settlementHtml += `</td></tr></table></div>`;
+                    settlementHtml += `</td></tr>`;
+                    
+                    // If customer owes, add a "Customer Paid" input and "Outstanding" display
+                    if (calc.additional_payment > 0) {
+                        settlementHtml += `
+                                <tr>
+                                    <td><strong>Customer Paid:</strong></td>
+                                    <td class="text-right">
+                                        <input type="number" id="customer_paid_amount" class="form-control form-control-sm d-inline-block" 
+                                               style="width:140px; text-align:right;" step="0.01" min="0" 
+                                               max="${calc.additional_payment.toFixed(2)}" value="${calc.additional_payment.toFixed(2)}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Outstanding:</strong></td>
+                                    <td class="text-right">
+                                        <strong class="text-warning" id="outstanding_display">Rs. 0.00</strong>
+                                    </td>
+                                </tr>`;
+                    }
+                    
+                    settlementHtml += `</table></div>`;
                     
                     $("#settlementPreview").html(settlementHtml).show();
+                    
+                    // Bind live outstanding calculation
+                    if (calc.additional_payment > 0) {
+                        const additionalPayment = calc.additional_payment;
+                        $("#customer_paid_amount").on('input', function() {
+                            const paid = parseFloat($(this).val()) || 0;
+                            const outstanding = Math.max(0, additionalPayment - paid);
+                            $("#outstanding_display").text('Rs. ' + outstanding.toFixed(2));
+                            if (outstanding > 0) {
+                                $("#outstanding_display").removeClass('text-success text-muted').addClass('text-warning');
+                            } else {
+                                $("#outstanding_display").removeClass('text-warning text-muted').addClass('text-success');
+                            }
+                        }).trigger('input');
+                    }
                 } else {
                     $("#settlementPreview").html(`<div class="alert alert-danger">${response.message}</div>`).show();
                 }
@@ -332,7 +370,8 @@ $(document).ready(function() {
                 after_9am_extra_day: after9amExtraDay,
                 extra_day_amount: extraDayAmount,
                 penalty_percentage: penaltyPercentage,
-                remark: remark
+                remark: remark,
+                customer_paid: parseFloat($("#customer_paid_amount").val()) || 0
             },
             dataType: 'json',
             success: function(response) {
@@ -419,6 +458,8 @@ $(document).ready(function() {
                                             <th>Penalty</th>
                                             <th>Refund</th>
                                             <th>Rent Value</th>
+                                            <th>Paid</th>
+                                            <th>Outstanding</th>
                                             <th>Created By</th>
                                             <th>Remark</th>
                                         </tr>
@@ -439,6 +480,8 @@ $(document).ready(function() {
                                     <td class="text-danger">${penaltyText}</td>
                                     <td class="text-success">Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</td>
                                     <td class="text-danger">Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</td>
+                                    <td>Rs. ${parseFloat(ret.customer_paid || 0).toFixed(2)}</td>
+                                    <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + '</span>' : '-'}</td>
                                     <td>${ret.created_by_name || '-'}</td>
                                     <td>${ret.remark || '-'}</td>
                                 </tr>`;
@@ -453,7 +496,7 @@ $(document).ready(function() {
                                             <td></td>
                                             <td class="text-success">Rs. ${response.settlement.total_refund.toFixed(2)}</td>
                                             <td class="text-danger">Rs. ${response.settlement.total_additional.toFixed(2)}</td>
-                                            <td colspan="2">Net: Rs. ${response.settlement.net_settlement.toFixed(2)}</td>
+                                            <td colspan="4">Net: Rs. ${response.settlement.net_settlement.toFixed(2)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>

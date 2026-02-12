@@ -80,6 +80,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     $RETURN->additional_payment = $calculation['additional_payment'];
     $RETURN->remark = $remark;
     
+    // Outstanding tracking
+    $customer_paid = floatval($_POST['customer_paid'] ?? 0);
+    $additional_payment = floatval($calculation['additional_payment']);
+    if ($additional_payment > 0) {
+        $RETURN->customer_paid = $customer_paid;
+        $RETURN->outstanding_amount = max(0, $additional_payment - $customer_paid);
+    } else {
+        $RETURN->customer_paid = 0;
+        $RETURN->outstanding_amount = 0;
+    }
+    
     $return_id = $RETURN->create();
     
     if ($return_id) {
