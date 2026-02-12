@@ -57,11 +57,12 @@ class EquipmentRentItem
             : "NULL";
         
         $deptValue = !empty($this->department_id) ? "'{$this->department_id}'" : "NULL";
+        $now = date('Y-m-d H:i:s');
 
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`, `created_at`
         ) VALUES (
-            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue
+            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue, '$now'
         )";
 
         $db = Database::getInstance();
@@ -94,6 +95,7 @@ class EquipmentRentItem
         $oldItem = new EquipmentRentItem($this->id);
         $oldSubEquipmentId = $oldItem->sub_equipment_id;
         $oldStatus = $oldItem->status;
+        $now = date('Y-m-d H:i:s');
 
         // Handle NULL sub_equipment_id for "No Sub-Items" equipment
         $subEquipmentValue = (!empty($this->sub_equipment_id) && $this->sub_equipment_id != '0') 
@@ -113,7 +115,8 @@ class EquipmentRentItem
             `deposit_amount` = '$this->deposit_amount',
             `status` = '$this->status',
             `department_id` = $deptValue,
-            `remark` = '$this->remark'
+            `remark` = '$this->remark',
+            `updated_at` = '$now'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();

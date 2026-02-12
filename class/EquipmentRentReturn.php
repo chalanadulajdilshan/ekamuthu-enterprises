@@ -56,11 +56,12 @@ class EquipmentRentReturn
         $rentalOverrideSql = ($this->rental_override !== null && $this->rental_override !== '') 
             ? "'" . floatval($this->rental_override) . "'" 
             : "NULL";
+        $now = date('Y-m-d H:i:s');
         $query = "INSERT INTO `equipment_rent_returns` (
             `rent_item_id`, `return_date`, `return_time`, `return_qty`, `damage_amount`, 
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
             `rental_override`,
-            `settle_amount`, `refund_amount`, `additional_payment`, `remark`, `created_by`
+            `settle_amount`, `refund_amount`, `additional_payment`, `remark`, `created_by`, `created_at`
         ) VALUES (
             '$this->rent_item_id', '$this->return_date', " .
             ($this->return_time ? "'{$this->return_time}'" : "NULL") . ", '$this->return_qty', 
@@ -69,7 +70,8 @@ class EquipmentRentReturn
             $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
             '$this->additional_payment', '$this->remark', " . 
-            (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . "
+            (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . ",
+            '$now'
         )";
 
         $db = Database::getInstance();
@@ -95,6 +97,7 @@ class EquipmentRentReturn
         $rentalOverrideSql = ($this->rental_override !== null && $this->rental_override !== '') 
             ? "'" . floatval($this->rental_override) . "'" 
             : "NULL";
+        $now = date('Y-m-d H:i:s');
         $query = "UPDATE `equipment_rent_returns` SET 
             `return_date` = '$this->return_date',
             `return_time` = " . ($this->return_time ? "'{$this->return_time}'" : "NULL") . ",
@@ -108,7 +111,8 @@ class EquipmentRentReturn
             `settle_amount` = '$this->settle_amount',
             `refund_amount` = '$this->refund_amount',
             `additional_payment` = '$this->additional_payment',
-            `remark` = '$this->remark'
+            `remark` = '$this->remark',
+            `updated_at` = '$now'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();

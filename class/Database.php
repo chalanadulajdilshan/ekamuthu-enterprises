@@ -30,6 +30,9 @@ class Database
             $this->DB_CON = '';
         }
 
+        // Ensure all PHP date() calls use local time (DB timestamps rely on this)
+        date_default_timezone_set('Asia/Colombo');
+
         // Create ONE connection only
         $this->DB_CON = mysqli_connect($this->host, $this->user, $this->password, $this->name);
 
