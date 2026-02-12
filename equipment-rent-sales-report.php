@@ -66,38 +66,53 @@ include 'auth.php';
                             <div class="card no-print">
                                 <div class="card-body">
                                     <form id="reportForm">
-                                        <div class="row align-items-end">
-                                            <div class="col-md-3">
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-md-2">
                                                 <label for="fromDate" class="form-label">From Date</label>
                                                 <input type="text" class="form-control date-picker" id="fromDate" name="fromDate" autocomplete="off">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label for="toDate" class="form-label">To Date</label>
                                                 <input type="text" class="form-control date-picker" id="toDate" name="toDate" autocomplete="off">
                                             </div>
-                                            <div class="col-md-6">
-                                                <label class="d-block">&nbsp;</label>
-                                                <div class="d-flex gap-2 flex-wrap">
-                                                    <div>
-                                                        <button type="button" class="btn btn-primary" id="searchBtn">
-                                                            <i class="mdi mdi-magnify me-1"></i> Search
-                                                        </button>
-                                                        <button type="button" class="btn btn-secondary" id="resetBtn">
-                                                            <i class="mdi mdi-refresh me-1"></i> Reset
-                                                        </button>
-                                                        <button type="button" class="btn btn-success" id="printBtn">
-                                                            <i class="mdi mdi-printer me-1"></i> Print
-                                                        </button>
-                                                        <button type="button" class="btn btn-warning" id="printReturnIncomeBtn">
-                                                            <i class="mdi mdi-cash-multiple me-1"></i> Return Income
-                                                        </button>
-                                                    </div>
-                                                    <div class="ms-auto">
-                                                        <button type="button" class="btn btn-info" id="printDailyBtn">
-                                                            <i class="mdi mdi-printer-settings me-1"></i>Daily Rental Report
-                                                        </button>   
-                                                        <button type="button" class="btn btn-info" id="printDailyReturnBtn">Daily Return Report</button>
-                                                    </div>
+                                            <div class="col-md-3">
+                                                <label for="payment_method" class="form-label">Payment Method</label>
+                                                <select class="form-select" id="payment_method" name="payment_method">
+                                                    <option value="">All Methods</option>
+                                                    <?php
+                                                    $PAYMENT_TYPE = new PaymentType(null);
+                                                    $activeTypes = $PAYMENT_TYPE->getActivePaymentType();
+                                                    foreach ($activeTypes as $type) {
+                                                        echo "<option value='{$type['id']}'>{$type['name']}</option>";
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <button type="button" class="btn btn-primary" id="searchBtn">
+                                                    <i class="mdi mdi-magnify me-1"></i> Search
+                                                </button>
+                                                <button type="button" class="btn btn-secondary" id="resetBtn">
+                                                    <i class="mdi mdi-refresh me-1"></i> Reset
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-3">
+                                            <div class="col-12 d-flex gap-2 flex-wrap align-items-center">
+                                                <button type="button" class="btn btn-success" id="printBtn">
+                                                    <i class="mdi mdi-printer me-1"></i> Print
+                                                </button>
+                                                <button type="button" class="btn btn-warning" id="printReturnIncomeBtn">
+                                                    <i class="mdi mdi-cash-multiple me-1"></i> Return Income
+                                                </button>
+                                                <div class="ms-auto d-flex gap-2">
+                                                    <button type="button" class="btn btn-info" id="printDailyBtn">
+                                                        <i class="mdi mdi-printer-settings me-1"></i> Daily Rental Report
+                                                    </button>
+                                                    <button type="button" class="btn btn-info" id="printDailyReturnBtn">
+                                                        <i class="mdi mdi-printer-settings me-1"></i> Daily Return Report
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

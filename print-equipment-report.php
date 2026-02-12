@@ -4,14 +4,20 @@ include 'auth.php';
 
 $from_date = $_GET['from'] ?? date('Y-m-d');
 $to_date = $_GET['to'] ?? date('Y-m-d');
+$payment_method = $_GET['payment_method'] ?? '';
 
 $db = Database::getInstance();
+
+$where = "r.rental_date BETWEEN '$from_date' AND '$to_date'";
+if (!empty($payment_method)) {
+    $where .= " AND r.payment_type_id = '" . (int)$payment_method . "'";
+}
 
 // Query Resources
 $query = "SELECT r.*, c.name as customer_name, c.mobile_number 
           FROM `equipment_rent` r 
           LEFT JOIN `customer_master` c ON r.customer_id = c.id 
-          WHERE r.rental_date BETWEEN '$from_date' AND '$to_date' 
+          WHERE $where 
           ORDER BY r.rental_date DESC, r.id DESC";
 
 $result = $db->readQuery($query);
@@ -66,8 +72,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 // Calculate Global Item Count
 $qTotalItems = "SELECT SUM(eri.quantity) as total_qty 
                 FROM equipment_rent_items eri 
-                JOIN equipment_rent er ON eri.rent_id = er.id 
-                WHERE er.rental_date BETWEEN '$from_date' AND '$to_date'";
+                JOIN equipment_rent r ON eri.rent_id = r.id 
+                WHERE $where";
 $resTotalItems = mysqli_fetch_assoc($db->readQuery($qTotalItems));
 $total_items_count = $resTotalItems['total_qty'] ?? 0;
 

@@ -4,6 +4,7 @@ $(document).ready(function () {
     function loadReport() {
         var fromDate = $('#fromDate').val();
         var toDate = $('#toDate').val();
+        var paymentMethod = $('#payment_method').val();
 
         if (!fromDate || !toDate) {
             swal("Error", "Please select a valid date range", "error");
@@ -16,7 +17,7 @@ $(document).ready(function () {
             $('#reportTable').DataTable().destroy();
         }
 
-        $('#reportTableBody').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
+        $('#reportTableBody').html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
 
         $.ajax({
             url: "ajax/php/equipment-rent-sales-report.php",
@@ -25,7 +26,8 @@ $(document).ready(function () {
             data: {
                 action: "get_sales_report",
                 from_date: fromDate,
-                to_date: toDate
+                to_date: toDate,
+                payment_method: paymentMethod
             },
             success: function (result) {
                 if (result.status === "success") {
@@ -93,8 +95,9 @@ $(document).ready(function () {
     $('#printBtn').click(function () {
         var fromDate = $('#fromDate').val();
         var toDate = $('#toDate').val();
+        var paymentMethod = $('#payment_method').val();
         if (fromDate && toDate) {
-            window.open("print-equipment-report.php?from=" + fromDate + "&to=" + toDate, "_blank");
+            window.open("print-equipment-report.php?from=" + fromDate + "&to=" + toDate + "&payment_method=" + paymentMethod, "_blank");
         } else {
             swal("Error", "Please select a date range first", "error");
         }
@@ -106,15 +109,17 @@ $(document).ready(function () {
         var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
         var yyyy = today.getFullYear();
         var currentDate = yyyy + '-' + mm + '-' + dd;
+        var paymentMethod = $('#payment_method').val();
 
-        window.open("print-equipment-report.php?from=" + currentDate + "&to=" + currentDate, "_blank");
+        window.open("print-equipment-report.php?from=" + currentDate + "&to=" + currentDate + "&payment_method=" + paymentMethod, "_blank");
     });
 
     $('#printReturnIncomeBtn').click(function () {
         var fromDate = $('#fromDate').val();
         var toDate = $('#toDate').val();
+        var paymentMethod = $('#payment_method').val();
         if (fromDate && toDate) {
-            window.open("print-return-income-report.php?from=" + fromDate + "&to=" + toDate, "_blank");
+            window.open("print-return-income-report.php?from=" + fromDate + "&to=" + toDate + "&payment_method=" + paymentMethod, "_blank");
         } else {
             swal("Error", "Please select a date range first", "error");
         }
@@ -126,8 +131,9 @@ $(document).ready(function () {
         var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
         var yyyy = today.getFullYear();
         var currentDate = yyyy + '-' + mm + '-' + dd;
+        var paymentMethod = $('#payment_method').val();
 
-        window.open("print-return-income-report.php?from=" + currentDate + "&to=" + currentDate, "_blank");
+        window.open("print-return-income-report.php?from=" + currentDate + "&to=" + currentDate + "&payment_method=" + paymentMethod, "_blank");
     });
 
     // Set default date range to current month

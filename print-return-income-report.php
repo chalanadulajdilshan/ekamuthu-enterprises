@@ -4,8 +4,14 @@ include 'auth.php';
 
 $from_date = $_GET['from'] ?? date('Y-m-d');
 $to_date = $_GET['to'] ?? date('Y-m-d');
+$payment_method = $_GET['payment_method'] ?? '';
 
 $db = Database::getInstance();
+
+$where = "err.return_date BETWEEN '$from_date' AND '$to_date'";
+if (!empty($payment_method)) {
+    $where .= " AND er.payment_type_id = '" . (int)$payment_method . "'";
+}
 
 // Query Returns within Date Range
 // er.deposit_total = Total deposit for the entire invoice (what customer paid upfront)
@@ -30,7 +36,7 @@ $query = "SELECT err.*,
           LEFT JOIN `equipment` e ON eri.equipment_id = e.id
           INNER JOIN `equipment_rent` er ON eri.rent_id = er.id
           LEFT JOIN `customer_master` c ON er.customer_id = c.id
-          WHERE err.return_date BETWEEN '$from_date' AND '$to_date'
+          WHERE $where
           ORDER BY err.return_date DESC, err.id DESC";
 
 $result = $db->readQuery($query);
