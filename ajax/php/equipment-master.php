@@ -296,14 +296,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
             $deptStock = [];
             $totalQty = 0;
             $rentedQty = 0;
-            $deptSql = "SELECT dm.name, se.qty, se.rented_qty, se.department_id 
+            $deptSql = "SELECT dm.name, se.qty, se.department_id,
+                        (
+                            SELECT COALESCE(SUM(eri.quantity - (SELECT COALESCE(SUM(return_qty),0) FROM equipment_rent_returns WHERE rent_item_id = eri.id)), 0)
+                            FROM equipment_rent_items eri 
+                            WHERE eri.equipment_id = se.equipment_id 
+                            AND eri.department_id = se.department_id 
+                            AND eri.status = 'rented'
+                            AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                        ) as dynamic_rented_qty
                         FROM sub_equipment se
                         JOIN department_master dm ON se.department_id = dm.id
                         WHERE se.equipment_id = $equipment_id";
             $deptResult = $db->readQuery($deptSql);
             while ($deptRow = mysqli_fetch_assoc($deptResult)) {
                 $deptQty = (float)$deptRow['qty'];
-                $deptRented = (float)$deptRow['rented_qty'];
+                $deptRented = (float)$deptRow['dynamic_rented_qty'];
                 $available = $deptQty - $deptRented;
                 $totalQty += $deptQty;
                 $rentedQty += $deptRented;
@@ -400,6 +408,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
     if ($equipment_id > 0) {
         $db = Database::getInstance();
         
+        $departmentFilter = "";
+        if (!empty($_POST['department_id'])) {
+             $departmentFilter = "AND eri.department_id = " . (int)$_POST['department_id'];
+        }
+
         $sql = "SELECT 
                     eri.id,
                     eri.rent_id,
@@ -412,21 +425,23 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
                 JOIN equipment_rent er ON eri.rent_id = er.id
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id
                 WHERE eri.equipment_id = $equipment_id 
-                " . (isset($_POST['department_id']) && $_POST['department_id'] ? "AND eri.department_id = " . (int)$_POST['department_id'] : "") . "
+                $departmentFilter
                 AND eri.status = 'rented' 
                 AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                HAVING (eri.quantity - returned_qty) > 0
                 ORDER BY eri.id DESC";
                 
         $result = $db->readQuery($sql);
         $data = [];
         
         while ($row = mysqli_fetch_assoc($result)) {
+            $pendingQty = (float)$row['quantity'] - (float)$row['returned_qty'];
             $data[] = [
                 'id' => $row['id'],
                 'rent_id' => $row['rent_id'],
                 'bill_number' => $row['bill_number'],
                 'customer_name' => $row['customer_name'] ?? 'Unknown',
-                'quantity' => (float)$row['quantity'],
+                'quantity' => $pendingQty,
                 'returned_qty' => (float)$row['returned_qty'],
                 'date' => date('Y-m-d H:i', strtotime($row['rental_date']))
             ];
