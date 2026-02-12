@@ -406,7 +406,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
                     eri.quantity,
                     eri.created_at as rental_date,
                     er.bill_number,
-                    cm.name AS customer_name
+                    cm.name AS customer_name,
+                    (SELECT COALESCE(SUM(err.return_qty), 0) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id) AS returned_qty
                 FROM equipment_rent_items eri
                 JOIN equipment_rent er ON eri.rent_id = er.id
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id
@@ -425,6 +426,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
                 'bill_number' => $row['bill_number'],
                 'customer_name' => $row['customer_name'] ?? 'Unknown',
                 'quantity' => (float)$row['quantity'],
+                'returned_qty' => (float)$row['returned_qty'],
                 'date' => date('Y-m-d H:i', strtotime($row['rental_date']))
             ];
         }

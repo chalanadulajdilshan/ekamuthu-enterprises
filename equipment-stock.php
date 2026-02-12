@@ -211,12 +211,13 @@ $EQUIPMENT = new Equipment(NULL);
                                     <th>Bill No</th>
                                     <th>Customer</th>
                                     <th class="text-center">Qty</th>
+                                    <th class="text-center">Returned (ආපසු ලැබුණු)</th>
                                     <th>Rented Date</th>
                                     <th class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                                <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>

@@ -431,6 +431,7 @@ jQuery(document).ready(function () {
                         tr.append("<td>" + item.bill_number + "</td>");
                         tr.append("<td>" + item.customer_name + "</td>");
                         tr.append('<td class="text-center">' + item.quantity + "</td>");
+                        tr.append('<td class="text-center">' + item.returned_qty + "</td>");
                         tr.append("<td>" + item.date + "</td>");
                         tr.append('<td class="text-center"><button class="btn btn-sm btn-soft-primary view-rent-btn" data-id="' + item.rent_id + '"><i class="uil uil-eye"></i> View</button></td>');
                         tbody.append(tr);
@@ -444,11 +445,11 @@ jQuery(document).ready(function () {
                         loadRentDetailsFromStock(rentId);
                     });
                 } else {
-                    tbody.html('<tr><td colspan="5" class="text-center text-muted">No rented invoices found</td></tr>');
+                    tbody.html('<tr><td colspan="6" class="text-center text-muted">No rented invoices found</td></tr>');
                 }
             },
             error: function () {
-                tbody.html('<tr><td colspan="5" class="text-center text-danger">Failed to load rented invoices</td></tr>');
+                tbody.html('<tr><td colspan="6" class="text-center text-danger">Failed to load rented invoices</td></tr>');
             }
         });
     }
