@@ -89,6 +89,11 @@ $(document).ready(function () {
     });
 
     $('#printBtn').click(function () {
-        window.print();
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        var userId = $('#user_id').val();
+
+        var url = `print-audit-report.php?from=${fromDate}&to=${toDate}&user_id=${userId}`;
+        window.open(url, '_blank');
     });
 });
