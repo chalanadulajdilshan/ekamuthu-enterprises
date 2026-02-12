@@ -451,6 +451,9 @@ jQuery(document).ready(function () {
 
     var qty = parseFloat($("#item_qty").val()) || 1;
     var returnedQty = parseFloat($("#item_returned_qty").val()) || 0;
+    var $deptSelect = $("#item_department_id");
+    var deptId = $deptSelect.val();
+    var availableQty = parseFloat($deptSelect.find("option:selected").data("available")) || 0;
 
     if (returnedQty > qty) {
       swal({
@@ -458,6 +461,35 @@ jQuery(document).ready(function () {
         text: "Returned Qty cannot be greater than Rented Qty",
         type: "error",
         timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // Department selection is required when departments are loaded
+    if (!deptId) {
+      swal({
+        title: "Error!",
+        text: "Please select a department",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // Validate requested quantity against selected department availability
+    if (qty > availableQty) {
+      swal({
+        title: "Quantity Exceeds Availability",
+        text:
+          "You requested " +
+          qty +
+          " but only " +
+          availableQty +
+          " available in this department.",
+        type: "error",
+        timer: 2500,
         showConfirmButton: false,
       });
       return;
@@ -511,10 +543,11 @@ jQuery(document).ready(function () {
     $("#item_qty").val(1);
     $("#item_returned_qty").val(0);
     $("#item_amount").val("");
-    // Reset department dropdown
-    $("#item_department_id")
-      .html('<option value="">- Select -</option>')
-      .prop("disabled", true);
+    // Re-select the first department (keep dropdown enabled)
+    var $deptSelect = $("#item_department_id");
+    if ($deptSelect.find("option").length > 1) {
+      $deptSelect.val($deptSelect.find("option:not([value=''])").first().val());
+    }
   });
 
   // Track manual edits on amount when allowed
@@ -2637,7 +2670,7 @@ jQuery(document).ready(function () {
       success: function (res) {
         if (res.status === "success") {
           var depts = res.departments;
-          var options = '<option value="">- Select -</option>';
+          var options = '<option value="" data-available="0">- Select -</option>';
 
           depts.forEach(function (d) {
             var label = d.name + " (Avail: " + d.available_qty + ")";
@@ -2645,6 +2678,8 @@ jQuery(document).ready(function () {
             options +=
               '<option value="' +
               d.id +
+              '" data-available="' +
+              d.available_qty +
               '" ' +
               selected +
               ">" +
