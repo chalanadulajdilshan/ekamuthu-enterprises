@@ -331,7 +331,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                        (SELECT GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, err.return_date) / 86400))
                             FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 
-                            ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_used_days
+                            ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_used_days,
+                       (SELECT COALESCE(SUM(err.return_qty), 0) FROM equipment_rent_returns err WHERE err.rent_item_id = ri.id) AS total_returned_qty
                        FROM equipment_rent_items ri 
                        LEFT JOIN equipment e ON ri.equipment_id = e.id
                        LEFT JOIN sub_equipment se ON ri.sub_equipment_id = se.id

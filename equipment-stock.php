@@ -115,7 +115,7 @@ $EQUIPMENT = new Equipment(NULL);
 
     <!-- Rent Details Modal (from Equipment Stock) -->
     <div class="modal fade" id="rentDetailsModal" tabindex="-1" aria-labelledby="rentDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="rentDetailsModalLabel">Rent Details</h5>
@@ -173,6 +173,7 @@ $EQUIPMENT = new Equipment(NULL);
                                     <th>Equipment</th>
                                     <th>Sub Code</th>
                                     <th>Qty</th>
+                                    <th>Returned</th>
                                     <th>Type</th>
                                     <th>Duration</th>
                                     <th>Amount</th>
@@ -194,7 +195,7 @@ $EQUIPMENT = new Equipment(NULL);
 
     <!-- Rented Invoices Modal (List) -->
     <div class="modal fade" id="rentInvoicesModal" tabindex="-1" aria-labelledby="rentInvoicesModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
@@ -211,7 +212,7 @@ $EQUIPMENT = new Equipment(NULL);
                                     <th>Bill No</th>
                                     <th>Customer</th>
                                     <th class="text-center">Qty</th>
-                                    <th class="text-center">Returned (ආපසු ලැබුණු)</th>
+                                    <th class="text-center">Returned</th>
                                     <th>Rented Date</th>
                                     <th class="text-center">Action</th>
                                 </tr>
