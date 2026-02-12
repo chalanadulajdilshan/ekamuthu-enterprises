@@ -536,6 +536,20 @@ $bill_number = $lastId + 1;
                                                                         <span id="customer_refund_badge" class="ms-2"></span>
                                                                     </td>
                                                                 </tr>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Customer Paid Amount:
+                                                                    </td>
+                                                                    <td class="text-end">
+                                                                        <span id="customer_paid_total" class="fw-bold">0.00</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-start fw-medium">Rent Outstanding:
+                                                                    </td>
+                                                                    <td class="text-end">
+                                                                        <span id="customer_rent_outstanding" class="fw-bold text-danger">0.00</span>
+                                                                    </td>
+                                                                </tr>
                                                             </tbody>
                                                         </table>
                                                     </div>

@@ -97,6 +97,12 @@ $chargesData = mysqli_fetch_assoc($chargesResult);
 $total_charges = floatval($chargesData['total_charges'] ?? 0);
 $refund_balance = $total_deposit - $total_charges;
 
+// Calculate total customer paid across all returns
+$total_customer_paid = 0;
+foreach ($return_rows as $rr) {
+    $total_customer_paid += floatval($rr['customer_paid'] ?? 0);
+}
+
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;
 $net_amount = $total_amount + $total_deposit + $transport_amount;
@@ -341,6 +347,8 @@ if (!empty($customerMobile)) {
                                 <th class="text-end">Penalty</th>
                                 <th class="text-end">Damage</th>
                                 <th class="text-end">Settlement</th>
+                                <th class="text-end">Paid</th>
+                                <th class="text-end">Outstanding</th>
                             </tr>
                         </thead>
                         <tbody style="font-size:13px;">
@@ -367,6 +375,14 @@ if (!empty($customerMobile)) {
                                             <span class="text-success">Refund: Rs. <?php echo number_format(floatval($ret['refund_amount']), 2); ?></span>
                                         <?php else: ?>
                                             <span class="text-muted">No charge</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end"><?php echo number_format(floatval($ret['customer_paid'] ?? 0), 2); ?></td>
+                                    <td class="text-end">
+                                        <?php if (floatval($ret['outstanding_amount'] ?? 0) > 0): ?>
+                                            <span class="text-danger"><?php echo number_format(floatval($ret['outstanding_amount']), 2); ?></span>
+                                        <?php else: ?>
+                                            -
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -402,6 +418,10 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
                             </tr>
                             <tr>
+                                <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල (Customer Paid):</td>
+                                <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
+                            </tr>
+                            <tr>
                                 <td class="summary-label">පාරිභෝගික අයවැය (Customer Refund Balance):</td>
                                 <td class="summary-value">
                                     <?php echo number_format($refund_balance, 2); ?>
@@ -412,6 +432,14 @@ if (!empty($customerMobile)) {
                                     <?php endif; ?>
                                 </td>
                             </tr>
+                            <?php if (floatval($CUSTOMER_MASTER->rent_outstanding ?? 0) > 0): ?>
+                            <tr>
+                                <td class="summary-label">Customer Rent Outstanding:</td>
+                                <td class="summary-value">
+                                    <span class="text-danger"><?php echo number_format(floatval($CUSTOMER_MASTER->rent_outstanding), 2); ?></span>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
                         </table>
                     </div>
                 </div>
