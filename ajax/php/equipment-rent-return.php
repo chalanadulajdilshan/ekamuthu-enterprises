@@ -298,4 +298,49 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_details') {
     exit;
 }
 
+// Refund damage amount for a return bill
+if (isset($_POST['action']) && $_POST['action'] === 'refund_damage') {
+    $return_id = $_POST['return_id'] ?? 0;
+    $refund_date = $_POST['refund_date'] ?? date('Y-m-d');
+    $refund_time = $_POST['refund_time'] ?? date('H:i:s');
+    
+    if (!$return_id) {
+        echo json_encode(["status" => "error", "message" => "Return ID required"]);
+        exit;
+    }
+    
+    $RETURN = new EquipmentRentReturn($return_id);
+    
+    if (!$RETURN->id) {
+        echo json_encode(["status" => "error", "message" => "Return record not found"]);
+        exit;
+    }
+    
+    $result = $RETURN->refundDamage($refund_date, $refund_time);
+    
+    if (!$result['error']) {
+        // Audit log
+        $RENT_ITEM = new EquipmentRentItem($RETURN->rent_item_id);
+        $EQUIPMENT_RENT = new EquipmentRent($RENT_ITEM->rent_id);
+        
+        $AUDIT_LOG = new AuditLog(NULL);
+        $AUDIT_LOG->ref_id = $RENT_ITEM->rent_id;
+        $AUDIT_LOG->ref_code = $EQUIPMENT_RENT->bill_number;
+        $AUDIT_LOG->action = 'DAMAGE_REFUND';
+        $AUDIT_LOG->description = "DAMAGE REFUND - Bill #{$EQUIPMENT_RENT->bill_number}, Refunded Amount: {$result['old_damage']}, Date: {$result['refund_date']} {$result['refund_time']}";
+        $AUDIT_LOG->user_id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+        $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+        $AUDIT_LOG->create();
+        
+        echo json_encode([
+            "status" => "success",
+            "data" => $result,
+            "message" => "Damage amount refunded successfully"
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => $result['message']]);
+    }
+    exit;
+}
+
 echo json_encode(["status" => "error", "message" => "Invalid action"]);

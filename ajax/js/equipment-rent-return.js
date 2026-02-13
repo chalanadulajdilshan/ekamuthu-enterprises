@@ -1,47 +1,46 @@
-$(document).ready(function() {
-    
-    // Open return modal for an item
-    window.openReturnModal = function(rentItemId) {
-        $("#returnModal").modal("show");
-        $("#return_rent_item_id").val(rentItemId);
-        $("#return_qty").val(1);
-        $("#damage_amount").val(0);
-        $("#return_date").val(new Date().toISOString().split('T')[0]);
-        const now = new Date();
-        const hh = String(now.getHours()).padStart(2, '0');
-        const mm = String(now.getMinutes()).padStart(2, '0');
-        $("#return_time").val(`${hh}:${mm}`);
-        $("#after_9am_extra_day").prop('checked', false);
-        $("#extra_day_amount").val(0).prop('disabled', true);
-        $("#penalty_percentage").val(0).prop('disabled', true);
-        $("#return_remark").val("");
-        
-        // Clear settlement display
-        $("#settlementPreview").hide();
-        
-        // Load item details
-        loadItemDetails(rentItemId);
-        // Show an initial calculation so the user sees settlement/deposit straight away
-        calculateSettlement();
-    };
-    
-    // Load item details for return form
-    function loadItemDetails(rentItemId) {
-        const returnDate = $("#return_date").val();
-        $.ajax({
-            url: 'ajax/php/equipment-rent-return.php',
-            type: 'POST',
-            data: {
-                action: 'get_item_details',
-                rent_item_id: rentItemId
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    const data = response.data;
-                    
-                    // Display item information
-                    $("#returnItemInfo").html(`
+$(document).ready(function () {
+  // Open return modal for an item
+  window.openReturnModal = function (rentItemId) {
+    $("#returnModal").modal("show");
+    $("#return_rent_item_id").val(rentItemId);
+    $("#return_qty").val(1);
+    $("#damage_amount").val(0);
+    $("#return_date").val(new Date().toISOString().split("T")[0]);
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    $("#return_time").val(`${hh}:${mm}`);
+    $("#after_9am_extra_day").prop("checked", false);
+    $("#extra_day_amount").val(0).prop("disabled", true);
+    $("#penalty_percentage").val(0).prop("disabled", true);
+    $("#return_remark").val("");
+
+    // Clear settlement display
+    $("#settlementPreview").hide();
+
+    // Load item details
+    loadItemDetails(rentItemId);
+    // Show an initial calculation so the user sees settlement/deposit straight away
+    calculateSettlement();
+  };
+
+  // Load item details for return form
+  function loadItemDetails(rentItemId) {
+    const returnDate = $("#return_date").val();
+    $.ajax({
+      url: "ajax/php/equipment-rent-return.php",
+      type: "POST",
+      data: {
+        action: "get_item_details",
+        rent_item_id: rentItemId,
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.status === "success") {
+          const data = response.data;
+
+          // Display item information
+          $("#returnItemInfo").html(`
                         <div class="alert alert-info mb-3">
                             <div class="text-center mb-2">
                                 <h6 class="mb-0 fw-bold">Equipment Summary</h6>
@@ -49,50 +48,55 @@ $(document).ready(function() {
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-2">
-                                    <div><strong>Unit Code:</strong> ${data.sub_equipment_code || '-'}</div>
+                                    <div><strong>Unit Code:</strong> ${data.sub_equipment_code || "-"}</div>
                                     <div><strong>Total Qty:</strong> ${data.quantity}</div>
                                     <div><strong>Already Returned:</strong> ${data.total_returned}</div>
                                     <div><strong>Pending Qty:</strong> ${data.pending_qty}</div>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <div><strong>Customer Deposit:</strong> Rs. ${parseFloat(data.customer_deposit || 0).toFixed(2)}</div>
-                                    <div><strong>Deposit Per Unit:</strong> Rs. ${(
-                                        parseFloat(data.quantity || 1) > 0
-                                            ? (parseFloat(data.deposit_amount || 0) / parseFloat(data.quantity || 1))
-                                            : 0
+                                    <div><strong>Deposit Per Unit:</strong> Rs. ${(parseFloat(
+                                      data.quantity || 1,
+                                    ) > 0
+                                      ? parseFloat(data.deposit_amount || 0) /
+                                        parseFloat(data.quantity || 1)
+                                      : 0
                                     ).toFixed(2)}</div>
                                     <div><strong class="text-danger">Damage Per Unit (catalog):</strong> <span class="text-danger">Rs. ${parseFloat(data.equipment_damage || 0).toFixed(2)}</span></div>
                                 </div>
                             </div>
                         </div>
                     `);
-                    
-                    // Set max return quantity
-                    $("#return_qty").attr("max", data.pending_qty);
-                    $("#return_qty").val(Math.min(1, data.pending_qty));
-                    
-                    // Display existing returns if any
-                    if (data.returns && data.returns.length > 0) {
-                        let returnsHtml = '<h6 class="mt-3">Previous Returns:</h6><div class="table-responsive"><table class="table table-sm table-bordered">';
-                        returnsHtml += '<thead><tr><th>Date</th><th>Time</th><th>Qty</th><th>Rental</th><th>Extra Day</th><th>Penalty</th><th>Damage</th><th>Settlement</th><th>Paid</th><th>Outstanding</th><th>Remark</th></tr></thead><tbody>';
-                        
-                        data.returns.forEach(function(ret) {
-                            let settlementText = '';
-                            if (parseFloat(ret.refund_amount) > 0) {
-                                settlementText = `<span class="text-success">Refund: Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</span>`;
-                            } else if (parseFloat(ret.additional_payment) > 0) {
-                                settlementText = `<span class="text-danger">Pay: Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</span>`;
-                            } else {
-                                settlementText = '<span class="text-muted">No charge</span>';
-                            }
-                            
-                            const penaltyText = parseFloat(ret.penalty_amount || 0) > 0 
-                                ? `<span class="text-danger">Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)</span>`
-                                : '-';
-                            
-                            returnsHtml += `<tr>
+
+          // Set max return quantity
+          $("#return_qty").attr("max", data.pending_qty);
+          $("#return_qty").val(Math.min(1, data.pending_qty));
+
+          // Display existing returns if any
+          if (data.returns && data.returns.length > 0) {
+            let returnsHtml =
+              '<h6 class="mt-3">Previous Returns:</h6><div class="table-responsive"><table class="table table-sm table-bordered">';
+            returnsHtml +=
+              "<thead><tr><th>Date</th><th>Time</th><th>Qty</th><th>Rental</th><th>Extra Day</th><th>Penalty</th><th>Damage</th><th>Settlement</th><th>Paid</th><th>Outstanding</th><th>Remark</th></tr></thead><tbody>";
+
+            data.returns.forEach(function (ret) {
+              let settlementText = "";
+              if (parseFloat(ret.refund_amount) > 0) {
+                settlementText = `<span class="text-success">Refund: Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</span>`;
+              } else if (parseFloat(ret.additional_payment) > 0) {
+                settlementText = `<span class="text-danger">Pay: Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</span>`;
+              } else {
+                settlementText = '<span class="text-muted">No charge</span>';
+              }
+
+              const penaltyText =
+                parseFloat(ret.penalty_amount || 0) > 0
+                  ? `<span class="text-danger">Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)</span>`
+                  : "-";
+
+              returnsHtml += `<tr>
                                 <td>${ret.return_date}</td>
-                                <td>${ret.return_time || '-'}</td>
+                                <td>${ret.return_time || "-"}</td>
                                 <td>${ret.return_qty}</td>
                                 <td>Rs. ${parseFloat(ret.rental_amount || 0).toFixed(2)}</td>
                                 <td>Rs. ${parseFloat(ret.extra_day_amount || 0).toFixed(2)}</td>
@@ -100,95 +104,100 @@ $(document).ready(function() {
                                 <td>Rs. ${parseFloat(ret.damage_amount).toFixed(2)}</td>
                                 <td>${settlementText}</td>
                                 <td>Rs. ${parseFloat(ret.customer_paid || 0).toFixed(2)}</td>
-                                <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + '</span>' : '-'}</td>
-                                <td>${ret.remark || '-'}</td>
+                                <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + "</span>" : "-"}</td>
+                                <td>${ret.remark || "-"}</td>
                             </tr>`;
-                        });
-                        
-                        returnsHtml += '</tbody></table></div>';
-                        $("#previousReturns").html(returnsHtml).show();
-                    } else {
-                        $("#previousReturns").hide();
-                    }
-                    // After details are loaded, show the initial settlement block
-                    calculateSettlement();
-                }
-            },
-            error: function() {
-                swal({
-                    title: "Error!",
-                    text: "Failed to load item details",
-                    type: "error",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }
-        });
-    }
-    
-    // Calculate settlement on input change
-    $("#return_qty, #damage_amount, #return_date, #return_time, #after_9am_extra_day, #extra_day_amount, #penalty_percentage").on("input change", function() {
-        calculateSettlement();
-    });
-    
-    // Calculate and display settlement
-    function calculateSettlement() {
-        const rentItemId = $("#return_rent_item_id").val();
-        const returnQty = parseFloat($("#return_qty").val()) || 0;
-        const damageAmount = parseFloat($("#damage_amount").val()) || 0;
-        const returnDate = $("#return_date").val();
-        const returnTime = $("#return_time").val();
-        const after9amExtraDay = $("#after_9am_extra_day").is(':checked') ? 1 : 0;
-        const extraDayAmount = parseFloat($("#extra_day_amount").val()) || 0;
-        const penaltyPercentage = parseFloat($("#penalty_percentage").val()) || 0;
-        
-        if (returnQty <= 0) {
-            $("#settlementPreview").hide();
-            return;
-        }
-        
-        $.ajax({
-            url: 'ajax/php/equipment-rent-return.php',
-            type: 'POST',
-            data: {
-                action: 'calculate_settlement',
-                rent_item_id: rentItemId,
-                return_qty: returnQty,
-                damage_amount: damageAmount,
-                return_date: returnDate,
-                return_time: returnTime,
-                after_9am_extra_day: after9amExtraDay,
-                extra_day_amount: extraDayAmount,
-                penalty_percentage: penaltyPercentage
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    const calc = response.data;
+            });
 
-                    if (after9amExtraDay) {
-                        $("#extra_day_amount").prop('disabled', false);
-                        const currentExtra = parseFloat($("#extra_day_amount").val());
-                        if (!currentExtra || currentExtra <= 0) {
-                            $("#extra_day_amount").val(parseFloat(calc.extra_day_amount || 0).toFixed(2));
-                        }
-                    } else {
-                        $("#extra_day_amount").val(0).prop('disabled', true);
-                    }
-                    
-                    // Enable penalty field only when return is late
-                    if (calc.is_late) {
-                        $("#penalty_percentage").prop('disabled', false);
-                        $("#penaltySection").show();
-                    } else {
-                        $("#penalty_percentage").val(0).prop('disabled', true);
-                        $("#penaltySection").hide();
-                    }
-                    
-                    // Check if this is a fixed-rate item
-                    const isFixedRate = calc.is_fixed_rate === true || calc.is_fixed_rate === 1;
-                    
-                    let settlementHtml = `
+            returnsHtml += "</tbody></table></div>";
+            $("#previousReturns").html(returnsHtml).show();
+          } else {
+            $("#previousReturns").hide();
+          }
+          // After details are loaded, show the initial settlement block
+          calculateSettlement();
+        }
+      },
+      error: function () {
+        swal({
+          title: "Error!",
+          text: "Failed to load item details",
+          type: "error",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      },
+    });
+  }
+
+  // Calculate settlement on input change
+  $(
+    "#return_qty, #damage_amount, #return_date, #return_time, #after_9am_extra_day, #extra_day_amount, #penalty_percentage",
+  ).on("input change", function () {
+    calculateSettlement();
+  });
+
+  // Calculate and display settlement
+  function calculateSettlement() {
+    const rentItemId = $("#return_rent_item_id").val();
+    const returnQty = parseFloat($("#return_qty").val()) || 0;
+    const damageAmount = parseFloat($("#damage_amount").val()) || 0;
+    const returnDate = $("#return_date").val();
+    const returnTime = $("#return_time").val();
+    const after9amExtraDay = $("#after_9am_extra_day").is(":checked") ? 1 : 0;
+    const extraDayAmount = parseFloat($("#extra_day_amount").val()) || 0;
+    const penaltyPercentage = parseFloat($("#penalty_percentage").val()) || 0;
+
+    if (returnQty <= 0) {
+      $("#settlementPreview").hide();
+      return;
+    }
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-return.php",
+      type: "POST",
+      data: {
+        action: "calculate_settlement",
+        rent_item_id: rentItemId,
+        return_qty: returnQty,
+        damage_amount: damageAmount,
+        return_date: returnDate,
+        return_time: returnTime,
+        after_9am_extra_day: after9amExtraDay,
+        extra_day_amount: extraDayAmount,
+        penalty_percentage: penaltyPercentage,
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.status === "success") {
+          const calc = response.data;
+
+          if (after9amExtraDay) {
+            $("#extra_day_amount").prop("disabled", false);
+            const currentExtra = parseFloat($("#extra_day_amount").val());
+            if (!currentExtra || currentExtra <= 0) {
+              $("#extra_day_amount").val(
+                parseFloat(calc.extra_day_amount || 0).toFixed(2),
+              );
+            }
+          } else {
+            $("#extra_day_amount").val(0).prop("disabled", true);
+          }
+
+          // Enable penalty field only when return is late
+          if (calc.is_late) {
+            $("#penalty_percentage").prop("disabled", false);
+            $("#penaltySection").show();
+          } else {
+            $("#penalty_percentage").val(0).prop("disabled", true);
+            $("#penaltySection").hide();
+          }
+
+          // Check if this is a fixed-rate item
+          const isFixedRate =
+            calc.is_fixed_rate === true || calc.is_fixed_rate === 1;
+
+          let settlementHtml = `
                         <div class="alert alert-warning">
                             <h6><strong>Settlement Calculation:</strong></h6>
                             <table class="table table-sm table-borderless mb-0">
@@ -200,15 +209,15 @@ $(document).ready(function() {
                                     <td>Deposit for this qty:</td>
                                     <td class="text-right">Rs. ${calc.customer_deposit_share.toFixed(2)}</td>
                                 </tr>`;
-                    
-                    if (isFixedRate) {
-                        settlementHtml += `
+
+          if (isFixedRate) {
+            settlementHtml += `
                                 <tr>
                                     <td><span class="badge bg-info">Fixed Rate Item</span></td>
                                     <td class="text-right">Flat charge applies</td>
                                 </tr>`;
-                    } else {
-                        settlementHtml += `
+          } else {
+            settlementHtml += `
                                 <tr>
                                     <td>Used Days:</td>
                                     <td class="text-right">${calc.used_days} day(s)</td>
@@ -221,27 +230,27 @@ $(document).ready(function() {
                                     <td>Daily Rate (per unit):</td>
                                     <td class="text-right">Rs. ${calc.per_unit_daily.toFixed(2)}</td>
                                 </tr>`;
-                    }
-                    
-                    settlementHtml += `
+          }
+
+          settlementHtml += `
                                 <tr>
                                     <td>Extra Day Amount:</td>
-                                    <td class="text-right">Rs. ${(parseFloat(calc.extra_day_amount || 0)).toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${parseFloat(calc.extra_day_amount || 0).toFixed(2)}</td>
                                 </tr>`;
-                    
-                    if (calc.is_late) {
-                        settlementHtml += `
+
+          if (calc.is_late) {
+            settlementHtml += `
                                 <tr class="text-danger">
                                     <td>Overdue Days:</td>
                                     <td class="text-right">${calc.overdue_days} day(s)</td>
                                 </tr>
                                 <tr class="text-danger">
                                     <td>Penalty (${calc.penalty_percentage}%):</td>
-                                    <td class="text-right">Rs. ${(parseFloat(calc.penalty_amount || 0)).toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${parseFloat(calc.penalty_amount || 0).toFixed(2)}</td>
                                 </tr>`;
-                    }
-                    
-                    settlementHtml += `
+          }
+
+          settlementHtml += `
                                 <tr>
                                     <td>Rental for this qty:</td>
                                     <td class="text-right">Rs. ${calc.rental_amount.toFixed(2)}</td>
@@ -257,20 +266,20 @@ $(document).ready(function() {
                                 <tr class="border-top">
                                     <td><strong>Settlement:</strong></td>
                                     <td class="text-right">`;
-                    
-                    if (calc.refund_amount > 0) {
-                        settlementHtml += `<strong class="text-success">Refund: Rs. ${calc.refund_amount.toFixed(2)}</strong>`;
-                    } else if (calc.additional_payment > 0) {
-                        settlementHtml += `<strong class="text-danger">Customer Pays: Rs. ${calc.additional_payment.toFixed(2)}</strong>`;
-                    } else {
-                        settlementHtml += `<strong class="text-muted">No charge (Break-even)</strong>`;
-                    }
-                    
-                    settlementHtml += `</td></tr>`;
-                    
-                    // If customer owes, add a "Customer Paid" input and "Outstanding" display
-                    if (calc.additional_payment > 0) {
-                        settlementHtml += `
+
+          if (calc.refund_amount > 0) {
+            settlementHtml += `<strong class="text-success">Refund: Rs. ${calc.refund_amount.toFixed(2)}</strong>`;
+          } else if (calc.additional_payment > 0) {
+            settlementHtml += `<strong class="text-danger">Customer Pays: Rs. ${calc.additional_payment.toFixed(2)}</strong>`;
+          } else {
+            settlementHtml += `<strong class="text-muted">No charge (Break-even)</strong>`;
+          }
+
+          settlementHtml += `</td></tr>`;
+
+          // If customer owes, add a "Customer Paid" input and "Outstanding" display
+          if (calc.additional_payment > 0) {
+            settlementHtml += `
                                 <tr>
                                     <td><strong>Customer Paid:</strong></td>
                                     <td class="text-right">
@@ -285,167 +294,175 @@ $(document).ready(function() {
                                         <strong class="text-warning" id="outstanding_display">Rs. 0.00</strong>
                                     </td>
                                 </tr>`;
-                    }
-                    
-                    settlementHtml += `</table></div>`;
-                    
-                    $("#settlementPreview").html(settlementHtml).show();
-                    
-                    // Bind live outstanding calculation
-                    if (calc.additional_payment > 0) {
-                        const additionalPayment = calc.additional_payment;
-                        $("#customer_paid_amount").on('input', function() {
-                            const paid = parseFloat($(this).val()) || 0;
-                            const outstanding = Math.max(0, additionalPayment - paid);
-                            $("#outstanding_display").text('Rs. ' + outstanding.toFixed(2));
-                            if (outstanding > 0) {
-                                $("#outstanding_display").removeClass('text-success text-muted').addClass('text-warning');
-                            } else {
-                                $("#outstanding_display").removeClass('text-warning text-muted').addClass('text-success');
-                            }
-                        }).trigger('input');
-                    }
+          }
+
+          settlementHtml += `</table></div>`;
+
+          $("#settlementPreview").html(settlementHtml).show();
+
+          // Bind live outstanding calculation
+          if (calc.additional_payment > 0) {
+            const additionalPayment = calc.additional_payment;
+            $("#customer_paid_amount")
+              .on("input", function () {
+                const paid = parseFloat($(this).val()) || 0;
+                const outstanding = Math.max(0, additionalPayment - paid);
+                $("#outstanding_display").text("Rs. " + outstanding.toFixed(2));
+                if (outstanding > 0) {
+                  $("#outstanding_display")
+                    .removeClass("text-success text-muted")
+                    .addClass("text-warning");
                 } else {
-                    $("#settlementPreview").html(`<div class="alert alert-danger">${response.message}</div>`).show();
+                  $("#outstanding_display")
+                    .removeClass("text-warning text-muted")
+                    .addClass("text-success");
                 }
-            }
-        });
-    }
-    
-    // Save return
-    $("#saveReturnBtn").click(function() {
-        const rentItemId = $("#return_rent_item_id").val();
-        const returnDate = $("#return_date").val();
-        const returnTime = $("#return_time").val();
-        const returnQty = parseFloat($("#return_qty").val()) || 0;
-        const damageAmount = parseFloat($("#damage_amount").val()) || 0;
-        const after9amExtraDay = $("#after_9am_extra_day").is(':checked') ? 1 : 0;
-        const extraDayAmount = parseFloat($("#extra_day_amount").val()) || 0;
-        const penaltyPercentage = parseFloat($("#penalty_percentage").val()) || 0;
-        const remark = $("#return_remark").val();
-        
-        if (!rentItemId) {
-            swal({
-                title: "Error!",
-                text: "Invalid item",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
+              })
+              .trigger("input");
+          }
+        } else {
+          $("#settlementPreview")
+            .html(`<div class="alert alert-danger">${response.message}</div>`)
+            .show();
         }
-        
-        if (returnQty <= 0) {
-            swal({
-                title: "Error!",
-                text: "Return quantity must be greater than 0",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-        
-        if (damageAmount < 0) {
-            swal({
-                title: "Error!",
-                text: "Damage amount cannot be negative",
-                type: "error",
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-        
-        $.ajax({
-            url: 'ajax/php/equipment-rent-return.php',
-            type: 'POST',
-            data: {
-                action: 'create_return',
-                rent_item_id: rentItemId,
-                return_date: returnDate,
-                return_time: returnTime,
-                return_qty: returnQty,
-                damage_amount: damageAmount,
-                after_9am_extra_day: after9amExtraDay,
-                extra_day_amount: extraDayAmount,
-                penalty_percentage: penaltyPercentage,
-                remark: remark,
-                customer_paid: parseFloat($("#customer_paid_amount").val()) || 0
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    $("#returnModal").modal("hide");
-                    
-                    swal({
-                        title: "Success!",
-                        text: response.message,
-                        type: "success",
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    
-                    // Reload the current bill details to reflect the return
-                    var currentRentId = $("#rent_id").val();
-                    
-                    // Add a small delay to ensure modal closes and then reload
-                    setTimeout(function() {
-                        if (currentRentId && typeof loadRentDetails === 'function') {
-                            loadRentDetails(currentRentId);
-                        } else if (typeof loadRentItemsTable === 'function') {
-                            loadRentItemsTable();
-                        } else {
-                            // Fallback: reload the page
-                            location.reload();
-                        }
-                    }, 300);
-                } else {
-                    swal({
-                        title: "Error!",
-                        text: response.message,
-                        type: "error",
-                        timer: 3000,
-                        showConfirmButton: false
-                    });
-                }
-            },
-            error: function() {
-                swal({
-                    title: "Error!",
-                    text: "Failed to process return",
-                    type: "error",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }
-        });
+      },
     });
-    
-    // View returns history for an item
-    window.viewReturnsHistory = function(rentItemId) {
-        $.ajax({
-            url: 'ajax/php/equipment-rent-return.php',
-            type: 'POST',
-            data: {
-                action: 'get_returns',
-                rent_item_id: rentItemId
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    let modalHtml = `
+  }
+
+  // Save return
+  $("#saveReturnBtn").click(function () {
+    const rentItemId = $("#return_rent_item_id").val();
+    const returnDate = $("#return_date").val();
+    const returnTime = $("#return_time").val();
+    const returnQty = parseFloat($("#return_qty").val()) || 0;
+    const damageAmount = parseFloat($("#damage_amount").val()) || 0;
+    const after9amExtraDay = $("#after_9am_extra_day").is(":checked") ? 1 : 0;
+    const extraDayAmount = parseFloat($("#extra_day_amount").val()) || 0;
+    const penaltyPercentage = parseFloat($("#penalty_percentage").val()) || 0;
+    const remark = $("#return_remark").val();
+
+    if (!rentItemId) {
+      swal({
+        title: "Error!",
+        text: "Invalid item",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (returnQty <= 0) {
+      swal({
+        title: "Error!",
+        text: "Return quantity must be greater than 0",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (damageAmount < 0) {
+      swal({
+        title: "Error!",
+        text: "Damage amount cannot be negative",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-return.php",
+      type: "POST",
+      data: {
+        action: "create_return",
+        rent_item_id: rentItemId,
+        return_date: returnDate,
+        return_time: returnTime,
+        return_qty: returnQty,
+        damage_amount: damageAmount,
+        after_9am_extra_day: after9amExtraDay,
+        extra_day_amount: extraDayAmount,
+        penalty_percentage: penaltyPercentage,
+        remark: remark,
+        customer_paid: parseFloat($("#customer_paid_amount").val()) || 0,
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.status === "success") {
+          $("#returnModal").modal("hide");
+
+          swal({
+            title: "Success!",
+            text: response.message,
+            type: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+
+          // Reload the current bill details to reflect the return
+          var currentRentId = $("#rent_id").val();
+
+          // Add a small delay to ensure modal closes and then reload
+          setTimeout(function () {
+            if (currentRentId && typeof loadRentDetails === "function") {
+              loadRentDetails(currentRentId);
+            } else if (typeof loadRentItemsTable === "function") {
+              loadRentItemsTable();
+            } else {
+              // Fallback: reload the page
+              location.reload();
+            }
+          }, 300);
+        } else {
+          swal({
+            title: "Error!",
+            text: response.message,
+            type: "error",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+        }
+      },
+      error: function () {
+        swal({
+          title: "Error!",
+          text: "Failed to process return",
+          type: "error",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      },
+    });
+  });
+
+  // View returns history for an item
+  window.viewReturnsHistory = function (rentItemId) {
+    $.ajax({
+      url: "ajax/php/equipment-rent-return.php",
+      type: "POST",
+      data: {
+        action: "get_returns",
+        rent_item_id: rentItemId,
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.status === "success") {
+          let modalHtml = `
                         <div class="modal fade" id="returnsHistoryModal" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title">Returns History</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">`;
-                    
-                    if (response.returns && response.returns.length > 0) {
-                        modalHtml += `
+
+          if (response.returns && response.returns.length > 0) {
+            modalHtml += `
                             <div class="table-responsive">
                                 <table class="table table-bordered">
                                     <thead>
@@ -460,34 +477,58 @@ $(document).ready(function() {
                                             <th>Rent Value</th>
                                             <th>Paid</th>
                                             <th>Outstanding</th>
-                                            <th>Created By</th>
-                                            <th>Remark</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>`;
-                        
-                        response.returns.forEach(function(ret) {
-                            const penaltyText = parseFloat(ret.penalty_amount || 0) > 0 
-                                ? `Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)`
-                                : '-';
-                            modalHtml += `
+
+            response.returns.forEach(function (ret) {
+              const penaltyText =
+                parseFloat(ret.penalty_amount || 0) > 0
+                  ? `Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)`
+                  : "-";
+
+              // Damage refund action button
+              let damageActionHtml = "";
+              const damageAmt = parseFloat(ret.damage_amount || 0);
+              const isRefunded = parseInt(ret.damage_refunded || 0) === 1;
+
+              if (isRefunded) {
+                damageActionHtml = `<span class="badge bg-success">Refunded</span><br><small class="text-muted">${ret.damage_refund_date || ''} ${ret.damage_refund_time || ''}</small>`;
+              } else if (damageAmt > 0) {
+                const todayDate = new Date().toISOString().split('T')[0];
+                const nowTime = new Date().toTimeString().slice(0, 5);
+                damageActionHtml = `
+                                    <div class="d-flex flex-column gap-1">
+                                        <div class="d-flex gap-1 align-items-center">
+                                            <input type="text" class="form-control form-control-sm refund-date" value="${todayDate}" style="width:130px;font-size:11px;" placeholder="YYYY-MM-DD">
+                                            <input type="time" class="form-control form-control-sm refund-time" value="${nowTime}" style="width:100px;font-size:11px;">
+                                        </div>
+                                        <button class="btn btn-sm btn-warning refund-damage-btn" data-return-id="${ret.id}" data-damage="${damageAmt.toFixed(2)}" title="Refund Damage Amount">
+                                            <i class="uil uil-redo"></i> Refund Rs.${damageAmt.toFixed(2)}
+                                        </button>
+                                    </div>`;
+              } else {
+                damageActionHtml = "-";
+              }
+
+              modalHtml += `
                                 <tr>
                                     <td>${ret.return_date}</td>
-                                    <td>${ret.return_time || '-'}</td>
+                                    <td>${ret.return_time || "-"}</td>
                                     <td>${ret.return_qty}</td>
-                                    <td>Rs. ${parseFloat(ret.damage_amount).toFixed(2)}</td>
+                                    <td>Rs. ${damageAmt.toFixed(2)}</td>
                                     <td>Rs. ${parseFloat(ret.extra_day_amount || 0).toFixed(2)}</td>
                                     <td class="text-danger">${penaltyText}</td>
                                     <td class="text-success">Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</td>
                                     <td class="text-danger">Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</td>
                                     <td>Rs. ${parseFloat(ret.customer_paid || 0).toFixed(2)}</td>
-                                    <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + '</span>' : '-'}</td>
-                                    <td>${ret.created_by_name || '-'}</td>
-                                    <td>${ret.remark || '-'}</td>
+                                    <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + "</span>" : "-"}</td>
+                                    <td>${damageActionHtml}</td>
                                 </tr>`;
-                        });
-                        
-                        modalHtml += `
+            });
+
+            modalHtml += `
                                     </tbody>
                                     <tfoot>
                                         <tr class="font-weight-bold">
@@ -501,11 +542,11 @@ $(document).ready(function() {
                                     </tfoot>
                                 </table>
                             </div>`;
-                    } else {
-                        modalHtml += '<p class="text-muted">No returns recorded yet.</p>';
-                    }
-                    
-                    modalHtml += `
+          } else {
+            modalHtml += '<p class="text-muted">No returns recorded yet.</p>';
+          }
+
+          modalHtml += `
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -513,20 +554,149 @@ $(document).ready(function() {
                                 </div>
                             </div>
                         </div>`;
-                    
-                    // Remove existing modal if present
-                    $("#returnsHistoryModal").remove();
-                    
-                    // Append and show modal
-                    $("body").append(modalHtml);
-                    $("#returnsHistoryModal").modal("show");
 
-                    // Ensure proper cleanup when hidden
-                    $("#returnsHistoryModal").on('hidden.bs.modal', function () {
-                        $(this).remove();
+          // Remove existing modal if present
+          $("#returnsHistoryModal").remove();
+
+          // Append and show modal
+          $("body").append(modalHtml);
+          $("#returnsHistoryModal").modal("show");
+
+          // Initialize datepicker
+          $("#returnsHistoryModal .refund-date").datepicker({
+              dateFormat: 'yy-mm-dd',
+              changeMonth: true,
+              changeYear: true,
+              autoclose: true,
+              beforeShow: function(input) {
+                  const $input = $(input);
+                  const $dp = $('#ui-datepicker-div');
+
+                  setTimeout(function() {
+                      const $modal = $input.closest('.modal');
+
+                      if ($modal.length) {
+                          const modalOffset = $modal.offset();
+                          const inputOffset = $input.offset();
+
+                          $dp.appendTo($modal).css({
+                              top: inputOffset.top - modalOffset.top + $input.outerHeight(),
+                              left: inputOffset.left - modalOffset.left,
+                              'z-index': (parseInt($modal.css('z-index'), 10) || 1050) + 2,
+                              position: 'absolute'
+                          });
+                      } else {
+                          $dp.appendTo('body').css({'z-index': 1052});
+                      }
+                  }, 0);
+              }
+          });
+
+          // Bind refund damage button click
+          $("#returnsHistoryModal").on(
+            "click",
+            ".refund-damage-btn",
+            function () {
+              const btn = $(this);
+              const returnId = btn.data("return-id");
+              const damageAmt = btn.data("damage");
+              const itemId = rentItemId;
+              const row = btn.closest('td');
+              const refundDate = row.find('.refund-date').val();
+              const refundTime = row.find('.refund-time').val();
+              
+              if (!refundDate) {
+                  swal({ title: 'Error!', text: 'Please select a refund date', type: 'error', timer: 2000, showConfirmButton: false });
+                  return;
+              }
+
+              swal(
+                {
+                  title: "Refund Damage?",
+                  text: `Are you sure you want to refund Rs. ${damageAmt} damage amount? This will recalculate the settlement.`,
+                  type: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#f1b44c",
+                  confirmButtonText: "Yes, Refund!",
+                  cancelButtonText: "Cancel",
+                },
+                function (isConfirm) {
+                  if (isConfirm) {
+                    btn
+                      .prop("disabled", true)
+                      .html('<i class="uil uil-spinner"></i> Processing...');
+
+                    $.ajax({
+                      url: "ajax/php/equipment-rent-return.php",
+                      type: "POST",
+                      data: {
+                        action: "refund_damage",
+                        return_id: returnId,
+                        refund_date: refundDate,
+                        refund_time: refundTime
+                      },
+                      dataType: "json",
+                      success: function (response) {
+                        if (response.status === "success") {
+                          swal({
+                            title: "Refunded!",
+                            text: `Damage amount Rs. ${damageAmt} has been refunded successfully.`,
+                            type: "success",
+                            timer: 2000,
+                            showConfirmButton: false,
+                          });
+
+                          // Close and reopen to refresh data
+                          $("#returnsHistoryModal").modal("hide");
+                          setTimeout(function () {
+                            viewReturnsHistory(itemId);
+                            // Also reload rent details if available
+                            var currentRentId = $("#rent_id").val();
+                            if (
+                              currentRentId &&
+                              typeof loadRentDetails === "function"
+                            ) {
+                              loadRentDetails(currentRentId);
+                            }
+                          }, 500);
+                        } else {
+                          swal({
+                            title: "Error!",
+                            text: response.message,
+                            type: "error",
+                            timer: 3000,
+                            showConfirmButton: false,
+                          });
+                          btn
+                            .prop("disabled", false)
+                            .html('<i class="uil uil-redo"></i> Refund Damage');
+                        }
+                      },
+                      error: function () {
+                        swal({
+                          title: "Error!",
+                          text: "Failed to refund damage amount",
+                          type: "error",
+                          timer: 2000,
+                          showConfirmButton: false,
+                        });
+                        btn
+                          .prop("disabled", false)
+                          .html('<i class="uil uil-redo"></i> Refund Damage');
+                      },
                     });
-                }
-            }
-        });
-    };
+                  }
+                },
+              );
+            },
+          );
+
+          // Ensure proper cleanup when hidden
+          $("#returnsHistoryModal").on("hidden.bs.modal", function () {
+            $(this).remove();
+          });
+        }
+      },
+    });
+  };
 });
