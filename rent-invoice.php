@@ -453,18 +453,64 @@ if (!empty($customerMobile)) {
                     </div>
                 </div>
 
+                <?php
+                $rateDescriptor = 'per day / hour';
+                if ($has_month && !$has_daily) {
+                    $rateDescriptor = 'per month';
+                } elseif ($has_month && $has_daily) {
+                    $rateDescriptor = 'per day / month';
+                }
+
+                $customTerms = [
+                    sprintf(
+                        'The customer should make the full payment for the total number of days including the date of receiving equipment and the date of returning the equipment and amount of Rs. %s %s as per rental.',
+                        number_format($hire_amount, 2),
+                        $rateDescriptor
+                    ),
+                    sprintf(
+                        'The customers should obtain receipt from the company by paying Rs. %s as the primary deposit, when collecting the equipment & should return it at the time of returning the equipment.',
+                        number_format($total_deposit, 2)
+                    )
+                ];
+
+                $skipRemarkPhrases = [
+                    'the customer should make the full payment for the total number of days including the date of receiving equipment and the date of returning the equipment',
+                    'the customers should obtain receipt from the company by paying'
+                ];
+                ?>
+
                 <!-- Remark Section -->
                 <div class="mt-4">
                     <div style="border-top:2px solid #ccc; padding-top:12px;">
                         <strong>Terms & Conditions :</strong>
                         <div style="min-height:60px; border-bottom:2px solid #ccc; padding:8px 0; font-size:14px;">
-                            <?php if (!empty($paymentRemarks)): ?>
+                            <?php if (!empty($paymentRemarks) || !empty($customTerms)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
-                                    <?php foreach ($paymentRemarks as $remark): ?>
-                                        <?php if (!empty($remark['remark'])): ?>
-                                            <li><?php echo htmlspecialchars($remark['remark']); ?></li>
-                                        <?php endif; ?>
+                                    <?php foreach ($customTerms as $term): ?>
+                                        <li><?php echo htmlspecialchars($term); ?></li>
                                     <?php endforeach; ?>
+                                    <?php if (!empty($paymentRemarks)): ?>
+                                        <?php foreach ($paymentRemarks as $remark): ?>
+                                            <?php
+                                            $rawRemark = trim($remark['remark'] ?? '');
+                                            if ($rawRemark === '') {
+                                                continue;
+                                            }
+                                            $normalized = mb_strtolower($rawRemark, 'UTF-8');
+                                            $shouldSkip = false;
+                                            foreach ($skipRemarkPhrases as $phrase) {
+                                                if (strpos($normalized, $phrase) !== false) {
+                                                    $shouldSkip = true;
+                                                    break;
+                                                }
+                                            }
+                                            if ($shouldSkip) {
+                                                continue;
+                                            }
+                                            ?>
+                                            <li><?php echo htmlspecialchars($rawRemark); ?></li>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </ul>
                             <?php else: ?>
                                 <span class="text-muted">No predefined remarks available for this payment type.</span>
