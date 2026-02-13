@@ -116,7 +116,19 @@ include 'auth.php';
                                                                 <option value="return">Return Bills Only</option>
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-3 d-flex gap-2">
+                                                        <div class="col-md-3">
+                                                            <label for="billNo" class="form-label fw-semibold text-muted mb-2">Bill No</label>
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control" id="billNo" name="billNo" placeholder="Enter bill number">
+                                                                <span class="input-group-text bg-light"><i class="mdi mdi-receipt text-primary"></i></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row align-items-center mt-3 g-3">
+                                                        <div class="col-md-6">
+                                                            <small class="text-muted"><i class="mdi mdi-information-outline me-1"></i> Select date range or enter a bill number to filter rent and return bills</small>
+                                                        </div>
+                                                        <div class="col-md-6 d-flex gap-2 justify-content-md-end">
                                                             <button type="button" class="btn btn-outline-primary btn-sm" id="setToday">
                                                                 <i class="mdi mdi-calendar-today me-1"></i> Today
                                                             </button>
@@ -124,9 +136,6 @@ include 'auth.php';
                                                                 <i class="fas fa-file-pdf me-1"></i> Export PDF
                                                             </button>
                                                         </div>
-                                                    </div>
-                                                    <div class="mt-2">
-                                                        <small class="text-muted"><i class="mdi mdi-information-outline me-1"></i> Select date range to view rent and return bills report</small>
                                                     </div>
                                                 </div>
                                             </div>

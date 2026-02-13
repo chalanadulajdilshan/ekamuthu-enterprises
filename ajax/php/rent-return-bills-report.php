@@ -9,17 +9,31 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     $from_date = $_POST['from_date'] ?? null;
     $to_date = $_POST['to_date'] ?? null;
     $bill_type = $_POST['bill_type'] ?? 'all';
+    $bill_no = trim($_POST['bill_no'] ?? '');
 
-    if (!$from_date || !$to_date) {
-        echo json_encode(['status' => 'error', 'message' => 'Date range is required']);
+    if ((!$from_date || !$to_date) && $bill_no === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Please select a date range or enter a bill number']);
         exit();
     }
 
     $db = Database::getInstance();
+    $bill_no_filter = $bill_no !== '' ? $db->escapeString($bill_no) : '';
     $bills = [];
 
     // --- 1. Process Rent Bills ---
     if ($bill_type == 'all' || $bill_type == 'rent') {
+        $rentConditions = [];
+        if ($from_date && $to_date) {
+            $rentConditions[] = "er.rental_date BETWEEN '$from_date' AND '$to_date'";
+        }
+        if ($bill_no_filter !== '') {
+            $rentConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
+        }
+        if (empty($rentConditions)) {
+            $rentConditions[] = '1=1';
+        }
+        $rentWhere = implode(' AND ', $rentConditions);
+
         $queryRent = "
             SELECT
                 er.id as rent_id,
@@ -46,7 +60,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             LEFT JOIN `equipment_rent_items` eri ON er.id = eri.rent_id
             LEFT JOIN `equipment` e ON eri.equipment_id = e.id
             LEFT JOIN `sub_equipment` se ON eri.sub_equipment_id = se.id
-            WHERE er.rental_date BETWEEN '$from_date' AND '$to_date'
+            WHERE $rentWhere
             ORDER BY er.id DESC
         ";
 
@@ -104,6 +118,18 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     // User asked for expand feature, likely for Rent. Returns are usually single line.
     // We will structure them similarly for consistency.
     if ($bill_type == 'all' || $bill_type == 'return') {
+        $returnConditions = [];
+        if ($from_date && $to_date) {
+            $returnConditions[] = "err.return_date BETWEEN '$from_date' AND '$to_date'";
+        }
+        if ($bill_no_filter !== '') {
+            $returnConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
+        }
+        if (empty($returnConditions)) {
+            $returnConditions[] = '1=1';
+        }
+        $returnWhere = implode(' AND ', $returnConditions);
+
         $queryReturn = "
             SELECT
                 er.bill_number as bill_no,
@@ -139,7 +165,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             INNER JOIN (
                 SELECT status as rent_status, id FROM `equipment_rent`
             ) er_status ON er.id = er_status.id
-            WHERE err.return_date BETWEEN '$from_date' AND '$to_date'
+            WHERE $returnWhere
         ";
 
         $resultReturn = $db->readQuery($queryReturn);
@@ -234,7 +260,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         'total_bills' => 0,
         'total_rent_bills' => 0,
         'total_return_bills' => 0,
-        'date_range' => "$from_date to $to_date",
+        'date_range' => ($bill_no !== '' ? ($from_date && $to_date ? "$from_date to $to_date (Bill No: $bill_no)" : "Bill No: $bill_no") : "$from_date to $to_date"),
+        'search_bill_no' => $bill_no,
         'version' => '1.2'
     ];
 
