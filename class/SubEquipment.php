@@ -9,6 +9,7 @@ class SubEquipment
     public $rental_status;
     public $qty;
     public $rented_qty;
+    public $is_repair;
 
     public function __construct($id = null)
     {
@@ -25,16 +26,18 @@ class SubEquipment
                 $this->rental_status = $result['rental_status'];
                 $this->qty = $result['qty'];
                 $this->rented_qty = $result['rented_qty'] ?? 0;
+                $this->is_repair = $result['is_repair'] ?? 0;
             }
         }
     }
 
     public function create()
     {
+        $this->is_repair = $this->is_repair ?? 0;
         $query = "INSERT INTO `sub_equipment` (
-            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`, `rented_qty`
+            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`, `rented_qty`, `is_repair`
         ) VALUES (
-            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty', '$this->rented_qty'
+            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty', '$this->rented_qty', '$this->is_repair'
         )";
 
         $db = Database::getInstance();
@@ -55,7 +58,8 @@ class SubEquipment
             `code` = '$this->code',
             `rental_status` = '$this->rental_status',
             `qty` = '$this->qty',
-            `rented_qty` = '$this->rented_qty'
+            `rented_qty` = '$this->rented_qty',
+            `is_repair` = '$this->is_repair'
             WHERE `id` = '$this->id'";
 
         $db = Database::getInstance();
@@ -88,10 +92,25 @@ class SubEquipment
             $this->code = $result['code'];
             $this->rental_status = $result['rental_status'];
             $this->qty = $result['qty'];
+            $this->is_repair = $result['is_repair'] ?? 0;
             return true;
         }
         return false;
     }
+
+    // ... existing methods ...
+
+    public static function updateRepairStatus($code, $is_repair)
+    {
+        $db = Database::getInstance();
+        $code = mysqli_real_escape_string($db->DB_CON, $code);
+        $is_repair = (int) $is_repair;
+        
+        // Find sub_equipment_id by code
+        $query = "UPDATE `sub_equipment` SET `is_repair` = $is_repair WHERE `code` = '$code'";
+        return $db->readQuery($query);
+    }
+
 
     public function fetchForDataTable($request, $equipment_id = null)
     {

@@ -233,12 +233,18 @@ jQuery(document).ready(function () {
                 rentAttr = ' data-rent-id="' + item.active_rent_id + '" data-bill="' + (item.active_bill_number || '') + '" data-customer="' + (item.active_customer_name || '') + '"';
             }
 
+            // Override status if under repair
+            var statusToShow = item.rental_status;
+            if (item.is_repair == 1) {
+                statusToShow = "repair";
+            }
+
             html +=
                 "<tr class='sub-eq-row" + (isRented ? " sub-eq-rented" : "") + "'" + rentAttr + ">" +
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + code + "</td>" +
-                "<td>" + renderStatusBadge(item.rental_status) + "</td>" +
+                "<td>" + renderStatusBadge(statusToShow) + "</td>" +
                 "</tr>";
         });
         html += "</tbody></table></div>";

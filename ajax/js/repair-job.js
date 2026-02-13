@@ -599,8 +599,194 @@ jQuery(document).ready(function () {
         }
     });
 
-    // Initialize
-    toggleRepairItemsSection();
+    // --- Equipment & Sub-Equipment Selection Logic ---
+
+    // Load Equipment Table
+    $("#EquipmentSelectModal").on("shown.bs.modal", function () {
+        loadEquipmentTable();
+    });
+
+    function loadEquipmentTable() {
+        if ($.fn.DataTable.isDataTable("#equipmentSelectTable")) {
+            $("#equipmentSelectTable").DataTable().destroy();
+        }
+
+        var equipmentTable = $("#equipmentSelectTable").DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "ajax/php/equipment-rent-master.php",
+                type: "POST",
+                data: function (d) {
+                    d.filter_equipment = true;
+                    // Filter to show only equipment that has sub-items (serialized items)
+                    d.has_sub_items_only = 'true';
+                },
+                dataSrc: function (json) {
+                    return json.data;
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    title: "",
+                    className: "details-control",
+                    orderable: false,
+                    defaultContent: '',
+                    width: "30px",
+                    visible: false // Hiding details for repair job as we just need selection
+                },
+                { data: "key", title: "#" },
+                {
+                    data: "image_name",
+                    title: "Image",
+                    orderable: false,
+                    render: function (data, type, row) {
+                        var imgSrc = data
+                            ? "uploads/equipment/" + data
+                            : "assets/images/no-image.png";
+                        return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
+                    }
+                },
+                { data: "code", title: "Code" },
+                {
+                    data: "item_name",
+                    title: "Item Name",
+                    render: function (data, type, row) {
+                        return `<div class="fw-bold">${data}</div>`;
+                    }
+                }
+            ],
+            order: [[3, "asc"]],
+            pageLength: 50
+        });
+
+        // Handle row click to select equipment
+        $("#equipmentSelectTable tbody").off("click", "tr").on("click", "tr", function () {
+            var data = equipmentTable.row(this).data();
+            if (data) {
+                // Populate fields
+                $("#selected_equipment_id").val(data.id);
+                $("#machine_code").val(data.code);
+                $("#machine_name").val(data.item_name);
+
+                // Handle Sub-Equipment Button visibility/state
+                $("#selected_sub_equipment_id").val("");
+
+                if (data.no_sub_items == 1) {
+                    // If no sub items, maybe disable the sub-equipment search button or keep it as is?
+                    // Use case: User selected equipment, auto-filled code. 
+                    // If they click search on machine code again, it should probably show "No sub items" or just list available units if any?
+                    // But if no_sub_items=1, there are no sub units.
+                    // Let's hide the button or disable it to prevent confusion? 
+                    // User didn't specify, but good UX.
+                    $("#btn-select-sub-equipment").prop('disabled', true);
+                } else {
+                    $("#btn-select-sub-equipment").prop('disabled', false);
+                }
+
+                $("#EquipmentSelectModal").modal("hide");
+            }
+        });
+    }
+
+    // Load Sub Equipment Table
+    $("#SubEquipmentSelectModal").on("shown.bs.modal", function () {
+        loadSubEquipmentTable();
+    });
+
+    function loadSubEquipmentTable() {
+        var equipmentId = $("#selected_equipment_id").val();
+
+        if (!equipmentId) {
+            $("#noSubEquipmentMsg").show();
+            $("#noSubEquipmentMsg").text("Please select an equipment (Machine Name) first.");
+            if ($.fn.DataTable.isDataTable("#subEquipmentSelectTable")) {
+                $("#subEquipmentSelectTable").DataTable().destroy();
+            }
+            return;
+        }
+
+        if ($.fn.DataTable.isDataTable("#subEquipmentSelectTable")) {
+            $("#subEquipmentSelectTable").DataTable().destroy();
+        }
+
+        var subEquipmentTable = $("#subEquipmentSelectTable").DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "ajax/php/equipment-rent-master.php",
+                type: "POST",
+                data: function (d) {
+                    d.filter_sub_equipment = true;
+                    d.equipment_id = equipmentId;
+                },
+                dataSrc: function (json) {
+                    return json.data;
+                }
+            },
+            columns: [
+                { data: "key", title: "#" },
+                { data: "code", title: "Code" }, // Fixed column name
+                {
+                    data: "rental_status", // Fixed column name
+                    title: "Status",
+                    render: function (data) {
+                        if (data === 'available') {
+                            return '<span class="badge bg-success">Available</span>';
+                        } else {
+                            return '<span class="badge bg-danger">' + (data || 'Unavailable') + '</span>';
+                        }
+                    }
+                }
+            ],
+            pageLength: 50
+        });
+
+        // Handle row click to select sub-equipment
+        $("#subEquipmentSelectTable tbody").off("click", "tr").on("click", "tr", function () {
+            var data = subEquipmentTable.row(this).data();
+            if (data) {
+                $("#selected_sub_equipment_id").val(data.id);
+                // Update machine_code to be the specific sub-equipment code
+                $("#machine_code").val(data.code);
+
+                $("#SubEquipmentSelectModal").modal("hide");
+            }
+        });
+    }
+
+    // Update toggleMachineSection to handle validaiton cleanup
+    var originalToggleMachineSection = toggleMachineSection;
+    toggleMachineSection = function () {
+        var itemType = $("input[name='item_type']:checked").val();
+        if (itemType === "company") {
+            $("#machine_code_section").slideDown();
+            $("#customer_contact_section").slideUp();
+
+            // Show the search button for Machine Name
+            $("#btn-select-equipment").show();
+            // DISABLE Sub Equipment Button by default (Enable after selecting machine)
+            $("#btn-select-sub-equipment").prop('disabled', true);
+
+        } else {
+            $("#machine_code_section").slideUp();
+            // Hide the search button for Machine Name
+            $("#btn-select-equipment").hide();
+
+            $("#machine_code").val("");
+            $("#selected_equipment_id").val("");
+            $("#selected_sub_equipment_id").val("");
+
+            $("#customer_contact_section").slideDown();
+        }
+    };
+
+    // Override the original event binding to use the new function
+    $("input[name='item_type']").off("change").on("change", function () {
+        toggleMachineSection();
+    });
+
+    // Initial call to set state
     toggleMachineSection();
-    updateRepairItemsTable();
 });

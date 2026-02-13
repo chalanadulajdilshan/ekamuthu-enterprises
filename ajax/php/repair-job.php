@@ -93,6 +93,11 @@ if (isset($_POST['create'])) {
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
 
+        // Update Sub-Equipment status if company item
+        if ($JOB->item_type == 'company' && !empty($JOB->machine_code)) {
+            SubEquipment::updateRepairStatus($JOB->machine_code, 1);
+        }
+
         echo json_encode(["status" => "success", "job_id" => $job_id]);
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to create job"]);
@@ -159,6 +164,12 @@ if (isset($_POST['update'])) {
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
 
+        // Update Sub-Equipment status if company item
+        if ($JOB->item_type == 'company' && !empty($JOB->machine_code)) {
+            $isRepair = ($JOB->job_status == 'completed' || $JOB->job_status == 'cannot_repair') ? 0 : 1;
+            SubEquipment::updateRepairStatus($JOB->machine_code, $isRepair);
+        }
+
         echo json_encode(["status" => "success"]);
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to update job"]);
@@ -180,6 +191,11 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
         $AUDIT_LOG->user_id = $_SESSION['id'] ?? 0;
         $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
         $AUDIT_LOG->create();
+
+        // Reset Sub-Equipment status before deleting
+        if ($JOB->item_type == 'company' && !empty($JOB->machine_code)) {
+            SubEquipment::updateRepairStatus($JOB->machine_code, 0);
+        }
 
         $res = $JOB->delete();
         echo json_encode(['status' => $res ? 'success' : 'error']);
