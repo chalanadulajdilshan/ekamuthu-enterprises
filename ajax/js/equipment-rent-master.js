@@ -945,6 +945,29 @@ jQuery(document).ready(function () {
             $("#customer_rent_outstanding").removeClass('text-danger').addClass('text-success');
           }
 
+          // Render return remarks list (from return-all/bulk returns)
+          var remarks = result.return_remarks || [];
+          var $remarksCard = $("#returnRemarksCard");
+          var $remarksList = $("#returnRemarksList");
+          var $remarksEmpty = $("#returnRemarksEmpty");
+          var $remarksCount = $("#returnRemarksCount");
+
+          if (remarks.length > 0) {
+            $remarksList.empty();
+            remarks.forEach(function (text) {
+              var safeText = $("<div>").text(text).html();
+              $remarksList.append("<li>" + safeText + "</li>");
+            });
+            $remarksCount.text(remarks.length);
+            $remarksEmpty.hide();
+            $remarksCard.show();
+          } else {
+            $remarksList.empty();
+            $remarksCount.text("0");
+            $remarksEmpty.show();
+            $remarksCard.hide();
+          }
+
           // Lock manual edits when loading an existing rent
           $("#transport_cost, #custom_deposit").prop("readonly", true);
 
@@ -1964,6 +1987,7 @@ jQuery(document).ready(function () {
     $("#return_all_time").val(hh + ":" + min);
     $("#return_all_after_9am").prop("checked", false);
     $("#return_all_rental_override").val("");
+    $("#return_all_remark").val("");
     $("#returnAllPreview").hide();
 
     // Remove readonly attribute to make the field editable
@@ -2212,6 +2236,7 @@ jQuery(document).ready(function () {
         after_9am_extra_day: after9amExtraDay,
         rental_override: rentalOverride,
         customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
+        return_remark: $("#return_all_remark").val() || "",
       },
       dataType: "JSON",
       success: function (result) {
