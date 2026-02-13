@@ -342,7 +342,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
                         (SELECT eri.rent_id FROM equipment_rent_items eri WHERE eri.sub_equipment_id = se.id AND eri.status = 'rented' ORDER BY eri.id DESC LIMIT 1) AS active_rent_id,
                         (SELECT er.bill_number FROM equipment_rent er WHERE er.id = (SELECT eri2.rent_id FROM equipment_rent_items eri2 WHERE eri2.sub_equipment_id = se.id AND eri2.status = 'rented' ORDER BY eri2.id DESC LIMIT 1)) AS active_bill_number,
                         (SELECT cm.name FROM equipment_rent er2 LEFT JOIN customer_master cm ON er2.customer_id = cm.id WHERE er2.id = (SELECT eri3.rent_id FROM equipment_rent_items eri3 WHERE eri3.sub_equipment_id = se.id AND eri3.status = 'rented' ORDER BY eri3.id DESC LIMIT 1)) AS active_customer_name,
-                        (SELECT rj.id FROM repair_jobs rj WHERE rj.machine_code = se.code AND rj.job_status NOT IN ('delivered') ORDER BY rj.id DESC LIMIT 1) AS active_repair_job_id
+                        (SELECT rj.id FROM repair_jobs rj WHERE TRIM(rj.machine_code) = TRIM(se.code) AND rj.job_status NOT IN ('delivered') ORDER BY rj.id DESC LIMIT 1) AS active_repair_job_id
                     FROM sub_equipment se
                     WHERE se.equipment_id = $equipment_id";
             

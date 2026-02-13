@@ -211,7 +211,7 @@ jQuery(document).ready(function () {
         }
 
         let html =
-            '<div class="table-responsive"><table class="table table-sm table-bordered mb-0" id="subEquipmentTable">';
+            '<div class="table-responsive"><table class="table table-sm table-bordered mb-0 sub-equipment-table">';
         html +=
             '<thead class="table-light"><tr>' +
             "<th>ID</th>" +
@@ -228,24 +228,23 @@ jQuery(document).ready(function () {
             }
 
             var isRented = (item.rental_status || "").toLowerCase() === "rented" || (item.rental_status || "").toLowerCase() === "rent";
+            var isRepair = (item.rental_status || "").toLowerCase() === "repair" || item.is_repair == 1;
+
             var rentAttr = '';
             if (isRented && item.active_rent_id) {
                 rentAttr = ' data-rent-id="' + item.active_rent_id + '" data-bill="' + (item.active_bill_number || '') + '" data-customer="' + (item.active_customer_name || '') + '"';
             }
 
             var repairAttr = '';
-            if (item.is_repair == 1 && item.active_repair_job_id) {
+            if (isRepair && item.active_repair_job_id) {
                 repairAttr = ' data-repair-id="' + item.active_repair_job_id + '"';
             }
 
-            // Override status if under repair
+            // Override status if under repair (Deprecated - now handled via rental_status in DB)
             var statusToShow = item.rental_status;
-            if (item.is_repair == 1) {
-                statusToShow = "repair";
-            }
 
             html +=
-                "<tr class='sub-eq-row" + (isRented ? " sub-eq-rented" : "") + (item.is_repair == 1 ? " sub-eq-repair" : "") + "'" + rentAttr + repairAttr + ">" +
+                "<tr class='sub-eq-row" + (isRented ? " sub-eq-rented" : "") + (isRepair ? " sub-eq-repair" : "") + "'" + rentAttr + repairAttr + ">" +
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + code + "</td>" +
@@ -344,7 +343,7 @@ jQuery(document).ready(function () {
                         });
 
                         // Attach click handler to rented sub-equipment rows to open rent details
-                        row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-rented", function (evt) {
+                        row.child().find("table.sub-equipment-table tbody").on("click", "tr.sub-eq-rented", function (evt) {
                             evt.stopPropagation();
                             var rentId = $(this).data("rent-id");
                             if (rentId) {
@@ -353,7 +352,7 @@ jQuery(document).ready(function () {
                         });
 
                         // Attach click handler to repair sub-equipment rows to open repair details
-                        row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-repair", function (evt) {
+                        row.child().find("table.sub-equipment-table tbody").on("click", "tr.sub-eq-repair", function (evt) {
                             evt.stopPropagation();
                             var repairId = $(this).data("repair-id");
                             if (repairId) {
