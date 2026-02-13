@@ -233,6 +233,11 @@ jQuery(document).ready(function () {
                 rentAttr = ' data-rent-id="' + item.active_rent_id + '" data-bill="' + (item.active_bill_number || '') + '" data-customer="' + (item.active_customer_name || '') + '"';
             }
 
+            var repairAttr = '';
+            if (item.is_repair == 1 && item.active_repair_job_id) {
+                repairAttr = ' data-repair-id="' + item.active_repair_job_id + '"';
+            }
+
             // Override status if under repair
             var statusToShow = item.rental_status;
             if (item.is_repair == 1) {
@@ -240,7 +245,7 @@ jQuery(document).ready(function () {
             }
 
             html +=
-                "<tr class='sub-eq-row" + (isRented ? " sub-eq-rented" : "") + "'" + rentAttr + ">" +
+                "<tr class='sub-eq-row" + (isRented ? " sub-eq-rented" : "") + (item.is_repair == 1 ? " sub-eq-repair" : "") + "'" + rentAttr + repairAttr + ">" +
                 "<td>" + (item.id || "-") + "</td>" +
                 "<td>" + (item.equipment_id || "-") + "</td>" +
                 "<td>" + code + "</td>" +
@@ -346,6 +351,15 @@ jQuery(document).ready(function () {
                                 loadRentDetailsFromStock(rentId);
                             }
                         });
+
+                        // Attach click handler to repair sub-equipment rows to open repair details
+                        row.child().find("table#subEquipmentTable tbody").on("click", "tr.sub-eq-repair", function (evt) {
+                            evt.stopPropagation();
+                            var repairId = $(this).data("repair-id");
+                            if (repairId) {
+                                loadRepairDetailsFromStock(repairId);
+                            }
+                        });
                     } else {
                         row.child(
                             '<div class="p-2 text-muted">No sub-equipment available</div>'
@@ -423,6 +437,64 @@ jQuery(document).ready(function () {
             error: function (xhr) {
                 console.error("Rent details load failed", xhr.responseText);
                 $("#rentItemsTable tbody").html('<tr><td colspan="9" class="text-center text-danger">Server error</td></tr>');
+            }
+        });
+    }
+
+    // --- Repair details loader for equipment stock page ---
+    function resetRepairDetailsModal() {
+        $("#rp-job-code, #rp-status, #rp-machine, #rp-date, #rp-issue, #rp-remark, #rp-is-outsource, #rp-outsource-name, #rp-charge, #rp-total-cost").text("-");
+        $("#repairItemsTable tbody").html('<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>');
+    }
+
+    function loadRepairDetailsFromStock(repairId) {
+        resetRepairDetailsModal();
+        $.ajax({
+            url: "ajax/php/repair-job.php",
+            type: "POST",
+            data: { action: "get_job_details", job_id: repairId },
+            dataType: "json",
+            success: function (result) {
+                if (result.status === "success") {
+                    var job = result.job;
+                    $("#rp-job-code").text(job.job_code || "-");
+                    $("#rp-status").text((job.job_status || "-").toUpperCase());
+                    $("#rp-machine").text((job.machine_code || "") + " - " + (job.machine_name || ""));
+                    $("#rp-date").text(job.item_breakdown_date || "-");
+                    $("#rp-issue").text(job.technical_issue || "-");
+                    $("#rp-remark").text(job.remark || "-");
+                    $("#rp-is-outsource").text(job.is_outsource == 1 ? "YES" : "NO");
+                    $("#rp-outsource-name").text(job.outsource_name || "-");
+                    $("#rp-charge").text(parseFloat(job.repair_charge || 0).toFixed(2));
+                    $("#rp-total-cost").text(parseFloat(job.total_cost || 0).toFixed(2));
+
+                    // Render items
+                    const tbody = $("#repairItemsTable tbody");
+                    tbody.empty();
+                    if (result.items && result.items.length) {
+                        result.items.forEach(function (item, idx) {
+                            tbody.append(
+                                "<tr>" +
+                                "<td>" + (idx + 1) + "</td>" +
+                                "<td>" + (item.item_name || "-") + "</td>" +
+                                "<td class='text-center'>" + (item.quantity || 0) + "</td>" +
+                                "<td class='text-end'>" + parseFloat(item.unit_price || 0).toFixed(2) + "</td>" +
+                                "<td class='text-end'>" + parseFloat(item.total_price || 0).toFixed(2) + "</td>" +
+                                "</tr>"
+                            );
+                        });
+                    } else {
+                        tbody.html('<tr><td colspan="5" class="text-center text-muted">No items recorded</td></tr>');
+                    }
+
+                    $("#repairDetailsModal").modal("show");
+                } else {
+                    $("#repairItemsTable tbody").html('<tr><td colspan="5" class="text-center text-danger">Failed to load repair details</td></tr>');
+                }
+            },
+            error: function (xhr) {
+                console.error("Repair details load failed", xhr.responseText);
+                $("#repairItemsTable tbody").html('<tr><td colspan="5" class="text-center text-danger">Server error</td></tr>');
             }
         });
     }
