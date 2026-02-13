@@ -67,10 +67,11 @@ $(document).ready(function () {
     $("#searchBtn").on("click", function () {
         const fromDate = $("#fromDate").val();
         const toDate = $("#toDate").val();
+        const billNo = $("#billNo").val().trim();
 
-        // Validation: Date range is required
-        if (!fromDate || !toDate) {
-            alert("Please select both From Date and To Date");
+        // Validation: require either date range or bill number
+        if ((!fromDate || !toDate) && billNo === "") {
+            alert("Please select both From Date and To Date or enter a Bill No");
             return;
         }
 
@@ -89,6 +90,7 @@ $(document).ready(function () {
         $("#totalBills").text("0");
         $("#totalRentBills").text("0");
         $("#totalReturnBills").text("0");
+        $("#billNo").val("");
 
         // Reset dates to current date
         const today = new Date();
@@ -101,14 +103,16 @@ $(document).ready(function () {
         const fromDate = $("#fromDate").val();
         const toDate = $("#toDate").val();
         const billType = $("#billType").val();
+        const billNo = $("#billNo").val().trim();
 
         console.log("From Date:", fromDate);
         console.log("To Date:", toDate);
         console.log("Bill Type:", billType);
+        console.log("Bill No:", billNo);
 
-        // Validation
-        if (!fromDate || !toDate) {
-            alert("Please select both From Date and To Date");
+        // Validation: ensure either date range or bill number
+        if ((!fromDate || !toDate) && billNo === "") {
+            alert("Please select both From Date and To Date or enter a Bill No");
             return;
         }
 
@@ -116,7 +120,8 @@ $(document).ready(function () {
             action: "get_rent_return_bills_report",
             from_date: fromDate,
             to_date: toDate,
-            bill_type: billType
+            bill_type: billType,
+            bill_no: billNo
         };
 
         console.log("Sending request with data:", requestData);
@@ -303,9 +308,10 @@ $(document).ready(function () {
         const fromDate = $("#fromDate").val();
         const toDate = $("#toDate").val();
         const billType = $("#billType").val();
+        const billNo = $("#billNo").val().trim();
 
-        if (!fromDate || !toDate) {
-            alert("Please select date range before exporting");
+        if ((!fromDate || !toDate) && billNo === "") {
+            alert("Please select a date range or enter a Bill No before exporting");
             return;
         }
 
@@ -325,7 +331,8 @@ $(document).ready(function () {
                 action: "get_rent_return_bills_report",
                 from_date: fromDate,
                 to_date: toDate,
-                bill_type: billType
+                bill_type: billType,
+                bill_no: billNo
             },
             success: function (response) {
                 if (response && response.status === "success") {
