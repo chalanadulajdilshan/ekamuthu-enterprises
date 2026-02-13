@@ -1285,6 +1285,11 @@ if (isset($_POST['filter_equipment'])) {
     // Only get equipment that has sub-equipment OR has no_sub_items enabled
     $baseWhere = "WHERE (e.no_sub_items = 1 OR EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = e.id))";
 
+    // If filtering for repair job (only items with specific sub-units)
+    if (isset($_POST['has_sub_items_only']) && $_POST['has_sub_items_only'] == 'true') {
+        $baseWhere = "WHERE (e.no_sub_items = 0 AND EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = e.id))";
+    }
+
     // Total records
     $totalSql = "SELECT COUNT(*) as total FROM equipment e $baseWhere";
     $totalQuery = $db->readQuery($totalSql);

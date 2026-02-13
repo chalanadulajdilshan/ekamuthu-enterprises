@@ -140,21 +140,9 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                             <label class="form-check-label" for="item_type_customer">Customer Item</label>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <!-- Breakdown Date -->
-                                                <div class="col-md-2">
-                                                    <label for="item_breakdown_date" class="form-label">Item Breakdown Date - බිඳවැටීම් දිනය</label>
-                                                    <div class="mb-3">
-                                                        <input id="item_breakdown_date" name="item_breakdown_date" type="text"
-                                                            class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
-                                                    </div>
-                                                </div>
-
+                                                </div> 
                                                 <!-- Outsource Checkbox -->
-                                                <div class="col-md-2">
+                                                <div class="col-md-3">
                                                     <label class="form-label">Outsource - බාහිරින් ලබාගත්</label>
                                                     <div class="mb-3">
                                                         <div class="form-check pt-1">
@@ -163,9 +151,18 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <!-- Breakdown Date -->
+                                                <div class="col-md-3">
+                                                    <label for="item_breakdown_date" class="form-label">Breakdown Date - බිඳවැටීම් දිනය</label>
+                                                    <div class="mb-3">
+                                                        <input id="item_breakdown_date" name="item_breakdown_date" type="text"
+                                                            class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
+                                                    </div>
+                                                </div>
+
 
                                                 <!-- Job Status -->
-                                                <div class="col-md-4">
+                                                <div class="col-md-3">
                                                     <label for="job_status" class="form-label">Job Status - තත්ත්වය</label>
                                                     <select class="form-select mb-3" id="job_status" name="job_status">
                                                         <option value="pending">Pending - පොරොත්තු</option>
@@ -175,29 +172,43 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <option value="cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</option>
                                                     </select>
                                                 </div>  
-                                                <div class="col-md-4">
-                                                    <label for="machine_name" class="form-label">Machine/Item Name - යන්ත්‍ර/අයිතම නම</label>
-                                                    <input id="machine_name" name="machine_name" type="text" class="form-control mb-3" placeholder="Enter machine/item name for repair">
+                                                
+                                                <div class="col-md-3">
+                                                    <label for="machine_name" class="form-label">Machine Name - යන්ත්‍ර/අයිතම නම</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="machine_name" name="machine_name" type="text" class="form-control" placeholder="Enter machine/item name for repair">
+                                                        <button class="btn btn-info" type="button" id="btn-select-equipment" data-bs-toggle="modal"
+                                                            data-bs-target="#EquipmentSelectModal" style="display: none;"><i
+                                                                class="uil uil-search"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-4"  id="machine_code_section" style="display: none;">
+
+                                                <div class="col-md-3"  id="machine_code_section" style="display: none;">
                                                     <label for="machine_code" class="form-label">Machine Code - යන්ත්‍ර කේතය</label>
-                                                    <input id="machine_code" name="machine_code" type="text" class="form-control mb-3" placeholder="Enter machine code">
+                                                    <div class="input-group mb-3">
+                                                        <input id="machine_code" name="machine_code" type="text" class="form-control" placeholder="Enter/Select machine code">
+                                                        <input type="hidden" id="selected_equipment_id">
+                                                        <input type="hidden" id="selected_sub_equipment_id">
+                                                        <button class="btn btn-info" type="button" id="btn-select-sub-equipment" data-bs-toggle="modal"
+                                                            data-bs-target="#SubEquipmentSelectModal"><i
+                                                                class="uil uil-search"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             <div id="customer_contact_section">
                                                 <div class="row">
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-3">
                                                         <label for="customer_name" class="form-label">Customer Name - පාරිභෝගික නම</label>
                                                         <input id="customer_name" name="customer_name" type="text" class="form-control mb-3" placeholder="Enter customer name">
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-3">
                                                         <label for="customer_phone" class="form-label">Phone - දුරකථන අංකය</label>
                                                         <input id="customer_phone" name="customer_phone" type="text" class="form-control mb-3" placeholder="Enter phone number">
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-md-12">
+                                                    </div> 
+                                                    <div class="col-md-6">
                                                         <label for="customer_address" class="form-label">Address - ලිපිනය</label>
                                                         <textarea id="customer_address" name="customer_address" class="form-control mb-3" rows="2" placeholder="Enter customer address"></textarea>
                                                     </div>
@@ -225,15 +236,12 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                             <div class="row">
                                                 <!-- Technical Issue -->
-                                                <div class="col-md-12">
+                                                <div class="col-md-6">
                                                     <label for="technical_issue" class="form-label">Technical Issue Details - තාක්ෂණික ගැටලු විස්තර</label>
                                                     <textarea id="technical_issue" name="technical_issue" class="form-control mb-3" rows="2" placeholder="Describe the technical issue..."></textarea>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
+                                                </div> 
                                                 <!-- Remark -->
-                                                <div class="col-md-12">
+                                                <div class="col-md-6">
                                                     <label for="remark" class="form-label">Remark - සටහන</label>
                                                     <textarea id="remark" name="remark" class="form-control mb-3" rows="2" placeholder="Additional notes..."></textarea>
                                                 </div>
@@ -401,6 +409,70 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                         <th>Phone</th>
                                         <th>Status</th>
                                         <th>Total Cost</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipment Select Modal -->
+    <div id="EquipmentSelectModal" class="modal fade bs-example-modal-xl" tabindex="-1" role="dialog"
+        aria-labelledby="EquipmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="EquipmentModalLabel">Select Equipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="equipmentSelectTable" class="table table-bordered dt-responsive nowrap w-100">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;"></th>
+                                        <th>#</th>
+                                        <th style="width: 60px;">Image</th>
+                                        <th>Code</th>
+                                        <th>Item Name</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub Equipment Select Modal -->
+    <div id="SubEquipmentSelectModal" class="modal fade bs-example-modal-xl" tabindex="-1" role="dialog"
+        aria-labelledby="SubEquipmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="SubEquipmentModalLabel">Select Sub Equipment (Available Units)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="noSubEquipmentMsg" class="alert alert-warning" style="display: none;">
+                                <i class="uil uil-exclamation-triangle me-2"></i>
+                                Please select an equipment first, or all units of this equipment are already rented.
+                            </div>
+                            <table id="subEquipmentSelectTable" class="table table-bordered dt-responsive nowrap w-100">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Code</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                             </table>
