@@ -12,6 +12,10 @@ $COMPANY_PROFILE = new CompanyProfile($US->company_id);
 
 $QUOTATION = new EquipmentRentQuotation($id);
 $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
+
+// Get active terms & conditions
+$TC = new TermsCondition(null);
+$termsConditions = $TC->getActive();
 ?>
 <html lang="en">
 
@@ -30,6 +34,147 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
     <link href="assets/css/app.min.css" rel="stylesheet" />
 
     <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13px;
+            color: #000;
+        }
+
+        .quotation-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 15mm;
+            background: #fff;
+        }
+
+        .quotation-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .company-header {
+            margin-bottom: 15px;
+        }
+
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .company-details p {
+            margin: 0;
+            line-height: 1.5;
+            font-size: 12px;
+        }
+
+        .quotation-for {
+            margin: 10px 0 15px 0;
+            font-size: 13px;
+        }
+
+        .quotation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .quotation-table th,
+        .quotation-table td {
+            border: 1px solid #000;
+            padding: 5px 8px;
+            text-align: left;
+        }
+
+        .quotation-table th {
+            background-color: #e8e8e8;
+            font-weight: bold;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .quotation-table td.text-right {
+            text-align: right;
+        }
+
+        .quotation-table td.text-center {
+            text-align: center;
+        }
+
+        .quotation-table .total-row td {
+            font-weight: bold;
+            border-top: 2px solid #000;
+        }
+
+        .bank-guarantee {
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            font-size: 13px;
+        }
+
+        .terms-section {
+            margin: 15px 0;
+        }
+
+        .terms-section ol {
+            padding-left: 20px;
+            margin: 5px 0;
+        }
+
+        .terms-section ol li {
+            margin-bottom: 3px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .terms-section .bold-term {
+            font-weight: bold;
+        }
+
+        .quotation-validity {
+            font-size: 12px;
+            margin: 5px 0;
+        }
+
+        .goods-notice {
+            font-weight: bold;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+
+        .account-details {
+            text-align: center;
+            margin: 20px 0 15px 0;
+            font-size: 13px;
+        }
+
+        .contact-footer {
+            text-align: center;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+
+        .thank-you {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .company-stamp {
+            margin-top: 15px;
+        }
+
+        .date-section {
+            text-align: right;
+            font-size: 13px;
+        }
+
         @media print {
             .no-print {
                 display: none !important;
@@ -41,35 +186,9 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
                 padding: 0 !important;
             }
 
-            .container {
-                min-width: 100% !important;
-                width: 100% !important;
+            .quotation-container {
                 padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            .card {
-                position: relative !important;
-                width: 100% !important;
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                left: 0 !important;
-                top: 0 !important;
-            }
-
-            .card-body {
-                padding: 0 !important;
-            }
-            
-            .col-sm-6 {
-                width: 50% !important;
-                float: left !important;
-            }
-            
-            .text-sm-end {
-                text-align: right !important;
+                max-width: 100% !important;
             }
 
             @page {
@@ -110,8 +229,9 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
 
 <body class="print-a4" data-layout="horizontal" data-topbar="colored">
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <!-- Print Controls -->
+    <div class="container mt-4 no-print">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h4>Equipment Rent Quotation Print</h4>
             <div>
                 <select id="printFormat" class="form-select d-inline w-auto" onchange="setPrintFormat(this.value)">
@@ -126,136 +246,137 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
                 <button onclick="window.print()" class="btn btn-success ms-2">Print</button>
             </div>
         </div>
+    </div>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="invoice-title">
+    <!-- Quotation Content -->
+    <div class="quotation-container">
 
-                    <div class="col-sm-6 text-sm-end float-end">
-                        <p><strong>Quotation No:</strong> #<?php echo $QUOTATION->quotation_number ?></p>
-                        <p><strong>Date:</strong>
-                            <?php echo date('d M, Y', strtotime($QUOTATION->rental_date)); ?></p>
-                    </div>
-                    <div class="mb-4">
-                        <img src="./uploads/company-logos/<?php echo $COMPANY_PROFILE->image_name ?>" alt="logo" style="height:60px; width:auto;">
-                    </div>
+        <!-- Title -->
+        <div class="quotation-title">Quotation</div>
 
-                    <div class="row mb-4">
-                        <!-- Left: Company Info -->
-                        <div class="col-sm-6">
-                            <div class="text-muted">
-                                <p class="mb-1"><i
-                                        class="uil uil-building me-1"></i><?php echo $COMPANY_PROFILE->name ?></p>
-                                <p class="mb-1"><i
-                                        class="uil uil-map-marker me-1"></i><?php echo $COMPANY_PROFILE->address ?></p>
-                                <p class="mb-1"><i
-                                        class="uil uil-envelope-alt me-1"></i><?php echo $COMPANY_PROFILE->email ?></p>
-                                <p><i class="uil uil-phone me-1"></i><?php echo $COMPANY_PROFILE->mobile_number_1 ?></p>
-                            </div>
-                        </div>
-
-                        <!-- Right: Billed To -->
-                        <div class="col-sm-6 text-sm-end">
-                            <h6>Billed To:</h6>
-                            <p><?php echo $CUSTOMER_MASTER->name ?><br><?php echo $CUSTOMER_MASTER->address ?>
-                                <br><?php echo $CUSTOMER_MASTER->mobile_number ?>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-centered">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Equipment</th>
-                                <th>Sub Equipment</th>
-                                <th>Rent Type</th>
-                                <th>Duration</th>
-                                <th class="text-center">Qty</th>
-                                <th>Period</th>
-                                <th class="text-end">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $QUOTATION_ITEM = new EquipmentRentQuotationItem(null);
-                            $items = $QUOTATION_ITEM->getByQuotationId($id);
-
-                            $totalAmount = 0;
-
-                            foreach ($items as $key => $item) {
-                                $key++;
-                                $amount = (float) $item['amount'];
-                                $totalAmount += $amount;
-                                
-                                $period = $item['rental_date'];
-                                if ($item['return_date']) {
-                                    $period .= ' to ' . $item['return_date'];
-                                }
-                                ?>
-
-                                <tr>
-                                    <td><?php echo $key; ?></td>
-                                    <td><?php echo $item['equipment_name'] . ' (' . $item['equipment_code'] . ')'; ?></td>
-                                    <td><?php echo $item['sub_equipment_code']; ?></td>
-                                    <td><?php echo ucfirst($item['rent_type']); ?></td>
-                                    <td><?php echo (float)$item['duration'] . ' ' . ($item['rent_type'] == 'month' ? 'Months' : 'Days'); ?></td>
-                                    <td class="text-center"><?php echo intval($item['quantity'] ?? 1); ?></td>
-                                    <td><?php echo $period; ?></td>
-                                    <td class="text-end"><?php echo number_format($amount, 2); ?></td>
-                                </tr>
-                            <?php } ?>
-
-                            <!-- Totals section -->
-                            <tr>
-                                <td colspan="4" rowspan="3" style="vertical-align: top;">
-                                    <?php if (!empty($QUOTATION->remark)) { ?>
-                                        <h6><strong>Remarks:</strong></h6>
-                                        <p><?php echo nl2br($QUOTATION->remark); ?></p>
-                                    <?php } ?>
-                                    
-                                    <h6><strong>Terms & Conditions:</strong></h6>
-                                    <ul style="padding-left: 20px; margin-bottom: 0;">
-                                        <li>Total payment is required upon confirmation.</li>
-                                        <li>Equipment must be returned in the same condition.</li>
-                                        <li>Late returns may incur additional charges.</li>
-                                    </ul>
-                                </td>
-
-                                <td colspan="2" class="text-end"><strong>Total Amount:</strong></td>
-                                <td class="text-end"><strong><?php echo number_format($totalAmount, 2); ?></strong></td>
-                            </tr>
-
-                            <!-- Signature line -->
-                            <tr>
-                                <td colspan="7" style="padding-top: 50px;">
-                                    <table style="width: 100%;">
-                                        <tr>
-                                            <td style="text-align: center;">
-                                                _________________________<br>
-                                                <strong>Prepared By</strong>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                _________________________<br>
-                                                <strong>Approved By</strong>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                _________________________<br>
-                                                <strong>Customer Signature</strong>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-
+        <!-- Header: Company Info + Date -->
+        <div class="row company-header">
+            <div class="col-8 company-details">
+                <p class="company-name"><?php echo $COMPANY_PROFILE->name; ?></p>
+                <p><?php echo $COMPANY_PROFILE->address; ?></p>
+                <p>&nbsp;</p>
+                <p>Phone (<?php echo substr($COMPANY_PROFILE->mobile_number_1, 0, 3); ?>) <?php echo substr($COMPANY_PROFILE->mobile_number_1, 3); ?></p>
+                <?php if (!empty($COMPANY_PROFILE->mobile_number_2)) { ?>
+                    <p>Contact :<?php echo $COMPANY_PROFILE->mobile_number_2; ?></p>
+                <?php } ?>
+                <p>Email: <?php echo $COMPANY_PROFILE->email; ?></p>
+                <p>Web: www.psekamuthuenterprises.com</p>
+            </div>
+            <div class="col-4 date-section">
+                <p><strong>Date</strong> &nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php echo date('d/m/Y', strtotime($QUOTATION->rental_date)); ?></p>
             </div>
         </div>
+
+        <!-- Quotation For -->
+        <div class="quotation-for">
+            <strong>Quotation for :</strong> &nbsp;&nbsp;&nbsp;
+            <?php echo $CUSTOMER_MASTER->name; ?>
+        </div>
+
+        <!-- Items Table -->
+        <table class="quotation-table">
+            <thead>
+                <tr>
+                    <th>DESCRIPTION</th>
+                    <th>Unit rent per<br>day</th>
+                    <th>No. of Units</th>
+                    <th>Day per</th>
+                    <th>Rent per<br>Month</th>
+                    <th>Deposit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $QUOTATION_ITEM = new EquipmentRentQuotationItem(null);
+                $items = $QUOTATION_ITEM->getByQuotationId($id);
+
+                $totalUnitRent = 0;
+                $totalUnits = 0;
+                $totalDayPer = 0;
+                $totalRentPerMonth = 0;
+                $totalDeposit = 0;
+
+                foreach ($items as $key => $item) {
+                    $unitRentPerDay = (float) ($item['rent_one_day'] ?? 0);
+                    $noOfUnits = intval($item['quantity'] ?? 1);
+                    $dayPer = $unitRentPerDay * $noOfUnits;
+                    $rentPerMonth = (float) ($item['rent_one_month'] ?? 0) * $noOfUnits;
+                    $depositAmount = (float) ($item['deposit_one_day'] ?? 0) * $noOfUnits;
+
+                    // Use item amount if rent_one_month is 0
+                    if ($rentPerMonth == 0) {
+                        $rentPerMonth = (float) $item['amount'];
+                    }
+
+                    $totalUnitRent += $unitRentPerDay;
+                    $totalUnits += $noOfUnits;
+                    $totalDayPer += $dayPer;
+                    $totalRentPerMonth += $rentPerMonth;
+                    $totalDeposit += $depositAmount;
+
+                    $description = $item['equipment_name'];
+                    ?>
+                    <tr>
+                        <td><?php echo $description; ?></td>
+                        <td class="text-right"><?php echo number_format($unitRentPerDay, 2); ?></td>
+                        <td class="text-center"><?php echo $noOfUnits; ?></td>
+                        <td class="text-right"><?php echo number_format($dayPer, 2); ?></td>
+                        <td class="text-right"><strong><?php echo number_format($rentPerMonth, 2); ?></strong></td>
+                        <td class="text-right"><?php echo $depositAmount > 0 ? number_format($depositAmount, 2) : ''; ?></td>
+                    </tr>
+                <?php } ?>
+
+                <!-- Total Row -->
+                <tr class="total-row">
+                    <td><strong>Total rental</strong></td>
+                    <td class="text-right"><?php echo number_format($totalUnitRent, 2); ?></td>
+                    <td class="text-center"><?php echo $totalUnits; ?></td>
+                    <td class="text-right"><?php echo number_format($totalDayPer, 2); ?></td>
+                    <td class="text-right"><strong><?php echo number_format($totalRentPerMonth, 2); ?></strong></td>
+                    <td class="text-right"><?php echo $totalDeposit > 0 ? number_format($totalDeposit, 2) : ''; ?></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Bank Guarantee -->
+        <p class="bank-guarantee">Terms & Conditions :</p>
+
+        <!-- Terms & Conditions -->
+        <?php if (!empty($termsConditions)) { ?>
+            <div class="terms-section">
+                <ol>
+                    <?php foreach ($termsConditions as $index => $tc) { ?>
+                        <li><?php echo nl2br(htmlspecialchars($tc['description'])); ?></li>
+                    <?php } ?>
+                </ol>
+            </div>
+        <?php } ?>
+
+        <!-- Account Details -->
+        <div class="account-details">
+            <p>Account Details <?php echo $COMPANY_PROFILE->name; ?></p>
+            <p>1580016235 -Commercial Bank- Dehiwala Branch</p>
+        </div>
+
+        <!-- Company Stamp & Contact -->
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-6 company-stamp">
+            </div>
+            <div class="col-6">
+                <div class="contact-footer">
+                    <p>If you have any questions concerning this quotation</p>
+                    <p>Please contact <?php echo $COMPANY_PROFILE->mobile_number_1; ?></p>
+                </div>
+                <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
+            </div>
+        </div>
+
     </div>
 
     <!-- JS -->
