@@ -105,9 +105,10 @@ class SubEquipment
         $db = Database::getInstance();
         $code = mysqli_real_escape_string($db->DB_CON, $code);
         $is_repair = (int) $is_repair;
+        $rental_status = ($is_repair === 1) ? 'repair' : 'available';
         
-        // Find sub_equipment_id by code
-        $query = "UPDATE `sub_equipment` SET `is_repair` = $is_repair WHERE `code` = '$code'";
+        // Update both is_repair and rental_status
+        $query = "UPDATE `sub_equipment` SET `is_repair` = $is_repair, `rental_status` = '$rental_status' WHERE `code` = '$code'";
         return $db->readQuery($query);
     }
 
