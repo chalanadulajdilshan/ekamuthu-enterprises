@@ -452,7 +452,7 @@ if (!empty($customerMobile)) {
                 <!-- Remark Section -->
                 <div class="mt-4">
                     <div style="border-top:2px solid #ccc; padding-top:12px;">
-                        <strong>Invoice Remarks :</strong>
+                        <strong>Terms & Conditions :</strong>
                         <div style="min-height:60px; border-bottom:2px solid #ccc; padding:8px 0; font-size:14px;">
                             <?php if (!empty($paymentRemarks)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
