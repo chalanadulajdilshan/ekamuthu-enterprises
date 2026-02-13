@@ -86,6 +86,8 @@ $(document).ready(function () {
         $("#reportTableBody").empty();
         $("#totalAmount").text("0.00");
         $("#totalExtraAmount").text("0.00");
+        $("#totalProfit").text("0.00");
+        $("#totalDeposit").text("0.00");
         $("#totalQty").text("0");
         $("#totalBills").text("0");
         $("#totalRentBills").text("0");
@@ -252,6 +254,7 @@ $(document).ready(function () {
         $('#totalAmount').text(summary.total_amount);
         $('#totalExtraAmount').text(summary.total_extra_amount);
         $('#totalProfit').text(summary.total_profit);
+        $('#totalDeposit').text(summary.total_deposit);
 
         // Re-attach click handlers (or rely on delegation if setup outside)
         // Since we empty tbody, delegation on #reportTableBody is best.

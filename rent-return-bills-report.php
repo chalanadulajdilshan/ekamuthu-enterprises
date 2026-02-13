@@ -213,7 +213,7 @@ include 'auth.php';
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <td colspan="12" class="text-end fw-bold">Totals</td>
+                                                <td colspan="11" class="text-end fw-bold">Totals</td>
                                                 <td id="totalQty" class="text-end fw-bold">0</td>
                                                 <td id="totalDeposit" class="text-end fw-bold">0.00</td>
                                                 <td id="totalAmount" class="text-end fw-bold">0.00</td>
