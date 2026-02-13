@@ -8,6 +8,9 @@ class EquipmentRentReturn
     public $return_time;
     public $return_qty;
     public $damage_amount;
+    public $damage_refunded;
+    public $damage_refund_date;
+    public $damage_refund_time;
     public $after_9am_extra_day;
     public $extra_day_amount;
     public $penalty_percentage;
@@ -37,6 +40,9 @@ class EquipmentRentReturn
                 $this->return_time = $result['return_time'] ?? null;
                 $this->return_qty = $result['return_qty'];
                 $this->damage_amount = $result['damage_amount'];
+                $this->damage_refunded = $result['damage_refunded'] ?? 0;
+                $this->damage_refund_date = $result['damage_refund_date'] ?? null;
+                $this->damage_refund_time = $result['damage_refund_time'] ?? null;
                 $this->after_9am_extra_day = $result['after_9am_extra_day'] ?? 0;
                 $this->extra_day_amount = $result['extra_day_amount'] ?? 0;
                 $this->penalty_percentage = $result['penalty_percentage'] ?? 0;
@@ -63,6 +69,7 @@ class EquipmentRentReturn
         $now = date('Y-m-d H:i:s');
         $query = "INSERT INTO `equipment_rent_returns` (
             `rent_item_id`, `return_date`, `return_time`, `return_qty`, `damage_amount`, 
+            `damage_refunded`, `damage_refund_date`, `damage_refund_time`,
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
             `rental_override`,
             `settle_amount`, `refund_amount`, `additional_payment`, `customer_paid`, `outstanding_amount`,
@@ -70,7 +77,10 @@ class EquipmentRentReturn
         ) VALUES (
             '$this->rent_item_id', '$this->return_date', " .
             ($this->return_time ? "'{$this->return_time}'" : "NULL") . ", '$this->return_qty', 
-            '$this->damage_amount', '$this->after_9am_extra_day', '$this->extra_day_amount',
+            '$this->damage_amount', '" . intval($this->damage_refunded ?? 0) . "', " .
+            ($this->damage_refund_date ? "'{$this->damage_refund_date}'" : "NULL") . ", " .
+            ($this->damage_refund_time ? "'{$this->damage_refund_time}'" : "NULL") . ",
+            '$this->after_9am_extra_day', '$this->extra_day_amount',
             '$this->penalty_percentage', '$this->penalty_amount',
             $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
@@ -112,6 +122,9 @@ class EquipmentRentReturn
             `return_time` = " . ($this->return_time ? "'{$this->return_time}'" : "NULL") . ",
             `return_qty` = '$this->return_qty',
             `damage_amount` = '$this->damage_amount',
+            `damage_refunded` = '" . intval($this->damage_refunded ?? 0) . "',
+            `damage_refund_date` = " . ($this->damage_refund_date ? "'{$this->damage_refund_date}'" : "NULL") . ",
+            `damage_refund_time` = " . ($this->damage_refund_time ? "'{$this->damage_refund_time}'" : "NULL") . ",
             `after_9am_extra_day` = '$this->after_9am_extra_day',
             `extra_day_amount` = '$this->extra_day_amount',
             `penalty_percentage` = '$this->penalty_percentage',
@@ -235,6 +248,96 @@ class EquipmentRentReturn
             $update = "UPDATE `customer_master` SET `rent_outstanding` = GREATEST(0, COALESCE(`rent_outstanding`,0) + ($amt)) WHERE `id` = $customerId";
             $db->readQuery($update);
         }
+    }
+
+    /**
+     * Refund the damage amount for this return.
+     * Clears damage_amount to 0, marks as refunded with date/time,
+     * recalculates settlement, and updates customer outstanding.
+     */
+    public function refundDamage($refundDate = null, $refundTime = null)
+    {
+        $db = Database::getInstance();
+        $oldDamage = floatval($this->damage_amount);
+
+        if ($oldDamage <= 0) {
+            return ['error' => true, 'message' => 'No damage amount to refund'];
+        }
+        if (intval($this->damage_refunded) === 1) {
+            return ['error' => true, 'message' => 'Damage has already been refunded'];
+        }
+
+        // Save old values for outstanding reversal
+        $oldOutstanding = floatval($this->outstanding_amount);
+        $oldAdditional = floatval($this->additional_payment);
+        $oldRefund = floatval($this->refund_amount);
+        $oldSettle = floatval($this->settle_amount);
+
+        // Recalculate settlement without damage
+        $newSettle = $oldSettle - $oldDamage;
+        $newRefund = 0;
+        $newAdditional = 0;
+
+        if ($newSettle < 0) {
+            $newRefund = abs($newSettle);
+            $newAdditional = 0;
+        } else {
+            $newRefund = 0;
+            $newAdditional = $newSettle;
+        }
+
+        // Recalculate outstanding: if customer already paid, outstanding decreases
+        $customerPaid = floatval($this->customer_paid);
+        $newOutstanding = max(0, $newAdditional - $customerPaid);
+
+        // Use provided date/time or default to current
+        $refundDate = $refundDate ?: date('Y-m-d');
+        $refundTime = $refundTime ?: date('H:i:s');
+        $now = date('Y-m-d H:i:s');
+
+        $updateQuery = "UPDATE `equipment_rent_returns` SET 
+            `damage_amount` = '0',
+            `damage_refunded` = '1',
+            `damage_refund_date` = '$refundDate',
+            `damage_refund_time` = '$refundTime',
+            `settle_amount` = '$newSettle',
+            `refund_amount` = '$newRefund',
+            `additional_payment` = '$newAdditional',
+            `outstanding_amount` = '$newOutstanding',
+            `updated_at` = '$now'
+            WHERE `id` = " . (int)$this->id;
+
+        if ($db->readQuery($updateQuery)) {
+            // Calculate how much outstanding changed and update customer master
+            $outstandingDiff = $newOutstanding - $oldOutstanding;
+            if (abs($outstandingDiff) >= 0.01) {
+                $this->updateCustomerRentOutstanding($outstandingDiff);
+            }
+
+            // Update object state
+            $this->damage_amount = 0;
+            $this->damage_refunded = 1;
+            $this->damage_refund_date = $refundDate;
+            $this->damage_refund_time = $refundTime;
+            $this->settle_amount = $newSettle;
+            $this->refund_amount = $newRefund;
+            $this->additional_payment = $newAdditional;
+            $this->outstanding_amount = $newOutstanding;
+
+            return [
+                'error' => false,
+                'message' => 'Damage amount refunded successfully',
+                'old_damage' => $oldDamage,
+                'refund_date' => $refundDate,
+                'refund_time' => $refundTime,
+                'new_settle_amount' => round($newSettle, 2),
+                'new_refund_amount' => round($newRefund, 2),
+                'new_additional_payment' => round($newAdditional, 2),
+                'new_outstanding' => round($newOutstanding, 2)
+            ];
+        }
+
+        return ['error' => true, 'message' => 'Database update failed'];
     }
 
     public function settleOutstanding($amount, $paymentDetails = [])
