@@ -29,6 +29,17 @@ if (!$EQUIPMENT_RENT->id) {
 
 $CUSTOMER_MASTER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 
+// Fetch invoice remarks configured for the selected payment method
+$INVOICE_REMARK = new InvoiceRemark();
+$paymentRemarks = $INVOICE_REMARK->getRemarkByPaymentType($EQUIPMENT_RENT->payment_type_id ?? 0);
+$remarksFallbackUsed = false;
+
+// If no remarks are mapped to this payment type, show all active remarks as a fallback
+if (empty($paymentRemarks)) {
+    $paymentRemarks = $INVOICE_REMARK->getActiveGroups();
+    $remarksFallbackUsed = !empty($paymentRemarks);
+}
+
 // Get rent items
 $rent_items = $EQUIPMENT_RENT->getItems();
 
@@ -441,12 +452,18 @@ if (!empty($customerMobile)) {
                 <!-- Remark Section -->
                 <div class="mt-4">
                     <div style="border-top:2px solid #ccc; padding-top:12px;">
-                        <strong>Remark :</strong>
+                        <strong>Invoice Remarks :</strong>
                         <div style="min-height:60px; border-bottom:2px solid #ccc; padding:8px 0; font-size:14px;">
-                            <?php if (!empty($EQUIPMENT_RENT->remark)): ?>
-                                <?php echo nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)); ?>
+                            <?php if (!empty($paymentRemarks)): ?>
+                                <ul class="mb-0" style="padding-left:18px;">
+                                    <?php foreach ($paymentRemarks as $remark): ?>
+                                        <?php if (!empty($remark['remark'])): ?>
+                                            <li><?php echo htmlspecialchars($remark['remark']); ?></li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </ul>
                             <?php else: ?>
-                                &nbsp;
+                                <span class="text-muted">No predefined remarks available for this payment type.</span>
                             <?php endif; ?>
                         </div>
                     </div>
