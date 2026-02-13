@@ -22,6 +22,7 @@ class RepairJob
     public $outsource_name;
     public $outsource_address;
     public $outsource_phone;
+    public $outsource_cost;
     public $created_at;
     public $updated_at;
 
@@ -52,7 +53,7 @@ class RepairJob
                 $this->is_outsource = $result['is_outsource'] ?? 0;
                 $this->outsource_name = $result['outsource_name'] ?? '';
                 $this->outsource_address = $result['outsource_address'] ?? '';
-                $this->outsource_phone = $result['outsource_phone'] ?? '';
+                $this->outsource_cost = $result['outsource_cost'] ?? 0;
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
             }
@@ -65,7 +66,7 @@ class RepairJob
         $query = "INSERT INTO `repair_jobs` (
             `job_code`, `item_type`, `machine_code`, `machine_name`, `customer_name`, `customer_address`, `customer_phone`,
             `item_breakdown_date`, `technical_issue`, `job_status`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`,
-            `is_outsource`, `outsource_name`, `outsource_address`, `outsource_phone`
+            `is_outsource`, `outsource_name`, `outsource_address`, `outsource_phone`, `outsource_cost`
         ) VALUES (
             '" . $db->escapeString($this->job_code) . "',
             '" . $db->escapeString($this->item_type) . "',
@@ -85,7 +86,8 @@ class RepairJob
             '" . (int) $this->is_outsource . "',
             '" . $db->escapeString($this->outsource_name) . "',
             '" . $db->escapeString($this->outsource_address) . "',
-            '" . $db->escapeString($this->outsource_phone) . "'
+            '" . $db->escapeString($this->outsource_phone) . "',
+            '" . floatval($this->outsource_cost) . "'
         )";
 
         $result = $db->readQuery($query);
@@ -119,7 +121,8 @@ class RepairJob
             `is_outsource` = '" . (int) $this->is_outsource . "',
             `outsource_name` = '" . $db->escapeString($this->outsource_name) . "',
             `outsource_address` = '" . $db->escapeString($this->outsource_address) . "',
-            `outsource_phone` = '" . $db->escapeString($this->outsource_phone) . "'
+            `outsource_phone` = '" . $db->escapeString($this->outsource_phone) . "',
+            `outsource_cost` = '" . floatval($this->outsource_cost) . "'
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
@@ -151,6 +154,16 @@ class RepairJob
         return $db->readQuery($query);
     }
 
+    public function updateDeliveryStatus($statusStr)
+    {
+        $query = "UPDATE `repair_jobs` SET 
+            `job_status` = '" . $db->escapeString($statusStr) . "' 
+            WHERE `id` = " . (int) $this->id;
+            
+        $db = Database::getInstance();
+        return $db->readQuery($query);
+    }
+
     public function getByJobCode($job_code)
     {
         $db = Database::getInstance();
@@ -178,6 +191,7 @@ class RepairJob
             $this->outsource_name = $result['outsource_name'] ?? '';
             $this->outsource_address = $result['outsource_address'] ?? '';
             $this->outsource_phone = $result['outsource_phone'] ?? '';
+            $this->outsource_cost = $result['outsource_cost'] ?? 0;
             return true;
         }
         return false;
@@ -227,7 +241,8 @@ class RepairJob
             'checking' => '<span class="badge bg-soft-info font-size-12">Checking</span>',
             'in_progress' => '<span class="badge bg-soft-warning font-size-12">In Progress</span>',
             'completed' => '<span class="badge bg-soft-success font-size-12">Completed</span>',
-            'cannot_repair' => '<span class="badge bg-soft-danger font-size-12">Cannot Repair</span>'
+            'cannot_repair' => '<span class="badge bg-soft-danger font-size-12">Cannot Repair</span>',
+            'delivered' => '<span class="badge bg-soft-primary font-size-12">Delivered</span>'
         ];
 
         while ($row = mysqli_fetch_assoc($dataQuery)) {
