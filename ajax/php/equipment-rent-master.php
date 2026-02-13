@@ -382,6 +382,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $paidData = mysqli_fetch_assoc($paidResult);
         $totalCustomerPaid = floatval($paidData['total_customer_paid'] ?? 0);
 
+        // Collect distinct remarks saved with returns (most recent first)
+        $remarkQuery = "SELECT DISTINCT TRIM(err.remark) AS remark
+                        FROM equipment_rent_returns err
+                        INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                        WHERE eri.rent_id = $rent_id AND err.remark IS NOT NULL AND err.remark != ''
+                        ORDER BY err.id DESC";
+        $remarkResult = $db->readQuery($remarkQuery);
+        $returnRemarks = [];
+        if ($remarkResult) {
+            while ($remarkRow = mysqli_fetch_assoc($remarkResult)) {
+                if (!empty($remarkRow['remark'])) {
+                    $returnRemarks[] = $remarkRow['remark'];
+                }
+            }
+        }
+
         // Get customer details
         $CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 
@@ -432,7 +448,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "total_customer_paid" => $totalCustomerPaid,
                 "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0)
             ],
-            "items" => $items
+            "items" => $items,
+            "return_remarks" => $returnRemarks
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
@@ -628,6 +645,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $rentalOverride = isset($_POST['rental_override']) && $_POST['rental_override'] !== ''
         ? floatval($_POST['rental_override'])
         : null;
+    $returnRemark = isset($_POST['return_remark'])
+        ? trim($_POST['return_remark'])
+        : '';
     
     if ($rent_id) {
         $EQUIPMENT_RENT = new EquipmentRent($rent_id);
@@ -818,7 +838,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
                 $RETURN->customer_paid = 0;
                 $RETURN->outstanding_amount = 0;
             }
-            $RETURN->remark = 'Returned via Return All';
+            $RETURN->remark = !empty($returnRemark)
+                ? $returnRemark
+                : 'Returned via Return All';
 
             $return_id = $RETURN->create();
 

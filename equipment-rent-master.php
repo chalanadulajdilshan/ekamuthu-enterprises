@@ -492,6 +492,16 @@ $bill_number = $lastId + 1;
                                                     Outstanding: <span id="customerOutstandingValue">0.00</span>
                                                 </div>
 
+                                                <div class="card border shadow-sm mt-3" id="returnRemarksCard" style="display:none;">
+                                                    <div class="card-body py-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <h6 class="mb-0"><i class="uil uil-comment-alt-lines me-1 text-primary"></i>Return Remarks</h6>
+                                                            <span class="badge bg-soft-primary text-primary" id="returnRemarksCount">0</span>
+                                                        </div>
+                                                        <ul class="mb-0 ps-3" id="returnRemarksList"></ul>
+                                                        <p class="text-muted mb-0" id="returnRemarksEmpty">No remarks recorded yet.</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-md-5">
                                                 <div class="card border shadow-sm">
@@ -912,6 +922,16 @@ $bill_number = $lastId + 1;
                                             Return after 9:00 AM (count extra day)
                                         </label>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="return_all_remark" class="form-label">Return Remark</label>
+                                    <textarea id="return_all_remark" class="form-control" rows="3" placeholder="Add any notes about this bulk return..."></textarea>
+                                    <small class="text-muted">This remark will be saved with each return entry.</small>
                                 </div>
                             </div>
                         </div>
