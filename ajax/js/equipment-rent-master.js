@@ -1484,15 +1484,15 @@ jQuery(document).ready(function () {
             isAvailable = true;
           }
 
-          if (!isAvailable) {
-            swal({
-              title: "Not Available!",
-              text: "All units of this equipment are currently rented out.",
-              type: "warning",
-              showConfirmButton: true,
-            });
-            return;
-          }
+          // if (!isAvailable) {
+          //   swal({
+          //     title: "Not Available!",
+          //     text: "All units of this equipment are currently rented out.",
+          //     type: "warning",
+          //     showConfirmButton: true,
+          //   });
+          //   return;
+          // }
 
           $("#item_equipment_id").val(data.id);
           $("#item_equipment_display").val(data.code + " - " + data.item_name);
