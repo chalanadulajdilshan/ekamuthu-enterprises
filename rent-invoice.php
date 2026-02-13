@@ -423,6 +423,10 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
                             </tr>
                             <tr>
+                                <td class="summary-label">Total Rent Amount:</td>
+                                <td class="summary-value"><?php echo number_format($hire_amount + $transport_amount, 2); ?></td>
+                            </tr>
+                            <tr>
                                 <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල (Customer Paid):</td>
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
