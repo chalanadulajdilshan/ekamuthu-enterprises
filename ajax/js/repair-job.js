@@ -122,15 +122,25 @@ jQuery(document).ready(function () {
         }
     }
 
-    // Show/hide outsource contact section
+    // Show/hide outsource contact section and toggle commission fields
     function toggleOutsourceSection() {
         if ($("#is_outsource").is(":checked")) {
             $("#outsource_contact_section").slideDown();
+
+            // Disable commission fields and set to 0
+            $("#commission_percentage").val(0).prop("readonly", true);
+            $("#commission_amount").val("0.00").prop("readonly", true);
         } else {
             $("#outsource_contact_section").slideUp();
             // Clear outsource fields when unchecked
             $("#outsource_name, #outsource_phone, #outsource_address").val("");
+            $("#outsource_cost").val("0.00");
+
+            // Enable commission fields and restore default
+            $("#commission_percentage").val(15).prop("readonly", false);
+            $("#commission_amount").prop("readonly", true); // Amount is calc-only but percentage is editable
         }
+        calculateGrandTotal();
     }
 
     // Event: Calculate item total on input change
@@ -283,8 +293,12 @@ jQuery(document).ready(function () {
                     $("#is_outsource").prop("checked", job.is_outsource == 1);
                     $("#outsource_name").val(job.outsource_name || "");
                     $("#outsource_address").val(job.outsource_address || "");
+                    $("#outsource_address").val(job.outsource_address || "");
                     $("#outsource_phone").val(job.outsource_phone || "");
+                    $("#outsource_cost").val(parseFloat(job.outsource_cost || 0).toFixed(2));
                     $("#remark").val(job.remark || "");
+                    $("#total_cost_display").val(parseFloat(job.total_cost || 0).toFixed(2));
+
                     $("#total_cost_display").val(parseFloat(job.total_cost || 0).toFixed(2));
 
                     // Toggle sections based on loaded data
@@ -308,6 +322,22 @@ jQuery(document).ready(function () {
                     $("#update").show();
                     $(".delete-job").show();
                     $("#print-job").show();
+
+                    // Handle delivery button visibility
+                    // Logic: Only show if status is completed or cannot_repair or delivered
+                    // If status is 'delivered', show Undo. Else show Mark Delivered.
+                    if (job.job_status === 'completed' || job.job_status === 'cannot_repair' || job.job_status === 'delivered') {
+                        if (job.job_status === 'delivered') {
+                            $("#mark-delivered").hide();
+                            $("#mark-undelivered").show();
+                        } else {
+                            $("#mark-delivered").show();
+                            $("#mark-undelivered").hide();
+                        }
+                    } else {
+                        $("#mark-delivered").hide();
+                        $("#mark-undelivered").hide();
+                    }
                 } else {
                     swal({
                         title: "Error!",
@@ -407,6 +437,7 @@ jQuery(document).ready(function () {
             outsource_name: $("#outsource_name").val(),
             outsource_address: $("#outsource_address").val(),
             outsource_phone: $("#outsource_phone").val(),
+            outsource_cost: $("#outsource_cost").val(),
             repair_charge: $("#repair_charge").val(),
             commission_percentage: $("#commission_percentage").val(),
             commission_amount: $("#commission_amount").val(),
@@ -477,6 +508,7 @@ jQuery(document).ready(function () {
             outsource_name: $("#outsource_name").val(),
             outsource_address: $("#outsource_address").val(),
             outsource_phone: $("#outsource_phone").val(),
+            outsource_cost: $("#outsource_cost").val(),
             repair_charge: $("#repair_charge").val(),
             commission_percentage: $("#commission_percentage").val(),
             commission_amount: $("#commission_amount").val(),
@@ -567,6 +599,7 @@ jQuery(document).ready(function () {
         $("#machine_code").val("");
         $("#machine_name").val("");
         $("#repair_charge").val("0.00");
+        $("#outsource_cost").val("0.00");
         $("#commission_percentage").val("15");
         $("#commission_amount").val("0.00");
         $("#total_cost_display").val("0.00");
@@ -602,6 +635,64 @@ jQuery(document).ready(function () {
             window.open("print-repair-job.php?id=" + jobId, "_blank");
         }
     });
+
+    // Mark as Delivered
+    $("#mark-delivered").click(function (e) {
+        e.preventDefault();
+        updateDeliveryStatus('delivered');
+    });
+
+    // Undo Delivery
+    $("#mark-undelivered").click(function (e) {
+        e.preventDefault();
+        updateDeliveryStatus('completed');
+    });
+
+    function updateDeliveryStatus(status) {
+        var jobId = $("#job_id").val();
+        if (!jobId) return;
+
+        var actionText = status === 'delivered' ? "mark as delivered" : "undo delivery";
+        var successText = status === 'delivered' ? "Job marked as delivered!" : "Delivery status undone!";
+
+        swal({
+            title: "Are you sure?",
+            text: "Do you want to " + actionText + "?",
+            type: "info",
+            showCancelButton: true,
+            confirmButtonText: "Yes, do it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: "ajax/php/repair-job.php",
+                type: "POST",
+                data: {
+                    action: "update_delivery_status",
+                    job_id: jobId,
+                    status: status
+                },
+                dataType: "JSON",
+                success: function (result) {
+                    if (result.status === "success") {
+                        swal({
+                            title: "Success!",
+                            text: successText,
+                            type: "success",
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        // Reload job details to update UI
+                        loadJobDetails(jobId);
+                    } else {
+                        swal("Error!", result.message || "Failed to update status", "error");
+                    }
+                },
+                error: function () {
+                    swal("Error!", "Server error occurred", "error");
+                }
+            });
+        });
+    }
 
     // --- Equipment & Sub-Equipment Selection Logic ---
 
