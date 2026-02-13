@@ -395,13 +395,7 @@ if (!empty($customerMobile)) {
                 <!-- Summary Section -->
                 <div class="row mt-3">
                     <div class="col-md-6">
-
-                        <?php if (!empty($EQUIPMENT_RENT->remark)): ?>
-                            <div class="mt-3">
-                                <strong>Terms & Conditions - නියම සහ කොන්දේසි:</strong><br>
-                                <span style="font-size:13px;"><?php echo nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)); ?></span>
-                            </div>
-                        <?php endif; ?>
+                        <!-- Reserved space -->
                     </div>
                     <div class="col-md-6">
                         <table class="summary-table" style="width:100%;">
@@ -441,6 +435,20 @@ if (!empty($customerMobile)) {
                             </tr>
                             <?php endif; ?>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Remark Section -->
+                <div class="mt-4">
+                    <div style="border-top:2px solid #ccc; padding-top:12px;">
+                        <strong>Remark :</strong>
+                        <div style="min-height:60px; border-bottom:2px solid #ccc; padding:8px 0; font-size:14px;">
+                            <?php if (!empty($EQUIPMENT_RENT->remark)): ?>
+                                <?php echo nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)); ?>
+                            <?php else: ?>
+                                &nbsp;
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 
