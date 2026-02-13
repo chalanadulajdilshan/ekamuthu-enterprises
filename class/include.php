@@ -86,6 +86,7 @@ include_once(dirname(__FILE__) . '/IssueNoteItem.php');
 include_once(dirname(__FILE__) . '/IssueReturnNote.php');
 include_once(dirname(__FILE__) . '/IssueReturnNoteItem.php');
 include_once(dirname(__FILE__) . '/LoyaltyPoints.php');
+include_once(dirname(__FILE__) . '/TermsCondition.php');
 
 
 // Initialize session if not already started

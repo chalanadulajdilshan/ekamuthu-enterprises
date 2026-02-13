@@ -100,6 +100,7 @@ class EquipmentRentQuotationItem
     {
         $query = "SELECT eri.*, 
                   e.code as equipment_code, e.item_name as equipment_name,
+                  e.rent_one_day, e.deposit_one_day, e.rent_one_month,
                   se.code as sub_equipment_code
                   FROM `equipment_rent_quotation_items` eri
                   LEFT JOIN `equipment` e ON eri.equipment_id = e.id
