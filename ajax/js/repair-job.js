@@ -342,9 +342,13 @@ jQuery(document).ready(function () {
             errorMessage = "Job Code already exists. Please use a different code";
             isValid = false;
             $("#job_code").addClass("is-invalid");
-        } else if ($("#machine_name").val().trim() === "") {
-            errorMessage = "Machine/Item Name is required";
+        } else if ($("input[name='item_type']:checked").val() === "company" && $("#machine_name").val().trim() === "") {
+            errorMessage = "Machine Name is required";
             isValid = false;
+        } else if ($("input[name='item_type']:checked").val() === "company" && $("#machine_code").val().trim() === "") {
+            errorMessage = "Machine Code is required";
+            isValid = false;
+        } else if ($("input[name='item_type']:checked").val() === "customer" && $("#customer_name").val().trim() === "") {
         } else if ($("input[name='item_type']:checked").val() === "customer" && $("#customer_name").val().trim() === "") {
             errorMessage = "Customer Name is required";
             isValid = false;
@@ -667,7 +671,7 @@ jQuery(document).ready(function () {
             if (data) {
                 // Populate fields
                 $("#selected_equipment_id").val(data.id);
-                $("#machine_code").val(data.code);
+                // $("#machine_code").val(data.code); // Don't auto-fill machine code
                 $("#machine_name").val(data.item_name);
 
                 // Handle Sub-Equipment Button visibility/state

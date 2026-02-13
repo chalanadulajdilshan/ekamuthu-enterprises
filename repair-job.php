@@ -115,7 +115,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div class="row">
                                                 <!-- Job Code -->
                                                 <div class="col-md-3">
-                                                    <label for="job_code" class="form-label">Job Code - රැකියා කේතය</label>
+                                                    <label for="job_code" class="form-label">Job Code - රැකියා කේතය <span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="job_code" name="job_code" type="text" class="form-control"
                                                             value="<?php echo $job_code ?>">
@@ -153,7 +153,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
                                                 <!-- Breakdown Date -->
                                                 <div class="col-md-3">
-                                                    <label for="item_breakdown_date" class="form-label">Breakdown Date - බිඳවැටීම් දිනය</label>
+                                                    <label for="item_breakdown_date" class="form-label">Breakdown Date - බිඳවැටීම් දිනය <span class="text-danger">*</span></label>
                                                     <div class="mb-3">
                                                         <input id="item_breakdown_date" name="item_breakdown_date" type="text"
                                                             class="form-control date-picker" value="<?php echo date('Y-m-d'); ?>">
@@ -174,7 +174,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>  
                                                 
                                                 <div class="col-md-3">
-                                                    <label for="machine_name" class="form-label">Machine Name - යන්ත්‍ර/අයිතම නම</label>
+                                                    <label for="machine_name" class="form-label">Machine Name - යන්ත්‍ර/අයිතම නම <span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="machine_name" name="machine_name" type="text" class="form-control" placeholder="Enter machine/item name for repair">
                                                         <button class="btn btn-info" type="button" id="btn-select-equipment" data-bs-toggle="modal"
@@ -185,7 +185,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 </div>
 
                                                 <div class="col-md-3"  id="machine_code_section" style="display: none;">
-                                                    <label for="machine_code" class="form-label">Machine Code - යන්ත්‍ර කේතය</label>
+                                                    <label for="machine_code" class="form-label">Machine Code - යන්ත්‍ර කේතය <span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
                                                         <input id="machine_code" name="machine_code" type="text" class="form-control" placeholder="Enter/Select machine code">
                                                         <input type="hidden" id="selected_equipment_id">
@@ -201,11 +201,11 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div id="customer_contact_section">
                                                 <div class="row">
                                                     <div class="col-md-3">
-                                                        <label for="customer_name" class="form-label">Customer Name - පාරිභෝගික නම</label>
+                                                        <label for="customer_name" class="form-label">Customer Name - පාරිභෝගික නම <span class="text-danger">*</span></label>
                                                         <input id="customer_name" name="customer_name" type="text" class="form-control mb-3" placeholder="Enter customer name">
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <label for="customer_phone" class="form-label">Phone - දුරකථන අංකය</label>
+                                                        <label for="customer_phone" class="form-label">Phone - දුරකථන අංකය <span class="text-danger">*</span></label>
                                                         <input id="customer_phone" name="customer_phone" type="text" class="form-control mb-3" placeholder="Enter phone number">
                                                     </div> 
                                                     <div class="col-md-6">
@@ -218,7 +218,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div id="outsource_contact_section" style="display: none;">
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <label for="outsource_name" class="form-label">Outsource Company Name - බාහිර සමාගම් නම</label>
+                                                        <label for="outsource_name" class="form-label">Outsource Company Name - බාහිර සමාගම් නම <span class="text-danger">*</span></label>
                                                         <input id="outsource_name" name="outsource_name" type="text" class="form-control mb-3" placeholder="Enter outsource company name">
                                                     </div>
                                                     <div class="col-md-6">
@@ -237,7 +237,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             <div class="row">
                                                 <!-- Technical Issue -->
                                                 <div class="col-md-6">
-                                                    <label for="technical_issue" class="form-label">Technical Issue Details - තාක්ෂණික ගැටලු විස්තර</label>
+                                                    <label for="technical_issue" class="form-label">Technical Issue Details - තාක්ෂණික ගැටලු විස්තර <span class="text-danger">*</span></label>
                                                     <textarea id="technical_issue" name="technical_issue" class="form-control mb-3" rows="2" placeholder="Describe the technical issue..."></textarea>
                                                 </div> 
                                                 <!-- Remark -->
