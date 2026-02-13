@@ -61,6 +61,14 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 <i class="uil uil-edit me-1"></i> Update
                             </a>
 
+                            <a href="#" class="btn btn-success" id="mark-delivered" style="display: none;">
+                                <i class="uil uil-truck me-1"></i> Mark as Delivered
+                            </a>
+                            
+                            <a href="#" class="btn btn-secondary" id="mark-undelivered" style="display: none;">
+                                <i class="uil uil-history me-1"></i> Undo Delivery
+                            </a>
+
                             <?php if ($PERMISSIONS['delete_page']): ?>
                                 <a href="#" class="btn btn-danger delete-job" style="display: none;">
                                     <i class="uil uil-trash-alt me-1"></i> Delete
@@ -170,6 +178,7 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                         <option value="in_progress">In Progress - ප්‍රගතියේ</option>
                                                         <option value="completed">Completed - සම්පූර්ණයි</option>
                                                         <option value="cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</option>
+                                                        <option value="delivered">Delivered - භාර දෙන ලදී</option>
                                                     </select>
                                                 </div>  
                                                 
@@ -217,13 +226,20 @@ $job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                             <div id="outsource_contact_section" style="display: none;">
                                                 <div class="row">
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-3">
                                                         <label for="outsource_name" class="form-label">Outsource Company Name - බාහිර සමාගම් නම <span class="text-danger">*</span></label>
                                                         <input id="outsource_name" name="outsource_name" type="text" class="form-control mb-3" placeholder="Enter outsource company name">
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-3">
                                                         <label for="outsource_phone" class="form-label">Outsource Phone - දුරකථන අංකය</label>
                                                         <input id="outsource_phone" name="outsource_phone" type="text" class="form-control mb-3" placeholder="Enter outsource phone number">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label for="outsource_cost" class="form-label">Outsource Cost - බාහිර පිරිවැය</label>
+                                                        <div class="input-group mb-3">
+                                                            <span class="input-group-text">Rs.</span>
+                                                            <input type="number" class="form-control fw-bold text-end" id="outsource_cost" name="outsource_cost" value="0.00" min="0" step="0.01">
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="row">

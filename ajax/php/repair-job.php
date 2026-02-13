@@ -60,6 +60,7 @@ if (isset($_POST['create'])) {
     $JOB->outsource_name = $_POST['outsource_name'] ?? '';
     $JOB->outsource_address = $_POST['outsource_address'] ?? '';
     $JOB->outsource_phone = $_POST['outsource_phone'] ?? '';
+    $JOB->outsource_cost = $_POST['outsource_cost'] ?? 0;
 
     $job_id = $JOB->create();
 
@@ -132,6 +133,7 @@ if (isset($_POST['update'])) {
     $JOB->outsource_name = $_POST['outsource_name'] ?? '';
     $JOB->outsource_address = $_POST['outsource_address'] ?? '';
     $JOB->outsource_phone = $_POST['outsource_phone'] ?? '';
+    $JOB->outsource_cost = $_POST['outsource_cost'] ?? 0;
 
     $res = $JOB->update();
 
@@ -243,12 +245,34 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_job_details') {
                 "is_outsource" => $JOB->is_outsource,
                 "outsource_name" => $JOB->outsource_name,
                 "outsource_address" => $JOB->outsource_address,
-                "outsource_phone" => $JOB->outsource_phone
+                "outsource_phone" => $JOB->outsource_phone,
+                "outsource_cost" => $JOB->outsource_cost
             ],
             "items" => $items
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Job ID required"]);
+    }
+    exit();
+}
+
+// Update delivery status
+if (isset($_POST['action']) && $_POST['action'] === 'update_delivery_status') {
+    $job_id = $_POST['job_id'] ?? 0;
+    $status = $_POST['status'] ?? '';
+
+    if ($job_id && $status) {
+        $JOB = new RepairJob($job_id);
+        // Valid status check could be added here
+        $res = $JOB->updateDeliveryStatus($status);
+
+        if ($res) {
+            echo json_encode(["status" => "success"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to update status"]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Job ID and Status required"]);
     }
     exit();
 }

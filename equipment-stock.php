@@ -230,6 +230,86 @@ $EQUIPMENT = new Equipment(NULL);
         </div>
     </div>
 
+    <!-- Repair Details Modal -->
+    <div class="modal fade" id="repairDetailsModal" tabindex="-1" aria-labelledby="repairDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="repairDetailsModalLabel">Repair Job Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Job Code</label>
+                            <div id="rp-job-code" class="fw-bold text-dark">-</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Status</label>
+                            <div id="rp-status" class="fw-bold text-dark">-</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Machine</label>
+                            <div id="rp-machine" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Breakdown Date</label>
+                            <div id="rp-date" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted mb-1">Technical Issue</label>
+                            <div id="rp-issue" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted mb-1">Remark</label>
+                            <div id="rp-remark" class="text-dark">-</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Is Outsource?</label>
+                            <div id="rp-is-outsource" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Outsource Name</label>
+                            <div id="rp-outsource-name" class="text-dark">-</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Repair Charge</label>
+                            <div id="rp-charge" class="fw-bold text-dark">-</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted mb-1">Total Cost</label>
+                            <div id="rp-total-cost" class="fw-bold text-primary">-</div>
+                        </div>
+                    </div>
+
+                    <h6 class="font-size-14 mb-3">Repair Items / Parts Used</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="repairItemsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Item Name</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-muted">No items recorded</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
