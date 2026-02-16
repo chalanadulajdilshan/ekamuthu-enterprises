@@ -9,6 +9,8 @@ jQuery(document).ready(function () {
   var currentEquipmentId = null;
   var currentIsFixedRate = false;
   var manualAmountEditEnabled = false;
+  var isEditingExistingRent = false;
+  var rentalStartDateUserOverride = false;
 
   // Calculate amount and return date
   function calculateRentDetails() {
@@ -130,6 +132,58 @@ jQuery(document).ready(function () {
     }
   }
 
+  function getDateOnly(dateString) {
+    if (!dateString) {
+      return null;
+    }
+    return String(dateString).split(" ")[0];
+  }
+
+  function getEarliestItemRentalDate() {
+    var earliest = null;
+    rentItems.forEach(function (item) {
+      if (!item || !item.rental_date) {
+        return;
+      }
+      var datePortion = getDateOnly(item.rental_date);
+      if (!datePortion) {
+        return;
+      }
+      if (!earliest || datePortion < earliest) {
+        earliest = datePortion;
+      }
+    });
+    return earliest;
+  }
+
+  function syncRentalStartDateFieldFromItems(forceSync) {
+    if (!isEditingExistingRent) {
+      return;
+    }
+    if (rentalStartDateUserOverride && !forceSync) {
+      return;
+    }
+    var earliest = getEarliestItemRentalDate();
+    if (earliest) {
+      $("#rental_start_date").val(earliest);
+    }
+  }
+
+  function applyRentalDateDefaults(forceAll) {
+    var fallbackDate = $("#rental_start_date").val();
+    if (!fallbackDate) {
+      return;
+    }
+    rentItems.forEach(function (item) {
+      if (!item) {
+        return;
+      }
+      if (forceAll || !item.rental_date) {
+        item.rental_date = fallbackDate;
+      }
+    });
+  }
+
   // Update items table display
   function updateItemsTable() {
     var tbody = $("#rentItemsTable tbody");
@@ -177,8 +231,13 @@ jQuery(document).ready(function () {
             index +
             '" title="Cancel Return"><i class="uil uil-times-circle"></i></button>';
         }
-        // Hide delete for already saved items (after rent is saved/loaded)
-        if (!item.id) {
+        // Allow deletion for brand-new items or saved items that have no returns yet
+        var canRemoveSavedItem =
+          !!item.id &&
+          parseFloat(item.total_returned_qty || 0) === 0 &&
+          item.status !== "returned" &&
+          item.status !== "cancelled";
+        if (!item.id || canRemoveSavedItem) {
           actionBtns +=
             '<button class="btn btn-sm btn-danger remove-item-btn" data-index="' +
             index +
@@ -687,6 +746,10 @@ jQuery(document).ready(function () {
         }
       },
     );
+
+    if (isEditingExistingRent) {
+      syncRentalStartDateFieldFromItems(false);
+    }
   }
 
   // Calculate on input changes
@@ -700,6 +763,19 @@ jQuery(document).ready(function () {
   // Calculate when return date changes
   $("#item_return_date").on("change keyup", function () {
     calculateDurationFromDates();
+  });
+
+  $("#rental_start_date").on("change", function () {
+    var newDate = $(this).val();
+    rentalStartDateUserOverride = true;
+    if (!newDate) {
+      return;
+    }
+    rentItems.forEach(function (item) {
+      if (!isEditingExistingRent || !item.id) {
+        item.rental_date = newDate;
+      }
+    });
   });
 
   // Remove item from list
@@ -883,6 +959,8 @@ jQuery(document).ready(function () {
       dataType: "JSON",
       success: function (result) {
         if (result.status === "success") {
+          isEditingExistingRent = true;
+          rentalStartDateUserOverride = false;
           var rent = result.rent;
           $("#rent_id").val(rent.id);
           $("#code").val(rent.bill_number);
@@ -968,8 +1046,17 @@ jQuery(document).ready(function () {
             $remarksCard.hide();
           }
 
-          // Lock manual edits when loading an existing rent
-          $("#transport_cost, #custom_deposit").prop("readonly", true);
+          // Lock manual edits when loading an existing rent; re-enable for active bills
+          var canEditFinancials = true;
+          var statusText = String(rent.status || "")
+            .toLowerCase()
+            .trim();
+          var isCancelled = ["cancelled", "canceled"].includes(statusText);
+          var isReturned = statusText === "returned";
+          if (isCancelled || isReturned) {
+            canEditFinancials = false;
+          }
+          $("#transport_cost, #custom_deposit").prop("readonly", !canEditFinancials);
 
           // Reset calculated
           totalCalculatedDeposit = 0;
@@ -1055,12 +1142,8 @@ jQuery(document).ready(function () {
           $("#create").hide();
           $("#cancel-bill-alert").remove();
 
-          var statusText = String(rent.status || "")
-            .toLowerCase()
-            .trim();
           var isRented = ["rented", "rent", "active"].includes(statusText);
           var hasItems = rentItems.length > 0;
-          var isCancelled = ["cancelled", "canceled"].includes(statusText);
           // Show cancel-return if bill has items and is not cancelled (regardless of status text)
           var shouldShowCancelReturn = hasItems && !isCancelled;
           if (!isRented) {
@@ -1735,6 +1818,8 @@ jQuery(document).ready(function () {
       });
     }
 
+    applyRentalDateDefaults(true);
+
     var formData = new FormData($("#form-data")[0]);
     formData.append("create", true);
     formData.append("items", JSON.stringify(rentItems));
@@ -1911,6 +1996,8 @@ jQuery(document).ready(function () {
   // Reset form - New button
   $("#new").click(function (e) {
     e.preventDefault();
+    isEditingExistingRent = false;
+    rentalStartDateUserOverride = false;
     $("#form-data")[0].reset();
     $("#rent_id").val("");
     $("#customer_id").val("");
