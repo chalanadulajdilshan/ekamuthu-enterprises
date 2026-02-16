@@ -563,6 +563,16 @@ $bill_number = $lastId + 1;
                                                                         <span id="customer_rent_outstanding" class="fw-bold text-danger">0.00</span>
                                                                     </td>
                                                                 </tr>
+                                                                <tr id="company_refund_row" style="display:none;">
+                                                                    <td class="text-start fw-medium">Company Refund Balance - සමාගම් හිඟ ආපසු ගෙවීම:
+                                                                    </td>
+                                                                    <td class="text-end">
+                                                                        <span id="company_refund_balance_display" class="fw-bold text-warning">0.00</span>
+                                                                        <button type="button" class="btn btn-sm btn-outline-success ms-1" id="btn-settle-company-refund" title="Settle company refund">
+                                                                            <i class="uil uil-money-withdrawal"></i> Settle
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
                                                             </tbody>
                                                         </table>
                                                     </div>

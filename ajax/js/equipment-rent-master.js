@@ -1037,6 +1037,16 @@ jQuery(document).ready(function () {
               .addClass("text-success");
           }
 
+          // Company Refund Balance (partial refund outstanding)
+          var companyOutstanding = parseFloat(rent.total_company_outstanding || 0);
+          if (companyOutstanding > 0) {
+            $("#company_refund_balance_display").text(companyOutstanding.toFixed(2));
+            $("#company_refund_row").show();
+          } else {
+            $("#company_refund_balance_display").text("0.00");
+            $("#company_refund_row").hide();
+          }
+
           // Render return remarks list (from return-all/bulk returns)
           var remarks = result.return_remarks || [];
           var $remarksCard = $("#returnRemarksCard");
@@ -2035,6 +2045,8 @@ jQuery(document).ready(function () {
     $("#deposit_modal_total").text("0.00");
     $("#calculated_deposit_display").text("0.00");
     $("#customer_refund_balance").text("0.00");
+    $("#company_refund_balance_display").text("0.00");
+    $("#company_refund_row").hide();
     $("#customer_refund_badge")
       .removeClass("badge bg-danger bg-success")
       .text("");
@@ -2248,6 +2260,27 @@ jQuery(document).ready(function () {
           settlement.join("<br>") +
           "</p>";
 
+        // If company owes refund, add partial refund checkbox and input
+        var refundAmount = Number(calc.refund_amount || 0);
+        if (refundAmount > 0) {
+          previewHtml += '<div class="mt-2">';
+          previewHtml += '<div class="form-check mb-2">';
+          previewHtml += '<input class="form-check-input" type="checkbox" id="return_all_partial_refund" value="1">';
+          previewHtml += '<label class="form-check-label fw-bold" for="return_all_partial_refund">';
+          previewHtml += 'Partial Refund - අර්ධ ආපසු ගෙවීම';
+          previewHtml += '</label>';
+          previewHtml += '</div>';
+          previewHtml += '<div id="partial_refund_section" style="display:none;">';
+          previewHtml += '<label class="fw-bold">Company Refund Paid - සමාගම ගෙවූ ආපසු මුදල:</label> ';
+          previewHtml += '<input type="number" id="return_all_company_refund_paid" class="form-control form-control-sm d-inline-block" ';
+          previewHtml += 'style="width:160px; text-align:right;" step="0.01" min="0" ';
+          previewHtml += 'max="' + refundAmount.toFixed(2) + '" value="' + refundAmount.toFixed(2) + '">';
+          previewHtml += '<div class="mt-1"><strong>Company Outstanding - සමාගම් හිඟ: </strong>';
+          previewHtml += '<span id="return_all_company_outstanding_display" class="text-success fw-bold">Rs. 0.00</span></div>';
+          previewHtml += '</div>';
+          previewHtml += '</div>';
+        }
+
         // If customer owes, add Customer Paid input and Outstanding display
         var additionalPayment = Number(calc.additional_payment || 0);
         if (additionalPayment > 0) {
@@ -2293,6 +2326,31 @@ jQuery(document).ready(function () {
               }
             })
             .trigger("input");
+        }
+
+        // Bind partial refund checkbox and live outstanding calculation
+        if (refundAmount > 0) {
+          $("#return_all_partial_refund").on("change", function () {
+            if ($(this).is(":checked")) {
+              $("#partial_refund_section").show();
+              $("#return_all_company_refund_paid").trigger("input");
+            } else {
+              $("#partial_refund_section").hide();
+              $("#return_all_company_refund_paid").val(refundAmount.toFixed(2));
+              $("#return_all_company_outstanding_display").text("Rs. 0.00").removeClass("text-warning").addClass("text-success");
+            }
+          });
+
+          $("#return_all_company_refund_paid").on("input", function () {
+            var paid = parseFloat($(this).val()) || 0;
+            var outstanding = Math.max(0, refundAmount - paid);
+            $("#return_all_company_outstanding_display").text("Rs. " + outstanding.toFixed(2));
+            if (outstanding > 0) {
+              $("#return_all_company_outstanding_display").removeClass("text-success").addClass("text-warning");
+            } else {
+              $("#return_all_company_outstanding_display").removeClass("text-warning").addClass("text-success");
+            }
+          });
         }
       },
       error: function () {
@@ -2362,6 +2420,7 @@ jQuery(document).ready(function () {
         after_9am_extra_day: after9amExtraDay,
         rental_override: rentalOverride,
         customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
+        company_refund_paid: parseFloat($("#return_all_company_refund_paid").val()) || 0,
         return_remark: $("#return_all_remark").val() || "",
       },
       dataType: "JSON",
@@ -3083,5 +3142,77 @@ jQuery(document).ready(function () {
         }
       },
     );
+  });
+
+  // Settle Company Refund Outstanding
+  $(document).on("click", "#btn-settle-company-refund", function () {
+    var rentId = $("#rent_id").val();
+    if (!rentId) return;
+
+    var currentOutstanding = parseFloat($("#company_refund_balance_display").text()) || 0;
+    if (currentOutstanding <= 0) {
+      swal({ title: "No Outstanding", text: "No company refund outstanding to settle.", type: "info" });
+      return;
+    }
+
+    swal({
+      title: "Settle Company Refund",
+      text: "Company Outstanding: Rs. " + currentOutstanding.toFixed(2) + "\nEnter amount to pay to customer:",
+      type: "input",
+      inputValue: currentOutstanding.toFixed(2),
+      showCancelButton: true,
+      confirmButtonText: "Settle",
+      cancelButtonText: "Cancel",
+      closeOnConfirm: false,
+      inputPlaceholder: "Enter amount"
+    }, function (inputVal) {
+      if (inputVal === false) return;
+      var amount = parseFloat(inputVal);
+      if (isNaN(amount) || amount <= 0) {
+        swal.showInputError("Please enter a valid amount greater than 0.");
+        return false;
+      }
+      if (amount > currentOutstanding) {
+        swal.showInputError("Amount cannot exceed outstanding (Rs. " + currentOutstanding.toFixed(2) + ").");
+        return false;
+      }
+
+      $.ajax({
+        url: "ajax/php/equipment-rent-master.php",
+        type: "POST",
+        data: {
+          action: "settle_company_refund",
+          rent_id: rentId,
+          amount: amount
+        },
+        dataType: "JSON",
+        success: function (result) {
+          if (result.status === "success") {
+            swal({
+              title: "Success!",
+              text: "Company refund of Rs. " + amount.toFixed(2) + " settled successfully.",
+              type: "success",
+              timer: 2000,
+              showConfirmButton: false
+            });
+            // Update display
+            var newOutstanding = parseFloat(result.new_company_outstanding || 0);
+            if (newOutstanding > 0) {
+              $("#company_refund_balance_display").text(newOutstanding.toFixed(2));
+            } else {
+              $("#company_refund_balance_display").text("0.00");
+              $("#company_refund_row").hide();
+            }
+            // Reload full rent details to sync all values
+            loadRentDetails(rentId);
+          } else {
+            swal({ title: "Error!", text: result.message || "Failed to settle.", type: "error" });
+          }
+        },
+        error: function () {
+          swal({ title: "Error!", text: "Server error. Please try again.", type: "error" });
+        }
+      });
+    });
   });
 });
