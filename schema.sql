@@ -121,3 +121,15 @@ ALTER TABLE `document_tracking` ADD COLUMN `issue_note_id` INT(11) DEFAULT 0;
 ALTER TABLE `customer_master` 
 ADD COLUMN `is_blacklisted` TINYINT(1) DEFAULT 0,
 ADD COLUMN `blacklist_reason` TEXT DEFAULT NULL;
+
+-- Deposit Payment Tracking
+CREATE TABLE IF NOT EXISTS `deposit_payments` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `rent_id` INT(11) NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `payment_date` DATE NOT NULL,
+  `remark` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `rent_id` (`rent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

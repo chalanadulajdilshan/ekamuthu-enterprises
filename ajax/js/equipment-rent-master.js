@@ -274,9 +274,9 @@ jQuery(document).ready(function () {
 
         var returnDisplay = hasReturn
           ? '<div class="text-danger fw-semibold">' +
-          returnDateTime +
-          dayCountDisplay +
-          "</div>"
+            returnDateTime +
+            dayCountDisplay +
+            "</div>"
           : "-";
 
         var rowClass =
@@ -384,9 +384,9 @@ jQuery(document).ready(function () {
         var item = rentItems[index];
         var itemLabel = item
           ? item.equipment_display +
-          (item.sub_equipment_display
-            ? " (" + item.sub_equipment_display + ")"
-            : "")
+            (item.sub_equipment_display
+              ? " (" + item.sub_equipment_display + ")"
+              : "")
           : "this item";
 
         swal(
@@ -512,7 +512,8 @@ jQuery(document).ready(function () {
     var returnedQty = parseFloat($("#item_returned_qty").val()) || 0;
     var $deptSelect = $("#item_department_id");
     var deptId = $deptSelect.val();
-    var availableQty = parseFloat($deptSelect.find("option:selected").data("available")) || 0;
+    var availableQty =
+      parseFloat($deptSelect.find("option:selected").data("available")) || 0;
 
     if (returnedQty > qty) {
       swal({
@@ -985,10 +986,10 @@ jQuery(document).ready(function () {
                 : "(Inactive)";
               $paymentSelect.append(
                 "<option data-temp='1' value='" +
-                rent.payment_type_id +
-                "' selected hidden>" +
-                tempLabel +
-                "</option>",
+                  rent.payment_type_id +
+                  "' selected hidden>" +
+                  tempLabel +
+                  "</option>",
               );
             }
             $paymentSelect.val(rent.payment_type_id);
@@ -1002,6 +1003,15 @@ jQuery(document).ready(function () {
           $("#remark").val(rent.remark || "");
           $("#transport_cost").val(rent.transport_cost || "0.00");
           $("#custom_deposit").val(rent.deposit_total || "0.00");
+          // Show manage deposits button for existing rents
+          $("#btn-manage-deposits").show();
+          // Render deposit payments if present
+          if (result.deposit_payments) {
+            renderDepositPayments(
+              result.deposit_payments,
+              parseFloat(rent.deposit_total || 0),
+            );
+          }
           var refundBalance = parseFloat(rent.refund_balance || 0);
           $("#customer_refund_balance").text(refundBalance.toFixed(2));
           var $refundBadge = $("#customer_refund_badge");
@@ -1018,9 +1028,13 @@ jQuery(document).ready(function () {
           var rentOutstanding = parseFloat(rent.rent_outstanding || 0);
           $("#customer_rent_outstanding").text(rentOutstanding.toFixed(2));
           if (rentOutstanding > 0) {
-            $("#customer_rent_outstanding").removeClass('text-success').addClass('text-danger');
+            $("#customer_rent_outstanding")
+              .removeClass("text-success")
+              .addClass("text-danger");
           } else {
-            $("#customer_rent_outstanding").removeClass('text-danger').addClass('text-success');
+            $("#customer_rent_outstanding")
+              .removeClass("text-danger")
+              .addClass("text-success");
           }
 
           // Render return remarks list (from return-all/bulk returns)
@@ -1056,7 +1070,10 @@ jQuery(document).ready(function () {
           if (isCancelled || isReturned) {
             canEditFinancials = false;
           }
-          $("#transport_cost, #custom_deposit").prop("readonly", !canEditFinancials);
+          $("#transport_cost, #custom_deposit").prop(
+            "readonly",
+            !canEditFinancials,
+          );
 
           // Reset calculated
           totalCalculatedDeposit = 0;
@@ -2011,6 +2028,11 @@ jQuery(document).ready(function () {
     $("#transport_cost").val("");
     $("#custom_deposit").val("");
     $("#transport_cost, #custom_deposit").prop("readonly", false); // allow manual input for new rent
+    $("#btn-manage-deposits").hide();
+    $("#depositPaymentsTableBody").html(
+      '<tr><td colspan="5" class="text-center text-muted py-3">No deposit payments recorded yet.</td></tr>',
+    );
+    $("#deposit_modal_total").text("0.00");
     $("#calculated_deposit_display").text("0.00");
     $("#customer_refund_balance").text("0.00");
     $("#customer_refund_badge")
@@ -2230,13 +2252,22 @@ jQuery(document).ready(function () {
         var additionalPayment = Number(calc.additional_payment || 0);
         if (additionalPayment > 0) {
           previewHtml += '<div class="mt-2">';
-          previewHtml += '<label class="fw-bold">Customer Paid Amount:</label> ';
-          previewHtml += '<input type="number" id="return_all_customer_paid" class="form-control form-control-sm d-inline-block" ';
-          previewHtml += 'style="width:140px; text-align:right;" step="0.01" min="0" ';
-          previewHtml += 'max="' + additionalPayment.toFixed(2) + '" value="' + additionalPayment.toFixed(2) + '">';
+          previewHtml +=
+            '<label class="fw-bold">Customer Paid Amount:</label> ';
+          previewHtml +=
+            '<input type="number" id="return_all_customer_paid" class="form-control form-control-sm d-inline-block" ';
+          previewHtml +=
+            'style="width:140px; text-align:right;" step="0.01" min="0" ';
+          previewHtml +=
+            'max="' +
+            additionalPayment.toFixed(2) +
+            '" value="' +
+            additionalPayment.toFixed(2) +
+            '">';
           previewHtml += '<div class="mt-1"><strong>Outstanding: </strong>';
-          previewHtml += '<span id="return_all_outstanding_display" class="text-warning fw-bold">Rs. 0.00</span></div>';
-          previewHtml += '</div>';
+          previewHtml +=
+            '<span id="return_all_outstanding_display" class="text-warning fw-bold">Rs. 0.00</span></div>';
+          previewHtml += "</div>";
         }
 
         $("#returnAllPreviewContent").html(previewHtml);
@@ -2244,16 +2275,24 @@ jQuery(document).ready(function () {
 
         // Bind live outstanding calculation for return all
         if (additionalPayment > 0) {
-          $("#return_all_customer_paid").on('input', function () {
-            var paid = parseFloat($(this).val()) || 0;
-            var outstanding = Math.max(0, additionalPayment - paid);
-            $("#return_all_outstanding_display").text('Rs. ' + outstanding.toFixed(2));
-            if (outstanding > 0) {
-              $("#return_all_outstanding_display").removeClass('text-success').addClass('text-warning');
-            } else {
-              $("#return_all_outstanding_display").removeClass('text-warning').addClass('text-success');
-            }
-          }).trigger('input');
+          $("#return_all_customer_paid")
+            .on("input", function () {
+              var paid = parseFloat($(this).val()) || 0;
+              var outstanding = Math.max(0, additionalPayment - paid);
+              $("#return_all_outstanding_display").text(
+                "Rs. " + outstanding.toFixed(2),
+              );
+              if (outstanding > 0) {
+                $("#return_all_outstanding_display")
+                  .removeClass("text-success")
+                  .addClass("text-warning");
+              } else {
+                $("#return_all_outstanding_display")
+                  .removeClass("text-warning")
+                  .addClass("text-success");
+              }
+            })
+            .trigger("input");
         }
       },
       error: function () {
@@ -2364,7 +2403,7 @@ jQuery(document).ready(function () {
             } else if (Number(calc.additional_payment || 0) > 0) {
               summaryLines.push(
                 "Customer Pays: Rs. " +
-                Number(calc.additional_payment).toFixed(2),
+                  Number(calc.additional_payment).toFixed(2),
               );
             }
           }
@@ -2820,7 +2859,8 @@ jQuery(document).ready(function () {
       success: function (res) {
         if (res.status === "success") {
           var depts = res.departments;
-          var options = '<option value="" data-available="0">- Select -</option>';
+          var options =
+            '<option value="" data-available="0">- Select -</option>';
 
           depts.forEach(function (d) {
             var label = d.name + " (Avail: " + d.available_qty + ")";
@@ -2852,4 +2892,196 @@ jQuery(document).ready(function () {
       },
     });
   }
+
+  // ==============================================
+  // Deposit Payments Management
+  // ==============================================
+
+  function renderDepositPayments(payments, total) {
+    var $tbody = $("#depositPaymentsTableBody");
+    $tbody.empty();
+    $("#deposit_modal_total").text(parseFloat(total || 0).toFixed(2));
+
+    if (!payments || payments.length === 0) {
+      $tbody.html(
+        '<tr><td colspan="5" class="text-center text-muted py-3">No deposit payments recorded yet.</td></tr>',
+      );
+      return;
+    }
+
+    payments.forEach(function (p, i) {
+      var html =
+        "<tr>" +
+        "<td>" +
+        (i + 1) +
+        "</td>" +
+        '<td class="text-end fw-bold">' +
+        parseFloat(p.amount).toFixed(2) +
+        "</td>" +
+        "<td>" +
+        (p.payment_date || "") +
+        "</td>" +
+        "<td>" +
+        (p.remark || "-") +
+        "</td>" +
+        '<td class="text-center">' +
+        '<button type="button" class="btn btn-sm btn-outline-danger delete-deposit-payment" data-id="' +
+        p.id +
+        '" title="Delete">' +
+        '<i class="uil uil-trash-alt"></i>' +
+        "</button>" +
+        "</td>" +
+        "</tr>";
+      $tbody.append(html);
+    });
+  }
+
+  // Add deposit payment
+  $("#btn-add-deposit-payment").click(function () {
+    var rentId = $("#rent_id").val();
+    if (!rentId) {
+      swal({
+        title: "Error!",
+        text: "Please save the bill first before adding deposit payments.",
+        type: "error",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    var amount = parseFloat($("#deposit_pay_amount").val()) || 0;
+    var paymentDate = $("#deposit_pay_date").val();
+    var remark = $("#deposit_pay_remark").val();
+
+    if (amount <= 0) {
+      swal({
+        title: "Error!",
+        text: "Please enter a valid amount.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+    if (!paymentDate) {
+      swal({
+        title: "Error!",
+        text: "Please select a payment date.",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "JSON",
+      data: {
+        action: "add_deposit_payment",
+        rent_id: rentId,
+        amount: amount,
+        payment_date: paymentDate,
+        remark: remark,
+      },
+      success: function (result) {
+        if (result.status === "success") {
+          swal({
+            title: "Success!",
+            text: result.message,
+            type: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          renderDepositPayments(result.payments, result.deposit_total);
+          $("#custom_deposit").val(parseFloat(result.deposit_total).toFixed(2));
+          // Clear form
+          $("#deposit_pay_amount").val("");
+          $("#deposit_pay_remark").val("");
+          // Refresh the rent details to update refund balance etc.
+          loadRentDetails(rentId);
+        } else {
+          swal({
+            title: "Error!",
+            text: result.message || "Failed to add deposit payment.",
+            type: "error",
+            showConfirmButton: true,
+          });
+        }
+      },
+      error: function () {
+        swal({
+          title: "Error!",
+          text: "Failed to add deposit payment.",
+          type: "error",
+          showConfirmButton: true,
+        });
+      },
+    });
+  });
+
+  // Delete deposit payment
+  $(document).on("click", ".delete-deposit-payment", function () {
+    var paymentId = $(this).data("id");
+    var rentId = $("#rent_id").val();
+
+    swal(
+      {
+        title: "Delete Deposit Payment?",
+        text: "This will remove this deposit payment record.",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          $.ajax({
+            url: "ajax/php/equipment-rent-master.php",
+            type: "POST",
+            dataType: "JSON",
+            data: {
+              action: "delete_deposit_payment",
+              payment_id: paymentId,
+            },
+            success: function (result) {
+              if (result.status === "success") {
+                swal({
+                  title: "Deleted!",
+                  text: result.message,
+                  type: "success",
+                  timer: 1500,
+                  showConfirmButton: false,
+                });
+                renderDepositPayments(result.payments, result.deposit_total);
+                $("#custom_deposit").val(
+                  parseFloat(result.deposit_total).toFixed(2),
+                );
+                // Refresh the rent details
+                loadRentDetails(rentId);
+              } else {
+                swal({
+                  title: "Error!",
+                  text: result.message || "Failed to delete payment.",
+                  type: "error",
+                  showConfirmButton: true,
+                });
+              }
+            },
+            error: function () {
+              swal({
+                title: "Error!",
+                text: "Failed to delete deposit payment.",
+                type: "error",
+                showConfirmButton: true,
+              });
+            },
+          });
+        }
+      },
+    );
+  });
 });

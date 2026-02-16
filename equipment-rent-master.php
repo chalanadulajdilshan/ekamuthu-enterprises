@@ -533,6 +533,9 @@ $bill_number = $lastId + 1;
                                                                             id="custom_deposit" name="custom_deposit"
                                                                             placeholder="0.00"
                                                                             style="max-width: 120px; display: inline-block;">
+                                                                        <button type="button" class="btn btn-sm btn-outline-primary ms-1" id="btn-manage-deposits" style="display:none;" data-bs-toggle="modal" data-bs-target="#DepositPaymentsModal" title="Manage deposit payments">
+                                                                            <i class="uil uil-history"></i>
+                                                                        </button>
                                                                         <br><small class="text-muted">Calculated: <span
                                                                                 id="calculated_deposit_display"
                                                                                 class="fw-bold">0.00</span></small>
@@ -579,6 +582,74 @@ $bill_number = $lastId + 1;
 
             <?php include 'footer.php' ?>
 
+        </div>
+    </div>
+
+    <!-- Deposit Payments Modal -->
+    <div id="DepositPaymentsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="DepositPaymentsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-soft-primary">
+                    <h5 class="modal-title" id="DepositPaymentsModalLabel"><i class="uil uil-money-bill me-1"></i>Deposit Payments - තැන්පතු ගෙවීම්</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Total Display -->
+                    <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold"><i class="uil uil-wallet me-1"></i>Total Deposit - මුළු තැන්පතු:</span>
+                        <span class="fs-5 fw-bold" id="deposit_modal_total">0.00</span>
+                    </div>
+
+                    <!-- Add New Payment Form -->
+                    <div class="card border shadow-sm mb-3">
+                        <div class="card-header bg-soft-success py-2">
+                            <h6 class="mb-0 text-success"><i class="uil uil-plus-circle me-1"></i>Add New Deposit Payment - නව තැන්පතු ගෙවීමක් එකතු කරන්න</h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row align-items-end">
+                                <div class="col-md-3">
+                                    <label for="deposit_pay_amount" class="form-label">Amount - මුදල <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="deposit_pay_amount" min="0.01" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="deposit_pay_date" class="form-label">Date - දිනය <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control date-picker" id="deposit_pay_date" value="<?php echo date('Y-m-d'); ?>" autocomplete="off">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="deposit_pay_remark" class="form-label">Remark - සටහන</label>
+                                    <input type="text" class="form-control" id="deposit_pay_remark" placeholder="Optional remark">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-success w-100" id="btn-add-deposit-payment">
+                                        <i class="uil uil-plus me-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment History Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="depositPaymentsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Amount - මුදල</th>
+                                    <th>Date - දිනය</th>
+                                    <th>Remark - සටහන</th>
+                                    <th style="width:80px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="depositPaymentsTableBody">
+                                <tr><td colspan="5" class="text-center text-muted py-3">No deposit payments recorded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -120,6 +120,17 @@ if (isset($_POST['create'])) {
             $db->readQuery("UPDATE `document_tracking` SET `equipment_rent_id` = '" . (int) $bill_number . "', `updated_at` = NOW() WHERE `id` = 1");
         }
 
+        // Auto-create first deposit payment record
+        $initialDeposit = floatval($_POST['custom_deposit'] ?? 0);
+        if ($initialDeposit > 0) {
+            $DP = new DepositPayment(NULL);
+            $DP->rent_id = $rent_id;
+            $DP->amount = $initialDeposit;
+            $DP->payment_date = $_POST['rental_date'] ?? date('Y-m-d');
+            $DP->remark = 'Initial deposit';
+            $DP->create();
+        }
+
         echo json_encode(["status" => "success", "rent_id" => $rent_id, "bill_number" => $bill_number]);
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to create rent record"]);
@@ -449,7 +460,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0)
             ],
             "items" => $items,
-            "return_remarks" => $returnRemarks
+            "return_remarks" => $returnRemarks,
+            "deposit_payments" => DepositPayment::getByRentId($rent_id)
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
@@ -1517,6 +1529,88 @@ if (isset($_POST['filter_sub_equipment'])) {
         "recordsTotal" => intval($totalData),
         "recordsFiltered" => intval($filteredData),
         "data" => $data
+    ]);
+    exit;
+}
+
+// Add deposit payment
+if (isset($_POST['action']) && $_POST['action'] === 'add_deposit_payment') {
+    $rent_id = intval($_POST['rent_id'] ?? 0);
+    $amount = floatval($_POST['amount'] ?? 0);
+    $payment_date = $_POST['payment_date'] ?? date('Y-m-d');
+    $remark = trim($_POST['remark'] ?? '');
+
+    if (!$rent_id) {
+        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
+        exit;
+    }
+    if ($amount <= 0) {
+        echo json_encode(["status" => "error", "message" => "Amount must be greater than 0"]);
+        exit;
+    }
+
+    $DP = new DepositPayment(NULL);
+    $DP->rent_id = $rent_id;
+    $DP->amount = $amount;
+    $DP->payment_date = $payment_date;
+    $DP->remark = $remark;
+    $id = $DP->create();
+
+    if ($id) {
+        $newTotal = DepositPayment::syncDepositTotal($rent_id);
+        echo json_encode([
+            "status" => "success",
+            "message" => "Deposit payment added",
+            "deposit_total" => $newTotal,
+            "payments" => DepositPayment::getByRentId($rent_id)
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Failed to add deposit payment"]);
+    }
+    exit;
+}
+
+// Delete deposit payment
+if (isset($_POST['action']) && $_POST['action'] === 'delete_deposit_payment') {
+    $payment_id = intval($_POST['payment_id'] ?? 0);
+
+    if (!$payment_id) {
+        echo json_encode(["status" => "error", "message" => "Payment ID required"]);
+        exit;
+    }
+
+    $DP = new DepositPayment($payment_id);
+    if (!$DP->id) {
+        echo json_encode(["status" => "error", "message" => "Payment not found"]);
+        exit;
+    }
+
+    $rent_id = $DP->rent_id;
+    $DP->delete();
+    $newTotal = DepositPayment::syncDepositTotal($rent_id);
+
+    echo json_encode([
+        "status" => "success",
+        "message" => "Deposit payment deleted",
+        "deposit_total" => $newTotal,
+        "payments" => DepositPayment::getByRentId($rent_id)
+    ]);
+    exit;
+}
+
+// Get deposit payments for a rent
+if (isset($_POST['action']) && $_POST['action'] === 'get_deposit_payments') {
+    $rent_id = intval($_POST['rent_id'] ?? 0);
+
+    if (!$rent_id) {
+        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
+        exit;
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "deposit_total" => DepositPayment::getTotalByRentId($rent_id),
+        "payments" => DepositPayment::getByRentId($rent_id)
     ]);
     exit;
 }
