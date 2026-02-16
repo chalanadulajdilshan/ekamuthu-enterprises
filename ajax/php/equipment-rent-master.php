@@ -393,6 +393,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $paidData = mysqli_fetch_assoc($paidResult);
         $totalCustomerPaid = floatval($paidData['total_customer_paid'] ?? 0);
 
+        // Get total company outstanding (partial refund owed) across all returns for this rent
+        $companyOutQuery = "SELECT COALESCE(SUM(err.company_outstanding), 0) as total_company_outstanding,
+                                   COALESCE(SUM(err.company_refund_paid), 0) as total_company_refund_paid
+                            FROM equipment_rent_returns err
+                            INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                            WHERE eri.rent_id = $rent_id";
+        $companyOutResult = $db->readQuery($companyOutQuery);
+        $companyOutData = mysqli_fetch_assoc($companyOutResult);
+        $totalCompanyOutstanding = floatval($companyOutData['total_company_outstanding'] ?? 0);
+        $totalCompanyRefundPaid = floatval($companyOutData['total_company_refund_paid'] ?? 0);
+
         // Collect distinct remarks saved with returns (most recent first)
         $remarkQuery = "SELECT DISTINCT TRIM(err.remark) AS remark
                         FROM equipment_rent_returns err
@@ -457,7 +468,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "bank_reference" => $EQUIPMENT_RENT->bank_reference,
                 "total_items" => $EQUIPMENT_RENT->total_items,
                 "total_customer_paid" => $totalCustomerPaid,
-                "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0)
+                "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0),
+                "total_company_refund_paid" => $totalCompanyRefundPaid,
+                "total_company_outstanding" => $totalCompanyOutstanding
             ],
             "items" => $items,
             "return_remarks" => $returnRemarks,
@@ -809,6 +822,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         $totalCustomerPaid = isset($_POST['customer_paid']) ? floatval($_POST['customer_paid']) : 0;
         $totalAdditionalPayment = $totals['additional_payment'];
 
+        // Handle company_refund_paid for partial refund scenarios
+        $totalCompanyRefundPaid = isset($_POST['company_refund_paid']) ? floatval($_POST['company_refund_paid']) : 0;
+        $totalRefundAmount = $totals['refund_amount'];
+        // If no partial refund specified but there is a refund, assume full refund paid
+        if ($totalRefundAmount > 0 && $totalCompanyRefundPaid <= 0) {
+            $totalCompanyRefundPaid = $totalRefundAmount;
+        }
+
         foreach ($itemCalculations as $entry) {
             $item = $entry['item'];
             $pendingQty = $entry['pendingQty'];
@@ -849,6 +870,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             } else {
                 $RETURN->customer_paid = 0;
                 $RETURN->outstanding_amount = 0;
+            }
+            // Distribute company refund paid proportionally across items
+            if ($totalRefundAmount > 0 && $itemRefund > 0) {
+                $refundPaidShare = ($itemRefund / $totalRefundAmount) * $totalCompanyRefundPaid;
+                $RETURN->company_refund_paid = round($refundPaidShare, 2);
+                $RETURN->company_outstanding = round(max(0, $itemRefund - $refundPaidShare), 2);
+            } else {
+                $RETURN->company_refund_paid = 0;
+                $RETURN->company_outstanding = 0;
             }
             $RETURN->remark = !empty($returnRemark)
                 ? $returnRemark
@@ -1611,6 +1641,76 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_deposit_payments') {
         "status" => "success",
         "deposit_total" => DepositPayment::getTotalByRentId($rent_id),
         "payments" => DepositPayment::getByRentId($rent_id)
+    ]);
+    exit;
+}
+
+// Settle company refund outstanding
+if (isset($_POST['action']) && $_POST['action'] === 'settle_company_refund') {
+    $rent_id = intval($_POST['rent_id'] ?? 0);
+    $amount = floatval($_POST['amount'] ?? 0);
+
+    if (!$rent_id || $amount <= 0) {
+        echo json_encode(["status" => "error", "message" => "Invalid rent ID or amount"]);
+        exit;
+    }
+
+    $db = Database::getInstance();
+
+    // Get all return records with company_outstanding > 0 for this rent
+    $query = "SELECT err.id, err.company_outstanding
+              FROM equipment_rent_returns err
+              INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+              WHERE eri.rent_id = $rent_id AND err.company_outstanding > 0
+              ORDER BY err.id ASC";
+    $result = $db->readQuery($query);
+    
+    $records = [];
+    $totalOutstanding = 0;
+    while ($row = mysqli_fetch_assoc($result)) {
+        $records[] = $row;
+        $totalOutstanding += floatval($row['company_outstanding']);
+    }
+
+    if (empty($records) || $totalOutstanding <= 0) {
+        echo json_encode(["status" => "error", "message" => "No company outstanding to settle"]);
+        exit;
+    }
+
+    if ($amount > $totalOutstanding) {
+        echo json_encode(["status" => "error", "message" => "Amount exceeds total company outstanding (Rs. " . number_format($totalOutstanding, 2) . ")"]);
+        exit;
+    }
+
+    // Distribute payment proportionally across records
+    $remaining = $amount;
+    foreach ($records as $rec) {
+        if ($remaining <= 0) break;
+        $recordOutstanding = floatval($rec['company_outstanding']);
+        $share = min($remaining, $recordOutstanding);
+        
+        $RETURN = new EquipmentRentReturn($rec['id']);
+        $settleResult = $RETURN->settleCompanyRefund($share);
+        
+        if (isset($settleResult['error']) && $settleResult['error']) {
+            echo json_encode(["status" => "error", "message" => $settleResult['message']]);
+            exit;
+        }
+        $remaining -= $share;
+    }
+
+    // Get new totals
+    $newQuery = "SELECT COALESCE(SUM(err.company_outstanding), 0) as total_company_outstanding
+                 FROM equipment_rent_returns err
+                 INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                 WHERE eri.rent_id = $rent_id";
+    $newResult = mysqli_fetch_assoc($db->readQuery($newQuery));
+    $newTotal = floatval($newResult['total_company_outstanding'] ?? 0);
+
+    echo json_encode([
+        "status" => "success",
+        "message" => "Company refund settled successfully",
+        "new_company_outstanding" => $newTotal
     ]);
     exit;
 }

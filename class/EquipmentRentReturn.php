@@ -21,6 +21,8 @@ class EquipmentRentReturn
     public $additional_payment;
     public $customer_paid;
     public $outstanding_amount;
+    public $company_refund_paid;
+    public $company_outstanding;
     public $remark;
     public $created_by;
     public $created_at;
@@ -53,6 +55,8 @@ class EquipmentRentReturn
                 $this->additional_payment = $result['additional_payment'];
                 $this->customer_paid = $result['customer_paid'] ?? 0;
                 $this->outstanding_amount = $result['outstanding_amount'] ?? 0;
+                $this->company_refund_paid = $result['company_refund_paid'] ?? 0;
+                $this->company_outstanding = $result['company_outstanding'] ?? 0;
                 $this->remark = $result['remark'];
                 $this->created_by = $result['created_by'];
                 $this->created_at = $result['created_at'];
@@ -73,6 +77,7 @@ class EquipmentRentReturn
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
             `rental_override`,
             `settle_amount`, `refund_amount`, `additional_payment`, `customer_paid`, `outstanding_amount`,
+            `company_refund_paid`, `company_outstanding`,
             `remark`, `created_by`, `created_at`
         ) VALUES (
             '$this->rent_item_id', '$this->return_date', " .
@@ -85,6 +90,7 @@ class EquipmentRentReturn
             $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
             '$this->additional_payment', '$this->customer_paid', '$this->outstanding_amount',
+            '" . floatval($this->company_refund_paid ?? 0) . "', '" . floatval($this->company_outstanding ?? 0) . "',
             '$this->remark', " . 
             (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . ",
             '$now'
@@ -135,6 +141,8 @@ class EquipmentRentReturn
             `additional_payment` = '$this->additional_payment',
             `customer_paid` = '$this->customer_paid',
             `outstanding_amount` = '$this->outstanding_amount',
+            `company_refund_paid` = '" . floatval($this->company_refund_paid ?? 0) . "',
+            `company_outstanding` = '" . floatval($this->company_outstanding ?? 0) . "',
             `remark` = '$this->remark',
             `updated_at` = '$now'
             WHERE `id` = '$this->id'";
@@ -383,6 +391,52 @@ class EquipmentRentReturn
             // Log payment (optional/future: insert into payment_receipts if we were using that system fully)
             
             return ['error' => false, 'new_outstanding' => $newOutstanding];
+        }
+
+        return ['error' => true, 'message' => 'Database update failed'];
+    }
+
+    /**
+     * Settle company refund outstanding — record additional refund paid to customer.
+     * Increases company_refund_paid, decreases company_outstanding.
+     */
+    public function settleCompanyRefund($amount)
+    {
+        $db = Database::getInstance();
+        $amount = floatval($amount);
+        
+        if ($amount <= 0) {
+            return ['error' => true, 'message' => 'Invalid amount'];
+        }
+
+        // Re-fetch current state
+        $query = "SELECT * FROM `equipment_rent_returns` WHERE `id` = " . (int)$this->id;
+        $current = mysqli_fetch_assoc($db->readQuery($query));
+
+        if (!$current) {
+            return ['error' => true, 'message' => 'Return record not found'];
+        }
+
+        $currentCompanyOutstanding = floatval($current['company_outstanding']);
+        $currentCompanyRefundPaid = floatval($current['company_refund_paid']);
+
+        if ($amount > $currentCompanyOutstanding) {
+            return ['error' => true, 'message' => 'Amount exceeds company outstanding balance'];
+        }
+
+        $newOutstanding = $currentCompanyOutstanding - $amount;
+        $newPaid = $currentCompanyRefundPaid + $amount;
+
+        $updateQuery = "UPDATE `equipment_rent_returns` SET 
+                        `company_outstanding` = '$newOutstanding',
+                        `company_refund_paid` = '$newPaid'
+                        WHERE `id` = " . (int)$this->id;
+        
+        if ($db->readQuery($updateQuery)) {
+            $this->company_outstanding = $newOutstanding;
+            $this->company_refund_paid = $newPaid;
+            
+            return ['error' => false, 'new_company_outstanding' => $newOutstanding];
         }
 
         return ['error' => true, 'message' => 'Database update failed'];
