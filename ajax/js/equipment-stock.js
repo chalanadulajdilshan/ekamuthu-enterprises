@@ -54,7 +54,7 @@ jQuery(document).ready(function () {
                 data: "value",
                 title: "Value",
                 render: function (data) {
-                    return data || "0.00";
+                    return parseFloat(data || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
             },
 
@@ -63,7 +63,7 @@ jQuery(document).ready(function () {
                 data: "quantity",
                 title: "Quantity",
                 render: function (data) {
-                    return data || "0";
+                    return parseFloat(data || 0).toLocaleString('en-US');
                 },
             },
         ],
