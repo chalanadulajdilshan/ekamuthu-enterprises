@@ -53,6 +53,7 @@ include 'auth.php';
                                         </div>
                                         <div class="col-md-4 d-flex align-items-end">
                                             <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> Generate Report</button>
+                                            <button id="printBtn" class="btn btn-success ms-2"><i class="uil uil-print"></i> Print Report</button>
                                         </div>
                                     </div>
 

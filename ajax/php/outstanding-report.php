@@ -52,8 +52,8 @@ if ($action === 'get_outstanding_report') {
 
         $balance = $totalOutstanding;
 
-        // Show if there is any activity (Rent > 0) or explicit outstanding
-        if ($totalRent > 0 || $totalPaid > 0 || $balance > 0) {
+        // Show the customer only when they currently have an outstanding balance
+        if ($balance > 0) {
             $data[] = [
                 'customer_name' => $row['name'],
                 'total_rent' => number_format($totalRent, 2),

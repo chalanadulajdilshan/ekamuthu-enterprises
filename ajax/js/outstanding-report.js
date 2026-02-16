@@ -7,6 +7,16 @@ $(document).ready(function () {
         loadReport();
     });
 
+    // Print Report
+    $('#printBtn').click(function() {
+        var customerId = $('#customer_id').val();
+        var url = 'print-outstanding-report.php';
+        if (customerId) {
+            url += '?customer_id=' + customerId;
+        }
+        window.open(url, '_blank');
+    });
+
     // Clear Customer
     $('#clearCustomer').click(function() {
         $('#customer_code').val('');
