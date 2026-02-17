@@ -71,8 +71,11 @@ $EQUIPMENT = new Equipment(NULL);
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-end mb-3">
-                                        <div class="form-check form-switch form-switch-lg" dir="ltr">
+                                    <div class="d-flex justify-content-end mb-3 align-items-center">
+                                        <button class="btn btn-secondary me-3" id="printStockBtn">
+                                            <i class="uil uil-print me-1"></i> Print Stock
+                                        </button>
+                                        <div class="form-check form-switch form-switch-lg mb-0" dir="ltr">
                                             <input class="form-check-input" type="checkbox" id="searchSubOnly">
                                             <label class="form-check-label fw-bold ps-2 mb-0 align-middle" for="searchSubOnly">Search Sub Equipment Only</label>
                                         </div>
@@ -87,6 +90,7 @@ $EQUIPMENT = new Equipment(NULL);
                                                     <th>Code</th>
                                                     <th>Item Name</th>
                                                     <th>Category</th>
+                                                    <th>Department</th>
                                                     <th>Serial Number</th>
                                                     <th>Size</th>
                                                     <th>Value</th>
