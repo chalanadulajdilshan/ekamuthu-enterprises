@@ -676,6 +676,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $extraChargeTotal = isset($_POST['extra_charge_amount']) && $_POST['extra_charge_amount'] !== ''
         ? max(0, floatval($_POST['extra_charge_amount']))
         : 0;
+    $repairCost = isset($_POST['repair_cost']) && $_POST['repair_cost'] !== ''
+        ? max(0, floatval($_POST['repair_cost']))
+        : 0;
     $returnRemark = isset($_POST['return_remark'])
         ? trim($_POST['return_remark'])
         : '';
@@ -704,6 +707,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             'damage_amount' => 0,
             'penalty_amount' => 0,
             'extra_charge_amount' => 0,
+            'repair_cost' => 0,
             'settle_amount' => 0,
             'refund_amount' => 0,
             'additional_payment' => 0,
@@ -810,6 +814,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 
         // Allocate extra charge proportionally to each item's raw charge
         $totals['extra_charge_amount'] = round($extraChargeTotal, 2);
+        $totals['repair_cost'] = round($repairCost, 2);
         $totalRawChargesWithExtra = $totalRawCharges + $extraChargeTotal;
         foreach ($itemCalculations as &$entry) {
             $itemShare = $totalRawCharges > 0
@@ -821,7 +826,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         unset($entry);
 
         // Apply customer deposit ONCE to get correct net settlement
-        $totals['settle_amount'] = $totalRawChargesWithExtra - $remainingDeposit;
+        // Repair cost is a CHARGE to customer
+        $totals['settle_amount'] = ($totalRawChargesWithExtra + $totals['repair_cost']) - $remainingDeposit;
         if ($totals['settle_amount'] < 0) {
             $totals['refund_amount'] = abs($totals['settle_amount']);
             $totals['additional_payment'] = 0;
@@ -855,11 +861,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $calculation = $entry['calculation'];
             $rawCharge = $entry['raw_charge_with_extra'] ?? ($entry['raw_charge'] + ($entry['extra_charge_share'] ?? 0));
 
+            // Distribute repair cost proportionally based on raw charge
+            $repairShare = ($totalRawChargesWithExtra > 0)
+                ? ($rawCharge / $totalRawChargesWithExtra) * $repairCost
+                : ($repairCost > 0 ? $repairCost / count($itemCalculations) : 0);
+
             // Distribute the deposit proportionally across items based on their raw charge
             $itemDepositShare = ($totalRawChargesWithExtra > 0)
                 ? ($rawCharge / $totalRawChargesWithExtra) * $remainingDeposit
                 : 0;
-            $itemSettle = $rawCharge - $itemDepositShare;
+            
+            // Repair cost is a CHARGE, so add it
+            $itemSettle = ($rawCharge + $repairShare) - $itemDepositShare;
             $itemRefund = $itemSettle < 0 ? abs($itemSettle) : 0;
             $itemAdditional = $itemSettle > 0 ? $itemSettle : 0;
 
@@ -875,6 +888,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
             $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
             $RETURN->extra_charge_amount = round($entry['extra_charge_share'] ?? 0, 2);
+            $RETURN->repair_cost = round($repairShare, 2);
             // Store the rental override for this item (null if no override was used)
             $RETURN->rental_override = isset($rentalOverridePerItem[$item['id']]) 
                 ? $rentalOverridePerItem[$item['id']] 
@@ -1433,7 +1447,7 @@ if (isset($_POST['filter_equipment'])) {
             "size" => $row['size'],
             "value" => $row['value'],
             "total_sub" => $row['total_sub'],
-            "total_sub" => $row['total_sub'],
+
             "available_sub" => $row['available_sub'],
             "global_available_qty" => SubEquipment::getGlobalAvailableStock($row['id'], $row['no_sub_items'] == 1),
             "rented_qty" => $row['rented_qty'],

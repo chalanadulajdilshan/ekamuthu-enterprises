@@ -2161,7 +2161,7 @@ jQuery(document).ready(function () {
   // Calculate return all preview when inputs change (with server-side preview)
   var returnAllPreviewTimer = null;
   $(
-    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override, #return_all_extra_charge",
+    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override, #return_all_extra_charge, #return_all_repair_cost",
   ).on("change input", function () {
     // Debounce to avoid rapid-fire AJAX calls from datepicker events
     clearTimeout(returnAllPreviewTimer);
@@ -2179,7 +2179,10 @@ jQuery(document).ready(function () {
     var rentalOverride =
       rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
     var extraChargeInput = $("#return_all_extra_charge").val();
-    var extraCharge = extraChargeInput === "" ? 0 : parseFloat(extraChargeInput);
+    var extraCharge =
+      extraChargeInput === "" ? 0 : parseFloat(extraChargeInput);
+    var repairCostInput = $("#return_all_repair_cost").val();
+    var repairCost = repairCostInput === "" ? 0 : parseFloat(repairCostInput);
 
     if (!rentId || !returnDate || !returnTime) {
       $("#returnAllPreview").hide();
@@ -2216,6 +2219,7 @@ jQuery(document).ready(function () {
         after_9am_extra_day: after9am,
         rental_override: rentalOverride,
         extra_charge_amount: extraCharge,
+        repair_cost: repairCost,
       },
       dataType: "json",
       success: function (res) {
@@ -2259,6 +2263,11 @@ jQuery(document).ready(function () {
         if (Number(calc.extra_charge_amount || 0) > 0) {
           settlement.push(
             "Extra Charge: Rs. " + Number(calc.extra_charge_amount).toFixed(2),
+          );
+        }
+        if (Number(calc.repair_cost || 0) > 0) {
+          settlement.push(
+            "Repair Cost: Rs. " + Number(calc.repair_cost).toFixed(2),
           );
         }
         settlement.push(
@@ -2462,6 +2471,7 @@ jQuery(document).ready(function () {
         rental_override: rentalOverride,
         extra_charge_amount:
           parseFloat($("#return_all_extra_charge").val()) || 0,
+        repair_cost: parseFloat($("#return_all_repair_cost").val()) || 0,
         customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
         company_refund_paid:
           parseFloat($("#return_all_company_refund_paid").val()) || 0,
@@ -2500,6 +2510,11 @@ jQuery(document).ready(function () {
               summaryLines.push(
                 "Extra Charge: Rs. " +
                   Number(calc.extra_charge_amount).toFixed(2),
+              );
+            }
+            if (Number(calc.repair_cost || 0) > 0) {
+              summaryLines.push(
+                "Repair Cost: Rs. " + Number(calc.repair_cost).toFixed(2),
               );
             }
             summaryLines.push(

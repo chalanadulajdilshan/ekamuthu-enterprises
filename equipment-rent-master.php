@@ -1009,6 +1009,16 @@ $bill_number = $lastId + 1;
                         </div>
 
                         <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="return_all_repair_cost" class="form-label">Repair Cost</label>
+                                    <input type="number" min="0" step="0.01" class="form-control" id="return_all_repair_cost" placeholder="Enter repair cost (if any)">
+                                    <small class="text-muted text-danger">This amount will be deducted from the total.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
                                     <div class="form-check">
