@@ -16,6 +16,7 @@ class EquipmentRentReturn
     public $penalty_percentage;
     public $penalty_amount;
     public $extra_charge_amount;
+    public $repair_cost;
     public $rental_override;
     public $settle_amount;
     public $refund_amount;
@@ -51,6 +52,7 @@ class EquipmentRentReturn
                 $this->penalty_percentage = $result['penalty_percentage'] ?? 0;
                 $this->penalty_amount = $result['penalty_amount'] ?? 0;
                 $this->extra_charge_amount = $result['extra_charge_amount'] ?? 0;
+                $this->repair_cost = $result['repair_cost'] ?? 0;
                 $this->rental_override = $result['rental_override'] ?? null;
                 $this->settle_amount = $result['settle_amount'];
                 $this->refund_amount = $result['refund_amount'];
@@ -77,7 +79,7 @@ class EquipmentRentReturn
             `rent_item_id`, `return_date`, `return_time`, `return_qty`, `damage_amount`, 
             `damage_refunded`, `damage_refund_date`, `damage_refund_time`,
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
-            `extra_charge_amount`, `rental_override`,
+            `extra_charge_amount`, `repair_cost`, `rental_override`,
             `settle_amount`, `refund_amount`, `additional_payment`, `customer_paid`, `outstanding_amount`,
             `company_refund_paid`, `company_outstanding`,
             `remark`, `created_by`, `created_at`
@@ -89,7 +91,7 @@ class EquipmentRentReturn
             ($this->damage_refund_time ? "'{$this->damage_refund_time}'" : "NULL") . ",
             '$this->after_9am_extra_day', '$this->extra_day_amount',
             '$this->penalty_percentage', '$this->penalty_amount',
-            '" . floatval($this->extra_charge_amount ?? 0) . "',
+            '" . floatval($this->extra_charge_amount ?? 0) . "', '" . floatval($this->repair_cost ?? 0) . "',
             $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
             '$this->additional_payment', '$this->customer_paid', '$this->outstanding_amount',
@@ -139,6 +141,7 @@ class EquipmentRentReturn
             `penalty_percentage` = '$this->penalty_percentage',
             `penalty_amount` = '$this->penalty_amount',
             `extra_charge_amount` = '" . floatval($this->extra_charge_amount ?? 0) . "',
+            `repair_cost` = '" . floatval($this->repair_cost ?? 0) . "',
             `rental_override` = $rentalOverrideSql,
             `settle_amount` = '$this->settle_amount',
             `refund_amount` = '$this->refund_amount',
@@ -673,8 +676,10 @@ class EquipmentRentReturn
             $extraDayAmount = floatval($row['extra_day_amount'] ?? 0);
             $penaltyAmount = floatval($row['penalty_amount'] ?? 0);
             $extraChargeAmount = floatval($row['extra_charge_amount'] ?? 0);
+            $repairCost = floatval($row['repair_cost'] ?? 0);
             $penaltyPercentage = floatval($row['penalty_percentage'] ?? 0);
-            $settleCalc = ($rentalAmount + $extraDayAmount + $damageAmount + $penaltyAmount + $extraChargeAmount) - $depositForReturn;
+            // Repair cost is a CHARGE, so it adds to the settlement (customer owes more / gets less refund)
+            $settleCalc = ($rentalAmount + $extraDayAmount + $damageAmount + $penaltyAmount + $extraChargeAmount + $repairCost) - $depositForReturn;
             $additionalPayment = $settleCalc > 0 ? $settleCalc : 0;
             $refundAmount = $settleCalc < 0 ? abs($settleCalc) : 0;
 
@@ -686,6 +691,7 @@ class EquipmentRentReturn
             $row['extra_day_amount'] = round($extraDayAmount, 2);
             $row['penalty_amount'] = round($penaltyAmount, 2);
             $row['extra_charge_amount'] = round($extraChargeAmount, 2);
+            $row['repair_cost'] = round($repairCost, 2);
             $row['penalty_percentage'] = round($penaltyPercentage, 2);
 
             $returns[] = $row;

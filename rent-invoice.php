@@ -99,6 +99,7 @@ $chargesQuery = "SELECT COALESCE(SUM(
                         + COALESCE(err.damage_amount, 0)
                         + COALESCE(err.penalty_amount, 0)
                         + COALESCE(err.extra_charge_amount, 0)
+                        + COALESCE(err.repair_cost, 0)
                     ), 0) as total_charges
                     FROM equipment_rent_returns err
                     INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
@@ -112,9 +113,11 @@ $refund_balance = $total_deposit - $total_charges;
 // Calculate total customer paid across all returns
 $total_customer_paid = 0;
 $total_extra_charges = 0;
+$total_repair_cost = 0;
 foreach ($return_rows as $rr) {
     $total_customer_paid += floatval($rr['customer_paid'] ?? 0);
     $total_extra_charges += floatval($rr['extra_charge_amount'] ?? 0);
+    $total_repair_cost += floatval($rr['repair_cost'] ?? 0);
 }
 
 // Calculate net amount and outstanding
@@ -431,12 +434,18 @@ if (!empty($customerMobile)) {
                                 <td class="summary-label">Total Rent Amount:</td>
                                 <td class="summary-value"><?php echo number_format($hire_amount + $transport_amount + $total_extra_charges, 2); ?></td>
                             </tr>
+                            <?php if ($total_repair_cost > 0): ?>
+                            <tr>
+                                <td class="summary-label">Repair Charges:</td>
+                                <td class="summary-value"><?php echo number_format($total_repair_cost, 2); ?></td>
+                            </tr>
+                            <?php endif; ?>
                             <tr>
                                 <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල (Customer Paid):</td>
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">පාරිභෝගික අයවැය (Customer Refund Balance):</td>
+                                <td class="summary-label">Pay to Customer (Customer Refund Balance):</td>
                                 <td class="summary-value">
                                     <?php echo number_format($refund_balance, 2); ?>
                                     <?php if ($refund_balance < 0): ?>
