@@ -585,7 +585,9 @@ jQuery(document).ready(function () {
       parseFloat(currentDepositOneDay || 0) *
       parseFloat($("#item_qty").val() || 1);
     $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
-    $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+    if (!isEditingExistingRent) {
+      $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+    }
 
     // Auto-fill custom deposit if it's empty or matches previous calculation
     // var currentCustom = parseFloat($("#custom_deposit").val()) || 0;
@@ -790,7 +792,9 @@ jQuery(document).ready(function () {
       parseFloat(removedItem.quantity || 1);
     if (totalCalculatedDeposit < 0) totalCalculatedDeposit = 0;
     $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
-    $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+    if (!isEditingExistingRent) {
+      $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+    }
 
     rentItems.splice(index, 1);
     updateItemsTable();
