@@ -46,6 +46,13 @@ jQuery(document).ready(function () {
                 },
             },
             {
+                data: "department_name",
+                title: "Department",
+                render: function (data) {
+                    return data || "-";
+                },
+            },
+            {
                 data: "serial_number",
                 title: "Serial Number",
                 render: function (data) {
@@ -114,6 +121,142 @@ jQuery(document).ready(function () {
     $("#searchSubOnly").on("change", function () {
         table.ajax.reload();
     });
+
+    // Print Stock Button Handler
+    $("#printStockBtn").click(function () {
+        var searchTerm = table.search();
+        var isSubSearch = $("#searchSubOnly").is(":checked");
+
+        var btn = $(this);
+        var originalText = btn.html();
+        btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Generating...');
+        btn.prop('disabled', true);
+
+        $.ajax({
+            url: "ajax/php/equipment-master.php",
+            type: "POST",
+            dataType: "json",
+            data: {
+                action: "print_stock",
+                search: searchTerm,
+                search_sub_only: isSubSearch
+            },
+            success: function (resp) {
+                if (resp && resp.status === "success") {
+                    printStockReport(resp.data);
+                } else {
+                    alert("Failed to load data for printing.");
+                }
+            },
+            error: function () {
+                alert("Server error during print generation.");
+            },
+            complete: function () {
+                btn.html(originalText);
+                btn.prop('disabled', false);
+            }
+        });
+    });
+
+    function printStockReport(data) {
+        var d = new Date();
+        var dateStr = d.getFullYear() + "-" + (d.getMonth() + 1).toString().padStart(2, '0') + "-" + d.getDate().toString().padStart(2, '0') + " " + d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+
+        var html = '<html><head><title>Equipment Stock Report</title>';
+        html += '<style>';
+        html += '@page { margin: 20px; }';
+        html += 'body { font-family: Arial, sans-serif; font-size: 12px; }';
+        html += 'table { width: 100%; border-collapse: collapse; margin-top: 20px; }';
+        html += 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }';
+        html += 'th { background-color: #f2f2f2; font-weight: bold; }';
+        html += '.text-end { text-align: right; }';
+        html += '.header { text-align: center; margin-bottom: 20px; }';
+        html += '</style>';
+        html += '</head><body>';
+
+        html += '<div class="header">';
+        html += '<h2>Equipment Stock Report</h2>';
+        html += '<p>Generated on: ' + dateStr + '</p>';
+        html += '</div>';
+
+        html += '<table>';
+        html += '<thead><tr>';
+        html += '<th>Code</th><th>Item Name</th><th>Category</th><th>Department</th><th>Serial No</th><th>Size</th><th class="text-end">Value</th><th class="text-end">Qty</th>';
+        html += '</tr></thead><tbody>';
+
+        if (data.length > 0) {
+            var totalValue = 0;
+            var totalQty = 0;
+
+            $.each(data, function (i, item) {
+                var rentDay = parseFloat(item.rent_one_day || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                var rentMonth = parseFloat(item.rent_one_month || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                html += '<tr>';
+                html += '<td>' + (item.code || '-') + '</td>';
+                html += '<td><strong>' + (item.item_name || '-') + '</strong><br><small style="color:red; font-size:10px;">Day: ' + rentDay + ' | Month: ' + rentMonth + '</small></td>';
+                html += '<td>' + (item.category_label || '-') + '</td>';
+                html += '<td>' + (item.department_name || '-') + '</td>';
+                html += '<td>' + (item.serial_number || '-') + '</td>';
+                html += '<td>' + (item.size || '-') + '</td>';
+                html += '<td class="text-end">' + parseFloat(item.value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td>';
+                html += '<td class="text-end">' + parseFloat(item.quantity || 0).toLocaleString('en-US') + '</td>';
+                html += '</tr>';
+
+                totalValue += parseFloat(item.value || 0);
+                totalQty += parseFloat(item.quantity || 0);
+
+                // Render Sub Items
+                if (item.sub_items && item.sub_items.length > 0) {
+                    html += '<tr><td colspan="8" style="padding: 0;">';
+                    html += '<div style="padding: 5px 20px; background-color: #f8f9fa;">';
+                    html += '<table style="width: auto; border: 1px solid #dee2e6; margin-bottom: 5px; background-color: #fff;">';
+                    html += '<thead><tr>';
+                    html += '<th style="padding: 4px 8px; font-size: 11px; background-color: #e9ecef;">#</th>';
+                    html += '<th style="padding: 4px 8px; font-size: 11px; background-color: #e9ecef;">Sub Code</th>';
+                    html += '<th style="padding: 4px 8px; font-size: 11px; background-color: #e9ecef;">Status</th>';
+                    html += '</tr></thead><tbody>';
+
+                    $.each(item.sub_items, function (j, sub) {
+                        var statusColor = 'green';
+                        if ((sub.rental_status || '').toLowerCase() === 'rented') statusColor = 'blue';
+                        if ((sub.rental_status || '').toLowerCase() === 'damage') statusColor = 'red';
+                        if ((sub.rental_status || '').toLowerCase() === 'repair') statusColor = 'orange';
+
+                        html += '<tr>';
+                        html += '<td style="padding: 3px 8px; border: 1px solid #dee2e6; font-size: 11px;">' + (j + 1) + '</td>';
+                        html += '<td style="padding: 3px 8px; border: 1px solid #dee2e6; font-size: 11px;"><strong>' + sub.code + '</strong></td>';
+                        html += '<td style="padding: 3px 8px; border: 1px solid #dee2e6; font-size: 11px; color:' + statusColor + ';">' + (sub.rental_status || 'AVAILABLE').toUpperCase() + '</td>';
+                        html += '</tr>';
+                    });
+
+                    html += '</tbody></table>';
+                    html += '</div></td></tr>';
+                }
+            });
+
+            html += '<tfoot><tr style="background:#f9f9f9; font-weight:bold;">';
+            html += '<td colspan="5" class="text-end">Total</td>';
+            html += '<td class="text-end">' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td>';
+            html += '<td class="text-end">' + totalQty.toLocaleString('en-US') + '</td>';
+            html += '</tr></tfoot>';
+        } else {
+            html += '<tr><td colspan="8" style="text-align:center;">No records found</td></tr>';
+        }
+
+        html += '</tbody></table>';
+        html += '</body></html>';
+
+        var printWin = window.open('', '_blank');
+        printWin.document.write(html);
+        printWin.document.close();
+
+        setTimeout(function () {
+            printWin.focus(); // Necessary for some browsers
+            printWin.print();
+            printWin.close();
+        }, 250);
+    }
 
     // Make rows appear clickable
     $("#equipmentStockTable tbody").css("cursor", "pointer");

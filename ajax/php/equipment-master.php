@@ -230,6 +230,16 @@ if (isset($_POST['filter'])) {
             }
         }
 
+        // Get department name
+        $departmentName = '-';
+        if (!empty($row['department_id'])) {
+            $deptQuery = "SELECT name FROM department_master WHERE id = " . (int) $row['department_id'];
+            $deptResult = $db->readQuery($deptQuery);
+            if ($deptResult && $deptRow = mysqli_fetch_assoc($deptResult)) {
+                $departmentName = $deptRow['name'];
+            }
+        }
+
         $nestedData = [
             "key" => $key,
             "id" => $row['id'],
@@ -237,6 +247,7 @@ if (isset($_POST['filter'])) {
             "item_name" => $row['item_name'],
             "category" => $row['category'],
             "department_id" => $row['department_id'],
+            "department_name" => $departmentName,
             "category_label" => $categoryLabel,
             "serial_number" => $row['serial_number'],
             "damage" => $row['damage'],
@@ -269,6 +280,90 @@ if (isset($_POST['filter'])) {
         "draw" => intval($_REQUEST['draw'] ?? 1),
         "recordsTotal" => intval($totalData),
         "recordsFiltered" => intval($filteredData),
+        "data" => $data
+    ]);
+    exit;
+}
+
+// Print Stock Data (Fetch All)
+if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
+    $db = Database::getInstance();
+    
+    $search = $_POST['search'] ?? '';
+    $searchSubOnly = isset($_POST['search_sub_only']) && filter_var($_POST['search_sub_only'], FILTER_VALIDATE_BOOLEAN);
+
+    $where = "WHERE 1=1";
+    if (!empty($search)) {
+        if ($searchSubOnly) {
+            $where .= " AND EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = equipment.id AND se.code LIKE '%$search%')";
+        } else {
+            $where .= " AND (item_name LIKE '%$search%' OR code LIKE '%$search%' OR serial_number LIKE '%$search%' OR category LIKE '%$search%' OR damage LIKE '%$search%' OR size LIKE '%$search%')";
+        }
+    }
+
+    $sql = "SELECT * FROM equipment $where ORDER BY id DESC";
+    $result = $db->readQuery($sql);
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        // Get category name
+        $categoryLabel = $row['category'];
+        if (!empty($row['category'])) {
+            $catQuery = "SELECT name FROM equipment_category WHERE id = " . (int) $row['category'];
+            $catResult = $db->readQuery($catQuery);
+            if ($catResult && $catRow = mysqli_fetch_assoc($catResult)) {
+                $categoryLabel = $catRow['name'];
+            }
+        }
+
+        // Get department name
+        $departmentName = '-';
+        if (!empty($row['department_id'])) {
+            $deptQuery = "SELECT name FROM department_master WHERE id = " . (int) $row['department_id'];
+            $deptResult = $db->readQuery($deptQuery);
+            if ($deptResult && $deptRow = mysqli_fetch_assoc($deptResult)) {
+                $departmentName = $deptRow['name'];
+            }
+        }
+
+        // Get sub-equipment if exists
+        $subItems = [];
+        if ($row['no_sub_items'] == 0) {
+             // Only fetch if searching generally or if sub-search is causing this to appear
+             // If searchSubOnly is TRUE, we might only want to show the MATCHING sub items?
+             // But usually "print stock" means "print what I see" or "print full details".
+             // The user request "sub equpemnt also need show in bottom" implies full detail for the listed item.
+             // If I search for "S-001", main item appears. I should probably show all subs or just S-001?
+             // "show in bottom the main item". I will show ALL sub-items for the main item for completeness, 
+             // unless strict filtering is desired. Let's assume ALL sub-items for now for context.
+             
+             $subSql = "SELECT * FROM sub_equipment WHERE equipment_id = '" . $row['id'] . "' ORDER BY id ASC";
+             $subResult = $db->readQuery($subSql);
+             while ($subRow = mysqli_fetch_assoc($subResult)) {
+                 $subItems[] = [
+                     "code" => $subRow['code'],
+                     "rental_status" => $subRow['rental_status']
+                 ];
+             }
+        }
+
+        $data[] = [
+            "code" => $row['code'],
+            "item_name" => $row['item_name'],
+            "category_label" => $categoryLabel,
+            "department_name" => $departmentName,
+            "serial_number" => $row['serial_number'],
+            "size" => $row['size'],
+            "value" => $row['value'],
+            "quantity" => $row['quantity'],
+            "rent_one_day" => $row['rent_one_day'],
+            "rent_one_month" => $row['rent_one_month'],
+            "sub_items" => $subItems
+        ];
+    }
+
+    echo json_encode([
+        "status" => "success",
         "data" => $data
     ]);
     exit;
