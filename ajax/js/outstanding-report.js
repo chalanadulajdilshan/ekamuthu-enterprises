@@ -43,7 +43,11 @@ function loadReport() {
                 customer_id: customerId
             }
         },
+        "order": [[ 1, "desc" ]],
         "columns": [
+            { "data": "bill_number" },
+            { "data": "rental_date" },
+            { "data": "payment_type_name" },
             { "data": "customer_name" },
             { "data": "total_rent", "className": "text-end" },
             { "data": "total_paid", "className": "text-end" },
@@ -61,14 +65,19 @@ function loadReport() {
             };
 
             // Total over all pages
-            var totalRent = api.column(1).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
-            var totalPaid = api.column(2).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
-            var totalBalance = api.column(3).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
+            var totalRent = api.column(4).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
+            var totalPaid = api.column(5).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
+            var totalBalance = api.column(6).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
 
             // Update footer
-            $(api.column(1).footer()).html(totalRent.toFixed(2));
-            $(api.column(2).footer()).html(totalPaid.toFixed(2));
-            $(api.column(3).footer()).html(totalBalance.toFixed(2));
+            $(api.column(4).footer()).html(totalRent.toFixed(2));
+            $(api.column(5).footer()).html(totalPaid.toFixed(2));
+            $(api.column(6).footer()).html(totalBalance.toFixed(2));
+
+            // Update Top Summary Cards
+            $('#cardTotalRent').text('Rs. ' + totalRent.toFixed(2));
+            $('#cardTotalPaid').text('Rs. ' + totalPaid.toFixed(2));
+            $('#cardTotalBalance').text('Rs. ' + totalBalance.toFixed(2));
         }
     });
 }
