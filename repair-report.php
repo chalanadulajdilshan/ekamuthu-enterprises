@@ -226,7 +226,49 @@ include 'auth.php';
 
                 </div>
             </div>
-            <?php include 'footer.php' ?>
+    <!-- Job Details Modal -->
+    <div class="modal fade" id="jobDetailsModal" tabindex="-1" role="dialog" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="jobDetailsModalLabel">Repair Jobs Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-loader" class="text-center py-5" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive" id="modal-table-container">
+                        <table class="table table-striped table-hover table-bordered table-sm align-middle" id="jobDetailsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="3%">#</th>
+                                    <th width="10%">Job ID</th>
+                                    <th width="12%">Date</th>
+                                    <th width="15%">Customer</th>
+                                    <th width="20%">Machine</th>
+                                    <th width="20%">Problem</th>
+                                    <th width="10%">Status</th>
+                                    <th width="10%" class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printModal()">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php include 'footer.php' ?>
         </div>
     </div>
 
