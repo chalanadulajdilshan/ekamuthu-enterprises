@@ -6,67 +6,232 @@ $customerId = isset($_GET['customer_id']) && !empty($_GET['customer_id']) ? (int
 
 $db = Database::getInstance();
 
+$today = date('Y-m-d');
 $where = "WHERE 1=1";
 if ($customerId > 0) {
     $where .= " AND er.customer_id = $customerId";
 }
 
-// Get Outstanding Invoices
-$query = "SELECT 
-            er.id as rent_id,
-            er.bill_number,
-            er.rental_date,
-            cm.name as customer_name,
-            pt.name as payment_type_name,
-            SUM(err.outstanding_amount) as total_outstanding,
-            SUM(err.customer_paid) as total_paid_for_items
-          FROM `equipment_rent` er
-          LEFT JOIN `customer_master` cm ON er.customer_id = cm.id
-          LEFT JOIN `payment_type` pt ON er.payment_type_id = pt.id
-          INNER JOIN `equipment_rent_items` eri ON er.id = eri.rent_id
-          INNER JOIN `equipment_rent_returns` err ON eri.id = err.rent_item_id
-          $where
-          GROUP BY er.id
-          HAVING total_outstanding > 0
-          ORDER BY er.rental_date DESC";
+$customerFilterName = '';
+$rentSummary = [];
 
-$result = $db->readQuery($query);
+$ensureSummary = function (&$rentSummary, $row) use (&$customerFilterName, $customerId) {
+    $rentId = (int)$row['rent_id'];
+    if (!isset($rentSummary[$rentId])) {
+        $rentSummary[$rentId] = [
+            'bill_number' => $row['bill_number'],
+            'rental_date' => $row['rental_date'],
+            'customer_name' => $row['customer_name'],
+            'payment_type_name' => $row['payment_type_name'] ?? 'N/A',
+            'rent_status' => $row['rent_status'] ?? '',
+            'recorded_outstanding' => 0,
+            'recorded_paid' => 0,
+            'projected_outstanding' => 0,
+            'recorded_details' => [],
+            'payments' => []
+        ];
+    }
 
+    if ($customerId > 0 && empty($customerFilterName) && !empty($row['customer_name'])) {
+        $customerFilterName = $row['customer_name'];
+    }
+
+    return $rentId;
+};
+
+// Recorded outstanding (from processed returns)
+$recordedSql = "SELECT 
+                    er.id as rent_id,
+                    er.bill_number,
+                    er.rental_date,
+                    cm.name as customer_name,
+                    pt.name as payment_type_name,
+                    er.status as rent_status,
+                    SUM(err.outstanding_amount) as total_outstanding,
+                    SUM(err.customer_paid) as total_paid_for_items
+                FROM `equipment_rent` er
+                LEFT JOIN `customer_master` cm ON er.customer_id = cm.id
+                LEFT JOIN `payment_type` pt ON er.payment_type_id = pt.id
+                INNER JOIN `equipment_rent_items` eri ON er.id = eri.rent_id
+                INNER JOIN `equipment_rent_returns` err ON eri.id = err.rent_item_id
+                $where
+                GROUP BY er.id
+                HAVING total_outstanding > 0";
+
+$recordedResult = $db->readQuery($recordedSql);
+if ($recordedResult) {
+    while ($row = mysqli_fetch_assoc($recordedResult)) {
+        $rentId = $ensureSummary($rentSummary, $row);
+        $rentSummary[$rentId]['recorded_outstanding'] = floatval($row['total_outstanding'] ?? 0);
+        $rentSummary[$rentId]['recorded_paid'] = floatval($row['total_paid_for_items'] ?? 0);
+    }
+}
+
+// Projected outstanding (items not yet returned)
+$projectedSql = "SELECT 
+                    er.id as rent_id,
+                    er.bill_number,
+                    er.rental_date,
+                    cm.name as customer_name,
+                    pt.name as payment_type_name,
+                    er.status as rent_status,
+                    (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
+                    GREATEST(0, DATEDIFF('$today', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY))) AS overdue_days,
+                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily
+                FROM equipment_rent_items eri
+                INNER JOIN equipment_rent er ON eri.rent_id = er.id
+                LEFT JOIN customer_master cm ON er.customer_id = cm.id
+                LEFT JOIN payment_type pt ON er.payment_type_id = pt.id
+                $where";
+
+$projectedResult = $db->readQuery($projectedSql);
+if ($projectedResult) {
+    while ($row = mysqli_fetch_assoc($projectedResult)) {
+        $pendingQty = max(0, (float)$row['pending_qty']);
+        $overdueDays = max(0, (int)$row['overdue_days']);
+        if ($pendingQty <= 0 || $overdueDays <= 0) {
+            continue;
+        }
+
+        $perUnitDaily = floatval($row['per_unit_daily']);
+        $projectedAmount = round($pendingQty * $overdueDays * $perUnitDaily, 2);
+        if ($projectedAmount <= 0) {
+            continue;
+        }
+
+        $rentId = $ensureSummary($rentSummary, $row);
+        $rentSummary[$rentId]['projected_outstanding'] += $projectedAmount;
+    }
+}
+
+$rentIds = array_keys($rentSummary);
+if (!empty($rentIds)) {
+    $rentIdList = implode(',', array_map('intval', $rentIds));
+
+    // Recorded outstanding breakdown per return
+    $detailsSql = "SELECT 
+                        er.id AS rent_id,
+                        err.return_date,
+                        err.outstanding_amount,
+                        err.customer_paid,
+                        err.additional_payment,
+                        err.remark,
+                        e.item_name,
+                        e.code AS equipment_code,
+                        se.code AS sub_equipment_code
+                    FROM equipment_rent_returns err
+                    INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                    INNER JOIN equipment_rent er ON eri.rent_id = er.id
+                    LEFT JOIN equipment e ON eri.equipment_id = e.id
+                    LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
+                    WHERE er.id IN ($rentIdList)
+                    ORDER BY err.return_date ASC, err.id ASC";
+
+    $detailsResult = $db->readQuery($detailsSql);
+    if ($detailsResult) {
+        while ($dRow = mysqli_fetch_assoc($detailsResult)) {
+            $rentId = (int)$dRow['rent_id'];
+            if (!isset($rentSummary[$rentId])) {
+                continue;
+            }
+
+            $rentSummary[$rentId]['recorded_details'][] = [
+                'return_date' => $dRow['return_date'],
+                'item' => trim(($dRow['equipment_code'] ?? '') . ' ' . ($dRow['item_name'] ?? '')),
+                'sub_equipment' => $dRow['sub_equipment_code'] ?? '',
+                'outstanding_amount' => floatval($dRow['outstanding_amount'] ?? 0),
+                'customer_paid' => floatval($dRow['customer_paid'] ?? 0),
+                'additional_payment' => floatval($dRow['additional_payment'] ?? 0),
+                'remark' => $dRow['remark'] ?? ''
+            ];
+        }
+    }
+
+    // Payment history per rent invoice
+    $paymentsSql = "SELECT 
+                        prm.invoice_id AS rent_id,
+                        pr.receipt_no,
+                        pr.entry_date,
+                        prm.amount,
+                        COALESCE(pt.name, 'Unknown') AS payment_method,
+                        prm.cheq_no,
+                        prm.ref_no
+                    FROM payment_receipt_method prm
+                    INNER JOIN payment_receipt pr ON prm.receipt_id = pr.id
+                    LEFT JOIN payment_type pt ON prm.payment_type_id = pt.id
+                    WHERE prm.invoice_id IN ($rentIdList)
+                    ORDER BY pr.entry_date ASC, prm.id ASC";
+
+    $paymentsResult = $db->readQuery($paymentsSql);
+    if ($paymentsResult) {
+        while ($pRow = mysqli_fetch_assoc($paymentsResult)) {
+            $rentId = (int)$pRow['rent_id'];
+            if (!isset($rentSummary[$rentId])) {
+                continue;
+            }
+
+            $rentSummary[$rentId]['payments'][] = [
+                'receipt_no' => $pRow['receipt_no'],
+                'entry_date' => $pRow['entry_date'],
+                'amount' => floatval($pRow['amount'] ?? 0),
+                'payment_method' => $pRow['payment_method'] ?? 'Unknown',
+                'cheq_no' => $pRow['cheq_no'] ?? '',
+                'ref_no' => $pRow['ref_no'] ?? ''
+            ];
+        }
+    }
+}
+
+// Build printable dataset
 $data = [];
 $grandTotalRent = 0;
 $grandTotalPaid = 0;
 $grandTotalBalance = 0;
-$customerFilterName = '';
 
-while ($row = mysqli_fetch_assoc($result)) {
-    
-    $totalOutstanding = floatval($row['total_outstanding'] ?? 0);
-    $totalPaidForItems = floatval($row['total_paid_for_items'] ?? 0);
+uasort($rentSummary, function ($a, $b) {
+    return strtotime($b['rental_date']) <=> strtotime($a['rental_date']);
+});
 
-    // Total Rent (Billed) = Outstanding + Paid
-    $totalRent = $totalOutstanding + $totalPaidForItems;
-    
-    // Use the paid amount from returns as the "Total Paid" for this report context
-    $totalPaid = $totalPaidForItems;
+foreach ($rentSummary as $rentId => $summary) {
+    $recordedOutstanding = $summary['recorded_outstanding'] ?? 0;
+    $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
+    $totalPaid = $summary['recorded_paid'] ?? 0;
+    $balance = $recordedOutstanding + $projectedOutstanding;
 
-    $balance = $totalOutstanding;
+    if ($balance <= 0 && $totalPaid <= 0) {
+        continue;
+    }
+
+    $totalRent = $totalPaid + $balance;
+
+    $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
+        ? 'Returned'
+        : 'Not Returned';
 
     $data[] = [
-        'bill_number' => $row['bill_number'],
-        'rental_date' => $row['rental_date'],
-        'payment_type_name' => $row['payment_type_name'] ?? 'N/A',
-        'customer_name' => $row['customer_name'],
+        'bill_number' => $summary['bill_number'],
+        'rental_date' => $summary['rental_date'],
+        'payment_type_name' => $summary['payment_type_name'] ?? 'N/A',
+        'customer_name' => $summary['customer_name'],
+        'status_label' => $statusLabel,
         'total_rent' => $totalRent,
         'total_paid' => $totalPaid,
-        'balance' => $balance
+        'balance' => $balance,
+        'recorded_outstanding' => $recordedOutstanding,
+        'projected_outstanding' => $projectedOutstanding,
+        'recorded_details' => $summary['recorded_details'] ?? [],
+        'payments' => $summary['payments'] ?? []
     ];
-    
+
     $grandTotalRent += $totalRent;
     $grandTotalPaid += $totalPaid;
     $grandTotalBalance += $balance;
+}
 
-    if ($customerId > 0) {
-        $customerFilterName = $row['customer_name'];
+if ($customerId > 0 && empty($customerFilterName)) {
+    $customerQuery = $db->readQuery("SELECT name FROM customer_master WHERE id = $customerId LIMIT 1");
+    if ($customerQuery && $row = mysqli_fetch_assoc($customerQuery)) {
+        $customerFilterName = $row['name'];
     }
 }
 ?>
@@ -289,7 +454,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <th>Invoice No</th>
                         <th>Date</th>
                         <th>Payment Type</th>
-                        <th>Customer Name</th>
+                        <th>Status</th>
                         <th class="text-right">Rent Amount</th>
                         <th class="text-right">Paid Amount</th>
                         <th class="text-right">Balance</th>
@@ -302,11 +467,89 @@ while ($row = mysqli_fetch_assoc($result)) {
                             <td><?php echo $i++; ?></td>
                             <td><strong><?php echo $row['bill_number']; ?></strong></td>
                             <td><?php echo $row['rental_date']; ?></td>
-                            <td><span style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 11px;"><?php echo $row['payment_type_name']; ?></span></td>
-                            <td><?php echo $row['customer_name']; ?></td>
-                            <td class="text-right"><?php echo number_format($row['total_rent'], 2); ?></td>
-                            <td class="text-right text-success"><?php echo number_format($row['total_paid'], 2); ?></td>
+                            <td><span style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 11px;">&nbsp;<?php echo $row['payment_type_name']; ?>&nbsp;</span></td>
+                            <td><?php echo $row['status_label']; ?></td>
+                            <td class="text-right">&nbsp;<?php echo number_format($row['total_rent'], 2); ?>&nbsp;</td>
+                            <td class="text-right text-success">&nbsp;<?php echo number_format($row['total_paid'], 2); ?>&nbsp;</td>
                             <td class="text-right text-danger"><strong><?php echo number_format($row['balance'], 2); ?></strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="8" style="padding:0 10px 15px 10px;">
+                                <div style="display:flex; gap:20px;">
+                                    <div style="flex:1; border:1px solid #dee2e6; border-radius:6px; padding:10px;">
+                                        <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Recorded Outstanding</h4>
+                                        <p style="margin:0 0 10px; font-size:12px;">Total Recorded Outstanding: <strong><?php echo number_format($row['recorded_outstanding'], 2); ?></strong></p>
+                                        <table style="width:100%; font-size:11px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Return Date</th>
+                                                    <th>Item</th>
+                                                    <th class="text-right">Outstanding</th>
+                                                    <th class="text-right">Paid</th>
+                                                    <th>Remark</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($row['recorded_details'])): ?>
+                                                    <?php foreach ($row['recorded_details'] as $detail): ?>
+                                                        <tr>
+                                                            <td><?php echo $detail['return_date'] ?? '-'; ?></td>
+                                                            <td><?php echo $detail['item'] ?? '-'; ?></td>
+                                                            <td class="text-right"><?php echo number_format($detail['outstanding_amount'] ?? 0, 2); ?></td>
+                                                            <td class="text-right text-success"><?php echo number_format($detail['customer_paid'] ?? 0, 2); ?></td>
+                                                            <td><?php echo !empty($detail['remark']) ? $detail['remark'] : '-'; ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr><td colspan="5" style="text-align:center; padding:10px;">No recorded entries.</td></tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="flex:1; border:1px solid #dee2e6; border-radius:6px; padding:10px;">
+                                        <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Payment History</h4>
+                                        <p style="margin:0 0 10px; font-size:12px;">Projected Outstanding: <strong><?php echo number_format($row['projected_outstanding'], 2); ?></strong></p>
+                                        <table style="width:100%; font-size:11px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Receipt No</th>
+                                                    <th class="text-right">Amount</th>
+                                                    <th>Method / Reference</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($row['payments'])): ?>
+                                                    <?php foreach ($row['payments'] as $payment): ?>
+                                                        <tr>
+                                                            <td><?php echo $payment['entry_date'] ?? '-'; ?></td>
+                                                            <td><?php echo $payment['receipt_no'] ?? '-'; ?></td>
+                                                            <td class="text-right text-success"><?php echo number_format($payment['amount'] ?? 0, 2); ?></td>
+                                                            <td>
+                                                                <?php
+                                                                    $references = [];
+                                                                    if (!empty($payment['payment_method'])) {
+                                                                        $references[] = $payment['payment_method'];
+                                                                    }
+                                                                    if (!empty($payment['cheq_no'])) {
+                                                                        $references[] = 'Cheque: ' . $payment['cheq_no'];
+                                                                    }
+                                                                    if (!empty($payment['ref_no'])) {
+                                                                        $references[] = 'Ref: ' . $payment['ref_no'];
+                                                                    }
+                                                                    echo !empty($references) ? implode(' | ', $references) : '-';
+                                                                ?>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr><td colspan="4" style="text-align:center; padding:10px;">No payments recorded.</td></tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                         <tr style="background-color: #e9ecef;">

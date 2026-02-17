@@ -123,10 +123,12 @@ include 'auth.php';
                                         <table class="table table-bordered table-striped" id="reportTable">
                                             <thead>
                                                 <tr>
+                                                    <th style="width:40px;"></th>
                                                     <th>Invoice No</th>
                                                     <th>Date</th>
                                                     <th>Payment Type</th>
                                                     <th>Customer Name</th>
+                                                    <th>Status</th>
                                                     <th class="text-end">Total Rent Amount</th>
                                                     <th class="text-end">Total Paid Amount</th>
                                                     <th class="text-end">Balance (Outstanding)</th>
@@ -137,7 +139,7 @@ include 'auth.php';
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th colspan="4" class="text-end">Total:</th>
+                                                    <th colspan="6" class="text-end">Total:</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
                                                     <th class="text-end" id="totalPaid">0.00</th>
                                                     <th class="text-end" id="totalBalance">0.00</th>

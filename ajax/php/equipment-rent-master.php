@@ -826,8 +826,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         unset($entry);
 
         // Apply customer deposit ONCE to get correct net settlement
-        // Repair cost is a CHARGE to customer
-        $totals['settle_amount'] = ($totalRawChargesWithExtra + $totals['repair_cost']) - $remainingDeposit;
+        // Repair cost is a deduction (company pays customer), so subtract it
+        $totals['settle_amount'] = ($totalRawChargesWithExtra - $totals['repair_cost']) - $remainingDeposit;
         if ($totals['settle_amount'] < 0) {
             $totals['refund_amount'] = abs($totals['settle_amount']);
             $totals['additional_payment'] = 0;
@@ -871,8 +871,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
                 ? ($rawCharge / $totalRawChargesWithExtra) * $remainingDeposit
                 : 0;
             
-            // Repair cost is a CHARGE, so add it
-            $itemSettle = ($rawCharge + $repairShare) - $itemDepositShare;
+            // Repair cost is a deduction, so subtract it from the customer's charge
+            $itemSettle = ($rawCharge - $repairShare) - $itemDepositShare;
             $itemRefund = $itemSettle < 0 ? abs($itemSettle) : 0;
             $itemAdditional = $itemSettle > 0 ? $itemSettle : 0;
 
