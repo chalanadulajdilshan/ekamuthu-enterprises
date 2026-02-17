@@ -85,4 +85,65 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_report') {
     ]);
     exit();
 }
+
+if (isset($_POST['action']) && $_POST['action'] == 'get_job_details') {
+
+    $from = $_POST['from'] ?? date('Y-m-01');
+    $to = $_POST['to'] ?? date('Y-m-d');
+    $type = $_POST['type'] ?? '';
+
+    $basic_filter = "WHERE `created_at` BETWEEN '$from 00:00:00' AND '$to 23:59:59'";
+    $extra_filter = "";
+
+    switch ($type) {
+        case 'total_machines':
+            $extra_filter = "";
+            break;
+        case 'total_outsource_machines':
+            $extra_filter = "AND `is_outsource` = 1";
+            break;
+        case 'total_in_house_machines':
+            $extra_filter = "AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
+            break;
+        case 'cannot_repair':
+            $extra_filter = "AND `job_status` = 'cannot_repair'";
+            break;
+        case 'pending':
+            $extra_filter = "AND `job_status` = 'pending'";
+            break;
+        case 'checking':
+            $extra_filter = "AND `job_status` = 'checking'";
+            break;
+        case 'in_progress':
+            $extra_filter = "AND `job_status` = 'in_progress'";
+            break;
+        case 'repaired_not_taken':
+            $extra_filter = "AND (`job_status` = 'completed')";
+            break;
+        case 'repaired_taken':
+            $extra_filter = "AND `job_status` = 'delivered'";
+            break;
+        default:
+            $extra_filter = "AND 1=0"; // Invalid type, return nothing
+            break;
+    }
+
+    $db = Database::getInstance();
+    $sql = "SELECT id, job_code, created_at, customer_name, customer_phone, item_type, machine_name, machine_code, technical_issue, job_status, total_cost 
+            FROM `repair_jobs` $basic_filter $extra_filter ORDER BY id DESC";
+    
+    $result = $db->readQuery($sql);
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $row['total_cost'] = number_format($row['total_cost'], 2);
+        $data[] = $row;
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "data" => $data
+    ]);
+    exit();
+}
 ?>
