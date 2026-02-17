@@ -99,7 +99,7 @@ $chargesQuery = "SELECT COALESCE(SUM(
                         + COALESCE(err.damage_amount, 0)
                         + COALESCE(err.penalty_amount, 0)
                         + COALESCE(err.extra_charge_amount, 0)
-                        + COALESCE(err.repair_cost, 0)
+                        - COALESCE(err.repair_cost, 0)
                     ), 0) as total_charges
                     FROM equipment_rent_returns err
                     INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
@@ -436,8 +436,8 @@ if (!empty($customerMobile)) {
                             </tr>
                             <?php if ($total_repair_cost > 0): ?>
                             <tr>
-                                <td class="summary-label">Repair Charges:</td>
-                                <td class="summary-value"><?php echo number_format($total_repair_cost, 2); ?></td>
+                                <td class="summary-label">Repair Cost Deducted:</td>
+                                <td class="summary-value">-<?php echo number_format($total_repair_cost, 2); ?></td>
                             </tr>
                             <?php endif; ?>
                             <tr>

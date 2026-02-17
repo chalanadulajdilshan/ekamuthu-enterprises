@@ -678,8 +678,8 @@ class EquipmentRentReturn
             $extraChargeAmount = floatval($row['extra_charge_amount'] ?? 0);
             $repairCost = floatval($row['repair_cost'] ?? 0);
             $penaltyPercentage = floatval($row['penalty_percentage'] ?? 0);
-            // Repair cost is a CHARGE, so it adds to the settlement (customer owes more / gets less refund)
-            $settleCalc = ($rentalAmount + $extraDayAmount + $damageAmount + $penaltyAmount + $extraChargeAmount + $repairCost) - $depositForReturn;
+            // Repair cost is a deduction paid by the company, so subtract it from the customer's settlement
+            $settleCalc = ($rentalAmount + $extraDayAmount + $damageAmount + $penaltyAmount + $extraChargeAmount - $repairCost) - $depositForReturn;
             $additionalPayment = $settleCalc > 0 ? $settleCalc : 0;
             $refundAmount = $settleCalc < 0 ? abs($settleCalc) : 0;
 

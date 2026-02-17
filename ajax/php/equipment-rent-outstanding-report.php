@@ -42,7 +42,7 @@ try {
                   LEFT JOIN customer_master cm ON er.customer_id = cm.id
                   LEFT JOIN equipment e ON eri.equipment_id = e.id
                   LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
-                  WHERE er.status != 'returned'";
+                  WHERE 1=1";
 
         if (!empty($customerId)) {
             $query .= " AND er.customer_id = " . (int)$customerId;
@@ -53,25 +53,24 @@ try {
             throw new Exception('Error executing query: ' . mysqli_error($db->DB_CON));
         }
 
-        $data = [];
-        $totalOutstanding = 0;
+        $rows = [];
 
         while ($row = mysqli_fetch_assoc($result)) {
             $durationDays = max(1, (int)$row['duration_days']);
             $overdueDays = max(0, (int)$row['overdue_days']);
             $pendingQty = max(0, (float)$row['pending_qty']);
             $perUnitDaily = floatval($row['per_unit_daily']);
-            $outstandingAmount = $overdueDays > 0 && $pendingQty > 0 ? round($perUnitDaily * $overdueDays * $pendingQty, 2) : 0;
+            $outstandingAmount = ($overdueDays > 0 && $pendingQty > 0)
+                ? round($perUnitDaily * $overdueDays * $pendingQty, 2)
+                : 0;
 
             if ($pendingQty <= 0 || $overdueDays <= 0) {
                 continue; // skip items not overdue or fully returned
             }
 
-            $totalOutstanding += $outstandingAmount;
-
-            $data[] = [
+            $rows[] = [
                 'bill_number' => $row['bill_number'],
-                'rent_id' => $row['rent_id'],
+                'rent_id' => (int)$row['rent_id'],
                 'customer_name' => trim(($row['customer_code'] ?? '') . ' - ' . ($row['customer_name'] ?? '')),
                 'equipment' => trim(($row['equipment_code'] ?? '') . ' ' . ($row['equipment_name'] ?? '')),
                 'sub_equipment' => $row['sub_equipment_code'] ?? '',
@@ -84,20 +83,139 @@ try {
             ];
         }
 
-        // Sort by overdue days desc and outstanding amount desc for readability
-        usort($data, function ($a, $b) {
+        if (empty($rows)) {
+            $response = [
+                'status' => 'success',
+                'message' => 'No overdue rentals found',
+                'data' => [],
+                'summary' => [
+                    'projected_outstanding' => '0.00',
+                    'recorded_outstanding' => '0.00'
+                ]
+            ];
+            echo json_encode($response);
+            exit;
+        }
+
+        // Collect rent IDs to fetch recorded outstanding + payment history
+        $rentIds = array_unique(array_map(function ($item) {
+            return (int)$item['rent_id'];
+        }, $rows));
+
+        $recordedOutstandingMap = [];
+        $outstandingDetailsMap = [];
+        $paymentHistoryMap = [];
+
+        if (!empty($rentIds)) {
+            $rentIdList = implode(',', array_map('intval', $rentIds));
+
+            // Outstanding per return (only these rent IDs)
+            $outstandingSql = "SELECT 
+                                    eri.rent_id,
+                                    err.id AS return_id,
+                                    err.return_date,
+                                    err.return_qty,
+                                    err.additional_payment,
+                                    err.customer_paid,
+                                    err.outstanding_amount,
+                                    err.remark,
+                                    e.item_name,
+                                    e.code AS equipment_code,
+                                    se.code AS sub_equipment_code
+                                FROM equipment_rent_returns err
+                                INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                                LEFT JOIN equipment e ON eri.equipment_id = e.id
+                                LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
+                                WHERE eri.rent_id IN ($rentIdList)
+                                ORDER BY err.return_date ASC, err.id ASC";
+
+            $outstandingResult = $db->readQuery($outstandingSql);
+            if ($outstandingResult) {
+                while ($oRow = mysqli_fetch_assoc($outstandingResult)) {
+                    $rentId = (int)$oRow['rent_id'];
+                    $amount = floatval($oRow['outstanding_amount']);
+                    if (!isset($recordedOutstandingMap[$rentId])) {
+                        $recordedOutstandingMap[$rentId] = 0;
+                    }
+                    $recordedOutstandingMap[$rentId] += $amount;
+                    $outstandingDetailsMap[$rentId][] = [
+                        'return_id' => (int)$oRow['return_id'],
+                        'return_date' => $oRow['return_date'],
+                        'item' => trim(($oRow['equipment_code'] ?? '') . ' ' . ($oRow['item_name'] ?? '')),
+                        'sub_equipment' => $oRow['sub_equipment_code'] ?? '',
+                        'return_qty' => floatval($oRow['return_qty']),
+                        'additional_payment' => floatval($oRow['additional_payment']),
+                        'customer_paid' => floatval($oRow['customer_paid']),
+                        'outstanding_amount' => $amount,
+                        'remark' => $oRow['remark'] ?? ''
+                    ];
+                }
+            }
+
+            // Payment history (only these rent IDs)
+            $paymentsSql = "SELECT 
+                                prm.invoice_id AS rent_id,
+                                pr.receipt_no,
+                                pr.entry_date,
+                                prm.amount,
+                                COALESCE(pt.name, 'Unknown') AS payment_method,
+                                prm.cheq_no,
+                                prm.ref_no
+                            FROM payment_receipt_method prm
+                            INNER JOIN payment_receipt pr ON prm.receipt_id = pr.id
+                            LEFT JOIN payment_type pt ON prm.payment_type_id = pt.id
+                            WHERE prm.invoice_id IN ($rentIdList)
+                            ORDER BY pr.entry_date ASC, prm.id ASC";
+
+            $paymentsResult = $db->readQuery($paymentsSql);
+            if ($paymentsResult) {
+                while ($pRow = mysqli_fetch_assoc($paymentsResult)) {
+                    $rentId = (int)$pRow['rent_id'];
+                    $paymentHistoryMap[$rentId][] = [
+                        'receipt_no' => $pRow['receipt_no'],
+                        'entry_date' => $pRow['entry_date'],
+                        'amount' => floatval($pRow['amount']),
+                        'payment_method' => $pRow['payment_method'],
+                        'cheq_no' => $pRow['cheq_no'] ?? '',
+                        'ref_no' => $pRow['ref_no'] ?? ''
+                    ];
+                }
+            }
+        }
+
+        // Prepare final payload with summaries
+        $data = [];
+        $projectedTotal = 0;
+        $recordedTotal = 0;
+
+        // Sort by overdue days desc and projected outstanding desc for readability
+        usort($rows, function ($a, $b) {
             if ($a['overdue_days'] === $b['overdue_days']) {
                 return $b['outstanding_amount'] <=> $a['outstanding_amount'];
             }
             return $b['overdue_days'] <=> $a['overdue_days'];
         });
 
+        foreach ($rows as $row) {
+            $rentId = $row['rent_id'];
+            $recordedOutstanding = round($recordedOutstandingMap[$rentId] ?? 0, 2);
+            $projectedTotal += $row['outstanding_amount'];
+            $recordedTotal += $recordedOutstanding;
+
+            $row['recorded_outstanding'] = $recordedOutstanding;
+            $row['outstanding_details'] = $outstandingDetailsMap[$rentId] ?? [];
+            $row['payments'] = $paymentHistoryMap[$rentId] ?? [];
+
+            $data[] = $row;
+        }
+
         $response = [
             'status' => 'success',
             'message' => 'Data retrieved successfully',
             'data' => $data,
             'summary' => [
-                'total_outstanding' => number_format($totalOutstanding, 2)
+                'projected_outstanding' => number_format($projectedTotal, 2),
+                'recorded_outstanding' => number_format($recordedTotal, 2)
             ]
         ];
     } else {
