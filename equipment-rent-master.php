@@ -999,6 +999,13 @@ $bill_number = $lastId + 1;
                                     <small class="text-muted">If entered, this value replaces the calculated rental total.</small>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="return_all_extra_charge" class="form-label">Extra Charge</label>
+                                    <input type="number" min="0" step="0.01" class="form-control" id="return_all_extra_charge" placeholder="Enter any additional charges">
+                                    <small class="text-muted">This amount will be added to the final settlement.</small>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">

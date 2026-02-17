@@ -2118,6 +2118,7 @@ jQuery(document).ready(function () {
     $("#return_all_time").val(hh + ":" + min);
     $("#return_all_after_9am").prop("checked", false);
     $("#return_all_rental_override").val("");
+    $("#return_all_extra_charge").val("");
     $("#return_all_remark").val("");
     $("#returnAllPreview").hide();
 
@@ -2160,7 +2161,7 @@ jQuery(document).ready(function () {
   // Calculate return all preview when inputs change (with server-side preview)
   var returnAllPreviewTimer = null;
   $(
-    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override",
+    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override, #return_all_extra_charge",
   ).on("change input", function () {
     // Debounce to avoid rapid-fire AJAX calls from datepicker events
     clearTimeout(returnAllPreviewTimer);
@@ -2177,6 +2178,8 @@ jQuery(document).ready(function () {
     var rentalOverrideInput = $("#return_all_rental_override").val();
     var rentalOverride =
       rentalOverrideInput === "" ? null : parseFloat(rentalOverrideInput);
+    var extraChargeInput = $("#return_all_extra_charge").val();
+    var extraCharge = extraChargeInput === "" ? 0 : parseFloat(extraChargeInput);
 
     if (!rentId || !returnDate || !returnTime) {
       $("#returnAllPreview").hide();
@@ -2212,6 +2215,7 @@ jQuery(document).ready(function () {
         return_time: returnTime,
         after_9am_extra_day: after9am,
         rental_override: rentalOverride,
+        extra_charge_amount: extraCharge,
       },
       dataType: "json",
       success: function (res) {
@@ -2252,6 +2256,11 @@ jQuery(document).ready(function () {
         settlement.push(
           "Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2),
         );
+        if (Number(calc.extra_charge_amount || 0) > 0) {
+          settlement.push(
+            "Extra Charge: Rs. " + Number(calc.extra_charge_amount).toFixed(2),
+          );
+        }
         settlement.push(
           "Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2),
         );
@@ -2451,6 +2460,8 @@ jQuery(document).ready(function () {
         return_time: returnTime,
         after_9am_extra_day: after9amExtraDay,
         rental_override: rentalOverride,
+        extra_charge_amount:
+          parseFloat($("#return_all_extra_charge").val()) || 0,
         customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
         company_refund_paid:
           parseFloat($("#return_all_company_refund_paid").val()) || 0,
@@ -2470,7 +2481,8 @@ jQuery(document).ready(function () {
             calc &&
             (calc.refund_amount ||
               calc.additional_payment ||
-              calc.rental_amount)
+              calc.rental_amount ||
+              calc.extra_charge_amount)
           ) {
             summaryLines.push(
               "Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2),
@@ -2484,6 +2496,12 @@ jQuery(document).ready(function () {
             summaryLines.push(
               "Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2),
             );
+            if (Number(calc.extra_charge_amount || 0) > 0) {
+              summaryLines.push(
+                "Extra Charge: Rs. " +
+                  Number(calc.extra_charge_amount).toFixed(2),
+              );
+            }
             summaryLines.push(
               "Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2),
             );

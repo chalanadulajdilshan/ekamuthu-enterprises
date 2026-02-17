@@ -98,6 +98,7 @@ $chargesQuery = "SELECT COALESCE(SUM(
                         + COALESCE(err.extra_day_amount, 0)
                         + COALESCE(err.damage_amount, 0)
                         + COALESCE(err.penalty_amount, 0)
+                        + COALESCE(err.extra_charge_amount, 0)
                     ), 0) as total_charges
                     FROM equipment_rent_returns err
                     INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
@@ -110,13 +111,15 @@ $refund_balance = $total_deposit - $total_charges;
 
 // Calculate total customer paid across all returns
 $total_customer_paid = 0;
+$total_extra_charges = 0;
 foreach ($return_rows as $rr) {
     $total_customer_paid += floatval($rr['customer_paid'] ?? 0);
+    $total_extra_charges += floatval($rr['extra_charge_amount'] ?? 0);
 }
 
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;
-$net_amount = $total_amount + $total_deposit + $transport_amount;
+$net_amount = $total_amount + $total_deposit + $transport_amount + $total_extra_charges;
 $total_outstanding = $net_amount; // For now, assuming full amount is outstanding
 
 // Get customer WhatsApp number (mobile_number_2) for WhatsApp sharing
@@ -357,6 +360,7 @@ if (!empty($customerMobile)) {
                                 <th class="text-end">Extra Day</th>
                                 <th class="text-end">Penalty</th>
                                 <th class="text-end">Damage</th>
+                                <th class="text-end">Extra Charge</th>
                                 <th class="text-end">Settlement</th>
                                 <th class="text-end">Paid</th>
                                 <th class="text-end">Outstanding</th>
@@ -379,6 +383,7 @@ if (!empty($customerMobile)) {
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end"><?php echo number_format(floatval($ret['damage_amount'] ?? 0), 2); ?></td>
+                                    <td class="text-end"><?php echo number_format(floatval($ret['extra_charge_amount'] ?? 0), 2); ?></td>
                                     <td class="text-end">
                                         <?php if (!empty($ret['additional_payment']) && floatval($ret['additional_payment']) > 0): ?>
                                             <span class="text-danger">Pay: Rs. <?php echo number_format(floatval($ret['additional_payment']), 2); ?></span>
@@ -424,7 +429,7 @@ if (!empty($customerMobile)) {
                             </tr>
                             <tr>
                                 <td class="summary-label">Total Rent Amount:</td>
-                                <td class="summary-value"><?php echo number_format($hire_amount + $transport_amount, 2); ?></td>
+                                <td class="summary-value"><?php echo number_format($hire_amount + $transport_amount + $total_extra_charges, 2); ?></td>
                             </tr>
                             <tr>
                                 <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල (Customer Paid):</td>
