@@ -28,7 +28,16 @@ jQuery(document).ready(function () {
                 width: "30px",
             },
             { data: "code", title: "Equipment Code" },
-            { data: "item_name", title: "Item Name" },
+            {
+                data: "item_name",
+                title: "Item Name",
+                render: function (data, type, row) {
+                    var rentDay = parseFloat(row.rent_one_day || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    var rentMonth = parseFloat(row.rent_one_month || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return '<div><span class="fw-bold">' + (data || "-") + '</span><br>' +
+                        '<small class="text-danger">Day: ' + rentDay + ' | Month: ' + rentMonth + '</small></div>';
+                }
+            },
             {
                 data: "category_label",
                 title: "Category",
