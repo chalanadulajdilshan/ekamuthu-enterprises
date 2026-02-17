@@ -673,6 +673,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $rentalOverride = isset($_POST['rental_override']) && $_POST['rental_override'] !== ''
         ? floatval($_POST['rental_override'])
         : null;
+    $extraChargeTotal = isset($_POST['extra_charge_amount']) && $_POST['extra_charge_amount'] !== ''
+        ? max(0, floatval($_POST['extra_charge_amount']))
+        : 0;
     $returnRemark = isset($_POST['return_remark'])
         ? trim($_POST['return_remark'])
         : '';
@@ -700,6 +703,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             'extra_day_amount' => 0,
             'damage_amount' => 0,
             'penalty_amount' => 0,
+            'extra_charge_amount' => 0,
             'settle_amount' => 0,
             'refund_amount' => 0,
             'additional_payment' => 0,
@@ -804,8 +808,20 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             }
         }
 
+        // Allocate extra charge proportionally to each item's raw charge
+        $totals['extra_charge_amount'] = round($extraChargeTotal, 2);
+        $totalRawChargesWithExtra = $totalRawCharges + $extraChargeTotal;
+        foreach ($itemCalculations as &$entry) {
+            $itemShare = $totalRawCharges > 0
+                ? ($entry['raw_charge'] / $totalRawCharges) * $extraChargeTotal
+                : 0;
+            $entry['extra_charge_share'] = $itemShare;
+            $entry['raw_charge_with_extra'] = $entry['raw_charge'] + $itemShare;
+        }
+        unset($entry);
+
         // Apply customer deposit ONCE to get correct net settlement
-        $totals['settle_amount'] = $totalRawCharges - $remainingDeposit;
+        $totals['settle_amount'] = $totalRawChargesWithExtra - $remainingDeposit;
         if ($totals['settle_amount'] < 0) {
             $totals['refund_amount'] = abs($totals['settle_amount']);
             $totals['additional_payment'] = 0;
@@ -837,11 +853,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $item = $entry['item'];
             $pendingQty = $entry['pendingQty'];
             $calculation = $entry['calculation'];
-            $rawCharge = $entry['raw_charge'];
+            $rawCharge = $entry['raw_charge_with_extra'] ?? ($entry['raw_charge'] + ($entry['extra_charge_share'] ?? 0));
 
             // Distribute the deposit proportionally across items based on their raw charge
-            $itemDepositShare = ($totalRawCharges > 0)
-                ? ($rawCharge / $totalRawCharges) * $remainingDeposit
+            $itemDepositShare = ($totalRawChargesWithExtra > 0)
+                ? ($rawCharge / $totalRawChargesWithExtra) * $remainingDeposit
                 : 0;
             $itemSettle = $rawCharge - $itemDepositShare;
             $itemRefund = $itemSettle < 0 ? abs($itemSettle) : 0;
@@ -858,6 +874,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
             $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
             $RETURN->penalty_amount = floatval($calculation['penalty_amount'] ?? 0);
+            $RETURN->extra_charge_amount = round($entry['extra_charge_share'] ?? 0, 2);
             // Store the rental override for this item (null if no override was used)
             $RETURN->rental_override = isset($rentalOverridePerItem[$item['id']]) 
                 ? $rentalOverridePerItem[$item['id']] 
