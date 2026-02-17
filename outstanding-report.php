@@ -14,6 +14,51 @@ include 'auth.php';
     <?php include 'main-css.php' ?>
     <link href="assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        /* Custom styles to match print report */
+        .report-summary-box {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .report-stat-item {
+            flex: 1;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        .report-stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .report-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+        }
+        .text-danger-custom { color: #dc3545; }
+        .text-success-custom { color: #198754; }
+
+        /* Table Styling Overrides */
+        .table thead th {
+            background-color: #f1f3f5;
+            color: #495057;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 2px solid #dee2e6;
+            vertical-align: middle;
+        }
+        .table tbody td {
+            vertical-align: middle;
+        }
+    </style>
 </head>
 
 <body data-layout="horizontal" data-topbar="colored">
@@ -34,6 +79,23 @@ include 'auth.php';
 
                     <div class="row">
                         <div class="col-12">
+                            
+                            <!-- Summary Cards -->
+                            <div class="report-summary-box">
+                                <div class="report-stat-item">
+                                    <span class="report-stat-label">Total Rent</span>
+                                    <span class="report-stat-value" id="cardTotalRent">Rs. 0.00</span>
+                                </div>
+                                <div class="report-stat-item">
+                                    <span class="report-stat-label">Total Paid</span>
+                                    <span class="report-stat-value text-success-custom" id="cardTotalPaid">Rs. 0.00</span>
+                                </div>
+                                <div class="report-stat-item">
+                                    <span class="report-stat-label">Total Outstanding</span>
+                                    <span class="report-stat-value text-danger-custom" id="cardTotalBalance">Rs. 0.00</span>
+                                </div>
+                            </div>
+
                             <div class="card">
                                 <div class="card-body">
                                     <h5 class="card-title mb-4">Filter Report</h5>
@@ -61,6 +123,9 @@ include 'auth.php';
                                         <table class="table table-bordered table-striped" id="reportTable">
                                             <thead>
                                                 <tr>
+                                                    <th>Invoice No</th>
+                                                    <th>Date</th>
+                                                    <th>Payment Type</th>
                                                     <th>Customer Name</th>
                                                     <th class="text-end">Total Rent Amount</th>
                                                     <th class="text-end">Total Paid Amount</th>
@@ -72,7 +137,7 @@ include 'auth.php';
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th class="text-end">Total:</th>
+                                                    <th colspan="4" class="text-end">Total:</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
                                                     <th class="text-end" id="totalPaid">0.00</th>
                                                     <th class="text-end" id="totalBalance">0.00</th>
