@@ -259,7 +259,7 @@ if (!empty($customerMobile)) {
                             <p class="mb-1"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
                             <p class="mb-1"><strong>WP No:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '.................................'; ?></p>
                             <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>Workplace Address:</strong> <?php echo !empty($CUSTOMER_MASTER->workplace_address) ? htmlspecialchars($CUSTOMER_MASTER->workplace_address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Workplace Address:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
                             <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>
                                 <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->guarantor_address); ?></p>
                             <?php endif; ?>
