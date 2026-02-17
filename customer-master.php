@@ -232,10 +232,10 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                                     type="text" class="form-control" placeholder="Enter NIC address">
                                                             </div>
 
-                                                            <div class="col-12 col-md-8 col-lg-4  ">
+                                                            <div class="col-12 col-md-8 col-lg-4" style="display:none;">
                                                                 <label for="workplace_address" class="form-label">Workplace Address</label>
                                                                 <input id="workplace_address" onkeyup="toUpperCaseInput(this)" name="workplace_address"
-                                                                    type="text" class="form-control" placeholder="Enter workplace address">
+                                                                    type="hidden" class="form-control" placeholder="Enter workplace address">
                                                             </div>
 
 

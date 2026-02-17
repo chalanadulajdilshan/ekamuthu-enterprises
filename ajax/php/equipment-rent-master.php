@@ -64,6 +64,7 @@ if (isset($_POST['create'])) {
     $existingReceivedDate = $EQUIPMENT_RENT->received_date;
     $EQUIPMENT_RENT->status = 'rented';
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
+    $EQUIPMENT_RENT->workplace_address = $_POST['workplace_address'] ?? null;
     $EQUIPMENT_RENT->total_items = count($items);
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
@@ -260,6 +261,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->rental_start_date = $_POST['rental_start_date'] ?? $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
+    $EQUIPMENT_RENT->workplace_address = $_POST['workplace_address'] ?? null;
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
     $EQUIPMENT_RENT->payment_type_id = !empty($_POST['payment_type_id']) ? (int) $_POST['payment_type_id'] : null;
@@ -453,6 +455,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "received_date" => $EQUIPMENT_RENT->received_date,
                 "status" => $EQUIPMENT_RENT->status,
                 "remark" => $EQUIPMENT_RENT->remark,
+                "workplace_address" => $EQUIPMENT_RENT->workplace_address,
                 "transport_cost" => $EQUIPMENT_RENT->transport_cost,
                 "deposit_total" => $EQUIPMENT_RENT->deposit_total,
                 "refund_balance" => $refundBalance,

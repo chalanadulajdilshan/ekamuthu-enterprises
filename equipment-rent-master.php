@@ -318,10 +318,17 @@ $bill_number = $lastId + 1;
                                                 </div>
 
                                                 <!-- Remark Note -->
-                                                <div class="col-md-6">
+                                                <div class="col-md-3">
                                                     <label for="remark" class="form-label">Remark - සටහන</label>
                                                     <textarea id="remark" name="remark" class="form-control" rows="2"
                                                         placeholder="Enter any remarks or notes about the rental..."></textarea>
+                                                </div>
+
+                                                <!-- Workplace Address (bill-wise) -->
+                                                <div class="col-md-3">
+                                                    <label for="workplace_address" class="form-label">Workplace Address - වැඩබිම් ලිපිනය</label>
+                                                    <textarea id="workplace_address" name="workplace_address" class="form-control" rows="2"
+                                                        placeholder="Enter workplace address..."></textarea>
                                                 </div>
 
                                                 <!-- Return-after-9 checkbox (applies to Return All) -->
@@ -1224,8 +1231,11 @@ $bill_number = $lastId + 1;
                                 </div>
 
                                 <div class="col-12 col-md-8 col-lg-4">
-                                    <label for="modal_workplace_address" class="form-label">Workplace Address</label>
-                                    <input id="modal_workplace_address" name="modal_workplace_address" type="text" class="form-control mb-3" placeholder="Enter workplace address">
+                                    <!-- Workplace address hidden as per request -->
+                                    <div style="display:none;">
+                                        <label for="modal_workplace_address" class="form-label">Workplace Address</label>
+                                        <input id="modal_workplace_address" name="modal_workplace_address" type="hidden" class="form-control mb-3" placeholder="Enter workplace address">
+                                    </div>
                                 </div>
 
                                 <div class="col-6 col-md-4 col-lg-2 d-flex align-items-center">
