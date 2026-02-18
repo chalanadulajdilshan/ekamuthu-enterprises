@@ -161,6 +161,68 @@ include 'auth.php';
     <!-- Customer Modal -->
     <?php include 'customer-master-model.php'; ?>
 
+    <!-- Bill Details Modal -->
+    <div class="modal fade" id="billDetailsModal" tabindex="-1" aria-labelledby="billDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="billDetailsModalLabel">Outstanding & Payments - <span id="detailsBillNo"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Customer:</strong> <span id="detailsCustomer">-</span></p>
+                            <p class="mb-1"><strong>Projected Outstanding:</strong> Rs. <span id="detailsProjected">0.00</span></p>
+                            <p class="mb-1"><strong>Recorded Outstanding:</strong> Rs. <span id="detailsRecorded">0.00</span></p>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold">Recorded Outstanding Breakdown</h6>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Return Date</th>
+                                    <th>Item</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Additional Charge</th>
+                                    <th class="text-end">Paid</th>
+                                    <th class="text-end">Outstanding</th>
+                                    <th>Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outstandingDetailsBody">
+                                <tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6 class="fw-bold">Payment History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Receipt No</th>
+                                    <th>Method</th>
+                                    <th class="text-end">Amount</th>
+                                    <th>Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentHistoryBody">
+                                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include 'main-js.php'; ?>
     <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
