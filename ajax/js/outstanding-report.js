@@ -26,6 +26,23 @@ $(document).ready(function () {
         loadReport();
     });
 
+    // Open modal with full bill details when clicking a row (excluding the toggle button)
+    $('#reportTable tbody').on('click', 'tr', function (e) {
+        if ($(e.target).closest('button.row-toggle').length) {
+            return;
+        }
+        var row = reportTable.row($(this));
+        if (!row.data()) {
+            return;
+        }
+        showBillDetailsModal(row.data());
+    });
+
+    // Clear modal tables when hidden
+    $('#billDetailsModal').on('hidden.bs.modal', function () {
+        $('#outstandingDetailsBody').empty();
+        $('#paymentHistoryBody').empty();
+    });
 
 });
 
@@ -121,6 +138,57 @@ function loadReport() {
             icon.removeClass('uil-plus').addClass('uil-minus');
         }
     });
+}
+
+function showBillDetailsModal(rowData) {
+    $('#detailsBillNo').text(rowData.bill_number || '-');
+    $('#detailsCustomer').text(rowData.customer_name || '-');
+    $('#detailsProjected').text(formatNumber(rowData.projected_outstanding_raw));
+    $('#detailsRecorded').text(formatNumber(rowData.recorded_outstanding_raw));
+
+    var outstandingRows = '<tr><td colspan="7" class="text-center text-muted">No recorded outstanding entries.</td></tr>';
+    if (rowData.recorded_details && rowData.recorded_details.length > 0) {
+        outstandingRows = rowData.recorded_details.map(function (item) {
+            return `
+                <tr>
+                    <td>${item.return_date || '-'}</td>
+                    <td>${item.item || '-'}</td>
+                    <td class="text-center">${formatNumber(item.return_qty)}</td>
+                    <td class="text-end">${formatNumber(item.additional_payment)}</td>
+                    <td class="text-end">${formatNumber(item.customer_paid)}</td>
+                    <td class="text-end fw-bold text-danger">${formatNumber(item.outstanding_amount)}</td>
+                    <td>${item.remark ? item.remark : '-'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    $('#outstandingDetailsBody').html(outstandingRows);
+
+    var paymentRows = '<tr><td colspan="5" class="text-center text-muted">No payments recorded.</td></tr>';
+    if (rowData.payments && rowData.payments.length > 0) {
+        paymentRows = rowData.payments.map(function (pay) {
+            var refInfo = [];
+            if (pay.cheq_no) refInfo.push('Cheque: ' + pay.cheq_no);
+            if (pay.ref_no) refInfo.push('Ref: ' + pay.ref_no);
+            return `
+                <tr>
+                    <td>${pay.entry_date || '-'}</td>
+                    <td>${pay.receipt_no || '-'}</td>
+                    <td>${pay.payment_method || '-'}</td>
+                    <td class="text-end fw-bold text-success">${formatNumber(pay.amount)}</td>
+                    <td>${refInfo.length ? refInfo.join(' | ') : '-'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    $('#paymentHistoryBody').html(paymentRows);
+
+    $('#billDetailsModal').modal('show');
+}
+
+function formatNumber(val) {
+    var num = Number(val || 0);
+    return num.toFixed(2);
 }
 
 function formatDetail(rowData) {
