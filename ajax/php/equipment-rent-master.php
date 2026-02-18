@@ -362,14 +362,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $customerDeposit = floatval($EQUIPMENT_RENT->deposit_total ?? 0);
         
         // Get total charges from all returns: rental amounts + extra day + damage + penalty
-        // For monthly rentals, divide by 30 to get daily rate
         $chargesQuery = "SELECT COALESCE(SUM(
                             CASE WHEN err.rental_override IS NOT NULL
                                 THEN err.rental_override
                                 ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                                     THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
                                     ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                                        * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                                        * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                         * err.return_qty)
                                 END
                             END
