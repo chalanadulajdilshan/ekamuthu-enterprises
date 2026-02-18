@@ -91,7 +91,7 @@ $chargesQuery = "SELECT COALESCE(SUM(
                             ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                                 THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
                                 ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                                    * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                                    * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                     * err.return_qty)
                             END
                         END
@@ -449,9 +449,9 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value">
                                     <?php echo number_format($refund_balance, 2); ?>
                                     <?php if ($refund_balance < 0): ?>
-                                        <span class="badge bg-danger ms-2">Customer Pay</span>
+                                        <span class="badge bg-success ms-2">Customer Pay</span>
                                     <?php elseif ($refund_balance > 0): ?>
-                                        <span class="badge bg-success ms-2">Refund</span>
+                                        <span class="badge bg-danger ms-2">Refund</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>

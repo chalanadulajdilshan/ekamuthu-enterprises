@@ -1022,9 +1022,9 @@ jQuery(document).ready(function () {
           var $refundBadge = $("#customer_refund_badge");
           $refundBadge.removeClass("badge bg-danger bg-success").text("");
           if (refundBalance < 0) {
-            $refundBadge.addClass("badge bg-danger").text("Customer Pay");
+            $refundBadge.addClass("badge bg-success").text("Customer Pay");
           } else if (refundBalance > 0) {
-            $refundBadge.addClass("badge bg-success").text("Refund");
+            $refundBadge.addClass("badge bg-danger").text("Refund");
           }
 
           // Customer Paid and Outstanding

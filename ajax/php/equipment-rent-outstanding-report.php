@@ -36,7 +36,7 @@ try {
                     DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY) AS due_date,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id), 0)) AS pending_qty,
                     GREATEST(0, DATEDIFF('$asOfDateSafe', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY))) AS overdue_days,
-                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily
+                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
                   FROM equipment_rent_items eri
                   LEFT JOIN equipment_rent er ON eri.rent_id = er.id
                   LEFT JOIN customer_master cm ON er.customer_id = cm.id
