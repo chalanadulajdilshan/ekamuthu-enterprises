@@ -158,6 +158,119 @@ include 'auth.php';
         </div>
     </div>
 
+    <!-- Bill Detail Modal -->
+    <div class="modal fade" id="billDetailModal" tabindex="-1" aria-labelledby="billDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="billDetailModalLabel">Bill Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>Invoice No:</strong> <span id="billModalInvoice">-</span></div>
+                        <div class="col-md-3"><strong>Date:</strong> <span id="billModalDate">-</span></div>
+                        <div class="col-md-3"><strong>Payment Type:</strong> <span id="billModalPayment">-</span></div>
+                        <div class="col-md-3"><strong>Status:</strong> <span id="billModalStatus">-</span></div>
+                        <div class="col-md-6"><strong>Customer:</strong> <span id="billModalCustomer">-</span></div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <div class="d-flex justify-content-between"><span>Total Rent</span><span id="billModalTotalRent">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>Total Paid</span><span id="billModalTotalPaid">0.00</span></div>
+                                <div class="d-flex justify-content-between fw-bold"><span>Balance</span><span id="billModalBalance">0.00</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <div class="d-flex justify-content-between"><span>Recorded Outstanding</span><span id="billModalRecordedTotal">0.00</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <div class="d-flex justify-content-between"><span>Projected Outstanding</span><span id="billModalProjectedTotal">0.00</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="fw-bold mb-2">Bill Items</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" id="billModalItems">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Item</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-center">Duration</th>
+                                                <th class="text-center">Type</th>
+                                                <th class="text-center">Returned</th>
+                                                <th class="text-center">Pending</th>
+                                                <th class="text-center">Status</th>
+                                                <th class="text-end">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="7" class="text-muted">No items found.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="fw-bold mb-2">Recorded Outstanding</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" id="billModalRecorded">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Return Date</th>
+                                                <th>Item</th>
+                                                <th class="text-end">Outstanding</th>
+                                                <th class="text-end">Paid</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="5" class="text-muted">No recorded outstanding entries.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="fw-bold mb-2">Payment History</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" id="billModalPayments">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Receipt No</th>
+                                                <th class="text-end">Amount</th>
+                                                <th>Method / Reference</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="4" class="text-muted">No payments recorded.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Customer Modal -->
     <?php include 'customer-master-model.php'; ?>
 
