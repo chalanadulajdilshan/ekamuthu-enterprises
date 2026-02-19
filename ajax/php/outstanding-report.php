@@ -75,8 +75,8 @@ if ($action === 'get_outstanding_report') {
                         pt.name as payment_type_name,
                         er.status as rent_status,
                         (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
-                        GREATEST(0, DATEDIFF('$today', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY))) AS overdue_days,
-                        (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily
+                        GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, '$today') / 86400)) AS used_days,
+                        (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
                     FROM equipment_rent_items eri
                     INNER JOIN equipment_rent er ON eri.rent_id = er.id
                     LEFT JOIN customer_master cm ON er.customer_id = cm.id
@@ -87,13 +87,13 @@ if ($action === 'get_outstanding_report') {
     if ($projectedResult) {
         while ($row = mysqli_fetch_assoc($projectedResult)) {
             $pendingQty = max(0, (float)$row['pending_qty']);
-            $overdueDays = max(0, (int)$row['overdue_days']);
-            if ($pendingQty <= 0 || $overdueDays <= 0) {
+            if ($pendingQty <= 0) {
                 continue;
             }
 
+            $usedDays = max(1, (int)$row['used_days']);
             $perUnitDaily = floatval($row['per_unit_daily']);
-            $projectedAmount = round($pendingQty * $overdueDays * $perUnitDaily, 2);
+            $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
             if ($projectedAmount <= 0) {
                 continue;
             }
