@@ -474,6 +474,7 @@ jQuery(document).ready(function () {
     var subEquipmentDisplay = $("#item_sub_equipment_display").val();
     var rentalDate = $("#rental_start_date").val();
     var returnDate = $("#item_return_date").val();
+    var durationVal = parseFloat($("#item_duration").val()) || 0;
 
     if (!equipmentId) {
       swal({
@@ -550,6 +551,39 @@ jQuery(document).ready(function () {
           " available in this department.",
         type: "error",
         timer: 2500,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (!returnDate) {
+      swal({
+        title: "Error!",
+        text: "Please select a return date",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (durationVal <= 0) {
+      swal({
+        title: "Error!",
+        text: "Please enter a valid duration",
+        type: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (qty <= 0) {
+      swal({
+        title: "Error!",
+        text: "Quantity must be at least 1",
+        type: "error",
+        timer: 2000,
         showConfirmButton: false,
       });
       return;
