@@ -622,7 +622,8 @@ jQuery(document).ready(function () {
       duration: $("#item_duration").val(),
       quantity: $("#item_qty").val(),
       returned_qty: $("#item_returned_qty").val() || 0,
-      amount: $("#item_amount").val(),
+      // Store raw numeric amount (avoid formatted strings like 20,000.00)
+      amount: parseAmount($("#item_amount").val()),
       // Store equipment deposit value for calculation
       deposit_one_day: currentDepositOneDay,
       is_fixed_rate: currentIsFixedRate ? 1 : 0,
@@ -894,7 +895,7 @@ jQuery(document).ready(function () {
   function updateTotalsSummary() {
     var subTotal = 0;
     rentItems.forEach(function (item) {
-      subTotal += parseFloat(item.amount) || 0;
+      subTotal += parseAmount(item.amount);
     });
 
     $("#summary_sub_total").text(subTotal.toFixed(2));
