@@ -70,14 +70,14 @@ function loadReport() {
             },
             "dataSrc": function (json) {
                 // Update top summary cards if API provided totals
-                if (json.grand_total_rent) {
-                    $('#cardTotalRent').text('Rs. ' + json.grand_total_rent);
+                if (json.grand_total_rent !== undefined) {
+                    $('#cardTotalRent').text('Rs. ' + formatAmount(parseAmount(json.grand_total_rent)));
                 }
-                if (json.grand_total_paid) {
-                    $('#cardTotalPaid').text('Rs. ' + json.grand_total_paid);
+                if (json.grand_total_paid !== undefined) {
+                    $('#cardTotalPaid').text('Rs. ' + formatAmount(parseAmount(json.grand_total_paid)));
                 }
-                if (json.grand_total_balance) {
-                    $('#cardTotalBalance').text('Rs. ' + json.grand_total_balance);
+                if (json.grand_total_balance !== undefined) {
+                    $('#cardTotalBalance').text('Rs. ' + formatAmount(parseAmount(json.grand_total_balance)));
                 }
                 return json.data || [];
             }
@@ -102,30 +102,33 @@ function loadReport() {
                         : '<span class="badge bg-warning text-dark">Not Returned</span>';
                 }
             },
-            { "data": "total_rent", "className": "text-end" },
-            { "data": "total_paid", "className": "text-end" },
-            { "data": "balance", "className": "text-end" }
+            {
+                "data": "total_rent",
+                "className": "text-end",
+                "render": function (data) { return formatAmount(parseAmount(data)); }
+            },
+            {
+                "data": "total_paid",
+                "className": "text-end",
+                "render": function (data) { return formatAmount(parseAmount(data)); }
+            },
+            {
+                "data": "balance",
+                "className": "text-end",
+                "render": function (data) { return formatAmount(parseAmount(data)); }
+            }
         ],
         "footerCallback": function (row, data, start, end, display) {
             var api = this.api();
 
-            // Remove formatting to get integer data for summation
-            var intVal = function (i) {
-                return typeof i === 'string' ?
-                    i.replace(/[\$,]/g, '') * 1 :
-                    typeof i === 'number' ?
-                        i : 0;
-            };
-
-            // Total over all pages
-            var totalRent = api.column(6).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
-            var totalPaid = api.column(7).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
-            var totalBalance = api.column(8).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
+            var totalRent = api.column(6).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalPaid = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalBalance = api.column(8).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
 
             // Update footer
-            $(api.column(6).footer()).html(totalRent.toFixed(2));
-            $(api.column(7).footer()).html(totalPaid.toFixed(2));
-            $(api.column(8).footer()).html(totalBalance.toFixed(2));
+            $(api.column(6).footer()).html(formatAmount(totalRent));
+            $(api.column(7).footer()).html(formatAmount(totalPaid));
+            $(api.column(8).footer()).html(formatAmount(totalBalance));
         }
     });
 
@@ -147,10 +150,7 @@ function loadReport() {
 }
 
 function fillBillDetailsModal(data) {
-    var parseMoney = function (val) {
-        if (val === null || val === undefined) return 0;
-        return parseFloat(String(val).replace(/,/g, '')) || 0;
-    };
+    var fmt = function (val) { return formatAmount(parseAmount(val)); };
 
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
@@ -160,9 +160,9 @@ function fillBillDetailsModal(data) {
         ? '<span class="badge bg-success">Returned</span>'
         : '<span class="badge bg-warning text-dark">Not Returned</span>');
 
-    $('#billModalTotalRent').text(parseMoney(data.total_rent).toFixed(2));
-    $('#billModalTotalPaid').text(parseMoney(data.total_paid).toFixed(2));
-    $('#billModalBalance').text(parseMoney(data.balance).toFixed(2));
+    $('#billModalTotalRent').text(fmt(data.total_rent));
+    $('#billModalTotalPaid').text(fmt(data.total_paid));
+    $('#billModalBalance').text(fmt(data.balance));
 
     // Recorded outstanding table
     var recordedBody = $('#billModalRecorded tbody');
@@ -173,8 +173,8 @@ function fillBillDetailsModal(data) {
                 <tr>
                     <td>${item.return_date || '-'}</td>
                     <td>${item.item || '-'}</td>
-                    <td class="text-end">${Number(item.outstanding_amount || 0).toFixed(2)}</td>
-                    <td class="text-end text-success">${Number(item.customer_paid || 0).toFixed(2)}</td>
+                    <td class="text-end">${fmt(item.outstanding_amount || 0)}</td>
+                    <td class="text-end text-success">${fmt(item.customer_paid || 0)}</td>
                     <td>${item.remark || '-'}</td>
                 </tr>
             `);
@@ -200,7 +200,7 @@ function fillBillDetailsModal(data) {
                     <td class="text-center">${itm.returned_qty || 0}</td>
                     <td class="text-center">${itm.pending_qty || 0}</td>
                     <td class="text-center">${statusBadge}</td>
-                    <td class="text-end">${parseMoney(itm.amount).toFixed(2)}</td>
+                    <td class="text-end">${fmt(itm.amount)}</td>
                 </tr>
             `);
         });
@@ -221,7 +221,7 @@ function fillBillDetailsModal(data) {
                 <tr>
                     <td>${pay.entry_date || '-'}</td>
                     <td>${pay.receipt_no || '-'}</td>
-                    <td class="text-end text-success">${Number(pay.amount || 0).toFixed(2)}</td>
+                    <td class="text-end text-success">${fmt(pay.amount || 0)}</td>
                     <td>${references.join(' | ') || '-'}</td>
                 </tr>
             `);
@@ -231,8 +231,8 @@ function fillBillDetailsModal(data) {
     }
 
     // Totals in modal summary
-    $('#billModalRecordedTotal').text(parseMoney(data.recorded_outstanding_raw || data.recorded_outstanding).toFixed(2));
-    $('#billModalProjectedTotal').text(parseMoney(data.projected_outstanding_raw || data.projected_outstanding).toFixed(2));
+    $('#billModalRecordedTotal').text(fmt(data.recorded_outstanding_raw || data.recorded_outstanding));
+    $('#billModalProjectedTotal').text(fmt(data.projected_outstanding_raw || data.projected_outstanding));
 }
 
 function formatDetail(rowData) {
@@ -262,15 +262,15 @@ function formatDetail(rowData) {
                 <tr>
                     <td>${pay.entry_date || '-'}</td>
                     <td>${pay.receipt_no || '-'}</td>
-                    <td class="text-end text-success">${Number(pay.amount || 0).toFixed(2)}</td>
+                    <td class="text-end text-success">${formatAmount(parseAmount(pay.amount || 0))}</td>
                     <td>${references.join(' | ') || '-'}</td>
                 </tr>
             `;
         }).join('');
     }
 
-    var recordedOutstanding = Number(rowData.recorded_outstanding_raw || 0).toFixed(2);
-    var projectedOutstanding = Number(rowData.projected_outstanding_raw || 0).toFixed(2);
+    var recordedOutstanding = formatAmount(parseAmount(rowData.recorded_outstanding_raw || 0));
+    var projectedOutstanding = formatAmount(parseAmount(rowData.projected_outstanding_raw || 0));
 
     return `
         <div class="detail-container">

@@ -1,6 +1,9 @@
 <!-- jQuery (latest version, only once) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<!-- Global number formatting helpers (parseAmount/formatAmount) -->
+<script src="assets/js/number-format.js"></script>
+
 <!-- SweetAlert -->
 <script src="assets/libs/sweetalert/sweetalert-dev.js"></script>
 

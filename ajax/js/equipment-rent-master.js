@@ -20,7 +20,7 @@ jQuery(document).ready(function () {
     var rentalDate = $("#rental_start_date").val();
 
     if (!rentalDate || duration <= 0) {
-      $("#item_amount").val("0.00");
+      $("#item_amount").val(formatAmount(0));
       return;
     }
 
@@ -57,7 +57,7 @@ jQuery(document).ready(function () {
     }
 
     // Format amount
-    $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
+    $("#item_amount").data("manual-edited", false).val(formatAmount(amount));
 
     // Format return date YYYY-MM-DD
     var yyyy = returnDate.getFullYear();
@@ -81,7 +81,7 @@ jQuery(document).ready(function () {
 
     if (timeDiff <= 0) {
       $("#item_duration").val(0);
-      $("#item_amount").val("0.00");
+      $("#item_amount").val(formatAmount(0));
       return;
     }
 
@@ -128,7 +128,7 @@ jQuery(document).ready(function () {
             ? currentRentOneDay * qty
             : currentRentOneMonth * qty;
       }
-      $("#item_amount").data("manual-edited", false).val(amount.toFixed(2));
+      $("#item_amount").data("manual-edited", false).val(formatAmount(amount));
     }
   }
 
@@ -639,9 +639,9 @@ jQuery(document).ready(function () {
     totalCalculatedDeposit +=
       parseFloat(currentDepositOneDay || 0) *
       parseFloat($("#item_qty").val() || 1);
-    $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
+    $("#calculated_deposit_display").text(formatAmount(totalCalculatedDeposit));
     if (!isEditingExistingRent) {
-      $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+      $("#custom_deposit").val(formatAmount(totalCalculatedDeposit));
     }
 
     // Auto-fill custom deposit if it's empty or matches previous calculation
@@ -881,9 +881,9 @@ jQuery(document).ready(function () {
       parseFloat(removedItem.deposit_one_day || 0) *
       parseFloat(removedItem.quantity || 1);
     if (totalCalculatedDeposit < 0) totalCalculatedDeposit = 0;
-    $("#calculated_deposit_display").text(totalCalculatedDeposit.toFixed(2));
+    $("#calculated_deposit_display").text(formatAmount(totalCalculatedDeposit));
     if (!isEditingExistingRent) {
-      $("#custom_deposit").val(totalCalculatedDeposit.toFixed(2));
+      $("#custom_deposit").val(formatAmount(totalCalculatedDeposit));
     }
 
     rentItems.splice(index, 1);
@@ -903,6 +903,42 @@ jQuery(document).ready(function () {
   // Update totals when transport cost or deposit changes
   $("#transport_cost, #custom_deposit").on("change keyup", function () {
     updateTotalsSummary();
+  });
+
+  function formatMoneyLive(raw) {
+    if (raw === null || raw === undefined) return "";
+    var str = String(raw);
+    // Preserve presence of decimal point to allow typing
+    var hasDot = str.indexOf(".") !== -1;
+    var sign = "";
+    if (str[0] === "-") {
+      sign = "-";
+      str = str.slice(1);
+    }
+    // Remove commas and non-digits except dot
+    str = str.replace(/,/g, "");
+    var parts = str.split(".");
+    var intPart = (parts[0] || "0").replace(/\D/g, "");
+    var decPart = parts[1] ? parts[1].replace(/\D/g, "") : "";
+    // Limit decimals to 2 while typing
+    if (decPart.length > 2) decPart = decPart.slice(0, 2);
+    // Trim leading zeros but keep single zero
+    intPart = intPart.replace(/^0+(?=\d)/, "");
+    if (!intPart) intPart = "0";
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (hasDot) return sign + intPart + "." + decPart;
+    return sign + intPart;
+  }
+
+  // Live format while typing; finalize on blur
+  $("#transport_cost, #custom_deposit").on("input", function () {
+    var formatted = formatMoneyLive($(this).val());
+    $(this).val(formatted);
+  });
+
+  $("#transport_cost, #custom_deposit").on("blur", function () {
+    var val = parseAmount($(this).val());
+    $(this).val(formatAmount(val));
   });
 
   // Mark item as returned (in memory)
@@ -1096,8 +1132,8 @@ jQuery(document).ready(function () {
           $("#received_date_container").show();
           $("#remark").val(rent.remark || "");
           $("#workplace_address").val(rent.workplace_address || "");
-          $("#transport_cost").val(rent.transport_cost || "0.00");
-          $("#custom_deposit").val(rent.deposit_total || "0.00");
+          $("#transport_cost").val(formatAmount(rent.transport_cost || 0));
+          $("#custom_deposit").val(formatAmount(rent.deposit_total || 0));
           // Show manage deposits button for existing rents
           $("#btn-manage-deposits").show();
           // Render deposit payments if present
@@ -1236,7 +1272,7 @@ jQuery(document).ready(function () {
           });
 
           $("#calculated_deposit_display").text(
-            totalCalculatedDeposit.toFixed(2),
+            formatAmount(totalCalculatedDeposit),
           );
           updateItemsTable();
 
@@ -1973,8 +2009,8 @@ jQuery(document).ready(function () {
     formData.append("items", JSON.stringify(rentItems));
     // Received date is system-controlled; do not send manual value
     formData.delete("received_date");
-    formData.append("transport_cost", $("#transport_cost").val() || 0);
-    formData.append("custom_deposit", $("#custom_deposit").val() || 0);
+    formData.append("transport_cost", parseAmount($("#transport_cost").val()) || 0);
+    formData.append("custom_deposit", parseAmount($("#custom_deposit").val()) || 0);
 
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
@@ -2084,8 +2120,8 @@ jQuery(document).ready(function () {
     formData.append("items", JSON.stringify(rentItems));
     // Received date is system-controlled; do not send manual value
     formData.delete("received_date");
-    formData.append("transport_cost", $("#transport_cost").val() || 0);
-    formData.append("custom_deposit", $("#custom_deposit").val() || 0);
+    formData.append("transport_cost", parseAmount($("#transport_cost").val()) || 0);
+    formData.append("custom_deposit", parseAmount($("#custom_deposit").val()) || 0);
 
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
@@ -2165,9 +2201,9 @@ jQuery(document).ready(function () {
       '<tr><td colspan="5" class="text-center text-muted py-3">No deposit payments recorded yet.</td></tr>',
     );
     $("#deposit_modal_total").text("0.00");
-    $("#calculated_deposit_display").text("0.00");
-    $("#customer_refund_balance").text("0.00");
-    $("#company_refund_balance_display").text("0.00");
+    $("#calculated_deposit_display").text(formatAmount(0));
+    $("#customer_refund_balance").text(formatAmount(0));
+    $("#company_refund_balance_display").text(formatAmount(0));
     $("#company_refund_row").hide();
     $("#customer_refund_badge")
       .removeClass("badge bg-danger bg-success")
@@ -3233,7 +3269,7 @@ jQuery(document).ready(function () {
             showConfirmButton: false,
           });
           renderDepositPayments(result.payments, result.deposit_total);
-          $("#custom_deposit").val(parseFloat(result.deposit_total).toFixed(2));
+          $("#custom_deposit").val(formatAmount(parseFloat(result.deposit_total || 0)));
           // Clear form
           $("#deposit_pay_amount").val("");
           $("#deposit_pay_remark").val("");
@@ -3295,7 +3331,7 @@ jQuery(document).ready(function () {
                 });
                 renderDepositPayments(result.payments, result.deposit_total);
                 $("#custom_deposit").val(
-                  parseFloat(result.deposit_total).toFixed(2),
+                  formatAmount(parseFloat(result.deposit_total || 0)),
                 );
                 // Refresh the rent details
                 loadRentDetails(rentId);
