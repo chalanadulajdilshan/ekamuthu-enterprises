@@ -9,6 +9,60 @@ header('Content-Type: application/json; charset=UTF-8');
 
 $db = Database::getInstance();
 
+// Handle Stats Request
+if (isset($_POST['action']) && $_POST['action'] == 'get_stats') {
+    $counts = [
+        'available' => 0,
+        'rented' => 0,
+        'damage' => 0,
+        'repair' => 0,
+        'total' => 0
+    ];
+
+    // 1. Sub Equipment Aggregation
+    $subSql = "SELECT rental_status, COUNT(*) as count FROM sub_equipment GROUP BY rental_status";
+    $subResult = $db->readQuery($subSql);
+    while ($row = mysqli_fetch_assoc($subResult)) {
+        $status = strtolower($row['rental_status'] ?? 'available');
+        $count = (int)$row['count'];
+        
+        if ($status == 'available' || $status == '') $counts['available'] += $count;
+        elseif ($status == 'rented' || $status == 'rent') $counts['rented'] += $count;
+        elseif ($status == 'damage' || $status == 'damaged') $counts['damage'] += $count;
+        elseif ($status == 'repair') $counts['repair'] += $count;
+        
+        $counts['total'] += $count;
+    }
+
+    // 2. Bulk Equipment Aggregation
+    // Calculate total bulk items and total rented bulk items
+    $bulkSql = "SELECT SUM(e.quantity) as total_bulk_qty,
+                SUM(
+                    (SELECT COALESCE(SUM(eri.quantity - (SELECT COALESCE(SUM(return_qty),0) FROM equipment_rent_returns WHERE rent_item_id = eri.id)), 0)
+                     FROM equipment_rent_items eri 
+                     WHERE eri.equipment_id = e.id 
+                     AND eri.status = 'rented'
+                     AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                    )
+                ) as total_bulk_rented
+                FROM equipment e
+                WHERE e.no_sub_items = 1";
+    
+    $bulkResult = $db->readQuery($bulkSql);
+    $bulkRow = mysqli_fetch_assoc($bulkResult);
+    
+    $bulkTotal = (float)($bulkRow['total_bulk_qty'] ?? 0);
+    $bulkRented = (float)($bulkRow['total_bulk_rented'] ?? 0);
+    $bulkAvailable = max(0, $bulkTotal - $bulkRented);
+
+    $counts['available'] += $bulkAvailable;
+    $counts['rented'] += $bulkRented;
+    $counts['total'] += $bulkTotal;
+
+    echo json_encode(['status' => 'success', 'data' => $counts]);
+    exit;
+}
+
 $start = isset($_REQUEST['start']) ? (int)$_REQUEST['start'] : 0;
 $length = isset($_REQUEST['length']) ? (int)$_REQUEST['length'] : 25;
 $search = $_REQUEST['search']['value'] ?? '';
@@ -21,7 +75,9 @@ $statusFilter = $_REQUEST['status'] ?? '';
 $data = [];
 
 // --- 1. Sub Equipment ---
-$subQuery = "SELECT se.code, se.rental_status, e.item_name, c.name as category_name, dm.name as department_name 
+$subQuery = "SELECT se.code, se.rental_status, e.item_name, c.name as category_name, dm.name as department_name, se.equipment_id,
+             (SELECT eri.rent_id FROM equipment_rent_items eri WHERE eri.sub_equipment_id = se.id AND eri.status = 'rented' ORDER BY eri.id DESC LIMIT 1) AS active_rent_id,
+             (SELECT rj.id FROM repair_jobs rj WHERE TRIM(rj.machine_code) = TRIM(se.code) AND rj.job_status NOT IN ('delivered') ORDER BY rj.id DESC LIMIT 1) AS active_repair_job_id
              FROM sub_equipment se 
              JOIN equipment e ON se.equipment_id = e.id
              LEFT JOIN equipment_category c ON e.category = c.id
@@ -77,7 +133,11 @@ while ($row = mysqli_fetch_assoc($subResult)) {
         'category' => $row['category_name'],
         'department' => $row['department_name'],
         'status' => $status,
-        'quantity' => 1
+        'quantity' => 1,
+        'equipment_id' => $row['equipment_id'],
+        'active_rent_id' => $row['active_rent_id'],
+        'active_repair_job_id' => $row['active_repair_job_id'],
+        'is_sub' => true
     ];
 }
 
@@ -97,7 +157,9 @@ while ($row = mysqli_fetch_assoc($bulkResult)) {
                 'category' => $row['category_name'],
                 'department' => $row['department_name'],
                 'status' => 'available',
-                'quantity' => $available
+                'quantity' => $available,
+                'equipment_id' => $row['id'],
+                'is_sub' => false
             ];
         }
     }
@@ -111,7 +173,9 @@ while ($row = mysqli_fetch_assoc($bulkResult)) {
                 'category' => $row['category_name'],
                 'department' => $row['department_name'],
                 'status' => 'rented',
-                'quantity' => $rented
+                'quantity' => $rented,
+                'equipment_id' => $row['id'],
+                'is_sub' => false
             ];
         }
     }
