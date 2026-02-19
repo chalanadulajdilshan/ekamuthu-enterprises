@@ -597,6 +597,9 @@ jQuery(document).ready(function () {
 
     updateItemsTable();
 
+    // Reset amount edit UI back to default after adding an item
+    resetAmountEditUI(true);
+
     // Clear item inputs
     $("#item_sub_equipment_id").val("");
     $("#item_sub_equipment_display").val("");
@@ -619,40 +622,78 @@ jQuery(document).ready(function () {
     }
   });
 
-  // Handle red + button click to enable manual amount editing
-  $("#btn-enable-amount-edit").click(function () {
-    var equipmentId = $("#item_equipment_id").val();
-    if (!equipmentId) {
-      swal({
-        title: "Error!",
-        text: "Please select an equipment first",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      return;
-    }
-
-    // Enable manual editing
-    $("#item_amount").prop("readonly", false).removeAttr("readonly").focus();
-    manualAmountEditEnabled = true;
-    $("#item_amount").data("manual-edited", true);
-
-    // Change button to save icon
-    $(this)
-      .html('<i class="uil uil-save"></i>')
-      .removeClass("btn-danger")
-      .addClass("btn-success");
-    $(this).attr("title", "Save amount to equipment");
-    $(this).attr("id", "btn-save-amount-edit");
-
-    // Rebind the click event for save
-    $("#btn-save-amount-edit")
+  // Helper: bind the red + button to enable manual amount editing
+  function bindEnableAmountEditButton() {
+    $("#btn-enable-amount-edit")
       .off("click")
       .on("click", function () {
-        saveEquipmentAmount();
+        var equipmentId = $("#item_equipment_id").val();
+        if (!equipmentId) {
+          swal({
+            title: "Error!",
+            text: "Please select an equipment first",
+            type: "error",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          return;
+        }
+
+        // Remember original amount to allow cancel
+        $("#item_amount").data("original-amount", $("#item_amount").val());
+
+        // Enable manual editing
+        $("#item_amount").prop("readonly", false).removeAttr("readonly").focus();
+        manualAmountEditEnabled = true;
+        $("#item_amount").data("manual-edited", true);
+
+        // Change button to save icon
+        $(this)
+          .html('<i class="uil uil-save"></i>')
+          .removeClass("btn-danger")
+          .addClass("btn-success");
+        $(this).attr("title", "Save amount to equipment");
+        $(this).attr("id", "btn-save-amount-edit");
+
+        // Rebind the click event for save
+        $("#btn-save-amount-edit")
+          .off("click")
+          .on("click", function () {
+            saveEquipmentAmount();
+          });
       });
-  });
+  }
+
+  // Helper: revert the save (green) button back to red without saving
+  function resetAmountEditUI(restoreOriginal) {
+    var $amount = $("#item_amount");
+    if (restoreOriginal) {
+      var originalAmount = $amount.data("original-amount");
+      if (typeof originalAmount !== "undefined") {
+        $amount.val(originalAmount);
+      }
+    }
+    $amount
+      .prop("readonly", true)
+      .attr("readonly", "readonly")
+      .data("manual-edited", false)
+      .removeData("original-amount");
+
+    manualAmountEditEnabled = false;
+
+    var $btn = $("#btn-save-amount-edit").length
+      ? $("#btn-save-amount-edit")
+      : $("#btn-enable-amount-edit");
+
+    $btn
+      .html('<i class="uil uil-plus"></i>')
+      .removeClass("btn-success")
+      .addClass("btn-danger")
+      .attr("title", "Enable manual amount editing")
+      .attr("id", "btn-enable-amount-edit");
+
+    bindEnableAmountEditButton();
+  }
 
   // Function to save changed amount to equipment table
   function saveEquipmentAmount() {
@@ -712,20 +753,8 @@ jQuery(document).ready(function () {
                   showConfirmButton: false,
                 });
 
-                // Reset button to + icon
-                $("#btn-save-amount-edit")
-                  .html('<i class="uil uil-plus"></i>')
-                  .removeClass("btn-success")
-                  .addClass("btn-danger");
-                $("#btn-save-amount-edit").attr(
-                  "title",
-                  "Enable manual amount editing",
-                );
-                $("#btn-save-amount-edit").attr("id", "btn-enable-amount-edit");
-                manualAmountEditEnabled = false;
-
-                // Keep the amount field editable but mark as saved
-                $("#item_amount").data("manual-edited", false);
+                // Reset UI after save
+                resetAmountEditUI(false);
               } else {
                 swal({
                   title: "Error!",
@@ -746,6 +775,9 @@ jQuery(document).ready(function () {
               });
             },
           });
+        } else {
+          // Cancelled - revert button and amount
+          resetAmountEditUI(true);
         }
       },
     );
@@ -780,6 +812,9 @@ jQuery(document).ready(function () {
       }
     });
   });
+
+  // Initial bind for amount edit toggle
+  bindEnableAmountEditButton();
 
   // Remove item from list
   $(document).on("click", ".remove-item-btn", function () {
