@@ -931,12 +931,12 @@ jQuery(document).ready(function () {
   }
 
   // Live format while typing; finalize on blur
-  $("#transport_cost, #custom_deposit").on("input", function () {
+  $("#transport_cost, #custom_deposit, #deposit_pay_amount").on("input", function () {
     var formatted = formatMoneyLive($(this).val());
     $(this).val(formatted);
   });
 
-  $("#transport_cost, #custom_deposit").on("blur", function () {
+  $("#transport_cost, #custom_deposit, #deposit_pay_amount").on("blur", function () {
     var val = parseAmount($(this).val());
     $(this).val(formatAmount(val));
   });
@@ -3173,7 +3173,7 @@ jQuery(document).ready(function () {
   function renderDepositPayments(payments, total) {
     var $tbody = $("#depositPaymentsTableBody");
     $tbody.empty();
-    $("#deposit_modal_total").text(parseFloat(total || 0).toFixed(2));
+    $("#deposit_modal_total").text(formatAmount(parseAmount(total || 0)));
 
     if (!payments || payments.length === 0) {
       $tbody.html(
@@ -3189,7 +3189,7 @@ jQuery(document).ready(function () {
         (i + 1) +
         "</td>" +
         '<td class="text-end fw-bold">' +
-        parseFloat(p.amount).toFixed(2) +
+        formatAmount(parseAmount(p.amount || 0)) +
         "</td>" +
         "<td>" +
         (p.payment_date || "") +
@@ -3223,7 +3223,7 @@ jQuery(document).ready(function () {
       return;
     }
 
-    var amount = parseFloat($("#deposit_pay_amount").val()) || 0;
+    var amount = parseAmount($("#deposit_pay_amount").val()) || 0;
     var paymentDate = $("#deposit_pay_date").val();
     var remark = $("#deposit_pay_remark").val();
 

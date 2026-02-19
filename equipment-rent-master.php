@@ -620,7 +620,7 @@ $bill_number = $lastId + 1;
                             <div class="row align-items-end">
                                 <div class="col-md-3">
                                     <label for="deposit_pay_amount" class="form-label">Amount - මුදල <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="deposit_pay_amount" min="0.01" step="0.01" placeholder="0.00">
+                                    <input type="text" class="form-control" id="deposit_pay_amount" placeholder="0.00">
                                 </div>
                                 <div class="col-md-3">
                                     <label for="deposit_pay_date" class="form-label">Date - දිනය <span class="text-danger">*</span></label>
