@@ -96,17 +96,13 @@ $bill_number = $lastId + 1;
                                 <i class="uil uil-save me-1"></i> Save
                             </a>
 
-                            <?php if ($PERMISSIONS['edit_page']): ?>
-                                <a href="#" class="btn btn-warning" id="update">
-                                    <i class="uil uil-edit me-1"></i> Update
-                                </a>
-                            <?php endif; ?>
+                            <a href="#" class="btn btn-warning" id="update">
+                                <i class="uil uil-edit me-1"></i> Update
+                            </a>
 
-                            <?php if ($PERMISSIONS['delete_page']): ?>
-                                <a href="#" class="btn btn-danger delete-equipment-rent">
-                                    <i class="uil uil-trash-alt me-1"></i> Delete
-                                </a>
-                            <?php endif; ?>
+                            <a href="#" class="btn btn-danger delete-equipment-rent">
+                                <i class="uil uil-trash-alt me-1"></i> Delete
+                            </a>
 
                             <a href="#" class="btn btn-info" id="return-all" style="display: none;">
                                 <i class="uil uil-redo me-1"></i> Return All
