@@ -884,4 +884,11 @@ jQuery(document).ready(function () {
 
     // Initial call to set state
     toggleMachineSection();
+
+    // Check for job_id in URL on load
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('job_id');
+    if (jobId) {
+        loadJobDetails(jobId);
+    }
 });

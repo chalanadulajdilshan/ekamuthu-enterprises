@@ -295,9 +295,9 @@ jQuery(document).ready(function () {
 
         var returnDisplay = hasReturn
           ? '<div class="text-danger fw-semibold">' +
-            returnDateTime +
-            dayCountDisplay +
-            "</div>"
+          returnDateTime +
+          dayCountDisplay +
+          "</div>"
           : "-";
 
         var rowClass =
@@ -405,9 +405,9 @@ jQuery(document).ready(function () {
         var item = rentItems[index];
         var itemLabel = item
           ? item.equipment_display +
-            (item.sub_equipment_display
-              ? " (" + item.sub_equipment_display + ")"
-              : "")
+          (item.sub_equipment_display
+            ? " (" + item.sub_equipment_display + ")"
+            : "")
           : "this item";
 
         swal(
@@ -1116,10 +1116,10 @@ jQuery(document).ready(function () {
                 : "(Inactive)";
               $paymentSelect.append(
                 "<option data-temp='1' value='" +
-                  rent.payment_type_id +
-                  "' selected hidden>" +
-                  tempLabel +
-                  "</option>",
+                rent.payment_type_id +
+                "' selected hidden>" +
+                tempLabel +
+                "</option>",
               );
             }
             $paymentSelect.val(rent.payment_type_id);
@@ -2657,7 +2657,7 @@ jQuery(document).ready(function () {
             if (Number(calc.extra_charge_amount || 0) > 0) {
               summaryLines.push(
                 "Extra Charge: Rs. " +
-                  Number(calc.extra_charge_amount).toFixed(2),
+                Number(calc.extra_charge_amount).toFixed(2),
               );
             }
             if (Number(calc.repair_cost || 0) > 0) {
@@ -2676,7 +2676,7 @@ jQuery(document).ready(function () {
             } else if (Number(calc.additional_payment || 0) > 0) {
               summaryLines.push(
                 "Customer Pays: Rs. " +
-                  Number(calc.additional_payment).toFixed(2),
+                Number(calc.additional_payment).toFixed(2),
               );
             }
           }
@@ -3399,8 +3399,8 @@ jQuery(document).ready(function () {
         if (amount > currentOutstanding) {
           swal.showInputError(
             "Amount cannot exceed outstanding (Rs. " +
-              currentOutstanding.toFixed(2) +
-              ").",
+            currentOutstanding.toFixed(2) +
+            ").",
           );
           return false;
         }
@@ -3459,4 +3459,11 @@ jQuery(document).ready(function () {
       },
     );
   });
+
+  // Check for rent_id in URL on load
+  const urlParams = new URLSearchParams(window.location.search);
+  const rentId = urlParams.get('rent_id');
+  if (rentId) {
+    loadRentDetails(rentId);
+  }
 });

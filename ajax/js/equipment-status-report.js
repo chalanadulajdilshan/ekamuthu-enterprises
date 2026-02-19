@@ -271,6 +271,7 @@ $(document).ready(function () {
                     $("#rp-outsource-name").text(job.outsource_name || "-");
                     $("#rp-charge").text(parseFloat(job.repair_charge || 0).toFixed(2));
                     $("#rp-total-cost").text(parseFloat(job.total_cost || 0).toFixed(2));
+                    $("#rp-open-full").attr("href", "repair-job.php?job_id=" + job.id);
 
                     // Render items
                     const tbody = $("#repairItemsTable tbody");
