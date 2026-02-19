@@ -31,7 +31,8 @@ if ($action === 'get_outstanding_report') {
                 'recorded_paid' => 0,
                 'projected_outstanding' => 0,
                 'recorded_details' => [],
-                'payments' => []
+                'payments' => [],
+                'items' => []
             ];
         }
         return $rentId;
@@ -105,6 +106,46 @@ if ($action === 'get_outstanding_report') {
     $rentIds = array_keys($rentSummary);
     if (!empty($rentIds)) {
         $rentIdList = implode(',', array_map('intval', $rentIds));
+
+        // Bill items (base rental items)
+        $itemsSql = "SELECT 
+                        er.id AS rent_id,
+                        eri.quantity,
+                        eri.amount,
+                        eri.duration,
+                        eri.rent_type,
+                        COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0) AS returned_qty,
+                        e.item_name,
+                        e.code AS equipment_code,
+                        se.code AS sub_equipment_code
+                    FROM equipment_rent_items eri
+                    INNER JOIN equipment_rent er ON eri.rent_id = er.id
+                    LEFT JOIN equipment e ON eri.equipment_id = e.id
+                    LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
+                    WHERE er.id IN ($rentIdList)";
+
+        $itemsResult = $db->readQuery($itemsSql);
+        if ($itemsResult) {
+            while ($iRow = mysqli_fetch_assoc($itemsResult)) {
+                $rentId = (int)$iRow['rent_id'];
+                if (!isset($rentSummary[$rentId])) continue;
+                $qty = floatval($iRow['quantity'] ?? 0);
+                $returned = floatval($iRow['returned_qty'] ?? 0);
+                $pending = max(0, $qty - $returned);
+                $returnStatus = $pending <= 0 ? 'Returned' : 'Not Returned';
+                $rentSummary[$rentId]['items'][] = [
+                    'item' => trim(($iRow['equipment_code'] ?? '') . ' ' . ($iRow['item_name'] ?? '')),
+                    'sub_equipment' => $iRow['sub_equipment_code'] ?? '',
+                    'quantity' => $qty,
+                    'returned_qty' => $returned,
+                    'pending_qty' => $pending,
+                    'return_status' => $returnStatus,
+                    'amount' => $iRow['amount'] ?? 0,
+                    'duration' => $iRow['duration'] ?? 0,
+                    'rent_type' => $iRow['rent_type'] ?? ''
+                ];
+            }
+        }
 
         // Recorded outstanding breakdown per return
         $detailsSql = "SELECT 
@@ -222,7 +263,8 @@ if ($action === 'get_outstanding_report') {
             'recorded_outstanding_raw' => $recordedOutstanding,
             'projected_outstanding_raw' => $projectedOutstanding,
             'payments' => $summary['payments'] ?? [],
-            'recorded_details' => $summary['recorded_details'] ?? []
+            'recorded_details' => $summary['recorded_details'] ?? [],
+            'items' => $summary['items'] ?? []
         ];
 
         $grandTotalRent += $totalRent;
