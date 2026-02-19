@@ -3,6 +3,7 @@ include 'class/include.php';
 include 'auth.php';
 
 $customerId = isset($_GET['customer_id']) && !empty($_GET['customer_id']) ? (int)$_GET['customer_id'] : 0;
+$searchTerm = isset($_GET['q']) ? trim($_GET['q']) : '';
 
 $db = Database::getInstance();
 
@@ -10,6 +11,10 @@ $today = date('Y-m-d');
 $where = "WHERE 1=1";
 if ($customerId > 0) {
     $where .= " AND er.customer_id = $customerId";
+}
+if (!empty($searchTerm)) {
+    $safeTerm = method_exists($db, 'getConnection') ? mysqli_real_escape_string($db->getConnection(), $searchTerm) : addslashes($searchTerm);
+    $where .= " AND er.bill_number LIKE '%$safeTerm%'";
 }
 
 $customerFilterName = '';

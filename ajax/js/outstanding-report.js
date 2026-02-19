@@ -13,8 +13,19 @@ $(document).ready(function () {
     $('#printBtn').click(function() {
         var customerId = $('#customer_id').val();
         var url = 'print-outstanding-report.php';
+        var searchTerm = '';
+
+        if ($.fn.DataTable.isDataTable('#reportTable')) {
+            searchTerm = $('#reportTable').DataTable().search();
+        }
+
         if (customerId) {
             url += '?customer_id=' + customerId;
+            if (searchTerm) {
+                url += '&q=' + encodeURIComponent(searchTerm);
+            }
+        } else if (searchTerm) {
+            url += '?q=' + encodeURIComponent(searchTerm);
         }
         window.open(url, '_blank');
     });
