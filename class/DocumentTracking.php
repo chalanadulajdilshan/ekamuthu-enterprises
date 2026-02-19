@@ -180,7 +180,14 @@ class DocumentTracking
         $row = mysqli_fetch_array($result);
 
         if ($row) {
-            $new_id = (int) $row[$column] + 1;
+            $current_val = (int) $row[$column];
+            
+            // Enforce minimum start for repair_job
+            if ($type == 'repair_job' && $current_val < 5564) {
+                $current_val = 5564;
+            }
+
+            $new_id = $current_val + 1;
 
             $update_query = "UPDATE `document_tracking` SET 
                             `$column` = '$new_id',
