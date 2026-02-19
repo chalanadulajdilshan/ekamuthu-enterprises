@@ -2214,7 +2214,7 @@ jQuery(document).ready(function () {
     rentItems = [];
     updateItemsTable();
     $("#create").show();
-    $("#update").hide();
+    $("#update").show();
     $("#print").hide();
     $("#return-all").hide();
     $("#cancel-return").hide();

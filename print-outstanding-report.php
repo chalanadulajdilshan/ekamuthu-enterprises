@@ -4,6 +4,7 @@ include 'auth.php';
 
 $customerId = isset($_GET['customer_id']) && !empty($_GET['customer_id']) ? (int)$_GET['customer_id'] : 0;
 $searchTerm = isset($_GET['q']) ? trim($_GET['q']) : '';
+$isSummary = isset($_GET['summary']) && $_GET['summary'] == '1';
 
 $db = Database::getInstance();
 
@@ -72,7 +73,7 @@ if ($recordedResult) {
     }
 }
 
-// Projected outstanding (items not yet returned)
+// Projected outstanding (items not yet returned) - aligned with UI calculation
 $projectedSql = "SELECT 
                     er.id as rent_id,
                     er.bill_number,
@@ -81,8 +82,8 @@ $projectedSql = "SELECT
                     pt.name as payment_type_name,
                     er.status as rent_status,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
-                    GREATEST(0, DATEDIFF('$today', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY))) AS overdue_days,
-                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END) AS per_unit_daily
+                    GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, '$today') / 86400)) AS used_days,
+                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
                 FROM equipment_rent_items eri
                 INNER JOIN equipment_rent er ON eri.rent_id = er.id
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id
@@ -93,13 +94,13 @@ $projectedResult = $db->readQuery($projectedSql);
 if ($projectedResult) {
     while ($row = mysqli_fetch_assoc($projectedResult)) {
         $pendingQty = max(0, (float)$row['pending_qty']);
-        $overdueDays = max(0, (int)$row['overdue_days']);
-        if ($pendingQty <= 0 || $overdueDays <= 0) {
+        if ($pendingQty <= 0) {
             continue;
         }
 
+        $usedDays = max(1, (int)$row['used_days']);
         $perUnitDaily = floatval($row['per_unit_daily']);
-        $projectedAmount = round($pendingQty * $overdueDays * $perUnitDaily, 2);
+        $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
         if ($projectedAmount <= 0) {
             continue;
         }
@@ -203,7 +204,8 @@ foreach ($rentSummary as $rentId => $summary) {
     $totalPaid = $summary['recorded_paid'] ?? 0;
     $balance = $recordedOutstanding + $projectedOutstanding;
 
-    if ($balance <= 0 && $totalPaid <= 0) {
+    // Mirror UI: only include rows with a pending balance
+    if ($balance <= 0) {
         continue;
     }
 
@@ -478,6 +480,8 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td class="text-right text-success">&nbsp;<?php echo number_format($row['total_paid'], 2); ?>&nbsp;</td>
                             <td class="text-right text-danger"><strong><?php echo number_format($row['balance'], 2); ?></strong></td>
                         </tr>
+
+                        <?php if (!$isSummary): ?>
                         <tr>
                             <td colspan="8" style="padding:0 10px 15px 10px;">
                                 <div style="display:flex; gap:20px;">
@@ -556,6 +560,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                                 </div>
                             </td>
                         </tr>
+                        <?php endif; ?>
                         <?php endforeach; ?>
                         <tr style="background-color: #e9ecef;">
                             <td colspan="5" class="text-right"><strong>TOTAL:</strong></td>
