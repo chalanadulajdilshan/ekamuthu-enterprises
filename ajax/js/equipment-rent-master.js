@@ -184,6 +184,27 @@ jQuery(document).ready(function () {
     });
   }
 
+  function isValidDateString(dateStr) {
+    if (!dateStr) {
+      return false;
+    }
+    // Enforce YYYY-MM-DD
+    var match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(dateStr);
+    if (!match) {
+      return false;
+    }
+    var year = parseInt(match[1], 10);
+    var month = parseInt(match[2], 10) - 1; // JS months are 0-based
+    var day = parseInt(match[3], 10);
+    var d = new Date(year, month, day);
+    // Validate reconstructed date matches input (handles invalid dates like 2024-02-30)
+    return (
+      d.getFullYear() === year &&
+      d.getMonth() === month &&
+      d.getDate() === day
+    );
+  }
+
   // Update items table display
   function updateItemsTable() {
     var tbody = $("#rentItemsTable tbody");
@@ -1868,6 +1889,17 @@ jQuery(document).ready(function () {
       });
       return false;
     }
+    if (!isValidDateString($("#rental_start_date").val())) {
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Rental date must be a valid date in YYYY-MM-DD format",
+        type: "error",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      return false;
+    }
     if (!$("#customer_id").val()) {
       $("#create").prop("disabled", false);
       swal({
@@ -1886,6 +1918,17 @@ jQuery(document).ready(function () {
         text: "Please enter issue date",
         type: "error",
         timer: 2000,
+        showConfirmButton: false,
+      });
+      return false;
+    }
+    if (!isValidDateString($("#rental_date").val())) {
+      $("#create").prop("disabled", false);
+      swal({
+        title: "Error!",
+        text: "Issue date must be a valid date in YYYY-MM-DD format",
+        type: "error",
+        timer: 2500,
         showConfirmButton: false,
       });
       return false;
