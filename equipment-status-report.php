@@ -325,6 +325,7 @@ include 'auth.php';
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="#" id="rp-open-full" class="btn btn-primary" target="_blank">View Full Repair Job</a>
                 </div>
             </div>
         </div>
