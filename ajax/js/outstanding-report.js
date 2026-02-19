@@ -253,9 +253,13 @@ function fillBillDetailsModal(data) {
 
     // Deposit payments table
     var depositBody = $('#billModalDeposits tbody');
+    var depositTotalCell = $('#billModalDepositTotal');
     depositBody.empty();
+    var depositTotal = 0;
     if (data.deposits && data.deposits.length) {
         data.deposits.forEach(function (dep) {
+            var depAmt = parseAmount(dep.amount || 0);
+            if (!isNaN(depAmt)) depositTotal += depAmt;
             depositBody.append(`
                 <tr>
                     <td>${dep.payment_date || '-'}</td>
@@ -266,6 +270,10 @@ function fillBillDetailsModal(data) {
         });
     } else {
         depositBody.append('<tr><td colspan="3" class="text-muted">No deposit payments recorded.</td></tr>');
+    }
+
+    if (depositTotalCell.length) {
+        depositTotalCell.text(formatAmount(depositTotal));
     }
 
     // Totals in modal summary
