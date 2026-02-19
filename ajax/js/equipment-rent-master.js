@@ -2307,6 +2307,15 @@ jQuery(document).ready(function () {
   });
 
   // Calculate return all preview when inputs change (with server-side preview)
+  // Format amounts with thousand separators and two decimals
+  function formatCurrency(value) {
+    var num = Number(value || 0);
+    return num.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
   var returnAllPreviewTimer = null;
   $(
     "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override, #return_all_extra_charge, #return_all_repair_cost",
@@ -2397,37 +2406,37 @@ jQuery(document).ready(function () {
             ? rentalOverride
             : Number(calc.rental_amount || 0);
         settlement.push(
-          rentalLabel + ": Rs. " + Number(rentalValue || 0).toFixed(2),
+          rentalLabel + ": Rs. " + formatCurrency(rentalValue),
         );
         settlement.push(
-          "Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2),
+          "Extra Day: Rs. " + formatCurrency(calc.extra_day_amount),
         );
         settlement.push(
-          "Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2),
+          "Damage: Rs. " + formatCurrency(calc.damage_amount),
         );
         settlement.push(
-          "Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2),
+          "Penalty: Rs. " + formatCurrency(calc.penalty_amount),
         );
         if (Number(calc.extra_charge_amount || 0) > 0) {
           settlement.push(
-            "Extra Charge: Rs. " + Number(calc.extra_charge_amount).toFixed(2),
+            "Extra Charge: Rs. " + formatCurrency(calc.extra_charge_amount),
           );
         }
         if (Number(calc.repair_cost || 0) > 0) {
           settlement.push(
-            "Repair Cost: Rs. " + Number(calc.repair_cost).toFixed(2),
+            "Repair Cost: Rs. " + formatCurrency(calc.repair_cost),
           );
         }
         settlement.push(
-          "Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2),
+          "Net: Rs. " + formatCurrency(calc.settle_amount),
         );
         if (Number(calc.refund_amount || 0) > 0) {
           settlement.push(
-            "Refund: Rs. " + Number(calc.refund_amount).toFixed(2),
+            "Refund: Rs. " + formatCurrency(calc.refund_amount),
           );
         } else if (Number(calc.additional_payment || 0) > 0) {
           settlement.push(
-            "Customer Pays: Rs. " + Number(calc.additional_payment).toFixed(2),
+            "Customer Pays: Rs. " + formatCurrency(calc.additional_payment),
           );
         }
 
@@ -2460,7 +2469,7 @@ jQuery(document).ready(function () {
             'max="' +
             refundAmount.toFixed(2) +
             '" value="' +
-            refundAmount.toFixed(2) +
+            formatCurrency(refundAmount) +
             '">';
           previewHtml +=
             '<div class="mt-1"><strong>Company Outstanding - සමාගම් හිඟ: </strong>';
@@ -2484,7 +2493,7 @@ jQuery(document).ready(function () {
             'max="' +
             additionalPayment.toFixed(2) +
             '" value="' +
-            additionalPayment.toFixed(2) +
+            formatCurrency(additionalPayment) +
             '">';
           previewHtml += '<div class="mt-1"><strong>Outstanding: </strong>';
           previewHtml +=
@@ -2502,7 +2511,7 @@ jQuery(document).ready(function () {
               var paid = parseFloat($(this).val()) || 0;
               var outstanding = Math.max(0, additionalPayment - paid);
               $("#return_all_outstanding_display").text(
-                "Rs. " + outstanding.toFixed(2),
+                "Rs. " + formatCurrency(outstanding),
               );
               if (outstanding > 0) {
                 $("#return_all_outstanding_display")
@@ -2537,7 +2546,7 @@ jQuery(document).ready(function () {
             var paid = parseFloat($(this).val()) || 0;
             var outstanding = Math.max(0, refundAmount - paid);
             $("#return_all_company_outstanding_display").text(
-              "Rs. " + outstanding.toFixed(2),
+              "Rs. " + formatCurrency(outstanding),
             );
             if (outstanding > 0) {
               $("#return_all_company_outstanding_display")
@@ -2643,40 +2652,38 @@ jQuery(document).ready(function () {
               calc.extra_charge_amount)
           ) {
             summaryLines.push(
-              "Rental: Rs. " + Number(calc.rental_amount || 0).toFixed(2),
+              "Rental: Rs. " + formatCurrency(calc.rental_amount),
             );
             summaryLines.push(
-              "Extra Day: Rs. " + Number(calc.extra_day_amount || 0).toFixed(2),
+              "Extra Day: Rs. " + formatCurrency(calc.extra_day_amount),
             );
             summaryLines.push(
-              "Damage: Rs. " + Number(calc.damage_amount || 0).toFixed(2),
+              "Damage: Rs. " + formatCurrency(calc.damage_amount),
             );
             summaryLines.push(
-              "Penalty: Rs. " + Number(calc.penalty_amount || 0).toFixed(2),
+              "Penalty: Rs. " + formatCurrency(calc.penalty_amount),
             );
             if (Number(calc.extra_charge_amount || 0) > 0) {
               summaryLines.push(
-                "Extra Charge: Rs. " +
-                Number(calc.extra_charge_amount).toFixed(2),
+                "Extra Charge: Rs. " + formatCurrency(calc.extra_charge_amount),
               );
             }
             if (Number(calc.repair_cost || 0) > 0) {
               summaryLines.push(
-                "Repair Cost: Rs. " + Number(calc.repair_cost).toFixed(2),
+                "Repair Cost: Rs. " + formatCurrency(calc.repair_cost),
               );
             }
             summaryLines.push(
-              "Net: Rs. " + Number(calc.settle_amount || 0).toFixed(2),
+              "Net: Rs. " + formatCurrency(calc.settle_amount),
             );
 
             if (Number(calc.refund_amount || 0) > 0) {
               summaryLines.push(
-                "Refund: Rs. " + Number(calc.refund_amount).toFixed(2),
+                "Refund: Rs. " + formatCurrency(calc.refund_amount),
               );
             } else if (Number(calc.additional_payment || 0) > 0) {
               summaryLines.push(
-                "Customer Pays: Rs. " +
-                Number(calc.additional_payment).toFixed(2),
+                "Customer Pays: Rs. " + formatCurrency(calc.additional_payment),
               );
             }
           }

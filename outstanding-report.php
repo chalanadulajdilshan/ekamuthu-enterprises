@@ -280,6 +280,12 @@ include 'auth.php';
                                         <tbody>
                                             <tr><td colspan="3" class="text-muted">No deposit payments recorded.</td></tr>
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th colspan="2" class="text-end">Total</th>
+                                                <th class="text-end" id="billModalDepositTotal">0.00</th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>

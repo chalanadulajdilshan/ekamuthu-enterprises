@@ -420,26 +420,21 @@ $bill_number = $lastId + 1;
                                                 <input type="number" class="form-control" id="item_qty" min="1" step="1"
                                                     value="1" readonly>
                                             </div>
-
-
                                             <div class="col-md-1">
                                                 <label class="form-label">Amount</label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control p-1" id="item_amount" readonly
                                                         placeholder="0.00">
-                                                    <?php if ($PERMISSIONS['edit_page']): ?>
-                                                        <button class="btn btn-danger btn-sm p-1" type="button" id="btn-enable-amount-edit" 
-                                                            title="Edit" style="display: none;">
-                                                            <i class="uil uil-plus"></i>
-                                                        </button>
-                                                    <?php endif; ?>
+                                                    <button class="btn btn-danger btn-sm p-1" type="button" id="btn-enable-amount-edit"
+                                                        title="Enable manual amount editing">
+                                                        <i class="uil uil-plus"></i>
+                                                    </button>
                                                 </div>
                                             </div>
 
                                         </div>
 
                                         <div class="row align-items-end">
-
                                             <!-- Item Return Date -->
                                             <div class="col-md-2">
                                                 <label for="item_return_date" class="form-label">Return Date - ආපසු දිය යුතු දිනය</label>
