@@ -281,6 +281,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_delivery_status') {
 if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     $DOCUMENT_TRACKING = new DocumentTracking(1);
     $lastId = $DOCUMENT_TRACKING->repair_job_id ?? 0;
+    if ($lastId < 5564) {
+        $lastId = 5564;
+    }
     $newCode = 'RJ/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
 
     echo json_encode([

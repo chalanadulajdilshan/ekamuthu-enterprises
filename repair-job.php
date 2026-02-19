@@ -9,7 +9,10 @@ $REPAIR_JOB = new RepairJob(NULL);
 // Get the job code from document tracking table
 $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
 $lastId = $DOCUMENT_TRACKING->repair_job_id ?? 0;
-$job_code = 'RJ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+if ($lastId < 5564) {
+    $lastId = 5564;
+}
+$job_code = '0' . ($lastId + 1);
 ?>
 
 <head>
