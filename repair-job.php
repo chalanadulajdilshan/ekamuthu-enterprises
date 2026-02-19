@@ -54,11 +54,9 @@ $job_code = '0' . ($lastId + 1);
                                 <i class="uil uil-plus me-1"></i> New
                             </a>
 
-                            <?php if ($PERMISSIONS['add_page']): ?>
-                                <a href="#" class="btn btn-primary" id="create">
-                                    <i class="uil uil-save me-1"></i> Save
-                                </a>
-                            <?php endif; ?>
+                            <a href="#" class="btn btn-primary" id="create">
+                                <i class="uil uil-save me-1"></i> Save
+                            </a>
 
                             <a href="#" class="btn btn-warning" id="update" style="display: none;">
                                 <i class="uil uil-edit me-1"></i> Update
