@@ -113,9 +113,10 @@ include 'auth.php';
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 d-flex align-items-end">
+                                        <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
                                             <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> Generate Report</button>
-                                            <button id="printBtn" class="btn btn-success ms-2"><i class="uil uil-print"></i> Print Report</button>
+                                            <button id="printBtn" class="btn btn-success"><i class="uil uil-print"></i> Print (Detailed)</button>
+                                            <button id="printSummaryBtn" class="btn btn-outline-success"><i class="uil uil-print"></i> Print (Summary)</button>
                                         </div>
                                     </div>
 
@@ -216,6 +217,12 @@ include 'auth.php';
                                         <tbody>
                                             <tr><td colspan="7" class="text-muted">No items found.</td></tr>
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th colspan="7" class="text-end">Total</th>
+                                                <th class="text-end" id="billModalItemsTotal">0.00</th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -257,6 +264,21 @@ include 'auth.php';
                                         </thead>
                                         <tbody>
                                             <tr><td colspan="4" class="text-muted">No payments recorded.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h6 class="fw-bold mb-2 mt-3">Deposit Payments</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" id="billModalDeposits">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th class="text-end">Amount</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="3" class="text-muted">No deposit payments recorded.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>

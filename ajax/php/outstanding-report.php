@@ -32,6 +32,7 @@ if ($action === 'get_outstanding_report') {
                 'projected_outstanding' => 0,
                 'recorded_details' => [],
                 'payments' => [],
+                'deposits' => [],
                 'items' => []
             ];
         }
@@ -218,6 +219,32 @@ if ($action === 'get_outstanding_report') {
                 ];
             }
         }
+
+        // Deposit payments per rent
+        $depositSql = "SELECT 
+                            dp.rent_id,
+                            dp.amount,
+                            dp.payment_date,
+                            dp.remark
+                        FROM deposit_payments dp
+                        WHERE dp.rent_id IN ($rentIdList)
+                        ORDER BY dp.payment_date ASC, dp.id ASC";
+
+        $depositResult = $db->readQuery($depositSql);
+        if ($depositResult) {
+            while ($depRow = mysqli_fetch_assoc($depositResult)) {
+                $rentId = (int)$depRow['rent_id'];
+                if (!isset($rentSummary[$rentId])) {
+                    continue;
+                }
+
+                $rentSummary[$rentId]['deposits'][] = [
+                    'payment_date' => $depRow['payment_date'],
+                    'amount' => floatval($depRow['amount'] ?? 0),
+                    'remark' => $depRow['remark'] ?? ''
+                ];
+            }
+        }
     }
 
     // Build response payload
@@ -264,6 +291,7 @@ if ($action === 'get_outstanding_report') {
             'projected_outstanding_raw' => $projectedOutstanding,
             'payments' => $summary['payments'] ?? [],
             'recorded_details' => $summary['recorded_details'] ?? [],
+            'deposits' => $summary['deposits'] ?? [],
             'items' => $summary['items'] ?? []
         ];
 

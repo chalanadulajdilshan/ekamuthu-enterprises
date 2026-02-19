@@ -99,7 +99,7 @@ $bill_number = $lastId + 1;
                             <?php endif; ?>
 
                             <?php if ($PERMISSIONS['edit_page']): ?>
-                                <a href="#" class="btn btn-warning" id="update" style="display: none;">
+                                <a href="#" class="btn btn-warning" id="update">
                                     <i class="uil uil-edit me-1"></i> Update
                                 </a>
                             <?php endif; ?>

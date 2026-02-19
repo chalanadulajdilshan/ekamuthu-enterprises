@@ -9,25 +9,14 @@ $(document).ready(function () {
         loadReport();
     });
 
-    // Print Report
+    // Print Report (detailed)
     $('#printBtn').click(function() {
-        var customerId = $('#customer_id').val();
-        var url = 'print-outstanding-report.php';
-        var searchTerm = '';
+        openPrintWindow(false);
+    });
 
-        if ($.fn.DataTable.isDataTable('#reportTable')) {
-            searchTerm = $('#reportTable').DataTable().search();
-        }
-
-        if (customerId) {
-            url += '?customer_id=' + customerId;
-            if (searchTerm) {
-                url += '&q=' + encodeURIComponent(searchTerm);
-            }
-        } else if (searchTerm) {
-            url += '?q=' + encodeURIComponent(searchTerm);
-        }
-        window.open(url, '_blank');
+    // Print Report (summary only)
+    $('#printSummaryBtn').click(function() {
+        openPrintWindow(true);
     });
 
     // Clear Customer
@@ -149,6 +138,33 @@ function loadReport() {
     });
 }
 
+function openPrintWindow(isSummary) {
+    var customerId = $('#customer_id').val();
+    var url = 'print-outstanding-report.php';
+    var searchTerm = '';
+
+    if ($.fn.DataTable.isDataTable('#reportTable')) {
+        searchTerm = $('#reportTable').DataTable().search();
+    }
+
+    const params = [];
+    if (customerId) {
+        params.push('customer_id=' + customerId);
+    }
+    if (searchTerm) {
+        params.push('q=' + encodeURIComponent(searchTerm));
+    }
+    if (isSummary) {
+        params.push('summary=1');
+    }
+
+    if (params.length) {
+        url += '?' + params.join('&');
+    }
+
+    window.open(url, '_blank');
+}
+
 function fillBillDetailsModal(data) {
     var fmt = function (val) { return formatAmount(parseAmount(val)); };
 
@@ -185,12 +201,16 @@ function fillBillDetailsModal(data) {
 
     // Bill items table
     var itemsBody = $('#billModalItems tbody');
+    var itemsTotalCell = $('#billModalItemsTotal');
     itemsBody.empty();
+    var itemsTotal = 0;
     if (data.items && data.items.length) {
         data.items.forEach(function (itm) {
             var statusBadge = itm.return_status === 'Returned'
                 ? '<span class="badge bg-success">Returned</span>'
                 : '<span class="badge bg-warning text-dark">Not Returned</span>';
+            var amt = parseAmount(itm.amount);
+            itemsTotal += isNaN(amt) ? 0 : amt;
             itemsBody.append(`
                 <tr>
                     <td>${itm.item || '-'}</td>
@@ -207,6 +227,7 @@ function fillBillDetailsModal(data) {
     } else {
         itemsBody.append('<tr><td colspan="7" class="text-muted">No items found.</td></tr>');
     }
+    itemsTotalCell.text(formatAmount(itemsTotal));
 
     // Payments table
     var paymentBody = $('#billModalPayments tbody');
@@ -230,6 +251,23 @@ function fillBillDetailsModal(data) {
         paymentBody.append('<tr><td colspan="4" class="text-muted">No payments recorded.</td></tr>');
     }
 
+    // Deposit payments table
+    var depositBody = $('#billModalDeposits tbody');
+    depositBody.empty();
+    if (data.deposits && data.deposits.length) {
+        data.deposits.forEach(function (dep) {
+            depositBody.append(`
+                <tr>
+                    <td>${dep.payment_date || '-'}</td>
+                    <td class="text-end text-success">${fmt(dep.amount || 0)}</td>
+                    <td>${dep.remark || '-'}</td>
+                </tr>
+            `);
+        });
+    } else {
+        depositBody.append('<tr><td colspan="3" class="text-muted">No deposit payments recorded.</td></tr>');
+    }
+
     // Totals in modal summary
     $('#billModalRecordedTotal').text(fmt(data.recorded_outstanding_raw || data.recorded_outstanding));
     $('#billModalProjectedTotal').text(fmt(data.projected_outstanding_raw || data.projected_outstanding));
@@ -246,6 +284,19 @@ function formatDetail(rowData) {
                     <td class="text-end">${Number(item.outstanding_amount || 0).toFixed(2)}</td>
                     <td class="text-end text-success">${Number(item.customer_paid || 0).toFixed(2)}</td>
                     <td>${item.remark || '-'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    var depositSection = '<tr><td colspan="3" class="text-muted">No deposit payments recorded.</td></tr>';
+    if (rowData.deposits && rowData.deposits.length > 0) {
+        depositSection = rowData.deposits.map(function (dep) {
+            return `
+                <tr>
+                    <td>${dep.payment_date || '-'}</td>
+                    <td class="text-end text-success">${formatAmount(parseAmount(dep.amount || 0))}</td>
+                    <td>${dep.remark || '-'}</td>
                 </tr>
             `;
         }).join('');
@@ -310,6 +361,19 @@ function formatDetail(rowData) {
                                     </tr>
                                 </thead>
                                 <tbody>${paymentSection}</tbody>
+                            </table>
+                        </div>
+                        <h6 class="fw-bold mb-2 mt-3">Deposit Payments</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="text-end">Amount</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${depositSection}</tbody>
                             </table>
                         </div>
                     </div>
