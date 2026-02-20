@@ -186,6 +186,32 @@ if (!empty($rentIds)) {
             ];
         }
     }
+
+    // Deposit payments per rent
+    $depositSql = "SELECT 
+                        dp.rent_id,
+                        dp.amount,
+                        dp.payment_date,
+                        dp.remark
+                    FROM deposit_payments dp
+                    WHERE dp.rent_id IN ($rentIdList)
+                    ORDER BY dp.payment_date ASC, dp.id ASC";
+
+    $depositResult = $db->readQuery($depositSql);
+    if ($depositResult) {
+        while ($depRow = mysqli_fetch_assoc($depositResult)) {
+            $rentId = (int)$depRow['rent_id'];
+            if (!isset($rentSummary[$rentId])) {
+                continue;
+            }
+
+            $rentSummary[$rentId]['deposits'][] = [
+                'payment_date' => $depRow['payment_date'],
+                'amount' => floatval($depRow['amount'] ?? 0),
+                'remark' => $depRow['remark'] ?? ''
+            ];
+        }
+    }
 }
 
 // Build printable dataset
@@ -202,7 +228,18 @@ foreach ($rentSummary as $rentId => $summary) {
     $recordedOutstanding = $summary['recorded_outstanding'] ?? 0;
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
     $totalPaid = $summary['recorded_paid'] ?? 0;
-    $balance = $recordedOutstanding + $projectedOutstanding;
+
+    // Calculate total deposits
+    $totalDeposits = 0;
+    if (!empty($summary['deposits'])) {
+        foreach ($summary['deposits'] as $dep) {
+            $totalDeposits += floatval($dep['amount']);
+        }
+    }
+
+    // Adjust balance and total paid with deposits
+    $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $totalDeposits);
+    $totalPaid += $totalDeposits;
 
     // Mirror UI: only include rows with a pending balance
     if ($balance <= 0) {
@@ -227,7 +264,8 @@ foreach ($rentSummary as $rentId => $summary) {
         'recorded_outstanding' => $recordedOutstanding,
         'projected_outstanding' => $projectedOutstanding,
         'recorded_details' => $summary['recorded_details'] ?? [],
-        'payments' => $summary['payments'] ?? []
+        'payments' => $summary['payments'] ?? [],
+        'deposits' => $summary['deposits'] ?? []
     ];
 
     $grandTotalRent += $totalRent;
@@ -557,6 +595,32 @@ if ($customerId > 0 && empty($customerFilterName)) {
                                             </tbody>
                                         </table>
                                     </div>
+                                </div>
+
+                                <div style="margin-top: 15px; border:1px solid #dee2e6; border-radius:6px; padding:10px;">
+                                    <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Deposit Payments</h4>
+                                    <table style="width:100%; font-size:11px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th class="text-right">Amount</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (!empty($row['deposits'])): ?>
+                                                <?php foreach ($row['deposits'] as $dep): ?>
+                                                    <tr>
+                                                        <td><?php echo $dep['payment_date'] ?? '-'; ?></td>
+                                                        <td class="text-right text-success"><?php echo number_format($dep['amount'] ?? 0, 2); ?></td>
+                                                        <td><?php echo !empty($dep['remark']) ? $dep['remark'] : '-'; ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <tr><td colspan="3" style="text-align:center; padding:10px;">No deposit payments.</td></tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </td>
                         </tr>

@@ -1158,15 +1158,20 @@ jQuery(document).ready(function () {
           var totalCustomerPaid = parseFloat(rent.total_customer_paid || 0);
           $("#customer_paid_total").text(totalCustomerPaid.toFixed(2));
           var rentOutstanding = parseFloat(rent.rent_outstanding || 0);
-          $("#customer_rent_outstanding").text(rentOutstanding.toFixed(2));
-          if (rentOutstanding > 0) {
+          var billOutstanding = parseFloat(rent.bill_outstanding || 0);
+          var displayOutstanding = Math.max(rentOutstanding, billOutstanding);
+          $("#customer_rent_outstanding").text(displayOutstanding.toFixed(2));
+          if (displayOutstanding > 0) {
             $("#customer_rent_outstanding")
               .removeClass("text-success")
               .addClass("text-danger");
+            $("#customerOutstandingValue").text(displayOutstanding.toFixed(2));
+            $("#customerOutstandingAlert").show();
           } else {
             $("#customer_rent_outstanding")
               .removeClass("text-danger")
               .addClass("text-success");
+            $("#customerOutstandingAlert").hide();
           }
 
           // Company Refund Balance (partial refund outstanding)
@@ -3281,6 +3286,23 @@ jQuery(document).ready(function () {
           // Clear form
           $("#deposit_pay_amount").val("");
           $("#deposit_pay_remark").val("");
+
+          // Immediately update outstanding display in real-time
+          if (result.bill_outstanding !== undefined || result.rent_outstanding !== undefined) {
+            var rentOutstanding = parseFloat(result.rent_outstanding || 0);
+            var billOutstanding = parseFloat(result.bill_outstanding || 0);
+            var displayOutstanding = Math.max(rentOutstanding, billOutstanding);
+            $("#customer_rent_outstanding").text(displayOutstanding.toFixed(2));
+            if (displayOutstanding > 0) {
+              $("#customer_rent_outstanding").removeClass("text-success").addClass("text-danger");
+              $("#customerOutstandingValue").text(displayOutstanding.toFixed(2));
+              $("#customerOutstandingAlert").show();
+            } else {
+              $("#customer_rent_outstanding").removeClass("text-danger").addClass("text-success");
+              $("#customerOutstandingAlert").hide();
+            }
+          }
+
           // Refresh the rent details to update refund balance etc.
           loadRentDetails(rentId);
         } else {
@@ -3341,6 +3363,23 @@ jQuery(document).ready(function () {
                 $("#custom_deposit").val(
                   formatAmount(parseFloat(result.deposit_total || 0)),
                 );
+
+                // Immediately update outstanding display in real-time
+                if (result.bill_outstanding !== undefined || result.rent_outstanding !== undefined) {
+                  var rentOutstanding = parseFloat(result.rent_outstanding || 0);
+                  var billOutstanding = parseFloat(result.bill_outstanding || 0);
+                  var displayOutstanding = Math.max(rentOutstanding, billOutstanding);
+                  $("#customer_rent_outstanding").text(displayOutstanding.toFixed(2));
+                  if (displayOutstanding > 0) {
+                    $("#customer_rent_outstanding").removeClass("text-success").addClass("text-danger");
+                    $("#customerOutstandingValue").text(displayOutstanding.toFixed(2));
+                    $("#customerOutstandingAlert").show();
+                  } else {
+                    $("#customer_rent_outstanding").removeClass("text-danger").addClass("text-success");
+                    $("#customerOutstandingAlert").hide();
+                  }
+                }
+
                 // Refresh the rent details
                 loadRentDetails(rentId);
               } else {

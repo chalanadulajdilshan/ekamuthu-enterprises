@@ -263,7 +263,21 @@ if ($action === 'get_outstanding_report') {
         $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
         $totalPaid = $summary['recorded_paid'] ?? 0;
 
-        $balance = $recordedOutstanding + $projectedOutstanding;
+        // Calculate total deposits
+        $totalDeposits = 0;
+        if (!empty($summary['deposits'])) {
+            foreach ($summary['deposits'] as $dep) {
+                $totalDeposits += floatval($dep['amount']);
+            }
+        }
+
+        // Adjust balance and total paid with deposits
+        // Balance = (Recorded O/S + Projected O/S) - Deposits
+        $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $totalDeposits);
+
+        // Total Paid = Recorded Paid + Deposits
+        // Note: Logic assumes deposits are eventually used to settle the rent/outstanding
+        $totalPaid += $totalDeposits;
 
         // Only show rows that still have anything pending
         if ($balance <= 0) {
