@@ -278,12 +278,21 @@ class EquipmentRent
         // Base FROM/JOIN for reuse
         $fromJoin = "FROM equipment_rent er LEFT JOIN customer_master cm ON er.customer_id = cm.id";
 
-        // pending_only filter handling
-        $pendingOnlyHaving = "";
+        // pending_only / returned_only / company_outstanding_only filter handling
+        $havingClauses = [];
         if (!empty($request['pending_only'])) {
-            $pendingOnlyHaving = "HAVING outstanding_items > 0";
+            $havingClauses[] = "outstanding_items > 0";
         } elseif (!empty($request['returned_only'])) {
-            $pendingOnlyHaving = "HAVING outstanding_items = 0";
+            $havingClauses[] = "outstanding_items = 0";
+        }
+
+        if (!empty($request['company_outstanding_only'])) {
+            $havingClauses[] = "company_outstanding_total > 0";
+        }
+
+        $pendingOnlyHaving = "";
+        if (!empty($havingClauses)) {
+            $pendingOnlyHaving = "HAVING " . implode(" AND ", $havingClauses);
         }
 
         // Filtered records count (respect pending_only)
@@ -291,7 +300,12 @@ class EquipmentRent
                             SELECT er.id,
                                    (SELECT COUNT(*) FROM equipment_rent_items eri
                                        WHERE eri.rent_id = er.id AND (eri.status = 'rented' OR (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id),0)) > 0)
-                                   ) AS outstanding_items
+                                   ) AS outstanding_items,
+                                   (SELECT COALESCE(SUM(err.company_outstanding), 0)
+                                        FROM equipment_rent_returns err
+                                        INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                                        WHERE eri.rent_id = er.id
+                                   ) AS company_outstanding_total
                             $fromJoin
                             $where
                             $pendingOnlyHaving
@@ -304,7 +318,12 @@ class EquipmentRent
                        (SELECT COUNT(*) FROM equipment_rent_items eri WHERE eri.rent_id = er.id) AS total_items,
                        (SELECT COUNT(*) FROM equipment_rent_items eri
                           WHERE eri.rent_id = er.id AND (eri.status = 'rented' OR (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id),0)) > 0)
-                       ) AS outstanding_items
+                       ) AS outstanding_items,
+                       (SELECT COALESCE(SUM(err.company_outstanding), 0)
+                            FROM equipment_rent_returns err
+                            INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                            WHERE eri.rent_id = er.id
+                       ) AS company_outstanding_total
                 $fromJoin
                 $where
                 $pendingOnlyHaving
@@ -338,7 +357,8 @@ class EquipmentRent
                 "status_label" => $statusLabel,
                 "total_items" => $row['total_items'],
                 "outstanding_items" => $row['outstanding_items'],
-                "remark" => $row['remark']
+                "remark" => $row['remark'],
+                "company_outstanding_total" => $row['company_outstanding_total'] ?? 0
             ];
 
             $data[] = $nestedData;
