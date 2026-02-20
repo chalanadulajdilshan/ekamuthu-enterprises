@@ -405,6 +405,28 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $totalCompanyOutstanding = floatval($companyOutData['total_company_outstanding'] ?? 0);
         $totalCompanyRefundPaid = floatval($companyOutData['total_company_refund_paid'] ?? 0);
 
+        // Calculate accrued charges for non-returned (pending) items based on today
+        $today = date('Y-m-d');
+        $accruedQuery = "SELECT COALESCE(SUM(
+            CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                     * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+                ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, '$today') / 86400))
+                     * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                     * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+            END
+        ), 0) as accrued_charges
+        FROM equipment_rent_items ri
+        LEFT JOIN equipment e ON ri.equipment_id = e.id
+        WHERE ri.rent_id = $rent_id
+          AND (ri.quantity - COALESCE(ri.total_returned_qty, 0)) > 0";
+        $accruedResult = $db->readQuery($accruedQuery);
+        $accruedData = mysqli_fetch_assoc($accruedResult);
+        $accruedCharges = floatval($accruedData['accrued_charges'] ?? 0);
+
+        // Bill-level outstanding = (returned charges + accrued unreturned charges) - deposit
+        $billOutstanding = round(max(0, ($totalCharges + $accruedCharges) - $customerDeposit), 2);
+
         // Collect distinct remarks saved with returns (most recent first)
         $remarkQuery = "SELECT DISTINCT TRIM(err.remark) AS remark
                         FROM equipment_rent_returns err
@@ -472,7 +494,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "total_customer_paid" => $totalCustomerPaid,
                 "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0),
                 "total_company_refund_paid" => $totalCompanyRefundPaid,
-                "total_company_outstanding" => $totalCompanyOutstanding
+                "total_company_outstanding" => $totalCompanyOutstanding,
+                "bill_outstanding" => $billOutstanding
             ],
             "items" => $items,
             "return_remarks" => $returnRemarks,
@@ -1621,11 +1644,72 @@ if (isset($_POST['action']) && $_POST['action'] === 'add_deposit_payment') {
 
     if ($id) {
         $newTotal = DepositPayment::syncDepositTotal($rent_id);
+
+        // Reduce customer rent_outstanding by the deposit amount
+        $RENT = new EquipmentRent($rent_id);
+        if ($RENT->customer_id) {
+            $db = Database::getInstance();
+            $depositAmt = floatval($amount);
+            $db->readQuery("UPDATE `customer_master` SET `rent_outstanding` = GREATEST(0, COALESCE(`rent_outstanding`,0) - $depositAmt) WHERE `id` = " . (int)$RENT->customer_id);
+        }
+
+        // Calculate updated bill outstanding for real-time UI update
+        $db = Database::getInstance();
+        $customerDeposit = floatval($newTotal);
+        $today = date('Y-m-d');
+
+        // Total charges from returned items
+        $chargesQuery = "SELECT COALESCE(SUM(
+                            CASE WHEN err.rental_override IS NOT NULL
+                                THEN err.rental_override
+                                ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                                    THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                                        * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
+                                        * err.return_qty)
+                                END
+                            END
+                            + COALESCE(err.extra_day_amount, 0)
+                            + COALESCE(err.damage_amount, 0)
+                            + COALESCE(err.penalty_amount, 0)
+                        ), 0) as total_charges
+                        FROM equipment_rent_returns err
+                        INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                        LEFT JOIN equipment e ON eri.equipment_id = e.id
+                        WHERE eri.rent_id = $rent_id";
+        $chargesData = mysqli_fetch_assoc($db->readQuery($chargesQuery));
+        $totalCharges = floatval($chargesData['total_charges'] ?? 0);
+
+        // Accrued charges for non-returned items
+        $accruedQuery = "SELECT COALESCE(SUM(
+            CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                     * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+                ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, '$today') / 86400))
+                     * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                     * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+            END
+        ), 0) as accrued_charges
+        FROM equipment_rent_items ri
+        LEFT JOIN equipment e ON ri.equipment_id = e.id
+        WHERE ri.rent_id = $rent_id
+          AND (ri.quantity - COALESCE(ri.total_returned_qty, 0)) > 0";
+        $accruedData = mysqli_fetch_assoc($db->readQuery($accruedQuery));
+        $accruedCharges = floatval($accruedData['accrued_charges'] ?? 0);
+
+        $billOutstanding = round(max(0, ($totalCharges + $accruedCharges) - $customerDeposit), 2);
+
+        // Get updated customer rent_outstanding
+        $CUSTOMER = new CustomerMaster($RENT->customer_id);
+        $rentOutstanding = floatval($CUSTOMER->rent_outstanding ?? 0);
+
         echo json_encode([
             "status" => "success",
             "message" => "Deposit payment added",
             "deposit_total" => $newTotal,
-            "payments" => DepositPayment::getByRentId($rent_id)
+            "payments" => DepositPayment::getByRentId($rent_id),
+            "bill_outstanding" => $billOutstanding,
+            "rent_outstanding" => $rentOutstanding
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to add deposit payment"]);
@@ -1648,15 +1732,72 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete_deposit_payment') {
         exit;
     }
 
+    $deletedAmount = floatval($DP->amount);
     $rent_id = $DP->rent_id;
     $DP->delete();
     $newTotal = DepositPayment::syncDepositTotal($rent_id);
+
+    // Increase customer rent_outstanding back by the deleted deposit amount
+    $RENT = new EquipmentRent($rent_id);
+    if ($RENT->customer_id) {
+        $db = Database::getInstance();
+        $db->readQuery("UPDATE `customer_master` SET `rent_outstanding` = COALESCE(`rent_outstanding`,0) + $deletedAmount WHERE `id` = " . (int)$RENT->customer_id);
+    }
+
+    // Calculate updated bill outstanding for real-time UI update
+    $db = Database::getInstance();
+    $customerDeposit = floatval($newTotal);
+    $today = date('Y-m-d');
+
+    $chargesQuery = "SELECT COALESCE(SUM(
+                        CASE WHEN err.rental_override IS NOT NULL
+                            THEN err.rental_override
+                            ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+                                THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                                ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                                    * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
+                                    * err.return_qty)
+                            END
+                        END
+                        + COALESCE(err.extra_day_amount, 0)
+                        + COALESCE(err.damage_amount, 0)
+                        + COALESCE(err.penalty_amount, 0)
+                    ), 0) as total_charges
+                    FROM equipment_rent_returns err
+                    INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                    LEFT JOIN equipment e ON eri.equipment_id = e.id
+                    WHERE eri.rent_id = $rent_id";
+    $chargesData = mysqli_fetch_assoc($db->readQuery($chargesQuery));
+    $totalCharges = floatval($chargesData['total_charges'] ?? 0);
+
+    $accruedQuery = "SELECT COALESCE(SUM(
+        CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
+            THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                 * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+            ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, '$today') / 86400))
+                 * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                 * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+        END
+    ), 0) as accrued_charges
+    FROM equipment_rent_items ri
+    LEFT JOIN equipment e ON ri.equipment_id = e.id
+    WHERE ri.rent_id = $rent_id
+      AND (ri.quantity - COALESCE(ri.total_returned_qty, 0)) > 0";
+    $accruedData = mysqli_fetch_assoc($db->readQuery($accruedQuery));
+    $accruedCharges = floatval($accruedData['accrued_charges'] ?? 0);
+
+    $billOutstanding = round(max(0, ($totalCharges + $accruedCharges) - $customerDeposit), 2);
+
+    $CUSTOMER = new CustomerMaster($RENT->customer_id);
+    $rentOutstanding = floatval($CUSTOMER->rent_outstanding ?? 0);
 
     echo json_encode([
         "status" => "success",
         "message" => "Deposit payment deleted",
         "deposit_total" => $newTotal,
-        "payments" => DepositPayment::getByRentId($rent_id)
+        "payments" => DepositPayment::getByRentId($rent_id),
+        "bill_outstanding" => $billOutstanding,
+        "rent_outstanding" => $rentOutstanding
     ]);
     exit;
 }
