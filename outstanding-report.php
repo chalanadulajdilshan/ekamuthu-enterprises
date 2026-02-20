@@ -273,8 +273,8 @@ include 'auth.php';
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Date</th>
-                                                <th class="text-end">Amount</th>
                                                 <th>Remark</th>
+                                                <th class="text-end">Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>

@@ -263,8 +263,8 @@ function fillBillDetailsModal(data) {
             depositBody.append(`
                 <tr>
                     <td>${dep.payment_date || '-'}</td>
-                    <td class="text-end text-success">${fmt(dep.amount || 0)}</td>
                     <td>${dep.remark || '-'}</td>
+                    <td class="text-end text-success">${fmt(dep.amount || 0)}</td>
                 </tr>
             `);
         });
