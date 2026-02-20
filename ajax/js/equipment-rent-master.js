@@ -2494,7 +2494,7 @@ jQuery(document).ready(function () {
             'max="' +
             additionalPayment.toFixed(2) +
             '" value="' +
-            formatCurrency(additionalPayment) +
+            additionalPayment.toFixed(2) +
             '">';
           previewHtml += '<div class="mt-1"><strong>Outstanding: </strong>';
           previewHtml +=
