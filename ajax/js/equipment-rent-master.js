@@ -1353,36 +1353,62 @@ jQuery(document).ready(function () {
 
   // Load Returned Bills list when modal opens (limit 5, search by bill/customer)
   var returnedSearchTimer = null;
+  var returnedCompanyMode = "all"; // all | company
 
   $("#ReturnedBillsModal").on("shown.bs.modal", function () {
-    loadReturnedBillsList("");
+    returnedCompanyMode = "all";
+    setReturnedTabs();
+    loadReturnedBillsList("", false);
   });
 
   $("#returnedBillsSearchInput").on("input", function () {
     var term = $(this).val();
     clearTimeout(returnedSearchTimer);
     returnedSearchTimer = setTimeout(function () {
-      loadReturnedBillsList(term);
+      loadReturnedBillsList(term, returnedCompanyMode === "company");
     }, 250);
   });
 
-  function loadReturnedBillsList(searchTerm) {
+  $("#returnedTabAll").on("click", function () {
+    returnedCompanyMode = "all";
+    setReturnedTabs();
+    loadReturnedBillsList($("#returnedBillsSearchInput").val(), false);
+  });
+
+  $("#returnedTabCompany").on("click", function () {
+    returnedCompanyMode = "company";
+    setReturnedTabs();
+    loadReturnedBillsList($("#returnedBillsSearchInput").val(), true);
+  });
+
+  function setReturnedTabs() {
+    $("#returnedTabAll").toggleClass("active", returnedCompanyMode === "all");
+    $("#returnedTabCompany").toggleClass("active", returnedCompanyMode === "company");
+  }
+
+  function loadReturnedBillsList(searchTerm, companyOutstandingOnly) {
     var $tbody = $("#returnedBillsTableBody");
     $tbody.html(
       '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>',
     );
 
+    var payload = {
+      filter: true,
+      length: 5,
+      start: 0,
+      returned_only: true,
+      search: { value: searchTerm || "" },
+    };
+
+    if (companyOutstandingOnly) {
+      payload.company_outstanding_only = true;
+    }
+
     $.ajax({
       url: "ajax/php/equipment-rent-master.php",
       type: "POST",
       dataType: "json",
-      data: {
-        filter: true,
-        length: 5,
-        start: 0,
-        returned_only: true,
-        search: { value: searchTerm || "" },
-      },
+      data: payload,
       success: function (res) {
         var rows = res && res.data ? res.data : [];
         console.log("Returned bills list response:", rows);
@@ -1405,18 +1431,32 @@ jQuery(document).ready(function () {
             row.is_cancelled,
           );
           var isCancelled = row.status === "cancelled" || row.is_cancelled == 1;
+          var companyOutstanding = parseFloat(row.company_outstanding_total || 0);
           var statusLabel =
             row.status_label ||
             (isCancelled
               ? "<span class='badge bg-danger'>Cancelled</span>"
               : row.status || "");
+          if (companyOutstanding > 0) {
+            statusLabel +=
+              " <span class='badge bg-warning text-dark ms-1'>Company Outstanding</span>";
+          }
+          var rowClasses = ["returned-row"];
+          if (isCancelled) {
+            rowClasses.push("table-danger");
+          }
+          if (companyOutstanding > 0) {
+            rowClasses.push("table-warning");
+          }
           var html =
-            "<tr class='returned-row" +
-            (isCancelled ? " table-danger" : "") +
+            "<tr class='" +
+            rowClasses.join(" ") +
             "' data-id='" +
             (row.id || "") +
             "' data-status='" +
             (row.status || "") +
+            "' data-company-outstanding='" +
+            companyOutstanding.toFixed(2) +
             "'>" +
             "<td>" +
             (row.id || "") +

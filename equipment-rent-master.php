@@ -713,7 +713,13 @@ $bill_number = $lastId + 1;
                     <div class="row">
                         <div class="col-12">
                             <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
-                                <div class="fw-semibold">Search and view returned bills</div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <div class="fw-semibold mb-0">Search and view returned bills</div>
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="Returned bills tabs">
+                                        <button type="button" class="btn btn-outline-secondary active" id="returnedTabAll">All</button>
+                                        <button type="button" class="btn btn-outline-warning" id="returnedTabCompany">Company Outstanding</button>
+                                    </div>
+                                </div>
                                 <div class="input-group" style="max-width: 340px;">
                                     <span class="input-group-text"><i class="uil uil-search"></i></span>
                                     <input type="text" id="returnedBillsSearchInput" class="form-control" placeholder="Search by bill number" autocomplete="off">
