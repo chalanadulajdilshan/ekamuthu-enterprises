@@ -345,6 +345,9 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
+                            <div class="d-flex justify-content-end mb-2">
+                                <input type="text" id="equipmentSearch" class="form-control" style="max-width: 260px;" placeholder="Search by ID, Code, Item Name">
+                            </div>
                             <table id="equipmentTable" class="table table-bordered dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
@@ -354,6 +357,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                         <th>Item Name</th>
                                     </tr>
                                 </thead>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>

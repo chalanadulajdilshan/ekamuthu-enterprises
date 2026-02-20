@@ -153,123 +153,121 @@ jQuery(document).ready(function () {
     $(this).autocomplete("search", $(this).val());
   });
 
-  function loadEquipmentTable() {
-    // Destroy if already initialized
-    if ($.fn.DataTable.isDataTable("#equipmentTable")) {
-      $("#equipmentTable").DataTable().destroy();
-    }
+  var equipmentRowsCache = [];
 
-    $("#equipmentTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/equipment-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter = true;
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-        error: function (xhr) {
-          console.error("Server Error Response:", xhr.responseText);
-        },
-      },
+  function renderEquipmentRows(query) {
+    var $tbody = $("#equipmentTable tbody");
+    $tbody.empty();
 
-      columns: [
-        { data: "key", title: "#ID" },
-        {
-          data: "image_name",
-          title: "Image",
-          orderable: false,
-          render: function (data, type, row) {
-            var imgSrc = data
-              ? "uploads/equipment/" + data
-              : "assets/images/no-image.png";
-            return `<img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
-          },
-        },
-        { data: "code", title: "Code" },
-        {
-          data: "item_name",
-          title: "Item Name",
-          render: function (data, type, row) {
-            return `
-        <div class="fw-bold">${data}</div>
-        <div class="text-muted small">
-         <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || "-"}</span> |
-         <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || "0.00"}</span> |
-          <span class="fw-bold text-primary">Qty -</span> <span class="badge bg-info">${row.quantity || 0}</span> |
-           <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span> |
-           <span class="fw-bold text-primary">Category -</span> <span class="text-danger">${row.category_label || "-"}</span>
-        </div>
-      `;
-          },
-        },
-      ],
+    var normalizedQuery = (query || "").toString().toLowerCase().trim();
 
-      order: [[0, "desc"]],
-      pageLength: 100,
+    var filtered = equipmentRowsCache.filter(function (row) {
+      if (!normalizedQuery) return true;
+      var id = (row.id || "").toString().toLowerCase();
+      var code = (row.code || "").toString().toLowerCase();
+      var name = (row.item_name || "").toString().toLowerCase();
+      return id.includes(normalizedQuery) || code.includes(normalizedQuery) || name.includes(normalizedQuery);
     });
 
-    // Row click event to populate form and close modal (exclude action/expand clicks)
-    $("#equipmentTable tbody")
+    // If no search query, show only first 5 rows; otherwise show all matches
+    var rowsToRender = normalizedQuery ? filtered : filtered.slice(0, 5);
+
+    rowsToRender.forEach(function (row) {
+      var imgSrc = row.image_name
+        ? "uploads/equipment/" + row.image_name
+        : "assets/images/no-image.png";
+
+      var detailsHtml = `
+        <div class="fw-bold">${row.item_name || "-"}</div>
+        <div class="text-muted small">
+          <span class="fw-bold text-primary">SN -</span> <span class="text-danger">${row.serial_number || "-"}</span> |
+          <span class="fw-bold text-primary">Deposit -</span> <span class="text-danger">Rs. ${row.deposit_one_day || "0.00"}</span> |
+          <span class="fw-bold text-primary">Qty -</span> <span class="badge bg-info">${row.quantity || 0}</span> |
+          <span class="fw-bold text-primary">Size -</span> <span class="text-danger">${row.size || "-"}</span> |
+          <span class="fw-bold text-primary">Category -</span> <span class="text-danger">${row.category_label || "-"}</span>
+        </div>
+      `;
+
+      var $tr = $(
+        `<tr data-id="${row.id || ""}" data-code="${row.code || ""}" data-item_name="${row.item_name || ""}" data-category="${row.category || ""}" data-department_id="${row.department_id || ""}" data-serial_number="${row.serial_number || ""}" data-damage="${row.damage || ""}" data-size="${row.size || ""}" data-rent_one_day="${row.rent_one_day || "0"}" data-deposit_one_day="${row.deposit_one_day || "0"}" data-rent_one_month="${row.rent_one_month || "0"}" data-value="${row.value || "0"}" data-quantity="${row.quantity || "0"}" data-no_sub_items="${row.no_sub_items || 0}" data-change_value="${row.change_value || 0}" data-is_fixed_rate="${row.is_fixed_rate || 0}" data-remark="${row.remark || ""}" data-image_name="${row.image_name || ""}">
+              <td>${row.key || ""}</td>
+              <td><img src="${imgSrc}" alt="Img" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
+              <td>${row.code || ""}</td>
+              <td>${detailsHtml}</td>
+            </tr>`,
+      );
+
+      $tbody.append($tr);
+    });
+
+    // Row click event to populate form and close modal
+    $tbody
       .off("click", "tr")
-      .on("click", "tr", function (e) {
-        // Skip if clicked on add-sub button or responsive expand control
-        if (
-          $(e.target).closest(".add-sub-equipment").length ||
-          $(e.target).closest("td.dtr-control").length
-        ) {
-          return;
+      .on("click", "tr", function () {
+        var data = $(this).data();
+
+        $("#equipment_id").val(data.id || "");
+        $("#code").val(data.code || "");
+        $("#item_name").val(data.item_name || "");
+        $("#category").val(data.category || "");
+        $("#department").val(data.department_id || "");
+        $("#serial_number").val(data.serial_number || "");
+        $("#damage").val(data.damage || "");
+        $("#size").val(data.size || "");
+        $("#rent_one_day").val(data.rent_one_day || "0");
+        $("#deposit_one_day").val(data.deposit_one_day || "0");
+        $("#rent_one_month").val(data.rent_one_month || "0");
+        $("#value").val(data.value || "0");
+        $("#quantity").val(data.quantity || "0");
+        $("#no_sub_items").prop("checked", data.no_sub_items == 1);
+        $("#change_value").prop("checked", data.change_value == 1);
+        $("#is_fixed_rate").prop("checked", data.is_fixed_rate == 1);
+        $("#remark").val(data.remark || "");
+        $("#old_image_name").val(data.image_name || "");
+
+        if (data.image_name) {
+          $("#image_preview").attr("src", "uploads/equipment/" + data.image_name);
+          $("#preview_text").hide();
+        } else {
+          $("#image_preview").attr("src", "assets/images/no-image.png");
+          $("#preview_text").show();
         }
 
-        var data = $("#equipmentTable").DataTable().row(this).data();
+        $("#create").hide();
+        $("#update").show();
 
-        if (data) {
-          $("#equipment_id").val(data.id || "");
-          $("#code").val(data.code || "");
-          $("#item_name").val(data.item_name || "");
-          $("#category").val(data.category || "");
-          $("#department").val(data.department_id || "");
-          $("#serial_number").val(data.serial_number || "");
-          $("#damage").val(data.damage || "");
-          $("#size").val(data.size || "");
-          $("#rent_one_day").val(data.rent_one_day || "0");
-          $("#deposit_one_day").val(data.deposit_one_day || "0");
-          $("#rent_one_month").val(data.rent_one_month || "0");
-          $("#value").val(data.value || "0");
-          $("#quantity").val(data.quantity || "0");
-          $("#no_sub_items").prop("checked", data.no_sub_items == 1);
-          $("#change_value").prop("checked", data.change_value == 1);
-          $("#is_fixed_rate").prop("checked", data.is_fixed_rate == 1);
-          $("#remark").val(data.remark || "");
-          $("#old_image_name").val(data.image_name || "");
+        toggleAddSubButton();
 
-          if (data.image_name) {
-            $("#image_preview").attr(
-              "src",
-              "uploads/equipment/" + data.image_name,
-            );
-            $("#preview_text").hide();
-          } else {
-            $("#image_preview").attr("src", "assets/images/no-image.png");
-            $("#preview_text").show();
-          }
-
-          // Show update button, hide create button
-          $("#create").hide();
-          $("#update").show();
-
-          toggleAddSubButton();
-
-          // Close the modal
-          $("#EquipmentModal").modal("hide");
-        }
+        $("#EquipmentModal").modal("hide");
       });
+  }
 
-    // Add Sub Equipment button click handler
-    $("#equipmentTable tbody").off("click", ".add-sub-equipment");
+  function loadEquipmentTable() {
+    $.ajax({
+      url: "ajax/php/equipment-master.php",
+      type: "POST",
+      dataType: "JSON",
+      data: { filter: true },
+      success: function (res) {
+        equipmentRowsCache = Array.isArray(res.data) ? res.data : [];
+
+        // initial render (shows 5 rows)
+        renderEquipmentRows("");
+
+        // Search filter by ID, code, or item name (renders all matches)
+        $("#equipmentSearch")
+          .off("input")
+          .on("input", function () {
+            renderEquipmentRows($(this).val());
+          });
+      },
+      error: function (xhr) {
+        console.error("Server Error Response:", xhr.responseText);
+        $("#equipmentTable tbody").empty().append(
+          '<tr><td colspan="4" class="text-center text-danger">Failed to load equipment list</td></tr>',
+        );
+      },
+    });
   }
 
   // Create Equipment
