@@ -115,10 +115,12 @@ jQuery(document).ready(function () {
             $("#customer_contact_section").slideUp();
             // Clear customer fields when company item is selected
             $("#customer_name, #customer_phone, #customer_address").val("");
+            $("#machine_code").prop("readonly", true);
         } else {
             $("#machine_code_section").slideUp();
             $("#machine_code").val("");
             $("#customer_contact_section").slideDown();
+            $("#machine_code").prop("readonly", false);
         }
     }
 
@@ -863,6 +865,7 @@ jQuery(document).ready(function () {
             $("#btn-select-equipment").show();
             // DISABLE Sub Equipment Button by default (Enable after selecting machine)
             $("#btn-select-sub-equipment").prop('disabled', true);
+            $("#machine_code").prop("readonly", true);
 
         } else {
             $("#machine_code_section").slideUp();
@@ -872,6 +875,7 @@ jQuery(document).ready(function () {
             $("#machine_code").val("");
             $("#selected_equipment_id").val("");
             $("#selected_sub_equipment_id").val("");
+            $("#machine_code").prop("readonly", false);
 
             $("#customer_contact_section").slideDown();
         }
