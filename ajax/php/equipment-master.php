@@ -184,8 +184,10 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
 if (isset($_POST['filter'])) {
     $db = Database::getInstance();
 
+    // If no pagination params (e.g., plain modal load), return all rows
+    $hasPaging = isset($_REQUEST['start']) || isset($_REQUEST['length']);
     $start = isset($_REQUEST['start']) ? (int) $_REQUEST['start'] : 0;
-    $length = isset($_REQUEST['length']) ? (int) $_REQUEST['length'] : 100;
+    $length = isset($_REQUEST['length']) ? (int) $_REQUEST['length'] : 1000000;
     $search = $_REQUEST['search']['value'] ?? '';
     // Check if sub-equipment only search is enabled
     $searchSubOnly = isset($_REQUEST['search_sub_only']) && filter_var($_REQUEST['search_sub_only'], FILTER_VALIDATE_BOOLEAN);
@@ -212,8 +214,9 @@ if (isset($_POST['filter'])) {
     $filteredQuery = $db->readQuery($filteredSql);
     $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
-    // Paginated query
-    $sql = "SELECT * FROM equipment $where ORDER BY id DESC LIMIT $start, $length";
+    // Paginated or full query
+    $limitClause = $hasPaging ? "LIMIT $start, $length" : "";
+    $sql = "SELECT * FROM equipment $where ORDER BY id DESC $limitClause";
     $dataQuery = $db->readQuery($sql);
 
     $data = [];
