@@ -633,7 +633,7 @@ jQuery(document).ready(function () {
                 customer.display_name ||
                 (customer.name
                   ? customer.name +
-                    (customer.name_2 ? " " + customer.name_2 : "")
+                  (customer.name_2 ? " " + customer.name_2 : "")
                   : "");
 
               listHtml += `

@@ -797,7 +797,7 @@ $customer_id = 'CM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                     const file = input.files[0];
                     if (!file) return;
 
-                    const maxSize = 5 * 1024 * 1024; // 5MB limit
+                    const maxSize = 25 * 1024 * 1024; // 25MB limit
                     if (file.size > maxSize) {
                         swal({
                             title: "File Too Large",
