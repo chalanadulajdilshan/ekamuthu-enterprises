@@ -157,30 +157,200 @@ if (!empty($customerMobile)) {
                 width: 100%;
                 margin: 0;
                 padding: 0;
+                font-size: 13px !important;
             }
 
             #invoice-content, .card {
                 width: 100% !important;
                 max-width: 100% !important;
                 box-shadow: none;
+                border: none !important;
+            }
+
+            .card-body {
+                padding: 5px 10px !important;
             }
 
             .container {
                 width: 100% !important;
                 max-width: 100% !important;
                 padding: 0 !important;
+                margin: 0 !important;
             }
 
             @page {
-                size: auto;
-                margin: 10mm;
+                size: A4;
+                margin: 5mm;
+            }
+
+            /* Compact header section */
+            .invoice-title h3 {
+                font-size: 18px !important;
+                margin-bottom: 0 !important;
+                padding-bottom: 1px !important;
+            }
+
+            .invoice-title .row.mb-3 {
+                margin-bottom: 4px !important;
+            }
+
+            .invoice-title .row.mb-4 {
+                margin-bottom: 6px !important;
+            }
+
+            .invoice-title p {
+                margin-bottom: 1px !important;
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                display: block !important;
+            }
+
+            .invoice-title div[style*="line-height"] {
+                line-height: 1.4 !important;
+            }
+
+            .invoice-title div[style*="font-size"] {
+                font-size: 13px !important;
+            }
+
+            .invoice-title .text-muted p {
+                font-size: 12px !important;
+            }
+
+            .invoice-meta {
+                margin-top: 4px !important;
+                padding: 2px 8px !important;
+            }
+
+            .invoice-meta p {
+                font-size: 12px !important;
+            }
+
+            /* Compact tables */
+            #invoice-content table th,
+            #invoice-content table td {
+                padding: 2px 4px !important;
+                font-size: 12px !important;
+            }
+
+            #invoice-content thead th {
+                font-size: 12px !important;
+            }
+
+            #invoice-content tbody {
+                font-size: 12px !important;
+            }
+
+            /* Compact Returns heading */
+            h5.mt-3 {
+                font-size: 12px !important;
+                margin-top: 4px !important;
+                margin-bottom: 2px !important;
+            }
+
+            .table-responsive.mt-3 {
+                margin-top: 4px !important;
+            }
+
+            /* Compact summary section */
+            .row.mt-3 {
+                margin-top: 4px !important;
+            }
+
+            .summary-table td {
+                padding: 1px 6px !important;
+                font-size: 12px !important;
+            }
+
+            /* Compact terms section */
+            .mt-4 {
+                margin-top: 6px !important;
+            }
+
+            .mt-4 ul {
+                margin-bottom: 0 !important;
+                padding-left: 14px !important;
+            }
+
+            .mt-4 ul li {
+                font-size: 11px !important;
+                line-height: 1.3 !important;
+                margin-bottom: 0 !important;
+            }
+
+            .mt-4 div[style*="min-height"] {
+                min-height: auto !important;
+                padding: 4px 0 !important;
+            }
+
+            /* Compact signature section */
+            .row.mt-5 {
+                margin-top: 10px !important;
+            }
+
+            .row.mt-5 td {
+                padding-top: 15px !important;
+                font-size: 12px !important;
+            }
+
+            /* Compact badges */
+            .badge {
+                font-size: 10px !important;
+                padding: 1px 4px !important;
+            }
+
+            /* Force Bootstrap grid to work in print mode */
+            .row {
+                display: flex !important;
+                flex-wrap: wrap !important;
+            }
+
+            .col-md-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+                width: 50% !important;
+            }
+
+            .col-md-6 > div {
+                font-size: 11px !important;
+                line-height: 1.4 !important;
+            }
+
+            /* Force company info to top-right */
+            .col-md-6.text-md-end,
+            .col-md-6.text-sm-start.text-md-end {
+                text-align: right !important;
+            }
+
+            .col-md-6.text-md-end .text-muted,
+            .col-md-6.text-md-end .invoice-meta {
+                text-align: right !important;
+            }
+
+            .col-md-6.text-md-end p {
+                text-align: right !important;
+            }
+
+            /* Force all elements inside invoice header to be block */
+            .invoice-title .col-md-6 p,
+            .invoice-title .col-md-6 .mb-1 {
+                display: block !important;
+                width: 100% !important;
+                margin-bottom: 1px !important;
+                font-size: 11px !important;
+                line-height: 1.4 !important;
+            }
+
+            .col-12 {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
             }
         }
 
         #invoice-content table,
         #invoice-content th,
         #invoice-content td {
-            padding: 4px 8px !important;
+            padding: 3px 6px !important;
             margin: 0 !important;
             border-spacing: 0 !important;
             border-collapse: collapse !important;
@@ -198,8 +368,8 @@ if (!empty($customerMobile)) {
         }
 
         .invoice-meta {
-            margin-top: 20px !important;
-            padding: 6px 14px;
+            margin-top: 10px !important;
+            padding: 4px 10px;
             min-width: 230px;
             display: inline-block;
             border: none;
