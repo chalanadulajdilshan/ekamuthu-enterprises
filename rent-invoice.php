@@ -260,12 +260,12 @@ if (!empty($customerMobile)) {
                 <div class="row mb-4">
                     <div class="col-md-6 text-sm-start text-md-start">
                         <div style="font-size:15px; line-height:1.6;">
-                            <p class="mb-1"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
-                            <p class="mb-1"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>නම :</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
+                            <p class="mb-1"><strong>දැනට පදිංචි ලිපිනය :</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
                             <p class="mb-1"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
                             <p class="mb-1"><strong>WP No:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '.................................'; ?></p>
                             <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>Workplace Address:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>වැඩ බිමේ ලිපිනය:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
                             <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>
                                 <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->guarantor_address); ?></p>
                             <?php endif; ?>
@@ -281,9 +281,9 @@ if (!empty($customerMobile)) {
                         </div>
                         <div class="invoice-meta">
                             <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Issue Date - නිකුත් කරන දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                            <p class="mb-1" style="font-size:14px;"><strong>නිකුත් කරන දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
                             <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong>Rental Date - කුලියට ගත් දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
+                                <p class="mb-1" style="font-size:14px;"><strong>කුලියට ගත් දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
                             <?php endif; ?>
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
                                 <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
@@ -441,7 +441,7 @@ if (!empty($customerMobile)) {
                             </tr>
                             <?php endif; ?>
                             <tr>
-                                <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල (Customer Paid):</td>
+                                <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල :</td>
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
                             <tr>
