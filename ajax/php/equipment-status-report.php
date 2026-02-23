@@ -65,8 +65,10 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_stats') {
 
 $start = isset($_REQUEST['start']) ? (int)$_REQUEST['start'] : 0;
 $length = isset($_REQUEST['length']) ? (int)$_REQUEST['length'] : 25;
-$search = $_REQUEST['search']['value'] ?? '';
-$statusFilter = $_REQUEST['status'] ?? '';
+$search = mysqli_real_escape_string($db->DB_CON, $_REQUEST['search']['value'] ?? '');
+$statusFilter = mysqli_real_escape_string($db->DB_CON, $_REQUEST['status'] ?? '');
+$fromDate = mysqli_real_escape_string($db->DB_CON, $_REQUEST['from_date'] ?? date('Y-m-01'));
+$toDate = mysqli_real_escape_string($db->DB_CON, $_REQUEST['to_date'] ?? date('Y-m-d'));
 
 // We need to fetch data from two sources:
 // 1. Bulk Equipment (equipment table where no_sub_items = 1) -> dynamic calculation
@@ -77,7 +79,9 @@ $data = [];
 // --- 1. Sub Equipment ---
 $subQuery = "SELECT se.code, se.rental_status, e.item_name, c.name as category_name, dm.name as department_name, se.equipment_id,
              (SELECT eri.rent_id FROM equipment_rent_items eri WHERE eri.sub_equipment_id = se.id AND eri.status = 'rented' ORDER BY eri.id DESC LIMIT 1) AS active_rent_id,
-             (SELECT rj.id FROM repair_jobs rj WHERE TRIM(rj.machine_code) = TRIM(se.code) AND rj.job_status NOT IN ('delivered') ORDER BY rj.id DESC LIMIT 1) AS active_repair_job_id
+             (SELECT rj.id FROM repair_jobs rj WHERE TRIM(rj.machine_code) = TRIM(se.code) AND rj.job_status NOT IN ('delivered') ORDER BY rj.id DESC LIMIT 1) AS active_repair_job_id,
+             (SELECT COALESCE(SUM(eri.quantity), 0) FROM equipment_rent_items eri WHERE eri.sub_equipment_id = se.id AND DATE(eri.rental_date) BETWEEN '$fromDate' AND '$toDate') as rented_in_range,
+             (SELECT COALESCE(SUM(err.return_qty), 0) FROM equipment_rent_returns err JOIN equipment_rent_items eri ON err.rent_item_id = eri.id WHERE eri.sub_equipment_id = se.id AND DATE(err.return_date) BETWEEN '$fromDate' AND '$toDate') as returned_in_range
              FROM sub_equipment se 
              JOIN equipment e ON se.equipment_id = e.id
              LEFT JOIN equipment_category c ON e.category = c.id
@@ -110,7 +114,20 @@ $bulkQuery = "SELECT e.id, e.code, e.item_name, e.quantity as total_qty, c.name 
                WHERE eri.equipment_id = e.id 
                AND eri.status = 'rented'
                AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
-              ) as rented_qty
+              ) as rented_qty,
+              (SELECT COALESCE(SUM(eri.quantity), 0)
+               FROM equipment_rent_items eri 
+               WHERE eri.equipment_id = e.id 
+               AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+               AND DATE(eri.rental_date) BETWEEN '$fromDate' AND '$toDate'
+              ) as rented_in_range,
+              (SELECT COALESCE(SUM(err.return_qty), 0)
+               FROM equipment_rent_returns err
+               JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+               WHERE eri.equipment_id = e.id
+               AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+               AND DATE(err.return_date) BETWEEN '$fromDate' AND '$toDate'
+              ) as returned_in_range
               FROM equipment e
               LEFT JOIN equipment_category c ON e.category = c.id
               LEFT JOIN department_master dm ON e.department_id = dm.id
@@ -137,7 +154,9 @@ while ($row = mysqli_fetch_assoc($subResult)) {
         'equipment_id' => $row['equipment_id'],
         'active_rent_id' => $row['active_rent_id'],
         'active_repair_job_id' => $row['active_repair_job_id'],
-        'is_sub' => true
+        'is_sub' => true,
+        'rented_in_range' => (float)$row['rented_in_range'],
+        'returned_in_range' => (float)$row['returned_in_range']
     ];
 }
 
@@ -159,7 +178,9 @@ while ($row = mysqli_fetch_assoc($bulkResult)) {
                 'status' => 'available',
                 'quantity' => $available,
                 'equipment_id' => $row['id'],
-                'is_sub' => false
+                'is_sub' => false,
+                'rented_in_range' => (float)$row['rented_in_range'],
+                'returned_in_range' => (float)$row['returned_in_range']
             ];
         }
     }
@@ -175,7 +196,9 @@ while ($row = mysqli_fetch_assoc($bulkResult)) {
                 'status' => 'rented',
                 'quantity' => $rented,
                 'equipment_id' => $row['id'],
-                'is_sub' => false
+                'is_sub' => false,
+                'rented_in_range' => (float)$row['rented_in_range'],
+                'returned_in_range' => (float)$row['returned_in_range']
             ];
         }
     }

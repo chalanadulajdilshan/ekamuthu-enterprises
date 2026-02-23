@@ -7,6 +7,8 @@ $(document).ready(function () {
             "type": "POST",
             "data": function (d) {
                 d.status = $('#status_filter').val();
+                d.from_date = $('#from_date').val();
+                d.to_date = $('#to_date').val();
             }
         },
         "columns": [
@@ -52,6 +54,14 @@ $(document).ready(function () {
             {
                 "data": "quantity",
                 "className": "text-end"
+            },
+            {
+                "data": "rented_in_range",
+                "className": "text-end"
+            },
+            {
+                "data": "returned_in_range",
+                "className": "text-end"
             }
         ],
         "order": [[1, "asc"]], // Sort by Code
@@ -60,10 +70,12 @@ $(document).ready(function () {
 
     $('#btn-filter').click(function () {
         table.ajax.reload();
+        loadStatusCounts();
     });
 
-    $('#status_filter').change(function () {
+    $('#status_filter, #from_date, #to_date').change(function () {
         table.ajax.reload();
+        loadStatusCounts();
     });
 
     // Handle Status Click
