@@ -111,44 +111,49 @@ if (!empty($customerMobile)) {
         <div class="card-body">
             <!-- Company & Customer Info -->
             <div class="invoice-title">
-                <div class="row mb-4">
-                    <?php
-                    function formatPhone($number) {
-                        $number = preg_replace('/\D/', '', $number);
-                        if (strlen($number) == 10) {
-                            return sprintf("(%s) %s-%s", substr($number, 0, 3), substr($number, 3, 3), substr($number, 6));
-                        }
-                        return $number;
+                <?php
+                function formatPhone($number) {
+                    $number = preg_replace('/\D/', '', $number);
+                    if (strlen($number) == 10) {
+                        return sprintf("(%s) %s-%s", substr($number, 0, 3), substr($number, 3, 3), substr($number, 6));
                     }
-                    ?>
-                    <div class="col-md-5 text-muted">
-                        <p class="mb-1" style="font-weight:bold;font-size:18px;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
-                        <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
-                        <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
-                    </div>
-                    <div class="col-md-4 text-sm-start text-md-start">
-                        <h3 style="font-weight:bold;font-size:18px;">Warehouse Issue Note</h3>
-                        <p class="mb-1 text-muted" style="font-size:14px;"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
-                        <p class="mb-1 text-muted" style="font-size:14px;"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
-                        <p class="mb-1 text-muted" style="font-size:14px;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
-                    </div>
+                    return $number;
+                }
+                ?>
 
-                    <div class="col-md-3 text-sm-start text-md-end">
-                        <p class="mb-1" style="font-size:14px;"><strong>Issue Note No:</strong> <?php echo htmlspecialchars($ISSUE_NOTE->issue_note_code); ?></p>
-                        <p class="mb-1" style="font-size:14px;"><strong>Invoice Ref:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                        <p class="mb-1" style="font-size:14px;"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($ISSUE_NOTE->issue_date)); ?></p>
-                        <p class="mb-1" style="font-size:14px;">
-                            <strong>Status:</strong> 
-                            <?php if ($ISSUE_NOTE->issue_status === 'issued'): ?>
-                                <span class="badge bg-success">Issued</span>
-                            <?php elseif ($ISSUE_NOTE->issue_status === 'cancelled'): ?>
-                                <span class="badge bg-danger">Cancelled</span>
-                            <?php else: ?>
-                                <span class="badge bg-warning">Pending</span>
-                            <?php endif; ?>
-                        </p>
-                    </div>
+                <!-- Title - Top Center -->
+                <div style="text-align:center;margin-bottom:10px;">
+                    <h3 style="font-weight:bold;font-size:20px;margin:0;">ගබඩා නිකුත් කිරීමේ පත්‍රිකාව</h3>
                 </div>
+
+                <!-- Header layout using table for print compatibility -->
+                <table style="width:100%;border:none;border-collapse:collapse;margin-bottom:15px;">
+                    <tr>
+                        <td style="vertical-align:top;width:40%;padding:0;border:none;">
+                            <p style="font-weight:bold;font-size:18px;margin:0 0 4px 0;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
+                            <p style="font-size:13px;margin:0 0 4px 0;color:#6c757d;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
+                            <p style="font-size:13px;margin:0 0 4px 0;color:#6c757d;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
+                        </td>
+                        <td style="vertical-align:top;text-align:right;padding:0;border:none;">
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Issue Note No:</strong> <?php echo htmlspecialchars($ISSUE_NOTE->issue_note_code); ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Invoice Ref:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($ISSUE_NOTE->issue_date)); ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;">
+                                <strong>Status:</strong> 
+                                <?php if ($ISSUE_NOTE->issue_status === 'issued'): ?>
+                                    <span style="background:#198754;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;">Issued</span>
+                                <?php elseif ($ISSUE_NOTE->issue_status === 'cancelled'): ?>
+                                    <span style="background:#dc3545;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;">Cancelled</span>
+                                <?php else: ?>
+                                    <span style="background:#ffc107;color:#000;padding:2px 8px;border-radius:4px;font-size:12px;">Pending</span>
+                                <?php endif; ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
 
                 <!-- Items Table -->
                 <div class="table-responsive">
@@ -156,12 +161,12 @@ if (!empty($customerMobile)) {
                         <thead class="table-light">
                             <tr>
                                 <th>No.</th>
-                                <th>Equipment Name - උපකරණ නම</th>
-                                <th>Code - කේතය</th>
-                                <th>Rent Type - වර්ගය</th>
-                                <th>Return Date - ආපසු දින</th>
-                                <th class="text-center">Ordered Qty - ඇණවුම්</th>
-                                <th class="text-center">Issued Qty - නිකුත්</th>
+                                <th>උපකරණ නම</th>
+                                <th>කේතය</th>
+                                <th>වර්ගය</th>
+                                <th>ආපසු දින</th>
+                                <th class="text-center">ඇණවුම්</th>
+                                <th class="text-center">නිකුත්</th>
                                 <th>Remarks</th>
                             </tr>
                         </thead>
