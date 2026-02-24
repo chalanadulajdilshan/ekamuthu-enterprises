@@ -227,10 +227,20 @@ uasort($rentSummary, function ($a, $b) {
 foreach ($rentSummary as $rentId => $summary) {
     $recordedOutstanding = $summary['recorded_outstanding'] ?? 0;
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
-    $totalPaid = $summary['recorded_paid'] ?? 0;
+    $recordedPaid = $summary['recorded_paid'] ?? 0;
 
-    // Deposits are informational only; do not reduce outstanding or inflate paid
-    $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $totalPaid);
+    // Sum deposits for display; they should not reduce outstanding
+    $depositTotal = 0;
+    if (!empty($summary['deposits'])) {
+        foreach ($summary['deposits'] as $dep) {
+            $depositTotal += floatval($dep['amount'] ?? 0);
+        }
+    }
+
+    $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $recordedPaid);
+
+    // Total paid displayed as recorded payments + deposits
+    $totalPaid = $recordedPaid + $depositTotal;
 
     // Mirror UI: only include rows with a pending balance
     if ($balance <= 0) {

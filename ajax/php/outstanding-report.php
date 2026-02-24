@@ -261,10 +261,21 @@ if ($action === 'get_outstanding_report') {
     foreach ($rentSummary as $rentId => $summary) {
         $recordedOutstanding = $summary['recorded_outstanding'] ?? 0;
         $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
-        $totalPaid = $summary['recorded_paid'] ?? 0;
+        $recordedPaid = $summary['recorded_paid'] ?? 0;
 
-        // Deposits are informational and should not reduce outstanding or inflate paid
-        $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $totalPaid);
+        // Sum deposits (displayed as paid, but should not reduce outstanding balance)
+        $depositTotal = 0;
+        if (!empty($summary['deposits'])) {
+            foreach ($summary['deposits'] as $dep) {
+                $depositTotal += floatval($dep['amount'] ?? 0);
+            }
+        }
+
+        // Balance should only subtract actual recorded payments, not deposits
+        $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $recordedPaid);
+
+        // Total paid (for display) includes deposits + recorded payments
+        $totalPaid = $recordedPaid + $depositTotal;
 
         // Only show rows that still have anything pending
         if ($balance <= 0) {
