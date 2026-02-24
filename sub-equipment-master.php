@@ -71,6 +71,10 @@ if ($parent_equipment_id) {
                                 <i class="uil uil-trash-alt me-1"></i> Delete
                             </a>
 
+                            <a href="sub-equipment-report.php" class="btn btn-info">
+                                <i class="uil uil-chart-line me-1"></i> View Report
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
@@ -119,7 +123,7 @@ if ($parent_equipment_id) {
                                     </a>
 
                                     <div class="p-4">
-                                        <form id="form-data" autocomplete="off">
+                                        <form id="form-data" method="post" enctype="multipart/form-data" autocomplete="off">
                                             <div class="row">
                                                 <!-- Parent Equipment (readonly) -->
                                                 <div class="col-md-4">
@@ -170,6 +174,47 @@ if ($parent_equipment_id) {
                                                     </select>
                                                 </div>
 
+                                                <!-- Purchase Date -->
+                                                <div class="col-md-3">
+                                                    <label for="purchase_date" class="form-label">Purchase/Received Date</label>
+                                                    <input id="purchase_date" name="purchase_date" type="text" class="form-control" placeholder="yyyy-mm-dd">
+                                                </div>
+
+                                                <!-- Value -->
+                                                <div class="col-md-3">
+                                                    <label for="value" class="form-label">Value</label>
+                                                    <input id="value" name="value" type="number" step="0.01" class="form-control" placeholder="0.00">
+                                                </div>
+
+                                                <!-- Brand -->
+                                                <div class="col-md-3">
+                                                    <label for="brand" class="form-label">Brand</label>
+                                                    <input id="brand" name="brand" type="text" class="form-control" placeholder="Enter brand">
+                                                </div>
+
+                                                <!-- Company/Customer Name -->
+                                                <div class="col-md-3">
+                                                    <label for="company_customer_name" class="form-label">Company/Customer Name</label>
+                                                    <input id="company_customer_name" name="company_customer_name" type="text" class="form-control" placeholder="Enter company or customer name">
+                                                </div>
+
+                                                <!-- Condition Type -->
+                                                <div class="col-md-2">
+                                                    <label for="condition_type" class="form-label">Condition</label>
+                                                    <select class="form-select" id="condition_type" name="condition_type">
+                                                        <option value="new">New</option>
+                                                        <option value="used">Used</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Image -->
+                                                <div class="col-md-4">
+                                                    <label for="image" class="form-label">Image</label>
+                                                    <input id="image" name="image" type="file" class="form-control" accept="image/*">
+                                                    <input type="hidden" id="existing_image" name="existing_image">
+                                                    <small class="text-muted">Max size: 5MB. Formats: JPG, PNG, GIF</small>
+                                                </div>
+
                                                 <input type="hidden" id="sub_equipment_id" name="sub_equipment_id" />
 
                                             </div>
@@ -189,7 +234,12 @@ if ($parent_equipment_id) {
                                                         <th>#ID</th>
                                                         <th>Code</th>
                                                         <th>Department</th>
-                                                        <th>Qty</th>
+                                                        <th>Date</th>
+                                                        <th>Value</th>
+                                                        <th>Brand</th>
+                                                        <th>Company/Customer</th>
+                                                        <th>Condition</th>
+                                                        <th>Image</th>
                                                         <th>Status</th>
                                                         <th>Action</th>
                                                     </tr>
@@ -221,7 +271,7 @@ if ($parent_equipment_id) {
     <!-- include main js  -->
     <?php include 'main-js.php' ?>
 
-    <script src="ajax/js/sub-equipment-master.js"></script>
+    <script src="ajax/js/sub-equipment-master.js?v=20260224"></script>
 
     <!-- Page Preloader Script -->
     <script>

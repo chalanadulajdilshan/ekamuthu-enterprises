@@ -10,6 +10,12 @@ class SubEquipment
     public $qty;
     public $rented_qty;
     public $is_repair;
+    public $purchase_date;
+    public $value;
+    public $image;
+    public $brand;
+    public $company_customer_name;
+    public $condition_type;
 
     public function __construct($id = null)
     {
@@ -27,20 +33,35 @@ class SubEquipment
                 $this->qty = $result['qty'];
                 $this->rented_qty = $result['rented_qty'] ?? 0;
                 $this->is_repair = $result['is_repair'] ?? 0;
+                $this->purchase_date = $result['purchase_date'] ?? null;
+                $this->value = $result['value'] ?? 0.00;
+                $this->image = $result['image'] ?? null;
+                $this->brand = $result['brand'] ?? null;
+                $this->company_customer_name = $result['company_customer_name'] ?? null;
+                $this->condition_type = $result['condition_type'] ?? 'new';
             }
         }
     }
 
     public function create()
     {
+        $db = Database::getInstance();
         $this->is_repair = $this->is_repair ?? 0;
+        $this->purchase_date = $this->purchase_date ? "'$this->purchase_date'" : "NULL";
+        $this->value = $this->value ?? 0.00;
+        $this->image = $this->image ? "'" . mysqli_real_escape_string($db->DB_CON, $this->image) . "'" : "NULL";
+        $this->brand = $this->brand ? "'" . mysqli_real_escape_string($db->DB_CON, $this->brand) . "'" : "NULL";
+        $this->company_customer_name = $this->company_customer_name ? "'" . mysqli_real_escape_string($db->DB_CON, $this->company_customer_name) . "'" : "NULL";
+        $this->condition_type = $this->condition_type ?? 'new';
+        
         $query = "INSERT INTO `sub_equipment` (
-            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`, `rented_qty`, `is_repair`
+            `equipment_id`, `department_id`, `code`, `rental_status`, `qty`, `rented_qty`, `is_repair`,
+            `purchase_date`, `value`, `image`, `brand`, `company_customer_name`, `condition_type`
         ) VALUES (
-            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty', '$this->rented_qty', '$this->is_repair'
+            '$this->equipment_id', '$this->department_id', '$this->code', '$this->rental_status', '$this->qty', '$this->rented_qty', '$this->is_repair',
+            $this->purchase_date, '$this->value', $this->image, $this->brand, $this->company_customer_name, '$this->condition_type'
         )";
 
-        $db = Database::getInstance();
         $result = $db->readQuery($query);
 
         if ($result) {
@@ -52,6 +73,14 @@ class SubEquipment
 
     public function update()
     {
+        $db = Database::getInstance();
+        $purchase_date = $this->purchase_date ? "'$this->purchase_date'" : "NULL";
+        $value = $this->value ?? 0.00;
+        $image = $this->image ? "'" . mysqli_real_escape_string($db->DB_CON, $this->image) . "'" : "NULL";
+        $brand = $this->brand ? "'" . mysqli_real_escape_string($db->DB_CON, $this->brand) . "'" : "NULL";
+        $company_customer_name = $this->company_customer_name ? "'" . mysqli_real_escape_string($db->DB_CON, $this->company_customer_name) . "'" : "NULL";
+        $condition_type = $this->condition_type ?? 'new';
+        
         $query = "UPDATE `sub_equipment` SET 
             `equipment_id` = '$this->equipment_id', 
             `department_id` = '$this->department_id',
@@ -59,10 +88,15 @@ class SubEquipment
             `rental_status` = '$this->rental_status',
             `qty` = '$this->qty',
             `rented_qty` = '$this->rented_qty',
-            `is_repair` = '$this->is_repair'
+            `is_repair` = '$this->is_repair',
+            `purchase_date` = $purchase_date,
+            `value` = '$value',
+            `image` = $image,
+            `brand` = $brand,
+            `company_customer_name` = $company_customer_name,
+            `condition_type` = '$condition_type'
             WHERE `id` = '$this->id'";
 
-        $db = Database::getInstance();
         $result = $db->readQuery($query);
 
         if ($result) {
@@ -93,6 +127,12 @@ class SubEquipment
             $this->rental_status = $result['rental_status'];
             $this->qty = $result['qty'];
             $this->is_repair = $result['is_repair'] ?? 0;
+            $this->purchase_date = $result['purchase_date'] ?? null;
+            $this->value = $result['value'] ?? 0.00;
+            $this->image = $result['image'] ?? null;
+            $this->brand = $result['brand'] ?? null;
+            $this->company_customer_name = $result['company_customer_name'] ?? null;
+            $this->condition_type = $result['condition_type'] ?? 'new';
             return true;
         }
         return false;
@@ -137,14 +177,23 @@ class SubEquipment
         $totalQuery = $db->readQuery($totalSql);
         $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 
-        // Search filter
-        if (!empty($search)) {
-            $where .= " AND (se.code LIKE '%$search%')";
+        // Search filter (DataTables passes search[value])
+        $search = '';
+        if (!empty($request['search']['value'])) {
+            $search = mysqli_real_escape_string($db->DB_CON, $request['search']['value']);
+            $where .= " AND (se.code LIKE '%$search%' 
+                        OR se.brand LIKE '%$search%'
+                        OR se.company_customer_name LIKE '%$search%'
+                        OR e.code LIKE '%$search%'
+                        OR e.item_name LIKE '%$search%'
+                        OR dm.name LIKE '%$search%')";
         }
 
         // Filtered records
         $filteredSql = "SELECT COUNT(*) as filtered FROM sub_equipment se 
-                        LEFT JOIN equipment e ON se.equipment_id = e.id $where";
+                        LEFT JOIN equipment e ON se.equipment_id = e.id
+                        LEFT JOIN department_master dm ON se.department_id = dm.id
+                        $where";
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
@@ -171,6 +220,12 @@ class SubEquipment
                 "rental_status" => $row['rental_status'],
                 "qty" => $row['qty'],
                 "rented_qty" => $row['rented_qty'] ?? 0,
+                "purchase_date" => $row['purchase_date'] ?? null,
+                "value" => $row['value'] ?? 0.00,
+                "image" => $row['image'] ?? null,
+                "brand" => $row['brand'] ?? null,
+                "company_customer_name" => $row['company_customer_name'] ?? null,
+                "condition_type" => $row['condition_type'] ?? 'new',
             ];
 
             $data[] = $nestedData;
