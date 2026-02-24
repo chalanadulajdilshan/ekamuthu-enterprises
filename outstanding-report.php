@@ -170,7 +170,7 @@ include 'auth.php';
                 <div class="modal-body">
                     <div class="row mb-3">
                         <div class="col-md-3"><strong>Invoice No:</strong> <span id="billModalInvoice">-</span></div>
-                        <div class="col-md-3"><strong>Date:</strong> <span id="billModalDate">-</span></div>
+                        <div class="col-md-3"><strong>Date:</strong> <span id="billModalDate">-</span> <small class="text-muted" id="billModalDayCount"></small></div>
                         <div class="col-md-3"><strong>Payment Type:</strong> <span id="billModalPayment">-</span></div>
                         <div class="col-md-3"><strong>Status:</strong> <span id="billModalStatus">-</span></div>
                         <div class="col-md-6"><strong>Customer:</strong> <span id="billModalCustomer">-</span></div>

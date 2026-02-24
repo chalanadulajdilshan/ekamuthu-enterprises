@@ -170,6 +170,21 @@ function fillBillDetailsModal(data) {
 
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
+
+    // Show day count from rental date to today (inclusive)
+    var dayCountText = '';
+    if (data.rental_date) {
+        var startDate = new Date(data.rental_date);
+        if (!isNaN(startDate.getTime())) {
+            var today = new Date();
+            var startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            var diffMs = todayMidnight - startMidnight;
+            var days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1); // inclusive of start date
+            dayCountText = '(' + days + ' day' + (days !== 1 ? 's' : '') + ')';
+        }
+    }
+    $('#billModalDayCount').text(dayCountText);
     $('#billModalCustomer').text(data.customer_name || '-');
     $('#billModalPayment').text(data.payment_type_name || '-');
     $('#billModalStatus').html(data.status_label === 'Returned'
