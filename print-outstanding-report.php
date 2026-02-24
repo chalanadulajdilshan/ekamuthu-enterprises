@@ -229,17 +229,8 @@ foreach ($rentSummary as $rentId => $summary) {
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
     $totalPaid = $summary['recorded_paid'] ?? 0;
 
-    // Calculate total deposits
-    $totalDeposits = 0;
-    if (!empty($summary['deposits'])) {
-        foreach ($summary['deposits'] as $dep) {
-            $totalDeposits += floatval($dep['amount']);
-        }
-    }
-
-    // Adjust balance and total paid with deposits
-    $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $totalDeposits);
-    $totalPaid += $totalDeposits;
+    // Deposits are informational only; do not reduce outstanding or inflate paid
+    $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $totalPaid);
 
     // Mirror UI: only include rows with a pending balance
     if ($balance <= 0) {

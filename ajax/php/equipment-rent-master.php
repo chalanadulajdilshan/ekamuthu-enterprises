@@ -733,6 +733,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             'settle_amount' => 0,
             'refund_amount' => 0,
             'additional_payment' => 0,
+            // Customer deposit info
+            'deposit_total' => 0,
+            'remaining_deposit' => 0,
         ];
 
         // Collect per-item calculations first (without deposit applied per-item)
@@ -779,6 +782,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
 
         // Calculate the remaining customer deposit (applied ONCE, not per-item)
         $remainingDeposit = max(0, $customerDeposit - $totalPreviousCharges);
+        $totals['deposit_total'] = $customerDeposit;
+        $totals['remaining_deposit'] = $remainingDeposit;
 
         // Sum up raw charges across all items (rental + extra + damage + penalty)
         $totalRawCharges = 0;

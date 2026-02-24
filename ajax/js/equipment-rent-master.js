@@ -2463,6 +2463,17 @@ jQuery(document).ready(function () {
         settlement.push(
           "Penalty: Rs. " + formatCurrency(calc.penalty_amount),
         );
+        // Deposit info
+        if (calc.deposit_total !== undefined) {
+          settlement.push(
+            "Deposit (total): Rs. " + formatCurrency(calc.deposit_total),
+          );
+        }
+        if (calc.remaining_deposit !== undefined) {
+          settlement.push(
+            "Deposit Remaining: Rs. " + formatCurrency(calc.remaining_deposit),
+          );
+        }
         if (Number(calc.extra_charge_amount || 0) > 0) {
           settlement.push(
             "Extra Charge: Rs. " + formatCurrency(calc.extra_charge_amount),
@@ -2709,6 +2720,17 @@ jQuery(document).ready(function () {
             summaryLines.push(
               "Penalty: Rs. " + formatCurrency(calc.penalty_amount),
             );
+            if (calc.deposit_total !== undefined) {
+              summaryLines.push(
+                "Deposit (total): Rs. " + formatCurrency(calc.deposit_total),
+              );
+            }
+            if (calc.remaining_deposit !== undefined) {
+              summaryLines.push(
+                "Deposit Remaining: Rs. " +
+                  formatCurrency(calc.remaining_deposit),
+              );
+            }
             if (Number(calc.extra_charge_amount || 0) > 0) {
               summaryLines.push(
                 "Extra Charge: Rs. " + formatCurrency(calc.extra_charge_amount),
