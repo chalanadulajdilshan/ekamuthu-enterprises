@@ -20,6 +20,27 @@ if (isset($_POST['create'])) {
         exit();
     }
 
+    // Handle image upload
+    $imagePath = null;
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = '../../uploads/sub_equipment/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        
+        if (in_array($fileExtension, $allowedExtensions)) {
+            $fileName = uniqid('sub_eq_') . '_' . time() . '.' . $fileExtension;
+            $targetPath = $uploadDir . $fileName;
+            
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                $imagePath = 'uploads/sub_equipment/' . $fileName;
+            }
+        }
+    }
+
     $SUB_EQUIPMENT = new SubEquipment(NULL);
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
@@ -27,6 +48,12 @@ if (isset($_POST['create'])) {
     $SUB_EQUIPMENT->code = $_POST['code'];
     $SUB_EQUIPMENT->rental_status = $_POST['rental_status'] ?? 'available';
     $SUB_EQUIPMENT->qty = $_POST['qty'] ?? 0;
+    $SUB_EQUIPMENT->purchase_date = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
+    $SUB_EQUIPMENT->value = !empty($_POST['value']) ? $_POST['value'] : 0.00;
+    $SUB_EQUIPMENT->image = $imagePath;
+    $SUB_EQUIPMENT->brand = $_POST['brand'] ?? null;
+    $SUB_EQUIPMENT->company_customer_name = $_POST['company_customer_name'] ?? null;
+    $SUB_EQUIPMENT->condition_type = $_POST['condition_type'] ?? 'new';
 
     $res = $SUB_EQUIPMENT->create();
 
@@ -63,12 +90,44 @@ if (isset($_POST['update'])) {
     }
 
     $SUB_EQUIPMENT = new SubEquipment($_POST['sub_equipment_id']);
+    
+    // Handle image upload
+    $imagePath = $_POST['existing_image'] ?? $SUB_EQUIPMENT->image;
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = '../../uploads/sub_equipment/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        
+        if (in_array($fileExtension, $allowedExtensions)) {
+            // Delete old image if exists
+            if ($SUB_EQUIPMENT->image && file_exists('../../' . $SUB_EQUIPMENT->image)) {
+                unlink('../../' . $SUB_EQUIPMENT->image);
+            }
+            
+            $fileName = uniqid('sub_eq_') . '_' . time() . '.' . $fileExtension;
+            $targetPath = $uploadDir . $fileName;
+            
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                $imagePath = 'uploads/sub_equipment/' . $fileName;
+            }
+        }
+    }
 
     $SUB_EQUIPMENT->equipment_id = $_POST['equipment_id'] ?? '';
     $SUB_EQUIPMENT->department_id = $_POST['department'] ?? '';
     $SUB_EQUIPMENT->code = $_POST['code'];
     $SUB_EQUIPMENT->rental_status = $_POST['rental_status'] ?? 'available';
     $SUB_EQUIPMENT->qty = $_POST['qty'] ?? 0;
+    $SUB_EQUIPMENT->purchase_date = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
+    $SUB_EQUIPMENT->value = !empty($_POST['value']) ? $_POST['value'] : 0.00;
+    $SUB_EQUIPMENT->image = $imagePath;
+    $SUB_EQUIPMENT->brand = $_POST['brand'] ?? null;
+    $SUB_EQUIPMENT->company_customer_name = $_POST['company_customer_name'] ?? null;
+    $SUB_EQUIPMENT->condition_type = $_POST['condition_type'] ?? 'new';
 
     $res = $SUB_EQUIPMENT->update();
 

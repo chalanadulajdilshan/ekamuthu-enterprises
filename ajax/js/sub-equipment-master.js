@@ -1,4 +1,14 @@
 jQuery(document).ready(function () {
+    // jQuery UI datepicker for purchase/received date
+    if ($.fn.datepicker) {
+        $("#purchase_date").datepicker({
+            dateFormat: "yy-mm-dd",
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true
+        });
+    }
+
     // Get equipment_id from URL
     var urlParams = new URLSearchParams(window.location.search);
     var parentEquipmentId = urlParams.get("equipment_id");
@@ -242,6 +252,8 @@ jQuery(document).ready(function () {
         e.preventDefault();
         $("#form-data")[0].reset();
         $("#sub_equipment_id").val("");
+        $("#existing_image").val("");
+        $("#purchase_date").val("");
         // Keep the parent equipment ID
         $("#equipment_id").val(parentEquipmentId);
         $("#create").show();
@@ -387,7 +399,51 @@ jQuery(document).ready(function () {
                 { data: "key", title: "#ID" },
                 { data: "code", title: "Code" },
                 { data: "department_name", title: "Department" },
-                { data: "qty", title: "Qty" },
+                { 
+                    data: "purchase_date", 
+                    title: "Date",
+                    render: function(data) {
+                        return data ? data : '-';
+                    }
+                },
+                { 
+                    data: "value", 
+                    title: "Value",
+                    render: function(data) {
+                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    }
+                },
+                { 
+                    data: "brand", 
+                    title: "Brand",
+                    render: function(data) {
+                        return data ? data : '-';
+                    }
+                },
+                { 
+                    data: "company_customer_name", 
+                    title: "Company/Customer",
+                    render: function(data) {
+                        return data ? data : '-';
+                    }
+                },
+                { 
+                    data: "condition_type", 
+                    title: "Condition",
+                    render: function(data) {
+                        if (!data) return '<span class="badge bg-secondary">-</span>';
+                        var badgeClass = data === 'new' ? 'bg-success' : 'bg-warning';
+                        return '<span class="badge ' + badgeClass + '">' + data.toUpperCase() + '</span>';
+                    }
+                },
+                { 
+                    data: "image", 
+                    title: "Image",
+                    render: function(data) {
+                        if (!data) return '-';
+                        return '<a href="' + data + '" target="_blank"><img src="' + data + '" alt="Equipment" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></a>';
+                    }
+                },
                 {
                     data: "rental_status",
                     render: function (data) {
@@ -433,6 +489,13 @@ jQuery(document).ready(function () {
                 $("#department").val(data.department_id || "");
                 $("#qty").val(data.qty || "0");
                 $("#rental_status").val(data.rental_status || "available");
+                $("#purchase_date").val(data.purchase_date || "");
+                $("#value").val(data.value || "0.00");
+                $("#image").val(""); // Clear file input
+                $("#existing_image").val(data.image || ""); // Store existing image path
+                $("#brand").val(data.brand || "");
+                $("#company_customer_name").val(data.company_customer_name || "");
+                $("#condition_type").val(data.condition_type || "new");
                 $("#create").hide();
                 $("#update").show();
                 // Scroll to top
