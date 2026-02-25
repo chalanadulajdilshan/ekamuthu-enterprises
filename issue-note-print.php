@@ -25,6 +25,13 @@ $CUSTOMER_MASTER = new CustomerMaster($ISSUE_NOTE->customer_id);
 // Get issue note items
 $note_items = $ISSUE_NOTE->getItems();
 
+// Get department name
+$departmentName = '-';
+if ($ISSUE_NOTE->department_id) {
+    $DEPARTMENT = new DepartmentMaster($ISSUE_NOTE->department_id);
+    $departmentName = $DEPARTMENT->name;
+}
+
 // Get customer mobile number for WhatsApp
 $customerMobile = !empty($CUSTOMER_MASTER->mobile_number) ? $CUSTOMER_MASTER->mobile_number : '';
 if (!empty($customerMobile)) {
@@ -140,6 +147,7 @@ if (!empty($customerMobile)) {
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Issue Note No:</strong> <?php echo htmlspecialchars($ISSUE_NOTE->issue_note_code); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Invoice Ref:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
+                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Department:</strong> <?php echo htmlspecialchars($departmentName); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($ISSUE_NOTE->issue_date)); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;">
                                 <strong>Status:</strong> 
@@ -195,7 +203,7 @@ if (!empty($customerMobile)) {
                                     </td>
                                     <td class="text-center"><?php echo $returnDate; ?></td>
                                     <td class="text-center"><?php echo intval($item['ordered_quantity'] ?? 0); ?></td>
-                                    <td class="text-center"><strong><?php echo intval($item['issued_quantity'] ?? 0); ?></strong></td>
+                                    <td></td>
                                     <td><?php echo htmlspecialchars($item['remarks'] ?? '-'); ?></td>
                                 </tr>
                             <?php endforeach; ?>

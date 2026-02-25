@@ -63,6 +63,7 @@ if (isset($_POST['create'])) {
         $RETURN = new IssueReturnNote($return_id);
         // Sync return date if updated
         $RETURN->return_date = $_POST['return_date'];
+        $RETURN->department_id = $_POST['department_id'] ?? $RETURN->department_id;
         $RETURN->remarks = $_POST['remarks'] ?? $RETURN->remarks;
         $RETURN->update();
     } else {
@@ -70,6 +71,7 @@ if (isset($_POST['create'])) {
         $RETURN->return_code = $_POST['return_code'];
         $RETURN->issue_note_id = $_POST['issue_note_id'];
         $RETURN->return_date = $_POST['return_date'];
+        $RETURN->department_id = $_POST['department_id'] ?? null;
         $RETURN->remarks = $_POST['remarks'] ?? '';
         $return_id = $RETURN->create();
     }
@@ -217,6 +219,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_return_note_details') {
                 "issue_note_code" => $ISSUE_NOTE->issue_note_code,
                 "customer_name" => $CUSTOMER->name,
                 "customer_phone" => $CUSTOMER->mobile_number,
+                "department_id" => $RETURN->department_id,
                 "return_date" => $RETURN->return_date,
                 "remarks" => $RETURN->remarks
             ],

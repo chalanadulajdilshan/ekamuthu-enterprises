@@ -182,6 +182,7 @@ $(document).ready(function () {
                     $("#issue_note_code").val(note.issue_note_code);
                     $("#issue_date").val(note.issue_date);
                     $("#issue_status").val(note.issue_status);
+                    $("#department_id").val(note.department_id);
                     $("#remarks").val(note.remarks);
 
                     $("#rent_invoice_id").val(note.rent_invoice_id);
@@ -377,6 +378,7 @@ $(document).ready(function () {
             customer_id: $("#customer_id").val(),
             issue_date: $("#issue_date").val(),
             issue_status: $("#issue_status").val(),
+            department_id: $("#department_id").val(),
             remarks: $("#remarks").val(),
             items: JSON.stringify(issueItems)
         };
