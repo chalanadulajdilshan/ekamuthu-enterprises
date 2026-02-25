@@ -300,6 +300,14 @@ $bill_number = $lastId + 1;
                                                                     <label for="bank_reference" class="form-label">Reference No - යොමු අංකය</label>
                                                                     <input id="bank_reference" name="bank_reference" type="text" class="form-control" placeholder="Enter reference number">
                                                                 </div>
+                                                                <div class="col-md-6 mt-3">
+                                                                    <label for="bank_slip_file" class="form-label">Bank Slip (jpg, png, pdf) - බැංකු රිසිතු</label>
+                                                                    <input id="bank_slip_file" name="bank_slip_file" type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
+                                                                    <input type="hidden" id="bank_slip_existing" name="bank_slip_existing" value="">
+                                                                    <div class="mt-2" id="bank_slip_view" style="display: none;">
+                                                                        <a href="#" id="bank_slip_view_link" target="_blank" class="btn btn-sm btn-outline-info">View existing slip</a>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>

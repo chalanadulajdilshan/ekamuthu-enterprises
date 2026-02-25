@@ -1304,6 +1304,13 @@ jQuery(document).ready(function () {
           $("#transfer_branch_display").val(rent.transfer_branch_display || "");
           $("#bank_account_number").val(rent.bank_account_number || "");
           $("#bank_reference").val(rent.bank_reference || "");
+          $("#bank_slip_existing").val(rent.bank_slip || "");
+          if (rent.bank_slip) {
+            $("#bank_slip_view_link").attr("href", rent.bank_slip);
+            $("#bank_slip_view").show();
+          } else {
+            $("#bank_slip_view").hide();
+          }
 
           // Show/hide payment detail sections based on loaded payment type
           togglePaymentDetails();
@@ -3153,6 +3160,14 @@ jQuery(document).ready(function () {
     } else if (selectedText === "bank transfer") {
       $("#bank_transfer_details_section").slideDown(200);
     }
+
+    // Toggle bank slip view link only when we have an existing slip and bank transfer selected
+    var hasSlip = $("#bank_slip_existing").val();
+    if (selectedText === "bank transfer" && hasSlip) {
+      $("#bank_slip_view").show();
+    } else {
+      $("#bank_slip_view").hide();
+    }
   }
 
   $("#payment_type_id").on("change", function () {
@@ -3175,6 +3190,9 @@ jQuery(document).ready(function () {
       $("#transfer_branch_display").val("");
       $("#bank_account_number").val("");
       $("#bank_reference").val("");
+      $("#bank_slip_existing").val("");
+      $("#bank_slip_file").val("");
+      $("#bank_slip_view").hide();
     }
   });
 
