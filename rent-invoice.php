@@ -29,16 +29,9 @@ if (!$EQUIPMENT_RENT->id) {
 
 $CUSTOMER_MASTER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 
-// Fetch invoice remarks configured for the selected payment method
+// Fetch all active invoice remarks (always show, no payment-type filtering)
 $INVOICE_REMARK = new InvoiceRemark();
-$paymentRemarks = $INVOICE_REMARK->getRemarkByPaymentType($EQUIPMENT_RENT->payment_type_id ?? 0);
-$remarksFallbackUsed = false;
-
-// If no remarks are mapped to this payment type, show all active remarks as a fallback
-if (empty($paymentRemarks)) {
-    $paymentRemarks = $INVOICE_REMARK->getActiveGroups();
-    $remarksFallbackUsed = !empty($paymentRemarks);
-}
+$paymentRemarks = $INVOICE_REMARK->getActiveGroups();
 
 // Get rent items
 $rent_items = $EQUIPMENT_RENT->getItems();
@@ -697,7 +690,7 @@ if (!empty($customerMobile)) {
                                     <?php endif; ?>
                                 </ul>
                             <?php else: ?>
-                                <span class="text-muted">No predefined remarks available for this payment type.</span>
+                                <span class="text-muted">No predefined remarks available.</span>
                             <?php endif; ?>
                         </div>
                     </div>
