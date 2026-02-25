@@ -30,6 +30,19 @@ if (isset($_POST['create'])) {
         }
     }
 
+    // Normalize department
+    $departmentId = isset($_POST['department_id']) ? trim($_POST['department_id']) : '';
+    // If appending and no dept sent, fall back to existing note's department
+    if ($is_append && (empty($departmentId) || $departmentId === '0')) {
+        $existingNote = new IssueNote($note_id);
+        $departmentId = $existingNote->department_id;
+    }
+
+    if (empty($departmentId) || $departmentId === '0') {
+        echo json_encode(["status" => "error", "message" => "Department is required"]);
+        exit();
+    }
+
     // ... validation logic remains the same (it calculates total issued vs ordered) ...
 
     // Decode items first for validation
@@ -71,7 +84,7 @@ if (isset($_POST['create'])) {
         }
     }
 
-    // 2. Create Issue Note (Only if not appending)
+    // 2. Create Issue Note (Only if not appending). If appending, update department/remarks.
     if (!$is_append) {
         $NOTE = new IssueNote(null);
         $NOTE->issue_note_code = $_POST['issue_note_code'];
@@ -79,10 +92,16 @@ if (isset($_POST['create'])) {
         $NOTE->customer_id = $_POST['customer_id'];
         $NOTE->issue_date = $_POST['issue_date'];
         $NOTE->issue_status = 'issued'; 
-        $NOTE->department_id = $_POST['department_id'] ?? null;
+        $NOTE->department_id = (int)$departmentId;
         $NOTE->remarks = $_POST['remarks'] ?? '';
     
         $note_id = $NOTE->create();
+    } else {
+        // Ensure department stays in sync on subsequent appends
+        $NOTE = new IssueNote($note_id);
+        $NOTE->department_id = (int)$departmentId ?: $NOTE->department_id;
+        $NOTE->remarks = $_POST['remarks'] ?? $NOTE->remarks;
+        $NOTE->update();
     }
     // If appending, $note_id is already set from $existing['id']
 

@@ -129,25 +129,26 @@ if (!empty($customerMobile)) {
                 ?>
 
                 <!-- Title - Top Center -->
-                <div style="text-align:center;margin-bottom:10px;">
-                    <h3 style="font-weight:bold;font-size:20px;margin:0;">ගබඩා නිකුත් කිරීමේ පත්‍රිකාව</h3>
+                <div style="text-align:center;margin-bottom:12px;">
+                    <div style="font-weight:bold;font-size:17px;line-height:1.3;">පී. එස්. එකමුතු එන්ටර්ප්‍රයිසිස්</div>
+                    <div style="font-weight:700;font-size:18px;line-height:1.3;">P.S. Ekamuthu Enterprises</div>
+                    <div style="font-size:12px;line-height:1.3;color:#555;">
+                        අංක 50, හිල් පාර, දෙහිවල &nbsp;|&nbsp; දුරකථන : 0114 579 517
+                    </div>
+                    <h3 style="font-weight:bold;font-size:20px;margin:8px 0 0 0;">උපකරණ භාර ගැනීමේ පත්‍රය - <?php echo htmlspecialchars($departmentName ?: '-'); ?></h3>
                 </div>
 
                 <!-- Header layout using table for print compatibility -->
                 <table style="width:100%;border:none;border-collapse:collapse;margin-bottom:15px;">
                     <tr>
-                        <td style="vertical-align:top;width:40%;padding:0;border:none;">
-                            <p style="font-weight:bold;font-size:18px;margin:0 0 4px 0;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
-                            <p style="font-size:13px;margin:0 0 4px 0;color:#6c757d;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
-                            <p style="font-size:13px;margin:0 0 4px 0;color:#6c757d;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
-                        </td>
-                        <td style="vertical-align:top;text-align:right;padding:0;border:none;">
+                        <td style="vertical-align:top;width:50%;padding:0;border:none;">
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                        </td>
+                        <td style="vertical-align:top;text-align:right;padding:0;border:none;">
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Issue Note No:</strong> <?php echo htmlspecialchars($ISSUE_NOTE->issue_note_code); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Invoice Ref:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                            <p style="font-size:14px;margin:0 0 3px 0;"><strong>Department:</strong> <?php echo htmlspecialchars($departmentName); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($ISSUE_NOTE->issue_date)); ?></p>
                             <p style="font-size:14px;margin:0 0 3px 0;">
                                 <strong>Status:</strong> 

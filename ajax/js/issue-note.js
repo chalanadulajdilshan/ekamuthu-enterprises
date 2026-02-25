@@ -366,6 +366,11 @@ $(document).ready(function () {
             return;
         }
 
+        if (!$("#department_id").val()) {
+            swal("Error!", "Please select a Department", "error");
+            return;
+        }
+
         if (issueItems.length === 0) {
             swal("Error!", "No items to issue", "error");
             return;

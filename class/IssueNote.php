@@ -38,6 +38,8 @@ class IssueNote
     public function create()
     {
         $db = Database::getInstance();
+        $deptId = ($this->department_id !== null && $this->department_id !== '') ? (int)$this->department_id : 0;
+
         $query = "INSERT INTO `issue_notes` (
             `issue_note_code`, `rent_invoice_id`, `customer_id`, `issue_date`, `issue_status`, `remarks`, `department_id`
         ) VALUES (
@@ -47,7 +49,7 @@ class IssueNote
             '" . $db->escapeString($this->issue_date) . "',
             '" . $db->escapeString($this->issue_status) . "',
             '" . $db->escapeString($this->remarks) . "',
-            " . ($this->department_id ? (int)$this->department_id : "NULL") . "
+            '" . $deptId . "'
         )";
 
         $result = $db->readQuery($query);
@@ -62,13 +64,15 @@ class IssueNote
     public function update()
     {
         $db = Database::getInstance();
+        $deptId = ($this->department_id !== null && $this->department_id !== '') ? (int)$this->department_id : 0;
+
         $query = "UPDATE `issue_notes` SET
             `rent_invoice_id` = '" . (int) $this->rent_invoice_id . "',
             `customer_id` = '" . (int) $this->customer_id . "',
             `issue_date` = '" . $db->escapeString($this->issue_date) . "',
             `issue_status` = '" . $db->escapeString($this->issue_status) . "',
             `remarks` = '" . $db->escapeString($this->remarks) . "',
-            `department_id` = " . ($this->department_id ? (int)$this->department_id : "NULL") . "
+            `department_id` = '" . $deptId . "'
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
