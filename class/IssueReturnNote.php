@@ -7,6 +7,7 @@ class IssueReturnNote
     public $issue_note_id;
     public $return_date;
     public $remarks;
+    public $department_id;
     public $created_at;
     public $updated_at;
 
@@ -23,6 +24,7 @@ class IssueReturnNote
                 $this->issue_note_id = $result['issue_note_id'];
                 $this->return_date = $result['return_date'];
                 $this->remarks = $result['remarks'];
+                $this->department_id = $result['department_id'];
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
             }
@@ -33,12 +35,13 @@ class IssueReturnNote
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_returns` (
-            `return_code`, `issue_note_id`, `return_date`, `remarks`
+            `return_code`, `issue_note_id`, `return_date`, `remarks`, `department_id`
         ) VALUES (
             '" . $db->escapeString($this->return_code) . "',
             '" . (int) $this->issue_note_id . "',
             '" . $db->escapeString($this->return_date) . "',
-            '" . $db->escapeString($this->remarks) . "'
+            '" . $db->escapeString($this->remarks) . "',
+            " . ($this->department_id ? (int)$this->department_id : "NULL") . "
         )";
 
         $result = $db->readQuery($query);
@@ -55,7 +58,8 @@ class IssueReturnNote
         $db = Database::getInstance();
         $query = "UPDATE `issue_returns` SET
             `return_date` = '" . $db->escapeString($this->return_date) . "',
-            `remarks` = '" . $db->escapeString($this->remarks) . "'
+            `remarks` = '" . $db->escapeString($this->remarks) . "',
+            `department_id` = " . ($this->department_id ? (int)$this->department_id : "NULL") . "
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
@@ -84,15 +88,17 @@ class IssueReturnNote
         $filteredSql = "SELECT COUNT(*) as filtered FROM issue_returns r
                         LEFT JOIN issue_notes i ON r.issue_note_id = i.id
                         LEFT JOIN customer_master cm ON i.customer_id = cm.id
+                        LEFT JOIN department_master dm ON r.department_id = dm.id
                         $where";
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
         // Paginated query
-        $sql = "SELECT r.*, i.issue_note_code, cm.name as customer_name, cm.code as customer_code
+        $sql = "SELECT r.*, i.issue_note_code, cm.name as customer_name, cm.code as customer_code, dm.name as department_name
                 FROM issue_returns r
                 LEFT JOIN issue_notes i ON r.issue_note_id = i.id
                 LEFT JOIN customer_master cm ON i.customer_id = cm.id
+                LEFT JOIN department_master dm ON r.department_id = dm.id
                 $where ORDER BY r.id DESC LIMIT $start, $length";
         $dataQuery = $db->readQuery($sql);
 
@@ -106,6 +112,7 @@ class IssueReturnNote
                 "return_code" => $row['return_code'],
                 "issue_note_ref" => $row['issue_note_code'],
                 "customer_name" => $row['customer_code'] . ' - ' . $row['customer_name'],
+                "department" => $row['department_name'] ?? '-',
                 "return_date" => $row['return_date'],
                 "remarks" => $row['remarks'],
                 "created_at" => $row['created_at']

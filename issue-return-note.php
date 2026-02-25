@@ -101,6 +101,18 @@ $return_note_code = ($lastId + 1);
                                                     </button>
                                                 </div>
                                             </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Department</label>
+                                                <select class="form-select" id="department_id">
+                                                    <option value="">Select Department...</option>
+                                                    <?php
+                                                    $DEPARTMENTS = new DepartmentMaster(null);
+                                                    foreach ($DEPARTMENTS->all() as $dept) {
+                                                        echo '<option value="' . $dept['id'] . '">' . $dept['name'] . '</option>';
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         <div class="row mb-4">
@@ -206,6 +218,7 @@ $return_note_code = ($lastId + 1);
                                         <th>Return Note No</th>
                                         <th>Issue Note Ref</th>
                                         <th>Customer</th>
+                                        <th>Department</th>
                                         <th>Date</th>
                                         <th>Remarks</th>
                                         <th>Action</th>

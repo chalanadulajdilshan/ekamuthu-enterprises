@@ -27,6 +27,13 @@ $CUSTOMER_MASTER = new CustomerMaster($ISSUE_NOTE->customer_id);
 // Get issue return note items
 $note_items = $ISSUE_RETURN->getItems();
 
+// Get department name
+$departmentName = '-';
+if ($ISSUE_RETURN->department_id) {
+    $DEPARTMENT = new DepartmentMaster($ISSUE_RETURN->department_id);
+    $departmentName = $DEPARTMENT->name;
+}
+
 ?>
 <html lang="en">
 
@@ -131,6 +138,7 @@ $note_items = $ISSUE_RETURN->getItems();
                         <p class="mb-1" style="font-size:14px;"><strong>Return Note No:</strong> <?php echo htmlspecialchars($ISSUE_RETURN->return_code); ?></p>
                         <p class="mb-1" style="font-size:14px;"><strong>Issue Note Ref:</strong> <?php echo htmlspecialchars($ISSUE_NOTE->issue_note_code); ?></p>
                         <p class="mb-1" style="font-size:14px;"><strong>Invoice Ref:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
+                        <p class="mb-1" style="font-size:14px;"><strong>Department:</strong> <?php echo htmlspecialchars($departmentName); ?></p>
                         <p class="mb-1" style="font-size:14px;"><strong>Return Date:</strong> <?php echo date('d M, Y', strtotime($ISSUE_RETURN->return_date)); ?></p>
                     </div>
                 </div>

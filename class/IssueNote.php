@@ -9,6 +9,7 @@ class IssueNote
     public $issue_date;
     public $issue_status;
     public $remarks;
+    public $department_id;
     public $created_at;
     public $updated_at;
 
@@ -27,6 +28,7 @@ class IssueNote
                 $this->issue_date = $result['issue_date'];
                 $this->issue_status = $result['issue_status'];
                 $this->remarks = $result['remarks'];
+                $this->department_id = $result['department_id'];
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
             }
@@ -37,14 +39,15 @@ class IssueNote
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_notes` (
-            `issue_note_code`, `rent_invoice_id`, `customer_id`, `issue_date`, `issue_status`, `remarks`
+            `issue_note_code`, `rent_invoice_id`, `customer_id`, `issue_date`, `issue_status`, `remarks`, `department_id`
         ) VALUES (
             '" . $db->escapeString($this->issue_note_code) . "',
             '" . (int) $this->rent_invoice_id . "',
             '" . (int) $this->customer_id . "',
             '" . $db->escapeString($this->issue_date) . "',
             '" . $db->escapeString($this->issue_status) . "',
-            '" . $db->escapeString($this->remarks) . "'
+            '" . $db->escapeString($this->remarks) . "',
+            " . ($this->department_id ? (int)$this->department_id : "NULL") . "
         )";
 
         $result = $db->readQuery($query);
@@ -64,7 +67,8 @@ class IssueNote
             `customer_id` = '" . (int) $this->customer_id . "',
             `issue_date` = '" . $db->escapeString($this->issue_date) . "',
             `issue_status` = '" . $db->escapeString($this->issue_status) . "',
-            `remarks` = '" . $db->escapeString($this->remarks) . "'
+            `remarks` = '" . $db->escapeString($this->remarks) . "',
+            `department_id` = " . ($this->department_id ? (int)$this->department_id : "NULL") . "
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
@@ -118,12 +122,14 @@ class IssueNote
         // Base query with totals
         $baseQuery = "SELECT i.*, er.bill_number, cm.name as customer_name, cm.code as customer_code,
                       (SELECT SUM(issued_quantity) FROM issue_note_items WHERE issue_note_id = i.id) as total_issued,
-                      (SELECT SUM(iri.return_quantity) FROM issue_return_items iri 
+                       (SELECT SUM(iri.return_quantity) FROM issue_return_items iri 
                        INNER JOIN issue_returns ir ON iri.return_id = ir.id 
-                       WHERE ir.issue_note_id = i.id) as total_returned
-                      FROM issue_notes i
-                      LEFT JOIN equipment_rent er ON i.rent_invoice_id = er.id
-                      LEFT JOIN customer_master cm ON i.customer_id = cm.id
+                       WHERE ir.issue_note_id = i.id) as total_returned,
+                       dm.name as department_name
+                       FROM issue_notes i
+                       LEFT JOIN equipment_rent er ON i.rent_invoice_id = er.id
+                       LEFT JOIN customer_master cm ON i.customer_id = cm.id
+                       LEFT JOIN department_master dm ON i.department_id = dm.id
                       $where";
 
         if ($excludeReturned) {
@@ -157,6 +163,7 @@ class IssueNote
                 "issue_note_code" => $row['issue_note_code'],
                 "rent_invoice_ref" => $row['bill_number'],
                 "customer_name" => $row['customer_code'] . ' - ' . $row['customer_name'],
+                "department" => $row['department_name'] ?? '-',
                 "issue_date" => $row['issue_date'],
                 "status" => $statusLabel,
                 "created_at" => $row['created_at']

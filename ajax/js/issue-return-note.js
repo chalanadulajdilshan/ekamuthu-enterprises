@@ -134,6 +134,7 @@ $(document).ready(function () {
                     $("#selected_issue_display").val(ret.issue_note_code);
                     $("#return_note_code").val(ret.return_code);
                     $("#return_date").val(ret.return_date);
+                    $("#department_id").val(ret.department_id);
                     $("#remarks").val(ret.remarks);
 
                     // Store items (View Mode)
@@ -323,6 +324,7 @@ $(document).ready(function () {
             return_code: $("#return_note_code").val(),
             issue_note_id: $("#issue_note_id").val(),
             return_date: $("#return_date").val(),
+            department_id: $("#department_id").val(),
             remarks: $("#remarks").val(),
             items: JSON.stringify(returnItems)
         };

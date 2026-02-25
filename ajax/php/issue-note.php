@@ -79,6 +79,7 @@ if (isset($_POST['create'])) {
         $NOTE->customer_id = $_POST['customer_id'];
         $NOTE->issue_date = $_POST['issue_date'];
         $NOTE->issue_status = 'issued'; 
+        $NOTE->department_id = $_POST['department_id'] ?? null;
         $NOTE->remarks = $_POST['remarks'] ?? '';
     
         $note_id = $NOTE->create();
@@ -283,6 +284,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_note_details') {
                 "customer_id" => $ISSUE_NOTE->customer_id,
                 "customer_name" => $CUSTOMER->name,
                 "customer_phone" => $CUSTOMER->mobile_number,
+                "department_id" => $ISSUE_NOTE->department_id,
                 "issue_date" => $ISSUE_NOTE->issue_date,
                 "issue_status" => $ISSUE_NOTE->issue_status,
                 "remarks" => $ISSUE_NOTE->remarks

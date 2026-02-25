@@ -79,7 +79,7 @@ $issue_note_code = ($lastId + 1);
                                     <div class="p-4">
                                     <form id="issue_note_form">
                                         <div class="row mb-4">
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label class="form-label">Issue Note Code - පත්‍රිකා අංකය</label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="issue_note_code" value="<?php echo $issue_note_code ?>"  >
@@ -88,11 +88,11 @@ $issue_note_code = ($lastId + 1);
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label class="form-label">Issue Date - නිකුත් කරන දිනය</label>
                                                 <input type="text" class="form-control date-picker" id="issue_date" value="<?php echo date('Y-m-d'); ?>">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Select Rent Invoice - ඉන්වොයිසිය තෝරන්න</label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="selected_invoice_display" placeholder="Select a Rent Invoice..." readonly>
@@ -102,6 +102,18 @@ $issue_note_code = ($lastId + 1);
                                                         <i class="uil uil-search"></i> Select
                                                     </button>
                                                 </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Department</label>
+                                                <select class="form-select" id="department_id">
+                                                    <option value="">Select Department...</option>
+                                                    <?php
+                                                    $DEPARTMENTS = new DepartmentMaster(null);
+                                                    foreach ($DEPARTMENTS->all() as $dept) {
+                                                        echo '<option value="' . $dept['id'] . '">' . $dept['name'] . '</option>';
+                                                    }
+                                                    ?>
+                                                </select>
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="form-label">Status</label>
@@ -239,6 +251,7 @@ $issue_note_code = ($lastId + 1);
                                         <th>Issue Note No</th>
                                         <th>Ref Invoice</th>
                                         <th>Customer</th>
+                                        <th>Department</th>
                                         <th>Date</th>
                                         <th>Status</th>
                                     </tr>
