@@ -240,6 +240,28 @@ class SubEquipment
         ];
     }
 
+    /**
+     * Update the parent equipment quantity to reflect the total sub-equipment quantity.
+     * Uses SUM(qty) to respect per-row quantities rather than only counting rows.
+     */
+    public static function syncEquipmentQuantity($equipment_id)
+    {
+        if (!$equipment_id) {
+            return false;
+        }
+
+        $db = Database::getInstance();
+        $equipment_id = (int) $equipment_id;
+
+        $countSql = "SELECT COALESCE(SUM(qty), 0) AS total_qty FROM sub_equipment WHERE equipment_id = $equipment_id";
+        $result = $db->readQuery($countSql);
+        $row = $result ? mysqli_fetch_assoc($result) : null;
+        $totalQty = $row ? (int) $row['total_qty'] : 0;
+
+        $updateSql = "UPDATE equipment SET quantity = $totalQty WHERE id = $equipment_id";
+        return $db->readQuery($updateSql);
+    }
+
     public function all()
     {
         $query = "SELECT se.*, e.code as equipment_code, e.item_name as equipment_name
