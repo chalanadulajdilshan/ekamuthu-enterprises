@@ -187,7 +187,7 @@ $bill_number = $lastId + 1;
                                                 <div class="col-md-5">
                                                     <label for="customer_display" class="form-label">Customer -
                                                         පාරිභෝගිකයා<span class="text-danger">*</span></label>
-                                                    <div class="input-group mb-3">
+                                                    <div class="input-group mb-1">
                                                         <input id="customer_display" name="customer_display" type="text"
                                                             class="form-control" placeholder="Select customer" readonly>
                                                         <input type="hidden" id="customer_id" name="customer_id">
@@ -201,6 +201,11 @@ $bill_number = $lastId + 1;
                                                             data-bs-target="#AddCustomerModal" title="Add New Customer"><i
                                                                 class="uil uil-plus"></i>
                                                         </button>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap gap-3 small mt-1" id="customerDocStatus">
+                                                        <span id="docStatusPhoto" class="text-muted"><i class="uil uil-image"></i> Customer photo: <span class="status-icon">-</span></span>
+                                                        <span id="docStatusNicFront" class="text-muted"><i class="uil uil-id-badge"></i> NIC front: <span class="status-icon">-</span></span>
+                                                        <span id="docStatusNicBack" class="text-muted"><i class="uil uil-id-badge"></i> NIC back: <span class="status-icon">-</span></span>
                                                     </div>
                                                 </div>
 

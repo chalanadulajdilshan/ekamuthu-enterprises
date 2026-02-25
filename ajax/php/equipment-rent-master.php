@@ -545,6 +545,34 @@ if (isset($_POST['action']) && $_POST['action'] === 'list_bill_numbers') {
     exit;
 }
 
+// Get customer document images (photo + NIC front/back)
+if (isset($_POST['action']) && $_POST['action'] === 'get_customer_docs') {
+    $customer_id = isset($_POST['customer_id']) ? (int) $_POST['customer_id'] : 0;
+
+    if (!$customer_id) {
+        echo json_encode(['status' => 'error', 'message' => 'Customer ID required']);
+        exit;
+    }
+
+    $db = Database::getInstance();
+    $sql = "SELECT customer_photo, nic_image_1, nic_image_2 FROM customer_master WHERE id = $customer_id LIMIT 1";
+    $result = mysqli_fetch_assoc($db->readQuery($sql));
+
+    if ($result) {
+        echo json_encode([
+            'status' => 'success',
+            'data' => [
+                'customer_photo' => $result['customer_photo'] ?? '',
+                'nic_image_1' => $result['nic_image_1'] ?? '',
+                'nic_image_2' => $result['nic_image_2'] ?? '',
+            ]
+        ]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Customer not found']);
+    }
+    exit;
+}
+
 // Get rent id by bill number
 if (isset($_POST['action']) && $_POST['action'] === 'get_rent_by_bill' && isset($_POST['bill_number'])) {
     $db = Database::getInstance();
@@ -1301,7 +1329,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
     // If no search term, only load a small initial set to keep modal light
     $limitClause = ($search === '') ? 'LIMIT 5' : 'LIMIT 500';
 
-    $sql = "SELECT id, code, name, mobile_number, address, nic, old_outstanding, is_blacklisted FROM customer_master $where ORDER BY name ASC $limitClause";
+    $sql = "SELECT id, code, name, mobile_number, address, nic, old_outstanding, is_blacklisted, customer_photo, nic_image_1, nic_image_2 FROM customer_master $where ORDER BY name ASC $limitClause";
     $result = $db->readQuery($sql);
 
     $data = [];
@@ -1315,6 +1343,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
             'nic' => $row['nic'],
             'outstanding' => number_format($row['old_outstanding'] ?? 0, 2),
             'is_blacklisted' => $row['is_blacklisted'] ?? 0,
+            'customer_photo' => $row['customer_photo'] ?? '',
+            'nic_image_1' => $row['nic_image_1'] ?? '',
+            'nic_image_2' => $row['nic_image_2'] ?? '',
         ];
     }
 
