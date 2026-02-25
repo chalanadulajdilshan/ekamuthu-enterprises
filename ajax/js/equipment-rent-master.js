@@ -1098,6 +1098,7 @@ jQuery(document).ready(function () {
           $("#code").val(rent.bill_number);
           $("#customer_id").val(rent.customer_id);
           $("#customer_display").val(rent.customer_name);
+          loadCustomerDocs(rent.customer_id);
           $("#rental_date").val(rent.rental_date);
           $("#rental_start_date").val(
             rent.rental_start_date || rent.rental_date,
@@ -1513,6 +1514,47 @@ jQuery(document).ready(function () {
     loadCustomerTable(term);
   });
 
+  function setCustomerDocStatus(state) {
+    function render(el, has) {
+      var icon = has
+        ? '<i class="uil uil-check-circle text-success"></i>'
+        : '<i class="uil uil-times-circle text-danger"></i>';
+      el.find(".status-icon").html(icon);
+      el.toggleClass("text-muted", !has);
+      el.toggleClass("text-success", has);
+    }
+
+    render($("#docStatusPhoto"), !!state.photo);
+    render($("#docStatusNicFront"), !!state.nicFront);
+    render($("#docStatusNicBack"), !!state.nicBack);
+  }
+
+  function loadCustomerDocs(customerId) {
+    // reset while loading
+    setCustomerDocStatus({ photo: false, nicFront: false, nicBack: false });
+
+    if (!customerId) return;
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      dataType: "json",
+      data: { action: "get_customer_docs", customer_id: customerId },
+      success: function (res) {
+        if (res && res.status === "success" && res.data) {
+          setCustomerDocStatus({
+            photo: !!res.data.customer_photo,
+            nicFront: !!res.data.nic_image_1,
+            nicBack: !!res.data.nic_image_2,
+          });
+        }
+      },
+      error: function () {
+        // keep default reset; avoid blocking selection
+      },
+    });
+  }
+
   function loadCustomerTable(searchTerm) {
     var $tbody = $("#customerSelectTable tbody");
     var $status = $("#customerTableStatus");
@@ -1623,6 +1665,7 @@ jQuery(document).ready(function () {
       $("#customer_display").val(code + " - " + name);
       $("#customerOutstandingValue").text(outstanding);
       $("#customerOutstandingAlert").show();
+      loadCustomerDocs(id);
       $("#CustomerSelectModal").modal("hide");
     }
   });
@@ -1632,6 +1675,7 @@ jQuery(document).ready(function () {
     if (!$(this).val()) {
       $("#customerOutstandingAlert").hide();
       $("#customerOutstandingValue").text("0.00");
+      setCustomerDocStatus({ photo: false, nicFront: false, nicBack: false });
     }
   });
 
@@ -2232,6 +2276,7 @@ jQuery(document).ready(function () {
     $("#rent_id").val("");
     $("#customer_id").val("");
     $("#customer_display").val("");
+    setCustomerDocStatus({ photo: false, nicFront: false, nicBack: false });
     $("#workplace_address").val("");
     $("#payment_type_id").val("");
     $("#item_equipment_id").val("");
