@@ -34,10 +34,6 @@ $INVOICE_REMARK = new InvoiceRemark();
 $paymentRemarks = $INVOICE_REMARK->getRemarkByPaymentType($EQUIPMENT_RENT->payment_type_id ?? 0);
 $remarksFallbackUsed = false;
 
-// Fetch globally active Terms & Conditions (admin-managed)
-$TC = new TermsCondition();
-$termsConditions = $TC->getActive();
-
 // If no remarks are mapped to this payment type, show all active remarks as a fallback
 if (empty($paymentRemarks)) {
     $paymentRemarks = $INVOICE_REMARK->getActiveGroups();
@@ -672,18 +668,11 @@ if (!empty($customerMobile)) {
                     <div style="border-top:2px solid #ccc; padding-top:12px;">
                         <strong>Terms & Conditions :</strong>
                         <div style="min-height:60px; border-bottom:2px solid #ccc; padding:8px 0; font-size:14px;">
-                            <?php if (!empty($paymentRemarks) || !empty($customTerms) || !empty($termsConditions)): ?>
+                            <?php if (!empty($paymentRemarks) || !empty($customTerms)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
                                     <?php foreach ($customTerms as $term): ?>
                                         <li><?php echo htmlspecialchars($term); ?></li>
                                     <?php endforeach; ?>
-                                    <?php if (!empty($termsConditions)): ?>
-                                        <?php foreach ($termsConditions as $tc): ?>
-                                            <?php if (!empty($tc['description'])): ?>
-                                                <li><?php echo nl2br(htmlspecialchars($tc['description'])); ?></li>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
                                     <?php if (!empty($paymentRemarks)): ?>
                                         <?php foreach ($paymentRemarks as $remark): ?>
                                             <?php
