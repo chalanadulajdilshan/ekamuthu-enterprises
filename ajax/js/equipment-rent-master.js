@@ -1146,7 +1146,9 @@ jQuery(document).ready(function () {
             );
           }
           var refundBalance = parseFloat(rent.refund_balance || 0);
-          $("#customer_refund_balance").text(refundBalance.toFixed(2));
+          const formattedRefundBalance = refundBalance
+            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          $("#customer_refund_balance").text(formattedRefundBalance);
           var $refundBadge = $("#customer_refund_badge");
           $refundBadge.removeClass("badge bg-danger bg-success").text("");
           if (refundBalance < 0) {
@@ -1157,16 +1159,22 @@ jQuery(document).ready(function () {
 
           // Customer Paid and Outstanding
           var totalCustomerPaid = parseFloat(rent.total_customer_paid || 0);
-          $("#customer_paid_total").text(totalCustomerPaid.toFixed(2));
+          const formattedCustomerPaid = totalCustomerPaid
+            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          $("#customer_paid_total").text(formattedCustomerPaid);
           var rentOutstanding = parseFloat(rent.rent_outstanding || 0);
           var billOutstanding = parseFloat(rent.bill_outstanding || 0);
           var displayOutstanding = Math.max(rentOutstanding, billOutstanding);
-          $("#customer_rent_outstanding").text(displayOutstanding.toFixed(2));
+
+          const formattedOutstanding = displayOutstanding
+            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+          $("#customer_rent_outstanding").text(formattedOutstanding);
           if (displayOutstanding > 0) {
             $("#customer_rent_outstanding")
               .removeClass("text-success")
               .addClass("text-danger");
-            $("#customerOutstandingValue").text(displayOutstanding.toFixed(2));
+            $("#customerOutstandingValue").text(formattedOutstanding);
             $("#customerOutstandingAlert").show();
           } else {
             $("#customer_rent_outstanding")
@@ -1179,13 +1187,15 @@ jQuery(document).ready(function () {
           var companyOutstanding = parseFloat(
             rent.total_company_outstanding || 0,
           );
+          const formattedCompanyOutstanding = companyOutstanding
+            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           if (companyOutstanding > 0) {
             $("#company_refund_balance_display").text(
-              companyOutstanding.toFixed(2),
+              formattedCompanyOutstanding,
             );
             $("#company_refund_row").show();
           } else {
-            $("#company_refund_balance_display").text("0.00");
+            $("#company_refund_balance_display").text(formattedCompanyOutstanding);
             $("#company_refund_row").hide();
           }
 
@@ -3536,7 +3546,7 @@ jQuery(document).ready(function () {
     if (!rentId) return;
 
     var currentOutstanding =
-      parseFloat($("#company_refund_balance_display").text()) || 0;
+      parseFloat($("#company_refund_balance_display").text().replace(/,/g, "")) || 0;
     if (currentOutstanding <= 0) {
       swal({
         title: "No Outstanding",
@@ -3551,10 +3561,10 @@ jQuery(document).ready(function () {
         title: "Settle Company Refund",
         text:
           "Company Outstanding: Rs. " +
-          currentOutstanding.toFixed(2) +
+          currentOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
           "\nEnter amount to pay to customer:",
         type: "input",
-        inputValue: currentOutstanding.toFixed(2),
+        inputValue: currentOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         showCancelButton: true,
         confirmButtonText: "Settle",
         cancelButtonText: "Cancel",
@@ -3602,9 +3612,11 @@ jQuery(document).ready(function () {
               var newOutstanding = parseFloat(
                 result.new_company_outstanding || 0,
               );
+              const formattedNewOutstanding = newOutstanding
+                .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
               if (newOutstanding > 0) {
                 $("#company_refund_balance_display").text(
-                  newOutstanding.toFixed(2),
+                  formattedNewOutstanding,
                 );
               } else {
                 $("#company_refund_balance_display").text("0.00");
