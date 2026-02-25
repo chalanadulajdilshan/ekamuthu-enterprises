@@ -8,6 +8,36 @@ ini_set('log_errors', 1);
 include '../../class/include.php';
 header('Content-Type: application/json; charset=UTF-8');
 
+/**
+ * Upload bank slip file and return relative path
+ */
+function uploadBankSlip($fileData = null, $existingPath = null)
+{
+    if (!$fileData || !isset($fileData['tmp_name']) || $fileData['error'] !== UPLOAD_ERR_OK) {
+        return $existingPath;
+    }
+
+    $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
+    $ext = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowed)) {
+        return $existingPath;
+    }
+
+    $targetDir = dirname(__FILE__, 3) . '/upload/bank-slips/';
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0755, true);
+    }
+
+    $fileName = 'bank_slip_' . time() . '_' . uniqid() . '.' . $ext;
+    $targetPath = $targetDir . $fileName;
+
+    if (move_uploaded_file($fileData['tmp_name'], $targetPath)) {
+        return 'upload/bank-slips/' . $fileName;
+    }
+
+    return $existingPath;
+}
+
 // Create new equipment rent with items
 if (isset($_POST['create'])) {
 
@@ -75,6 +105,7 @@ if (isset($_POST['create'])) {
     $EQUIPMENT_RENT->transfer_branch_id = !empty($_POST['transfer_branch_id']) ? (int) $_POST['transfer_branch_id'] : null;
     $EQUIPMENT_RENT->bank_account_number = $_POST['bank_account_number'] ?? null;
     $EQUIPMENT_RENT->bank_reference = $_POST['bank_reference'] ?? null;
+    $EQUIPMENT_RENT->bank_slip = uploadBankSlip($_FILES['bank_slip_file'] ?? null);
     $EQUIPMENT_RENT->created_by = isset($_SESSION['id']) ? $_SESSION['id'] : null;
 
     $rent_id = $EQUIPMENT_RENT->create();
@@ -271,6 +302,8 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->transfer_branch_id = !empty($_POST['transfer_branch_id']) ? (int) $_POST['transfer_branch_id'] : null;
     $EQUIPMENT_RENT->bank_account_number = $_POST['bank_account_number'] ?? null;
     $EQUIPMENT_RENT->bank_reference = $_POST['bank_reference'] ?? null;
+    $existingSlip = $_POST['bank_slip_existing'] ?? null;
+    $EQUIPMENT_RENT->bank_slip = uploadBankSlip($_FILES['bank_slip_file'] ?? null, $existingSlip);
 
     // Check if all items are returned
     $allReturned = true;
@@ -490,6 +523,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "transfer_branch_display" => $transferBranchDisplay,
                 "bank_account_number" => $EQUIPMENT_RENT->bank_account_number,
                 "bank_reference" => $EQUIPMENT_RENT->bank_reference,
+                "bank_slip" => $EQUIPMENT_RENT->bank_slip,
                 "total_items" => $EQUIPMENT_RENT->total_items,
                 "total_customer_paid" => $totalCustomerPaid,
                 "rent_outstanding" => floatval($CUSTOMER->rent_outstanding ?? 0),

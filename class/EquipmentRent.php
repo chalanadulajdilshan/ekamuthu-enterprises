@@ -27,6 +27,7 @@ class EquipmentRent
     public $transfer_branch_id;
     public $bank_account_number;
     public $bank_reference;
+    public $bank_slip;
     public $created_by;
     public $created_at;
     public $updated_at;
@@ -63,6 +64,7 @@ class EquipmentRent
                 $this->transfer_branch_id = $result['transfer_branch_id'] ?? null;
                 $this->bank_account_number = $result['bank_account_number'] ?? null;
                 $this->bank_reference = $result['bank_reference'] ?? null;
+                $this->bank_slip = $result['bank_slip'] ?? null;
                 $this->created_by = $result['created_by'] ?? null;
                 $this->created_at = $result['created_at'] ?? null;
                 $this->updated_at = $result['updated_at'] ?? null;
@@ -75,7 +77,7 @@ class EquipmentRent
         $now = date('Y-m-d H:i:s');
 
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `workplace_address`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `created_by`, `created_at`
+            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `workplace_address`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `bank_slip`, `created_by`, `created_at`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ", " .
@@ -83,10 +85,11 @@ class EquipmentRent
             ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
             ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ", " .
             ($this->cheque_date ? "'$this->cheque_date'" : "NULL") . ", " .
-            ($this->cheque_branch_id ? "'$this->cheque_branch_id'" : "NULL") . ", " .
-            ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ", " .
+            ($this->cheque_branch_id ? "'" . addslashes($this->cheque_branch_id) . "'" : "NULL") . ", " .
+            ($this->transfer_branch_id ? "'" . addslashes($this->transfer_branch_id) . "'" : "NULL") . ", " .
             ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ", " .
             ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . ", " .
+            ($this->bank_slip ? "'" . addslashes($this->bank_slip) . "'" : "NULL") . ", " .
             ($this->created_by ? "'$this->created_by'" : "NULL") . ",
             '$now'
         )";
@@ -127,6 +130,7 @@ class EquipmentRent
             `transfer_branch_id` = " . ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ",
             `bank_account_number` = " . ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ",
             `bank_reference` = " . ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . ",
+            `bank_slip` = " . ($this->bank_slip ? "'" . addslashes($this->bank_slip) . "'" : "NULL") . ",
             `updated_at` = '$now'
             WHERE `id` = '$this->id'";
 
