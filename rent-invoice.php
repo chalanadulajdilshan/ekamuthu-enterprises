@@ -433,8 +433,9 @@ if (!empty($customerMobile)) {
         }
 
         .summary-table td {
-            padding: 4px 12px !important;
+            padding: 1px 6px !important;
             border: none !important;
+            line-height: 1.2;
         }
 
         .summary-label {
@@ -444,7 +445,21 @@ if (!empty($customerMobile)) {
 
         .summary-value {
             text-align: left;
-            min-width: 120px;
+            min-width: 80px;
+        }
+
+        .summary-wrapper {
+            margin-left: auto;
+            text-align: right;
+            display: inline-block;
+        }
+
+        .summary-table {
+            margin-left: auto;
+        }
+
+        .summary-table td.summary-value {
+            text-align: right;
         }
     </style>
 
@@ -640,11 +655,9 @@ if (!empty($customerMobile)) {
 
                 <!-- Summary Section -->
                 <div class="row mt-3">
-                    <div class="col-md-6">
-                        <!-- Reserved space -->
-                    </div>
-                    <div class="col-md-6 d-flex justify-content-end">
-                        <table class="summary-table" style="width:auto;">
+                    <div class="col-12 d-flex justify-content-end">
+                        <div class="summary-wrapper">
+                            <table class="summary-table" style="width:auto;">
                             <tr>
                                 <td class="summary-label"><?php echo htmlspecialchars($rent_label); ?></td>
                                 <td class="summary-value"><?php echo number_format($hire_amount, 2); ?></td>
@@ -674,12 +687,14 @@ if (!empty($customerMobile)) {
                             <tr>
                                 <td class="summary-label">පාරිභෝගිකයාට ගෙවූ මුදල:</td>
                                 <td class="summary-value">
-                                    <?php echo number_format($refund_balance, 2); ?>
-                                    <?php if ($refund_balance < 0): ?>
-                                        <span class="badge bg-success ms-2">Customer Pay</span>
-                                    <?php elseif ($refund_balance > 0): ?>
-                                        <span class="badge bg-danger ms-2">Refund</span>
-                                    <?php endif; ?>
+                                    <div class="d-flex flex-column align-items-end">
+                                        <span class="fw-semibold"><?php echo number_format($refund_balance, 2); ?></span>
+                                        <?php if ($refund_balance < 0): ?>
+                                            <span class="badge bg-success mt-1 align-self-end">Customer Pay</span>
+                                        <?php elseif ($refund_balance > 0): ?>
+                                            <span class="badge bg-danger mt-1 align-self-end">Refund</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php if (floatval($CUSTOMER_MASTER->rent_outstanding ?? 0) > 0): ?>
@@ -690,7 +705,8 @@ if (!empty($customerMobile)) {
                                 </td>
                             </tr>
                             <?php endif; ?>
-                        </table>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
