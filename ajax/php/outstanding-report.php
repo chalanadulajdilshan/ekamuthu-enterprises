@@ -263,7 +263,7 @@ if ($action === 'get_outstanding_report') {
         $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
         $recordedPaid = $summary['recorded_paid'] ?? 0;
 
-        // Sum deposits (displayed as paid, but should not reduce outstanding balance)
+        // Sum deposits (for separate display; do not add to rent totals)
         $depositTotal = 0;
         if (!empty($summary['deposits'])) {
             foreach ($summary['deposits'] as $dep) {
@@ -274,14 +274,15 @@ if ($action === 'get_outstanding_report') {
         // Balance should only subtract actual recorded payments, not deposits
         $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $recordedPaid);
 
-        // Total paid (for display) includes deposits + recorded payments
-        $totalPaid = $recordedPaid + $depositTotal;
+        // Total paid reflects only actual rental payments (exclude deposits)
+        $totalPaid = $recordedPaid;
 
         // Only show rows that still have anything pending
         if ($balance <= 0) {
             continue;
         }
 
+        // Total rent is the sum of charges (paid + outstanding), excluding deposits
         $totalRent = $totalPaid + $balance;
 
         $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
