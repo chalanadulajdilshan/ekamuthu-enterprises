@@ -643,8 +643,8 @@ if (!empty($customerMobile)) {
                     <div class="col-md-6">
                         <!-- Reserved space -->
                     </div>
-                    <div class="col-md-6">
-                        <table class="summary-table" style="width:100%;">
+                    <div class="col-md-6 d-flex justify-content-end">
+                        <table class="summary-table" style="width:auto;">
                             <tr>
                                 <td class="summary-label"><?php echo htmlspecialchars($rent_label); ?></td>
                                 <td class="summary-value"><?php echo number_format($hire_amount, 2); ?></td>
