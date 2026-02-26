@@ -197,16 +197,21 @@ jQuery(document).ready(function () {
         var subEquipmentDisplay = $("#item_sub_equipment_display").val();
         var rentalDate = $("#item_rental_date").val() || $("#rental_date").val();
         var returnDate = $("#item_return_date").val();
+        var noSubItems = $("#item_equipment_id").data("no_sub_items") == 1;
 
-        if (!equipmentId) {
+        if (!equipmentId || (!noSubItems && !$("#item_sub_equipment_id").val())) {
             swal({
                 title: "Error!",
-                text: "Please select an equipment",
+                text: noSubItems ? "Please select an equipment" : "Please select a sub equipment (unit code)",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
             });
             return;
+        }
+        if (noSubItems) {
+            $("#item_sub_equipment_id").val(0);
+            $("#item_sub_equipment_display").val("N/A");
         }
         if (!subEquipmentId) {
             swal({
@@ -502,7 +507,9 @@ jQuery(document).ready(function () {
         function formatEquipmentDetails(row) {
             var d = row.data();
             var availabilityBadge = '';
-            if (d.available_sub > 0) {
+            if (d.no_sub_items == 1) {
+                availabilityBadge = '<span class="badge bg-secondary">No Sub Items</span>';
+            } else if (d.available_sub > 0) {
                 availabilityBadge = '<span class="badge bg-success">' + d.available_sub + '/' + d.total_sub + ' Available</span>';
             } else {
                 availabilityBadge = '<span class="badge bg-danger">All Rented</span>';
@@ -564,7 +571,7 @@ jQuery(document).ready(function () {
                 var data = equipmentTable.row(this).data();
                 if (data) {
                     // Warning for quotes if not available, but allow it
-                    if (data.available_sub <= 0) {
+                    if (data.available_sub <= 0 && data.no_sub_items != 1) {
                         swal({
                             title: "Availability Warning",
                             text: "All units of this equipment are currently rented out. You can still create a quotation.",
@@ -573,7 +580,9 @@ jQuery(document).ready(function () {
                         });
                     }
 
-                    $("#item_equipment_id").val(data.id);
+                    var noSubItems = data.no_sub_items == 1;
+
+                    $("#item_equipment_id").val(data.id).data("no_sub_items", noSubItems ? 1 : 0);
                     $("#item_equipment_display").val(data.code + " - " + data.item_name);
 
                     // Set rates
@@ -587,6 +596,22 @@ jQuery(document).ready(function () {
                     // Clear sub equipment when equipment changes
                     $("#item_sub_equipment_id").val("");
                     $("#item_sub_equipment_display").val("");
+
+                    // Toggle sub-equipment controls based on availability
+                    if (noSubItems) {
+                        $("#item_sub_equipment_display")
+                            .prop("disabled", true)
+                            .attr("placeholder", "Not Required");
+                        $("#btn-select-sub-equipment").prop("disabled", true);
+                        $("#item_qty").prop("readonly", false);
+                    } else {
+                        $("#item_sub_equipment_display")
+                            .prop("disabled", false)
+                            .attr("placeholder", "Select sub equipment");
+                        $("#btn-select-sub-equipment").prop("disabled", false);
+                        $("#item_qty").prop("readonly", true).val(1);
+                    }
+
                     $("#EquipmentSelectModal").modal("hide");
                 }
             });
@@ -599,8 +624,9 @@ jQuery(document).ready(function () {
 
     function loadSubEquipmentTable() {
         var equipmentId = $("#item_equipment_id").val();
+        var noSubItems = $("#item_equipment_id").data("no_sub_items") == 1;
 
-        if (!equipmentId) {
+        if (!equipmentId || noSubItems) {
             $("#noSubEquipmentMsg").show();
             if ($.fn.DataTable.isDataTable("#subEquipmentSelectTable")) {
                 $("#subEquipmentSelectTable").DataTable().destroy();

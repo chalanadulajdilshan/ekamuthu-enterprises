@@ -330,7 +330,7 @@ if (isset($_POST['filter_customers'])) {
     exit;
 }
 
-// Filter equipment for DataTable (only equipment that has sub-equipment)
+// Filter equipment for DataTable (include ones without sub-equipment to allow direct rentals)
 if (isset($_POST['filter_equipment'])) {
     $db = Database::getInstance();
 
@@ -338,8 +338,8 @@ if (isset($_POST['filter_equipment'])) {
     $length = isset($_REQUEST['length']) ? (int) $_REQUEST['length'] : 100;
     $search = $_REQUEST['search']['value'] ?? '';
 
-    // Only get equipment that has sub-equipment
-    $baseWhere = "WHERE EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = e.id)";
+    // Include all equipment; sub-equipment availability is handled per row
+    $baseWhere = "WHERE 1=1";
 
     // Total records
     $totalSql = "SELECT COUNT(*) as total FROM equipment e $baseWhere";
@@ -385,12 +385,15 @@ if (isset($_POST['filter_equipment'])) {
             "value" => $row['value'],
             "total_sub" => $row['total_sub'],
             "available_sub" => $row['available_sub'],
+            "no_sub_items" => $row['no_sub_items'] ?? 0,
             "rent_one_day" => $row['rent_one_day'],
             "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
-            "availability_label" => $row['available_sub'] > 0
-                ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'
-                : '<span class="badge bg-soft-danger font-size-12">All Rented</span>'
+            "availability_label" => ($row['total_sub'] ?? 0) > 0
+                ? ($row['available_sub'] > 0
+                    ? '<span class="badge bg-soft-success font-size-12">' . $row['available_sub'] . ' / ' . $row['total_sub'] . ' Available</span>'
+                    : '<span class="badge bg-soft-danger font-size-12">All Rented</span>')
+                : '<span class="badge bg-soft-secondary font-size-12">No Sub Items</span>'
         ];
 
         $data[] = $nestedData;
