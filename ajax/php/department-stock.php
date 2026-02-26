@@ -30,8 +30,10 @@ if (isset($_POST['create'])) {
 
     $res = $SUB_EQUIPMENT->create();
 
-    // Sync parent equipment quantity with summed department stock
-    SubEquipment::syncEquipmentQuantity($SUB_EQUIPMENT->equipment_id);
+    // Sync equipment quantity
+    if ($res) {
+        SubEquipment::syncEquipmentQuantity($_POST['equipment_id']);
+    }
 
     // Audit log
     $AUDIT_LOG = new AuditLog(NULL);
@@ -62,8 +64,10 @@ if (isset($_POST['update'])) {
     
     $res = $SUB_EQUIPMENT->update();
 
-    // Sync parent equipment quantity with summed department stock
-    SubEquipment::syncEquipmentQuantity($SUB_EQUIPMENT->equipment_id);
+    // Sync equipment quantity
+    if ($res) {
+        SubEquipment::syncEquipmentQuantity($SUB_EQUIPMENT->equipment_id);
+    }
 
     // Audit log
     $AUDIT_LOG = new AuditLog(NULL);
@@ -86,11 +90,14 @@ if (isset($_POST['update'])) {
 // Delete stock
 if (isset($_POST['delete']) && isset($_POST['id'])) {
     $SUB_EQUIPMENT = new SubEquipment($_POST['id']);
+    $equipment_id = $SUB_EQUIPMENT->equipment_id;
     
     $res = $SUB_EQUIPMENT->delete();
-
-    // Sync parent equipment quantity with summed department stock
-    SubEquipment::syncEquipmentQuantity($SUB_EQUIPMENT->equipment_id);
+    
+    // Sync equipment quantity
+    if ($res) {
+        SubEquipment::syncEquipmentQuantity($equipment_id);
+    }
     
     // Audit log
     $AUDIT_LOG = new AuditLog(NULL);
