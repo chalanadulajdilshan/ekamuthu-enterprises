@@ -290,6 +290,36 @@ include 'auth.php';
                                 </div>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="fw-bold mb-2">Return History</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" id="billModalReturns">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Time</th>
+                                                <th>Item</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-end">Rental</th>
+                                                <th class="text-end">Extra</th>
+                                                <th class="text-end">Penalty</th>
+                                                <th class="text-end">Damage</th>
+                                                <th class="text-end">Extra Charge</th>
+                                                <th class="text-end">Repair</th>
+                                                <th class="text-end">Settlement</th>
+                                                <th class="text-end">Paid</th>
+                                                <th class="text-end">Outstanding</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="14" class="text-muted">No return history found.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

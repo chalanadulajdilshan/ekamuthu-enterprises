@@ -692,7 +692,7 @@ if (!empty($customerMobile)) {
                                         <?php if ($refund_balance < 0): ?>
                                             <span class="badge bg-success mt-1 align-self-end">Customer Pay</span>
                                         <?php elseif ($refund_balance > 0): ?>
-                                            <span class="badge bg-danger mt-1 align-self-end">Refund</span>
+                                            
                                         <?php endif; ?>
                                     </div>
                                 </td>

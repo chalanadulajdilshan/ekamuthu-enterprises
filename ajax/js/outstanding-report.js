@@ -291,6 +291,38 @@ function fillBillDetailsModal(data) {
         depositTotalCell.text(formatAmount(depositTotal));
     }
 
+    // Return history table
+    var returnBody = $('#billModalReturns tbody');
+    returnBody.empty();
+    if (data.return_history && data.return_history.length) {
+        data.return_history.forEach(function (ret) {
+            var settlementLabel = ret.settlement_type === 'pay'
+                ? '<span class="text-danger">Pay</span>'
+                : (ret.settlement_type === 'refund' ? '<span class="text-success">Refund</span>' : '-');
+
+            returnBody.append(`
+                <tr>
+                    <td>${ret.return_date || '-'}</td>
+                    <td>${ret.return_time || '-'}</td>
+                    <td>${ret.item || '-'}</td>
+                    <td class="text-center">${ret.quantity || 0}</td>
+                    <td class="text-end">${fmt(ret.rental_amount || 0)}</td>
+                    <td class="text-end">${fmt(ret.extra_day_amount || 0)}</td>
+                    <td class="text-end">${fmt(ret.penalty_amount || 0)}</td>
+                    <td class="text-end">${fmt(ret.damage_amount || 0)}</td>
+                    <td class="text-end">${fmt(ret.extra_charge_amount || 0)}</td>
+                    <td class="text-end">${fmt(ret.repair_cost || 0)}</td>
+                    <td class="text-end">${settlementLabel} ${fmt(ret.settlement_amount || 0)}</td>
+                    <td class="text-end text-success">${fmt(ret.paid || 0)}</td>
+                    <td class="text-end text-danger">${fmt(ret.outstanding || 0)}</td>
+                    <td>${ret.remark || '-'}</td>
+                </tr>
+            `);
+        });
+    } else {
+        returnBody.append('<tr><td colspan="14" class="text-muted">No return history found.</td></tr>');
+    }
+
     // Totals in modal summary
     $('#billModalRecordedTotal').text(fmt(data.recorded_outstanding_raw || data.recorded_outstanding));
     $('#billModalProjectedTotal').text(fmt(data.projected_outstanding_raw || data.projected_outstanding));
