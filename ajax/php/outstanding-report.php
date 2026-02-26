@@ -271,19 +271,22 @@ if ($action === 'get_outstanding_report') {
             }
         }
 
-        // Balance: charges minus recorded payments minus deposits (deposit reduces what is owed)
-        $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $recordedPaid - $depositTotal);
+        // Rental charges (do NOT include deposits)
+        $totalCharges = $recordedOutstanding + $projectedOutstanding;
 
-        // Total paid reflects only actual rental payments (exclude deposits from paid)
-        $totalPaid = $recordedPaid;
+        // Treat deposits as payments, but keep them out of total charges
+        $totalPaid = $recordedPaid + $depositTotal;
+
+        // Balance = charges - all payments (including deposits)
+        $balance = max(0, $totalCharges - $totalPaid);
 
         // Only show rows that still have anything pending
         if ($balance <= 0) {
             continue;
         }
 
-        // Total rent is remaining balance + recorded payments (deposits already reduce balance)
-        $totalRent = $totalPaid + $balance;
+        // Total rent shown = total charges only (deposits not added)
+        $totalRent = $totalCharges;
 
         $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
             ? 'Returned'
