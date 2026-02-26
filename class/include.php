@@ -88,6 +88,8 @@ include_once(dirname(__FILE__) . '/IssueReturnNoteItem.php');
 include_once(dirname(__FILE__) . '/LoyaltyPoints.php');
 include_once(dirname(__FILE__) . '/TermsCondition.php');
 include_once(dirname(__FILE__) . '/DepositPayment.php');
+include_once(dirname(__FILE__) . '/Gatepass.php');
+include_once(dirname(__FILE__) . '/GatepassItem.php');
 
 
 // Initialize session if not already started
