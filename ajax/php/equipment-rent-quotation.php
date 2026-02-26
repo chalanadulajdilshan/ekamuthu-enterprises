@@ -37,6 +37,8 @@ if (isset($_POST['create'])) {
     $QUOTATION->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $QUOTATION->status = 'pending';
     $QUOTATION->remark = $_POST['remark'] ?? '';
+    $QUOTATION->transport_cost = $_POST['transport_cost'] ?? 0;
+    $QUOTATION->deposit_total = $_POST['deposit_total'] ?? 0;
     $QUOTATION->total_items = count($items);
 
     $quotation_id = $QUOTATION->create();
@@ -164,6 +166,8 @@ if (isset($_POST['update'])) {
     $QUOTATION->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $QUOTATION->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $QUOTATION->remark = $_POST['remark'] ?? '';
+    $QUOTATION->transport_cost = $_POST['transport_cost'] ?? 0;
+    $QUOTATION->deposit_total = $_POST['deposit_total'] ?? 0;
 
     $res = $QUOTATION->update();
     $QUOTATION->updateTotalItems();
@@ -244,6 +248,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_quotation_details') {
                 "received_date" => $QUOTATION->received_date,
                 "status" => $QUOTATION->status,
                 "remark" => $QUOTATION->remark,
+                "transport_cost" => $QUOTATION->transport_cost,
+                "deposit_total" => $QUOTATION->deposit_total,
                 "total_items" => $QUOTATION->total_items
             ],
             "items" => $items

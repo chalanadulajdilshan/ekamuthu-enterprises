@@ -176,152 +176,188 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <textarea id="remark" name="remark" class="form-control" rows="2"
                                                         placeholder="Enter any remarks or notes about the quotation..."></textarea>
                                                 </div>
-                                                <input type="hidden" id="quotation_id" name="quotation_id" />
+                                                <!-- Transport & Deposit -->
+                                                <div class="col-md-2">
+                                                    <label for="transport_cost" class="form-label">Transport Amount</label>
+                                                    <input type="text" class="form-control text-end" id="transport_cost"
+                                                        name="transport_cost" placeholder="0.00" value="0.00">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label for="deposit_total" class="form-label">Deposit (Manual)</label>
+                                                    <input type="text" class="form-control text-end" id="deposit_total"
+                                                        name="deposit_total" placeholder="0.00" value="0.00">
+                                                </div>
                                             </div>
-                                        </form>
-                                    </div>
+                                        </div>
+                                        <input type="hidden" id="quotation_id" name="quotation_id" />
+                                    </form>
                                 </div>
+                            </div>
 
-                                <!-- Add Item Card -->
-                                <div class="card">
-                                    <div class="p-4">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="flex-shrink-0 me-3">
-                                                <div class="avatar-xs">
-                                                    <div
-                                                        class="avatar-title rounded-circle bg-soft-success text-success">
-                                                        02
-                                                    </div>
+                            <!-- Add Item Card -->
+                            <div class="card">
+                                <div class="p-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar-xs">
+                                                <div class="avatar-title rounded-circle bg-soft-success text-success">
+                                                    02
                                                 </div>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <h5 class="font-size-16 mb-0">Add Equipment Items</h5>
                                             </div>
                                         </div>
-
-                                        <div class="row align-items-end mb-3">
-                                            <!-- Equipment Selection -->
-                                            <div class="col-md-3">
-                                                <label for="item_equipment_display" class="form-label">Equipment -
-                                                    උපකරණ</label>
-                                                <div class="input-group">
-                                                    <input id="item_equipment_display" type="text" class="form-control"
-                                                        placeholder="Select equipment" readonly>
-                                                    <input type="hidden" id="item_equipment_id">
-                                                    <button class="btn btn-info" type="button" data-bs-toggle="modal"
-                                                        data-bs-target="#EquipmentSelectModal"><i
-                                                            class="uil uil-search"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <!-- Sub Equipment Selection -->
-                                            <div class="col-md-3">
-                                                <label for="item_sub_equipment_display" class="form-label">Sub Equipment
-                                                    (Code) - උප උපකරණ (කේතය)</label>
-                                                <div class="input-group">
-                                                    <input id="item_sub_equipment_display" type="text"
-                                                        class="form-control" placeholder="Select sub equipment"
-                                                        readonly>
-                                                    <input type="hidden" id="item_sub_equipment_id">
-                                                    <button class="btn btn-info" type="button"
-                                                        id="btn-select-sub-equipment" data-bs-toggle="modal"
-                                                        data-bs-target="#SubEquipmentSelectModal"><i
-                                                            class="uil uil-search"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-1">
-                                                <label class="form-label">Rent Type - කුලී වර්ගය</label>
-                                                <select class="form-select" id="item_rent_type">
-                                                    <option value="day">Day</option>
-                                                    <option value="month">Month</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <label class="form-label">Duration - කාල සීමාව</label>
-                                                <div class="input-group">
-                                                    <input type="number" class="form-control" id="item_duration" min="1"
-                                                        step="1" placeholder="0">
-                                                    <span class="input-group-text" id="duration_label">Days</span>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-1">
-                                                <label class="form-label">Qty - ප්‍රමාණය</label>
-                                                <input type="number" class="form-control" id="item_qty" min="1" step="1"
-                                                    value="1">
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <label class="form-label">Amount - අගය</label>
-                                                <input type="text" class="form-control" id="item_amount" readonly
-                                                    placeholder="0.00">
-                                            </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="font-size-16 mb-0">Add Equipment Items</h5>
                                         </div>
+                                    </div>
 
-                                        <div class="row align-items-end">
-                                            <!-- Item Rental Date -->
-                                            <div class="col-md-2">
-                                                <label for="item_rental_date" class="form-label">Rental Date - කුලියට
-                                                    ගත් දිනය</label>
-                                                <input id="item_rental_date" type="text"
-                                                    class="form-control date-picker"
-                                                    value="<?php echo date('Y-m-d'); ?>">
-                                            </div>
-
-                                            <!-- Item Return Date -->
-                                            <div class="col-md-2">
-                                                <label for="item_return_date" class="form-label">Return Date - ආපසු දුන්
-                                                    දිනය</label>
-                                                <input id="item_return_date" type="text"
-                                                    class="form-control date-picker-date">
-                                            </div>
-
-                                            <!-- Add Button -->
-                                            <div class="col-md-2">
-                                                <button type="button" class="btn btn-success w-100" id="addItemBtn">
-                                                    <i class="uil uil-plus"></i> Add
+                                    <div class="row align-items-end mb-3">
+                                        <!-- Equipment Selection -->
+                                        <div class="col-md-3">
+                                            <label for="item_equipment_display" class="form-label">Equipment -
+                                                උපකරණ</label>
+                                            <div class="input-group">
+                                                <input id="item_equipment_display" type="text" class="form-control"
+                                                    placeholder="Select equipment" readonly>
+                                                <input type="hidden" id="item_equipment_id">
+                                                <button class="btn btn-info" type="button" data-bs-toggle="modal"
+                                                    data-bs-target="#EquipmentSelectModal"><i
+                                                        class="uil uil-search"></i>
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <!-- Items Table -->
-                                        <div class="table-responsive mt-4">
-                                            <table class="table table-bordered" id="rentItemsTable">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Equipment</th>
-                                                        <th>Sub Equipment Code</th>
-                                                        <th>Type</th>
-                                                        <th>Duration</th>
-                                                        <th>Qty</th>
-                                                        <th>Amount</th>
-                                                        <th>Rental Date</th>
-                                                        <th>Return Date</th>
-                                                        <th style="width: 120px;">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Items will be added here dynamically -->
-                                                </tbody>
-                                            </table>
+                                        <!-- Sub Equipment Selection -->
+                                        <div class="col-md-3">
+                                            <label for="item_sub_equipment_display" class="form-label">Sub Equipment
+                                                (Code) - උප උපකරණ (කේතය)</label>
+                                            <div class="input-group">
+                                                <input id="item_sub_equipment_display" type="text"
+                                                    class="form-control" placeholder="Select sub equipment"
+                                                    readonly>
+                                                <input type="hidden" id="item_sub_equipment_id">
+                                                <button class="btn btn-info" type="button"
+                                                    id="btn-select-sub-equipment" data-bs-toggle="modal"
+                                                    data-bs-target="#SubEquipmentSelectModal"><i
+                                                        class="uil uil-search"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="text-center text-muted py-3" id="noItemsMessage">
-                                            <i class="uil uil-box font-size-24"></i>
-                                            <p class="mb-0">No equipment items added yet. Select equipment and
-                                                sub-equipment above to add items.</p>
+
+                                        <div class="col-md-1">
+                                            <label class="form-label">Rent Type - කුලී වර්ගය</label>
+                                            <select class="form-select" id="item_rent_type">
+                                                <option value="day">Day</option>
+                                                <option value="month">Month</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label class="form-label">Duration - කාල සීමාව</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="item_duration" min="1"
+                                                    step="1" placeholder="0">
+                                                <span class="input-group-text" id="duration_label">Days</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-1">
+                                            <label class="form-label">Qty - ප්‍රමාණය</label>
+                                            <input type="number" class="form-control" id="item_qty" min="1" step="1"
+                                                value="1">
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label class="form-label">Amount - අගය</label>
+                                            <input type="text" class="form-control" id="item_amount" readonly
+                                                placeholder="0.00">
+                                        </div>
+                                    </div>
+
+                                    <div class="row align-items-end">
+                                        <!-- Item Rental Date -->
+                                        <div class="col-md-2">
+                                            <label for="item_rental_date" class="form-label">Rental Date - කුලියට
+                                                ගත් දිනය</label>
+                                            <input id="item_rental_date" type="text"
+                                                class="form-control date-picker"
+                                                value="<?php echo date('Y-m-d'); ?>">
+                                        </div>
+
+                                        <!-- Item Return Date -->
+                                        <div class="col-md-2">
+                                            <label for="item_return_date" class="form-label">Return Date - ආපසු දුන්
+                                                දිනය</label>
+                                            <input id="item_return_date" type="text"
+                                                class="form-control date-picker-date">
+                                        </div>
+
+                                        <!-- Add Button -->
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-success w-100" id="addItemBtn">
+                                                <i class="uil uil-plus"></i> Add
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Items Table -->
+                                    <div class="table-responsive mt-4">
+                                        <table class="table table-bordered" id="rentItemsTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Equipment</th>
+                                                    <th>Sub Equipment Code</th>
+                                                    <th>Type</th>
+                                                    <th>Duration</th>
+                                                    <th>Qty</th>
+                                                    <th>Amount</th>
+                                                    <th>Rental Date</th>
+                                                    <th>Return Date</th>
+                                                    <th style="width: 120px;">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Items will be added here dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-center text-muted py-3" id="noItemsMessage">
+                                        <i class="uil uil-box font-size-24"></i>
+                                        <p class="mb-0">No equipment items added yet. Select equipment and
+                                            sub-equipment above to add items.</p>
+                                    </div>
+                                    <!-- Summary -->
+                                    <div class="row mt-3">
+        
+                                        <div class="col-md-6 ms-auto">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <tr>
+                                                    <th style="width:60%">Items Total</th>
+                                                    <td class="text-end" id="summary_items_total">0.00</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Transport</th>
+                                                    <td class="text-end" id="summary_transport">0.00</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Deposit</th>
+                                                    <td class="text-end" id="summary_deposit">0.00</td>
+                                                </tr>
+                                                <tr class="table-light">
+                                                    <th>Grand Total</th>
+                                                    <td class="text-end fw-bold" id="summary_net_total">0.00</td>
+                                                </tr>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
+
                         </div>
                     </div>
                 </div> <!-- container-fluid -->
+            </div>
+ <!-- container-fluid -->
             </div>
 
 

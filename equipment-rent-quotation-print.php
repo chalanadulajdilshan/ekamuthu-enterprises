@@ -288,7 +288,6 @@ $termsConditions = $TC->getActive();
                     <th>No. of Units</th>
                     <th>Day per</th>
                     <th>Rent per<br>Month</th>
-                    <th>Deposit</th>
                 </tr>
             </thead>
             <tbody>
@@ -300,14 +299,12 @@ $termsConditions = $TC->getActive();
                 $totalUnits = 0;
                 $totalDayPer = 0;
                 $totalRentPerMonth = 0;
-                $totalDeposit = 0;
 
                 foreach ($items as $key => $item) {
                     $unitRentPerDay = (float) ($item['rent_one_day'] ?? 0);
                     $noOfUnits = intval($item['quantity'] ?? 1);
                     $dayPer = $unitRentPerDay * $noOfUnits;
                     $rentPerMonth = (float) ($item['rent_one_month'] ?? 0) * $noOfUnits;
-                    $depositAmount = (float) ($item['deposit_one_day'] ?? 0) * $noOfUnits;
 
                     // Use item amount if rent_one_month is 0
                     if ($rentPerMonth == 0) {
@@ -318,7 +315,6 @@ $termsConditions = $TC->getActive();
                     $totalUnits += $noOfUnits;
                     $totalDayPer += $dayPer;
                     $totalRentPerMonth += $rentPerMonth;
-                    $totalDeposit += $depositAmount;
 
                     $description = $item['equipment_name'];
                     ?>
@@ -328,7 +324,6 @@ $termsConditions = $TC->getActive();
                         <td class="text-center"><?php echo $noOfUnits; ?></td>
                         <td class="text-right"><?php echo number_format($dayPer, 2); ?></td>
                         <td class="text-right"><strong><?php echo number_format($rentPerMonth, 2); ?></strong></td>
-                        <td class="text-right"><?php echo $depositAmount > 0 ? number_format($depositAmount, 2) : ''; ?></td>
                     </tr>
                 <?php } ?>
 
@@ -339,7 +334,29 @@ $termsConditions = $TC->getActive();
                     <td class="text-center"><?php echo $totalUnits; ?></td>
                     <td class="text-right"><?php echo number_format($totalDayPer, 2); ?></td>
                     <td class="text-right"><strong><?php echo number_format($totalRentPerMonth, 2); ?></strong></td>
-                    <td class="text-right"><?php echo $totalDeposit > 0 ? number_format($totalDeposit, 2) : ''; ?></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <?php
+        $transportCost = floatval($QUOTATION->transport_cost ?? 0);
+        $manualDeposit = floatval($QUOTATION->deposit_total ?? 0);
+        $grandTotal = $totalRentPerMonth + $transportCost + $manualDeposit;
+        ?>
+
+        <table class="quotation-table" style="max-width: 320px; margin-left:auto;">
+            <tbody>
+                <tr>
+                    <td><strong>Transport</strong></td>
+                    <td class="text-right"><?php echo number_format($transportCost, 2); ?></td>
+                </tr>
+                <tr>
+                    <td><strong>Deposit</strong></td>
+                    <td class="text-right"><?php echo number_format($manualDeposit, 2); ?></td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>Grand Total</strong></td>
+                    <td class="text-right"><strong><?php echo number_format($grandTotal, 2); ?></strong></td>
                 </tr>
             </tbody>
         </table>

@@ -12,6 +12,8 @@ class EquipmentRentQuotation
     public $status;
     public $quantity;
     public $remark;
+    public $transport_cost;
+    public $deposit_total;
     public $total_items;
     public $created_at;
     public $updated_at;
@@ -33,6 +35,8 @@ class EquipmentRentQuotation
                 $this->status = $result['status'];
                 $this->quantity = $result['quantity'] ?? 0;
                 $this->remark = $result['remark'];
+                $this->transport_cost = $result['transport_cost'] ?? 0;
+                $this->deposit_total = $result['deposit_total'] ?? 0;
                 $this->total_items = $result['total_items'] ?? 0;
                 $this->created_at = $result['created_at'] ?? null;
                 $this->updated_at = $result['updated_at'] ?? null;
@@ -43,10 +47,10 @@ class EquipmentRentQuotation
     public function create()
     {
         $query = "INSERT INTO `equipment_rent_quotation` (
-            `quotation_number`, `customer_id`, `customer_name`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
+            `quotation_number`, `customer_id`, `customer_name`, `rental_date`, `received_date`, `status`, `remark`, `transport_cost`, `deposit_total`, `total_items`
         ) VALUES (
             '$this->quotation_number', '$this->customer_id', '$this->customer_name', '$this->rental_date', " .
-            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items'
+            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->transport_cost', '$this->deposit_total', '$this->total_items'
         )";
 
         $db = Database::getInstance();
@@ -69,6 +73,8 @@ class EquipmentRentQuotation
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
             `remark` = '$this->remark',
+            `transport_cost` = '$this->transport_cost',
+            `deposit_total` = '$this->deposit_total',
             `total_items` = '$this->total_items'
             WHERE `id` = '$this->id'";
 
