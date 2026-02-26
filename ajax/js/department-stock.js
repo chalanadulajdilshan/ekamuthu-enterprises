@@ -15,6 +15,27 @@ $(document).ready(function () {
         $("#update_stock").hide();
     });
 
+    // Refresh equipment quantity when modal is closed
+    $("#department_stock").on("hidden.bs.modal", function () {
+        if (currentEquipmentId) {
+            refreshEquipmentQuantity(currentEquipmentId);
+        }
+    });
+
+    function refreshEquipmentQuantity(equipmentId) {
+        $.ajax({
+            url: "ajax/php/equipment-master.php",
+            type: "POST",
+            data: { action: "get_equipment_quantity", equipment_id: equipmentId },
+            dataType: "JSON",
+            success: function (result) {
+                if (result.status === "success") {
+                    $("#quantity").val(result.quantity);
+                }
+            }
+        });
+    }
+
     function loadStockTable() {
         if (!currentEquipmentId) {
             console.warn("No Equipment ID found for Stock Table");
@@ -104,6 +125,9 @@ $(document).ready(function () {
                         loadStockTable();
                     }
 
+                    // Refresh equipment quantity in main form
+                    refreshEquipmentQuantity(currentEquipmentId);
+
                 } else {
                     swal("Error", result.message || "Failed to add stock", "error");
                 }
@@ -153,6 +177,9 @@ $(document).ready(function () {
                     } else {
                         loadStockTable();
                     }
+
+                    // Refresh equipment quantity in main form
+                    refreshEquipmentQuantity(currentEquipmentId);
                 } else {
                     swal("Error", "Failed to update stock", "error");
                 }
@@ -209,6 +236,9 @@ $(document).ready(function () {
                         } else {
                             loadStockTable();
                         }
+
+                        // Refresh equipment quantity in main form
+                        refreshEquipmentQuantity(currentEquipmentId);
                     } else {
                         swal("Error", "Failed to delete", "error");
                     }

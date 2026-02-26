@@ -120,6 +120,12 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
 // Fetch for DataTable
 if (isset($_POST['fetch'])) {
     $equipment_id = isset($_POST['equipment_id']) ? $_POST['equipment_id'] : null;
+    
+    // Sync equipment quantity before fetching to ensure display is accurate
+    if ($equipment_id) {
+        SubEquipment::syncEquipmentQuantity($equipment_id);
+    }
+    
     $SUB_EQUIPMENT = new SubEquipment(NULL);
     $result = $SUB_EQUIPMENT->fetchForDataTable($_REQUEST, $equipment_id);
     

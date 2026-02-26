@@ -559,3 +559,26 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
     exit;
 }
 
+// Get equipment quantity (for refreshing after stock changes)
+if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_quantity') {
+    $equipment_id = isset($_POST['equipment_id']) ? (int)$_POST['equipment_id'] : 0;
+    
+    if ($equipment_id > 0) {
+        $db = Database::getInstance();
+        $query = "SELECT quantity FROM equipment WHERE id = $equipment_id";
+        $result = mysqli_fetch_assoc($db->readQuery($query));
+        
+        if ($result) {
+            echo json_encode([
+                "status" => "success",
+                "quantity" => $result['quantity']
+            ]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Equipment not found"]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid Equipment ID"]);
+    }
+    exit;
+}
+
