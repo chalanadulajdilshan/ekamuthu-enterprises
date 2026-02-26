@@ -1337,11 +1337,13 @@ jQuery(document).ready(function () {
             $("#return-all").hide();
             $("#cancel-bill").hide();
             $("#print").show();
+            $("#gatepass").show();
           } else {
             $("#update").show();
             $("#return-all").toggle(!hasAnyReturnedQty);
             $("#print").show();
             $("#cancel-bill").toggle(isRented);
+            $("#gatepass").show();
           }
 
           // Show cancel return for any non-cancelled bill that has items, even if status is 'returned'
@@ -1360,6 +1362,15 @@ jQuery(document).ready(function () {
     var billNo = $("#code").val();
     if (billNo) {
       window.open("rent-invoice.php?bill_no=" + billNo, "_blank");
+    }
+  });
+
+  // Gate Pass
+  $("#gatepass").click(function (e) {
+    e.preventDefault();
+    var rentId = $("#rent_id").val();
+    if (rentId) {
+      window.location.href = "gatepass.php?rent_id=" + rentId;
     }
   });
 
@@ -2790,7 +2801,7 @@ jQuery(document).ready(function () {
             if (calc.remaining_deposit !== undefined) {
               summaryLines.push(
                 "Deposit Remaining: Rs. " +
-                  formatCurrency(calc.remaining_deposit),
+                formatCurrency(calc.remaining_deposit),
               );
             }
             if (Number(calc.extra_charge_amount || 0) > 0) {
