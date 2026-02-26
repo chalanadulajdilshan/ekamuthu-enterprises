@@ -226,6 +226,56 @@ if (!empty($customerMobile)) {
                 font-size: 12px !important;
             }
 
+            /* Borders only for equipment and returns tables */
+            #invoice-content table.table-bordered,
+            #invoice-content table.print-bordered {
+                border: 1px solid #000 !important;
+                border-color: #000 !important;
+                border-collapse: collapse !important;
+                border-spacing: 0 !important;
+                border-style: solid !important;
+                box-shadow: inset 0 0 0 1px #000 !important;
+            }
+            #invoice-content table.table-bordered th,
+            #invoice-content table.table-bordered td,
+            #invoice-content table.print-bordered th,
+            #invoice-content table.print-bordered td {
+                border: 1px solid #000 !important;
+                border-color: #000 !important;
+                border-collapse: collapse !important;
+                border-spacing: 0 !important;
+                border-style: solid !important;
+                box-shadow: inset 0 0 0 1px #000 !important;
+            }
+
+            /* Ensure borders stay in print */
+            @media print {
+                #invoice-content { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                #invoice-content .table-responsive { overflow: visible !important; }
+                #invoice-content table.table-bordered,
+                #invoice-content table.table-bordered th,
+                #invoice-content table.table-bordered td,
+                #invoice-content table.print-bordered,
+                #invoice-content table.print-bordered th,
+                #invoice-content table.print-bordered td {
+                    border: 1px solid #000 !important;
+                    border-color: #000 !important;
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    border-style: solid !important;
+                    box-shadow: inset 0 0 0 1px #000 !important;
+                }
+            }
+
+            /* Remove borders from summary/signature tables */
+            #invoice-content .summary-table,
+            #invoice-content .summary-table td,
+            #invoice-content .signature-table,
+            #invoice-content .signature-table td {
+                border: none !important;
+                border-collapse: separate !important;
+            }
+
             #invoice-content thead th {
                 font-size: 12px !important;
             }
@@ -356,8 +406,21 @@ if (!empty($customerMobile)) {
 
         #invoice-content .table {
             width: 100%;
-            border-top-width: 0 !important;
-            border-style: none !important;
+        }
+
+        /* Stronger border rules for bordered tables */
+        #invoice-content .table-bordered {
+            border: 1px solid #000 !important;
+            border-collapse: collapse !important;
+        }
+
+        #invoice-content .table-bordered > thead > tr > th,
+        #invoice-content .table-bordered > tbody > tr > th,
+        #invoice-content .table-bordered > tfoot > tr > th,
+        #invoice-content .table-bordered > thead > tr > td,
+        #invoice-content .table-bordered > tbody > tr > td,
+        #invoice-content .table-bordered > tfoot > tr > td {
+            border: 1px solid #000 !important;
         }
 
         .invoice-meta {
@@ -371,6 +434,7 @@ if (!empty($customerMobile)) {
 
         .summary-table td {
             padding: 4px 12px !important;
+            border: none !important;
         }
 
         .summary-label {
@@ -379,7 +443,7 @@ if (!empty($customerMobile)) {
         }
 
         .summary-value {
-            text-align: right;
+            text-align: left;
             min-width: 120px;
         }
     </style>
@@ -425,9 +489,9 @@ if (!empty($customerMobile)) {
                         <div style="font-size:15px; line-height:1.6;">
                             <p class="mb-1"><strong>නම :</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
                             <p class="mb-1"><strong>දැනට පදිංචි ලිපිනය :</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>දු.ර:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
                             <p class="mb-1"><strong>WP No:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>ජා.හැ.අ:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
                             <p class="mb-1"><strong>වැඩ බිමේ ලිපිනය:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
                             <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>
                                 <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->guarantor_address); ?></p>
@@ -449,7 +513,7 @@ if (!empty($customerMobile)) {
                                 <p class="mb-1" style="font-size:14px;"><strong>කුලියට ගත් දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
                             <?php endif; ?>
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
+                                <p class="mb-1" style="font-size:14px;"><strong>ලැබුණු දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
                             <?php endif; ?>
                             <p class="mb-1" style="font-size:14px;">
                                 <strong>Status:</strong> 
@@ -465,7 +529,7 @@ if (!empty($customerMobile)) {
 
                 <!-- Items Table -->
                 <div class="table-responsive">
-                    <table class="table table-bordered table-centered">
+                    <table class="table table-bordered table-centered print-bordered">
                         <thead class="table-light">
                             <tr>
                                 <th>No.</th>
@@ -514,8 +578,8 @@ if (!empty($customerMobile)) {
                 <?php if (!empty($return_rows)): ?>
                 <!-- Returns Table -->
                 <div class="table-responsive mt-3">
-                    <h5 class="mt-3 mb-2">Returns</h5>
-                    <table class="table table-bordered table-centered">
+                    <h5 class="mt-3 mb-2">ලැබීම්</h5>
+                    <table class="table table-bordered table-centered print-bordered">
                         <thead class="table-light">
                             <tr>
                                 <th>Date</th>
@@ -594,7 +658,7 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">Total Rent Amount:</td>
+                                <td class="summary-label">සම්පූර්ණ කුලී මුදල:</td>
                                 <td class="summary-value"><?php echo number_format($hire_amount + $transport_amount + $total_extra_charges, 2); ?></td>
                             </tr>
                             <?php if ($total_repair_cost > 0): ?>
@@ -608,7 +672,7 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">Pay to Customer (Customer Refund Balance):</td>
+                                <td class="summary-label">පාරිභෝගිකයාට ගෙවූ මුදල:</td>
                                 <td class="summary-value">
                                     <?php echo number_format($refund_balance, 2); ?>
                                     <?php if ($refund_balance < 0): ?>
@@ -699,7 +763,7 @@ if (!empty($customerMobile)) {
                 <!-- Signature Section -->
                 <div class="row mt-5">
                     <div class="col-12">
-                        <table style="width:100%;">
+                        <table class="signature-table" style="width:100%;">
                             <tr>
                                 <td style="text-align:center;padding-top:50px;">_________________________<br><strong>සකස් කළේ</strong></td>
                                 <td style="text-align:center;padding-top:50px;">_________________________<br><strong>අනුමත කළේ</strong></td>
