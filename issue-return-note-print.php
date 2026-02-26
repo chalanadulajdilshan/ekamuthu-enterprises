@@ -122,23 +122,30 @@ if ($ISSUE_RETURN->department_id) {
                         return $number;
                     }
                     ?>
-                    <div class="col-md-5 text-muted">
-                        <p class="mb-1" style="font-weight:bold;font-size:18px;"><?php echo htmlspecialchars($COMPANY_PROFILE->name); ?></p>
-                        <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->address); ?></p>
-                        <p class="mb-1" style="font-size:13px;"><?php echo htmlspecialchars($COMPANY_PROFILE->email); ?> | <?php echo formatPhone($COMPANY_PROFILE->mobile_number_1); ?></p>
-                    </div>
-                    <div class="col-md-4 text-sm-start text-md-start">
-                        <h3 style="font-weight:bold;font-size:18px;">Warehouse Return Note</h3>
-                        <p class="mb-1 text-muted" style="font-size:14px;"><strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
-                        <p class="mb-1 text-muted" style="font-size:14px;"><strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
-                        <p class="mb-1 text-muted" style="font-size:14px;"><strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                    <!-- Title block -->
+                    <div class="col-12" style="text-align:center;margin-bottom:12px;">
+                        <div style="font-weight:bold;font-size:18px;line-height:1.3;">පී. එස්. එකමුතු එන්ටර්ප්‍රයිසිස්</div>
+                        <div style="font-weight:700;font-size:19px;line-height:1.3;">P.S. Ekamuthu Enterprises</div>
+                        <div style="font-size:12px;line-height:1.4;color:#555;">
+                            අංක 50, හිල් පාර, දෙහිවල &nbsp;|&nbsp; දුරකථන : 0114 579 517
+                        </div>
+                        <div style="font-size:16px;font-weight:700;margin-top:6px;">උපකරණ ආපසු භාරගැනීමේ පත්‍රය - <?php echo htmlspecialchars($departmentName ?: '-'); ?></div>
                     </div>
 
-                    <div class="col-md-3 text-sm-start text-md-end">
+                    <!-- Details rows -->
+                    <div class="col-md-6 text-muted">
+                        <p class="mb-1" style="font-size:14px;">
+                            <strong>Customer Name:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
+                        <p class="mb-1" style="font-size:14px;">
+                            <strong>Contact:</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
+                        <p class="mb-1" style="font-size:14px;">
+                            <strong>Mobile:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                    </div>
+
+                    <div class="col-md-6 text-sm-start text-md-end">
                         <p class="mb-1" style="font-size:14px;"><strong>Return Note No:</strong> <?php echo htmlspecialchars($ISSUE_RETURN->return_code); ?></p>
                         <p class="mb-1" style="font-size:14px;"><strong>Issue Note Ref:</strong> <?php echo htmlspecialchars($ISSUE_NOTE->issue_note_code); ?></p>
                         <p class="mb-1" style="font-size:14px;"><strong>Invoice Ref:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                        <p class="mb-1" style="font-size:14px;"><strong>Department:</strong> <?php echo htmlspecialchars($departmentName); ?></p>
                         <p class="mb-1" style="font-size:14px;"><strong>Return Date:</strong> <?php echo date('d M, Y', strtotime($ISSUE_RETURN->return_date)); ?></p>
                     </div>
                 </div>
