@@ -32,6 +32,7 @@ if (isset($_POST['create'])) {
     $QUOTATION = new EquipmentRentQuotation(NULL);
     $QUOTATION->quotation_number = $_POST['quotation_number'];
     $QUOTATION->customer_id = $_POST['customer_id'] ?? '';
+    $QUOTATION->customer_name = $_POST['customer_name'] ?? '';
     $QUOTATION->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $QUOTATION->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $QUOTATION->status = 'pending';
@@ -159,6 +160,7 @@ if (isset($_POST['update'])) {
     // Update master record
     $QUOTATION->quotation_number = $_POST['quotation_number'];
     $QUOTATION->customer_id = $_POST['customer_id'] ?? '';
+    $QUOTATION->customer_name = $_POST['customer_name'] ?? '';
     $QUOTATION->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $QUOTATION->received_date = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
     $QUOTATION->remark = $_POST['remark'] ?? '';
@@ -224,8 +226,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_quotation_details') {
         $QUOTATION = new EquipmentRentQuotation($quotation_id);
         $items = $QUOTATION->getItems();
 
-        // Get customer details
-        $CUSTOMER = new CustomerMaster($QUOTATION->customer_id);
+        // Get customer details (use stored manual name when no linked customer)
+        $customerDisplay = $QUOTATION->customer_name;
+        if (!empty($QUOTATION->customer_id)) {
+            $CUSTOMER = new CustomerMaster($QUOTATION->customer_id);
+            $customerDisplay = $CUSTOMER->code . ' - ' . $CUSTOMER->name;
+        }
 
         echo json_encode([
             "status" => "success",
@@ -233,7 +239,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_quotation_details') {
                 "id" => $QUOTATION->id,
                 "quotation_number" => $QUOTATION->quotation_number,
                 "customer_id" => $QUOTATION->customer_id,
-                "customer_name" => $CUSTOMER->code . ' - ' . $CUSTOMER->name,
+                "customer_name" => $customerDisplay,
                 "rental_date" => $QUOTATION->rental_date,
                 "received_date" => $QUOTATION->received_date,
                 "status" => $QUOTATION->status,

@@ -5,6 +5,7 @@ class EquipmentRentQuotation
     public $id;
     public $quotation_number;
     public $customer_id;
+    public $customer_name;
     public $equipment_id; // Keeping for compatibility if needed, though items handle this
     public $rental_date;
     public $received_date;
@@ -26,6 +27,7 @@ class EquipmentRentQuotation
                 $this->id = $result['id'];
                 $this->quotation_number = $result['quotation_number'];
                 $this->customer_id = $result['customer_id'];
+                $this->customer_name = $result['customer_name'] ?? '';
                 $this->rental_date = $result['rental_date'];
                 $this->received_date = $result['received_date'];
                 $this->status = $result['status'];
@@ -41,9 +43,9 @@ class EquipmentRentQuotation
     public function create()
     {
         $query = "INSERT INTO `equipment_rent_quotation` (
-            `quotation_number`, `customer_id`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
+            `quotation_number`, `customer_id`, `customer_name`, `rental_date`, `received_date`, `status`, `remark`, `total_items`
         ) VALUES (
-            '$this->quotation_number', '$this->customer_id', '$this->rental_date', " .
+            '$this->quotation_number', '$this->customer_id', '$this->customer_name', '$this->rental_date', " .
             ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '$this->remark', '$this->total_items'
         )";
 
@@ -62,6 +64,7 @@ class EquipmentRentQuotation
         $query = "UPDATE `equipment_rent_quotation` SET 
             `quotation_number` = '$this->quotation_number', 
             `customer_id` = '$this->customer_id',
+            `customer_name` = '$this->customer_name',
             `rental_date` = '$this->rental_date', 
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
@@ -107,7 +110,7 @@ class EquipmentRentQuotation
 
     public function all()
     {
-        $query = "SELECT er.*, cm.name as customer_name, cm.code as customer_code
+        $query = "SELECT er.*, er.customer_name AS manual_customer_name, cm.name as customer_name, cm.code as customer_code
                   FROM `equipment_rent_quotation` er
                   LEFT JOIN `customer_master` cm ON er.customer_id = cm.id
                   ORDER BY er.id DESC";
@@ -138,7 +141,7 @@ class EquipmentRentQuotation
         // Search filter
         $where = "WHERE 1=1";
         if (!empty($search)) {
-            $where .= " AND (er.quotation_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
+            $where .= " AND (er.quotation_number LIKE '%$search%' OR er.customer_name LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%')";
         }
 
         // Filtered records
@@ -148,7 +151,7 @@ class EquipmentRentQuotation
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
         // Paginated query
-        $sql = "SELECT er.*, cm.name as customer_name, cm.code as customer_code
+        $sql = "SELECT er.*, er.customer_name AS manual_customer_name, cm.name as db_customer_name, cm.code as customer_code
                 FROM equipment_rent_quotation er 
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id 
                 $where ORDER BY er.id DESC LIMIT $start, $length";
@@ -166,12 +169,20 @@ class EquipmentRentQuotation
             ];
             $statusLabel = isset($statusLabels[$row['status']]) ? $statusLabels[$row['status']] : $row['status'];
 
+            $displayCustomer = '';
+            if (!empty($row['customer_id'])) {
+                $displayCustomer = trim(($row['customer_code'] ?? '') . ' - ' . ($row['db_customer_name'] ?? ''));
+            }
+            if (!$displayCustomer) {
+                $displayCustomer = $row['manual_customer_name'] ?? $row['customer_code'] ?? '';
+            }
+
             $nestedData = [
                 "key" => $key,
                 "id" => $row['id'],
                 "quotation_number" => $row['quotation_number'],
                 "customer_id" => $row['customer_id'],
-                "customer_name" => ($row['customer_code'] ?? '') . ' - ' . ($row['customer_name'] ?? ''),
+                "customer_name" => $displayCustomer,
                 "customer_code" => $row['customer_code'],
                 "rental_date" => $row['rental_date'],
                 "received_date" => $row['received_date'],

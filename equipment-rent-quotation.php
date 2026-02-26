@@ -134,11 +134,11 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                                 <!-- Customer Selection -->
                                                 <div class="col-md-4">
-                                                    <label for="customer_display" class="form-label">Customer -
+                                                    <label for="customer_name" class="form-label">Customer -
                                                         පාරිභෝගිකයා<span class="text-danger">*</span></label>
                                                     <div class="input-group mb-3">
-                                                        <input id="customer_display" name="customer_display" type="text"
-                                                            class="form-control" placeholder="Select customer" readonly>
+                                                        <input id="customer_name" name="customer_name" type="text"
+                                                            class="form-control" placeholder="Select or type customer name">
                                                         <input type="hidden" id="customer_id" name="customer_id">
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal"
@@ -468,7 +468,7 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
     <!-- include main js  -->
     <?php include 'main-js.php' ?>
 
-    <script src="ajax/js/equipment-rent-quotation.js"></script>
+    <script src="ajax/js/equipment-rent-quotation.js?v=2"></script>
 
     <!-- Page Preloader Script -->
     <script>

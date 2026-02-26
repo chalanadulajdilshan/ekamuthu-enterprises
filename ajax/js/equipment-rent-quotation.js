@@ -296,7 +296,7 @@ jQuery(document).ready(function () {
                     $("#quotation_id").val(quotation.id);
                     $("#quotation_number").val(quotation.quotation_number);
                     $("#customer_id").val(quotation.customer_id);
-                    $("#customer_display").val(quotation.customer_name);
+                    $("#customer_name").val(quotation.customer_name);
                     $("#rental_date").val(quotation.rental_date);
                     $("#remark").val(quotation.remark || "");
 
@@ -373,7 +373,7 @@ jQuery(document).ready(function () {
                 var data = $("#customerSelectTable").DataTable().row(this).data();
                 if (data) {
                     $("#customer_id").val(data.id);
-                    $("#customer_display").val(data.code + " - " + data.name);
+                    $("#customer_name").val(data.code + " - " + data.name);
                     $("#CustomerSelectModal").modal("hide");
                 }
             });
@@ -624,11 +624,11 @@ jQuery(document).ready(function () {
             });
             return false;
         }
-        if (!$("#customer_id").val()) {
+        if (!$("#customer_name").val()) {
             $("#create").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please select a customer",
+                text: "Please enter customer name",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -716,11 +716,11 @@ jQuery(document).ready(function () {
         event.preventDefault();
         $("#update").prop("disabled", true);
 
-        if (!$("#customer_id").val()) {
+        if (!$("#customer_name").val()) {
             $("#update").prop("disabled", false);
             swal({
                 title: "Error!",
-                text: "Please select a customer",
+                text: "Please enter customer name",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
