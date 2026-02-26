@@ -245,6 +245,97 @@ if ($action === 'get_outstanding_report') {
                 ];
             }
         }
+
+        // Return history per rent/invoice
+        $returnsSql = "SELECT 
+                            er.id AS rent_id,
+                            err.return_date,
+                            err.return_time,
+                            err.return_qty,
+                            err.extra_day_amount,
+                            err.penalty_amount,
+                            err.damage_amount,
+                            err.additional_payment,
+                            err.customer_paid,
+                            err.outstanding_amount,
+                            err.refund_amount,
+                            err.remark,
+                            err.rental_override,
+                            err.extra_charge_amount,
+                            err.repair_cost,
+                            eri.amount AS item_amount,
+                            eri.quantity AS item_qty,
+                            eri.rental_date AS item_rental_date,
+                            eri.rent_type,
+                            eri.duration,
+                            COALESCE(e.is_fixed_rate, 0) AS is_fixed_rate,
+                            (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily,
+                            e.item_name,
+                            e.code AS equipment_code,
+                            se.code AS sub_equipment_code
+                        FROM equipment_rent_returns err
+                        INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                        INNER JOIN equipment_rent er ON eri.rent_id = er.id
+                        LEFT JOIN equipment e ON eri.equipment_id = e.id
+                        LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
+                        WHERE er.id IN ($rentIdList)
+                        ORDER BY err.return_date DESC, err.id DESC";
+
+        $returnsResult = $db->readQuery($returnsSql);
+        if ($returnsResult) {
+            while ($rRow = mysqli_fetch_assoc($returnsResult)) {
+                $rentId = (int)$rRow['rent_id'];
+                if (!isset($rentSummary[$rentId])) {
+                    continue;
+                }
+
+                $perUnitDaily = floatval($rRow['per_unit_daily'] ?? 0);
+                $returnQty = floatval($rRow['return_qty'] ?? 0);
+                $returnDate = $rRow['return_date'] ?? date('Y-m-d');
+                $rentalDate = $rRow['item_rental_date'] ?? $returnDate;
+                $rentType = $rRow['rent_type'] ?? '';
+                $duration = max(1, floatval($rRow['duration'] ?? 1));
+                $durationDays = ($rentType === 'month') ? ($duration * 30) : $duration;
+
+                $usedDays = max(1, (int)ceil((strtotime($returnDate) - strtotime($rentalDate)) / 86400));
+                $isFixedRate = intval($rRow['is_fixed_rate'] ?? 0) === 1;
+
+                // Rental amount calculation mirrors EquipmentRentReturn::getByRentItemId
+                if ($isFixedRate) {
+                    $rentalAmount = $perUnitDaily * $returnQty;
+                } else {
+                    $rentalAmount = $usedDays * $perUnitDaily * $returnQty;
+                }
+
+                if (!empty($rRow['rental_override'])) {
+                    $rentalAmount = floatval($rRow['rental_override']);
+                }
+
+                $additionalPayment = floatval($rRow['additional_payment'] ?? 0);
+                $refundAmount = floatval($rRow['refund_amount'] ?? 0);
+                $settlementAmount = $additionalPayment > 0 ? $additionalPayment : $refundAmount;
+                $settlementType = $additionalPayment > 0 ? 'pay' : ($refundAmount > 0 ? 'refund' : 'none');
+
+                $rentSummary[$rentId]['return_history'][] = [
+                    'return_date' => $rRow['return_date'],
+                    'return_time' => $rRow['return_time'],
+                    'item' => trim(($rRow['equipment_code'] ?? '') . ' ' . ($rRow['item_name'] ?? '')),
+                    'sub_equipment' => $rRow['sub_equipment_code'] ?? '',
+                    'quantity' => $returnQty,
+                    'rental_amount' => round($rentalAmount, 2),
+                    'extra_day_amount' => floatval($rRow['extra_day_amount'] ?? 0),
+                    'penalty_amount' => floatval($rRow['penalty_amount'] ?? 0),
+                    'damage_amount' => floatval($rRow['damage_amount'] ?? 0),
+                    'extra_charge_amount' => floatval($rRow['extra_charge_amount'] ?? 0),
+                    'repair_cost' => floatval($rRow['repair_cost'] ?? 0),
+                    'settlement_amount' => round($settlementAmount, 2),
+                    'settlement_type' => $settlementType,
+                    'paid' => floatval($rRow['customer_paid'] ?? 0),
+                    'outstanding' => floatval($rRow['outstanding_amount'] ?? 0),
+                    'remark' => $rRow['remark'] ?? ''
+                ];
+            }
+        }
     }
 
     // Build response payload
@@ -308,7 +399,8 @@ if ($action === 'get_outstanding_report') {
             'payments' => $summary['payments'] ?? [],
             'recorded_details' => $summary['recorded_details'] ?? [],
             'deposits' => $summary['deposits'] ?? [],
-            'items' => $summary['items'] ?? []
+            'items' => $summary['items'] ?? [],
+            'return_history' => $summary['return_history'] ?? []
         ];
 
         $grandTotalRent += $totalRent;
