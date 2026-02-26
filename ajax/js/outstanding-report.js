@@ -185,7 +185,11 @@ function fillBillDetailsModal(data) {
         }
     }
     $('#billModalDayCount').text(dayCountText);
-    $('#billModalCustomer').text(data.customer_name || '-');
+    var contactParts = [];
+    if (data.customer_mobile) contactParts.push(data.customer_mobile);
+    if (data.customer_mobile_2) contactParts.push(data.customer_mobile_2);
+    var contactText = contactParts.length ? ' (' + contactParts.join(' / ') + ')' : '';
+    $('#billModalCustomer').text((data.customer_name || '-') + contactText);
     $('#billModalPayment').text(data.payment_type_name || '-');
     $('#billModalStatus').html(data.status_label === 'Returned'
         ? '<span class="badge bg-success">Returned</span>'
