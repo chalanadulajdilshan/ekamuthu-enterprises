@@ -156,11 +156,11 @@ class RepairJob
 
     public function updateDeliveryStatus($statusStr)
     {
+        $db = Database::getInstance();
         $query = "UPDATE `repair_jobs` SET 
             `job_status` = '" . $db->escapeString($statusStr) . "' 
             WHERE `id` = " . (int) $this->id;
-            
-        $db = Database::getInstance();
+
         return $db->readQuery($query);
     }
 
@@ -237,12 +237,12 @@ class RepairJob
         $key = 1;
 
         $statusLabels = [
-            'pending' => '<span class="badge bg-soft-secondary font-size-12">Pending</span>',
-            'checking' => '<span class="badge bg-soft-info font-size-12">Checking</span>',
-            'in_progress' => '<span class="badge bg-soft-warning font-size-12">In Progress</span>',
-            'completed' => '<span class="badge bg-soft-success font-size-12">Completed</span>',
-            'cannot_repair' => '<span class="badge bg-soft-danger font-size-12">Cannot Repair</span>',
-            'delivered' => '<span class="badge bg-soft-primary font-size-12">Delivered</span>'
+            'pending' => '<span class="badge bg-soft-danger text-danger" style="font-size:13px;">Pending</span>',
+            'checking' => '<span class="badge bg-soft-info" style="font-size:13px;">Checking</span>',
+            'in_progress' => '<span class="badge bg-soft-warning" style="font-size:13px;">In Progress</span>',
+            'completed' => '<span class="badge bg-soft-success" style="font-size:13px;">Completed</span>',
+            'cannot_repair' => '<span class="badge bg-soft-danger" style="font-size:13px;">Cannot Repair</span>',
+            'delivered' => '<span class="badge bg-soft-primary" style="font-size:13px;">Delivered</span>'
         ];
 
         while ($row = mysqli_fetch_assoc($dataQuery)) {

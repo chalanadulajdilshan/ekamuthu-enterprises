@@ -720,12 +720,12 @@ if (!empty($customerMobile)) {
 
                 $customTerms = [
                     sprintf(
-                        'The customer should make the full payment for the total number of days including the date of receiving equipment and the date of returning the equipment and amount of Rs. %s %s as per rental.',
+                        'The customer should make the full payment for the total number of days including the date of receiving equipment and the date of returning the equipment and amount of Rs. <strong>%s</strong> %s as per rental.',
                         number_format($hire_amount, 2),
                         $rateDescriptor
                     ),
                     sprintf(
-                        'The customers should obtain receipt from the company by paying Rs. %s as the primary deposit, when collecting the equipment & should return it at the time of returning the equipment.',
+                        'The customers should obtain receipt from the company by paying Rs. <strong>%s</strong> as the primary deposit, when collecting the equipment & should return it at the time of returning the equipment.',
                         number_format($total_deposit, 2)
                     )
                 ];
@@ -744,7 +744,7 @@ if (!empty($customerMobile)) {
                             <?php if (!empty($paymentRemarks) || !empty($customTerms)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
                                     <?php foreach ($customTerms as $term): ?>
-                                        <li><?php echo htmlspecialchars($term); ?></li>
+                                        <li><?php echo $term; ?></li>
                                     <?php endforeach; ?>
                                     <?php if (!empty($paymentRemarks)): ?>
                                         <?php foreach ($paymentRemarks as $remark): ?>
