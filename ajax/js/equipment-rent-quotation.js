@@ -3,6 +3,20 @@ jQuery(document).ready(function () {
     var quotationItems = [];
     var currentRentOneDay = 0;
     var currentRentOneMonth = 0;
+    var transportCost = 0;
+    var depositTotal = 0;
+
+    function formatAmount(num) {
+        var val = parseFloat(num || 0);
+        if (isNaN(val)) val = 0;
+        return val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function parseAmount(val) {
+        if (typeof val === "number") return val;
+        if (!val) return 0;
+        return parseFloat(String(val).replace(/,/g, "")) || 0;
+    }
 
     // Calculate amount and return date
     function calculateRentDetails() {
@@ -138,6 +152,32 @@ jQuery(document).ready(function () {
                 tbody.append(row);
             });
         }
+
+        // Update summary section if available
+        updateSummary();
+    }
+
+    function updateSummary() {
+        var itemsTotal = quotationItems.reduce(function (sum, item) {
+            return sum + (parseFloat(item.amount) || 0);
+        }, 0);
+        transportCost = parseAmount($("#transport_cost").val());
+        depositTotal = parseAmount($("#deposit_total").val());
+
+        var netTotal = itemsTotal + transportCost + depositTotal;
+
+        if ($("#summary_items_total").length) {
+            $("#summary_items_total").text(formatAmount(itemsTotal));
+        }
+        if ($("#summary_transport").length) {
+            $("#summary_transport").text(formatAmount(transportCost));
+        }
+        if ($("#summary_deposit").length) {
+            $("#summary_deposit").text(formatAmount(depositTotal));
+        }
+        if ($("#summary_net_total").length) {
+            $("#summary_net_total").text(formatAmount(netTotal));
+        }
     }
 
     // Check if sub-equipment already added
@@ -231,6 +271,21 @@ jQuery(document).ready(function () {
         var index = $(this).data("index");
         quotationItems.splice(index, 1);
         updateItemsTable();
+    });
+
+    // Transport / Deposit inputs live format and summary update
+    $("#transport_cost, #deposit_total").on("input", function () {
+        var formatted = $(this)
+            .val()
+            .replace(/[^0-9.,-]/g, "")
+            .replace(/(,)(?=.*,)/g, "");
+        $(this).val(formatted);
+        updateSummary();
+    });
+
+    $("#transport_cost, #deposit_total").on("blur", function () {
+        $(this).val(formatAmount(parseAmount($(this).val())));
+        updateSummary();
     });
 
     // Load Quotation Table when modal opens
@@ -663,6 +718,8 @@ jQuery(document).ready(function () {
         var formData = new FormData($("#form-data")[0]);
         formData.append("create", true);
         formData.append("items", JSON.stringify(quotationItems));
+        formData.append("transport_cost", parseAmount($("#transport_cost").val()) || 0);
+        formData.append("deposit_total", parseAmount($("#deposit_total").val()) || 0);
 
         $.ajax({
             url: "ajax/php/equipment-rent-quotation.php",
@@ -744,6 +801,8 @@ jQuery(document).ready(function () {
         var formData = new FormData($("#form-data")[0]);
         formData.append("update", true);
         formData.append("items", JSON.stringify(quotationItems));
+        formData.append("transport_cost", parseAmount($("#transport_cost").val()) || 0);
+        formData.append("deposit_total", parseAmount($("#deposit_total").val()) || 0);
 
         $.ajax({
             url: "ajax/php/equipment-rent-quotation.php",
