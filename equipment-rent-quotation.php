@@ -268,7 +268,7 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 
                                         <div class="col-md-2">
                                             <label class="form-label">Amount - අගය</label>
-                                            <input type="text" class="form-control" id="item_amount" readonly
+                                            <input type="text" class="form-control" id="item_amount"
                                                 placeholder="0.00">
                                         </div>
                                     </div>

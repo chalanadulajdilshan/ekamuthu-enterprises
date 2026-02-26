@@ -304,12 +304,9 @@ $termsConditions = $TC->getActive();
                     $unitRentPerDay = (float) ($item['rent_one_day'] ?? 0);
                     $noOfUnits = intval($item['quantity'] ?? 1);
                     $dayPer = $unitRentPerDay * $noOfUnits;
-                    $rentPerMonth = (float) ($item['rent_one_month'] ?? 0) * $noOfUnits;
 
-                    // Use item amount if rent_one_month is 0
-                    if ($rentPerMonth == 0) {
-                        $rentPerMonth = (float) $item['amount'];
-                    }
+                    // Always use saved item amount for print (supports manual overrides)
+                    $rentPerMonth = (float) ($item['amount'] ?? 0);
 
                     $totalUnitRent += $unitRentPerDay;
                     $totalUnits += $noOfUnits;
