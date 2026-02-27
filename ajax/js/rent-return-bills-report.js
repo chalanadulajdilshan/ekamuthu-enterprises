@@ -435,7 +435,7 @@ $(document).ready(function () {
               width: 100%;
               border-collapse: collapse;
               margin: 15px 0;
-              font-size: 11px;
+              font-size: 14px;
               page-break-inside: auto;
               border: 1px solid #000;
           }
@@ -451,7 +451,7 @@ $(document).ready(function () {
               color: #000;
               font-weight: bold;
               text-transform: uppercase;
-              font-size: 10px;
+              font-size: 16px;
               padding: 10px;
               border: 1px solid #000;
           }
@@ -498,22 +498,22 @@ $(document).ready(function () {
 
       <table>
           <thead>
-                <th style="border: 1px solid #ddd; padding: 8px;">බිල්පත් වර්ගය</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">බිල්පත් අංකය</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">දිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">පාරිභෝගිකයා</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">දුරකථන</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">ලිපිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">හැඳුනුම්පත් අංකය</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">දින ගණන</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">කුලියට ගත් දිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">ආපසු ලබා දුන් දිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ප්‍රමාණය</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">තැන්පතුව</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ලාභය</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">අතිරේක මුදල</th>
-                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ආපසු ගෙවීම් / මුදල් ලැබීම්</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">සටහන්</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">බිල්පත් වර්ගය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">බිල්පත් අංකය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">දිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">පාරිභෝගිකයා</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">දුරකථන</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">ලිපිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">හැඳුනුම්පත් අංකය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">දින ගණන</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">කුලියට ගත් දිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">ආපසු ලබා දුන් දිනය</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">ප්‍රමාණය</th>
+                 <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">තැන්පතුව</th>
+                 <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">ලාභය</th>
+                 <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">අතිරේක මුදල</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">ආපසු ගෙවීම් / මුදල් ලැබීම්</th>
+                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">සටහන්</th>
             </tr>
         </thead>
         <tbody>`;
