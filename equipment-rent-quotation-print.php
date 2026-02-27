@@ -284,10 +284,9 @@ $termsConditions = $TC->getActive();
             <thead>
                 <tr>
                     <th>DESCRIPTION</th>
-                    <th>Unit rent per<br>day</th>
-                    <th>No. of Units</th>
-                    <th>Day per</th>
-                    <th>Rent per<br>Month</th>
+                    <th>Unit Price</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -295,42 +294,36 @@ $termsConditions = $TC->getActive();
                 $QUOTATION_ITEM = new EquipmentRentQuotationItem(null);
                 $items = $QUOTATION_ITEM->getByQuotationId($id);
 
-                $totalUnitRent = 0;
-                $totalUnits = 0;
-                $totalDayPer = 0;
-                $totalRentPerMonth = 0;
+                $totalUnitPrice = 0;
+                $totalQty = 0;
+                $totalAmount = 0;
 
                 foreach ($items as $key => $item) {
-                    $unitRentPerDay = (float) ($item['rent_one_day'] ?? 0);
-                    $noOfUnits = intval($item['quantity'] ?? 1);
-                    $dayPer = $unitRentPerDay * $noOfUnits;
+                    $qty = intval($item['quantity'] ?? 1);
+                    $amount = (float) ($item['amount'] ?? 0);
+                    // Fallback unit price if not stored separately
+                    $unitPrice = isset($item['unit_price']) ? (float) $item['unit_price'] : ($qty > 0 ? ($amount / $qty) : 0);
 
-                    // Always use saved item amount for print (supports manual overrides)
-                    $rentPerMonth = (float) ($item['amount'] ?? 0);
-
-                    $totalUnitRent += $unitRentPerDay;
-                    $totalUnits += $noOfUnits;
-                    $totalDayPer += $dayPer;
-                    $totalRentPerMonth += $rentPerMonth;
+                    $totalUnitPrice += $unitPrice;
+                    $totalQty += $qty;
+                    $totalAmount += $amount;
 
                     $description = $item['equipment_name'];
                     ?>
                     <tr>
                         <td><?php echo $description; ?></td>
-                        <td class="text-right"><?php echo number_format($unitRentPerDay, 2); ?></td>
-                        <td class="text-center"><?php echo $noOfUnits; ?></td>
-                        <td class="text-right"><?php echo number_format($dayPer, 2); ?></td>
-                        <td class="text-right"><strong><?php echo number_format($rentPerMonth, 2); ?></strong></td>
+                        <td class="text-right"><?php echo number_format($unitPrice, 2); ?></td>
+                        <td class="text-center"><?php echo $qty; ?></td>
+                        <td class="text-right"><strong><?php echo number_format($amount, 2); ?></strong></td>
                     </tr>
                 <?php } ?>
 
                 <!-- Total Row -->
                 <tr class="total-row">
                     <td><strong>Total rental</strong></td>
-                    <td class="text-right"><?php echo number_format($totalUnitRent, 2); ?></td>
-                    <td class="text-center"><?php echo $totalUnits; ?></td>
-                    <td class="text-right"><?php echo number_format($totalDayPer, 2); ?></td>
-                    <td class="text-right"><strong><?php echo number_format($totalRentPerMonth, 2); ?></strong></td>
+                    <td class="text-right"><?php echo number_format($totalUnitPrice, 2); ?></td>
+                    <td class="text-center"><?php echo $totalQty; ?></td>
+                    <td class="text-right"><strong><?php echo number_format($totalAmount, 2); ?></strong></td>
                 </tr>
             </tbody>
         </table>
@@ -338,7 +331,7 @@ $termsConditions = $TC->getActive();
         <?php
         $transportCost = floatval($QUOTATION->transport_cost ?? 0);
         $manualDeposit = floatval($QUOTATION->deposit_total ?? 0);
-        $grandTotal = $totalRentPerMonth + $transportCost + $manualDeposit;
+        $grandTotal = $totalAmount + $transportCost + $manualDeposit;
         ?>
 
         <table class="quotation-table" style="max-width: 320px; margin-left:auto;">

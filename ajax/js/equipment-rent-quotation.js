@@ -26,25 +26,29 @@ jQuery(document).ready(function () {
         var rentalDate = $("#item_rental_date").val();
 
         if (!rentalDate || duration < 0) {
+            $("#item_unit_price").val("0.00");
             $("#item_amount").val("0.00");
             return;
         }
 
-        var amount = 0;
         var returnDate = new Date(rentalDate);
+        var rentRate = rentType === "day" ? currentRentOneDay : currentRentOneMonth;
+        var unitPrice = rentRate * duration;
 
         if (rentType === "day") {
-            amount = currentRentOneDay * duration * qty;
             returnDate.setDate(returnDate.getDate() + duration);
             $("#duration_label").text("Days");
         } else {
-            amount = currentRentOneMonth * duration * qty;
             returnDate.setMonth(returnDate.getMonth() + duration);
             $("#duration_label").text("Months");
         }
 
-        // Format amount
-        $("#item_amount").val(amount.toFixed(2));
+        var amountInput = $("#item_amount");
+        var amountVal = amountInput.val();
+        var amount = amountVal ? parseAmount(amountVal) : unitPrice * qty;
+
+        $("#item_unit_price").val(unitPrice.toFixed(2));
+        amountInput.val(amount.toFixed(2));
 
         // Format return date YYYY-MM-DD
         var yyyy = returnDate.getFullYear();
@@ -87,14 +91,16 @@ jQuery(document).ready(function () {
 
         $("#item_duration").val(duration);
 
-        var amount = 0;
+        var rentRate = rentType === "day" ? currentRentOneDay : currentRentOneMonth;
+        var unitPrice = rentRate * duration;
         var qty = parseFloat($("#item_qty").val()) || 1;
-        if (rentType === "day") {
-            amount = currentRentOneDay * duration * qty;
-        } else {
-            amount = currentRentOneMonth * duration * qty;
-        }
-        $("#item_amount").val(amount.toFixed(2));
+
+        var amountInput = $("#item_amount");
+        var manualAmount = parseAmount(amountInput.val());
+        var amount = manualAmount ? manualAmount : unitPrice * qty;
+
+        $("#item_unit_price").val(unitPrice.toFixed(2));
+        amountInput.val(amount.toFixed(2));
     }
 
     // Update items table display
@@ -135,6 +141,9 @@ jQuery(document).ready(function () {
                     "</td>" +
                     "<td>" +
                     parseFloat(item.quantity || 1).toFixed(0) +
+                    "</td>" +
+                    "<td>" +
+                    parseFloat(item.unit_price || 0).toFixed(2) +
                     "</td>" +
                     "<td>" +
                     parseFloat(item.amount).toFixed(2) +
@@ -245,6 +254,7 @@ jQuery(document).ready(function () {
             rent_type: $("#item_rent_type").val(),
             duration: $("#item_duration").val(),
             quantity: $("#item_qty").val(),
+            unit_price: $("#item_unit_price").val(),
             amount: $("#item_amount").val(),
             status: "pending",
             remark: "",
@@ -359,6 +369,8 @@ jQuery(document).ready(function () {
                     $("#customer_name").val(quotation.customer_name);
                     $("#rental_date").val(quotation.rental_date);
                     $("#remark").val(quotation.remark || "");
+                    $("#transport_cost").val(formatAmount(parseAmount(quotation.transport_cost)));
+                    $("#deposit_total").val(formatAmount(parseAmount(quotation.deposit_total)));
 
                     // Load items
                     quotationItems = result.items.map(function (item) {
@@ -375,6 +387,7 @@ jQuery(document).ready(function () {
                             return_date: item.return_date,
                             rent_type: item.rent_type,
                             duration: item.duration,
+                            unit_price: item.unit_price,
                             amount: item.amount,
                             quantity: item.quantity,
                             status: item.status,
@@ -382,6 +395,7 @@ jQuery(document).ready(function () {
                         };
                     });
                     updateItemsTable();
+                    updateSummary();
 
                     $("#create").hide();
                     $("#update").show();

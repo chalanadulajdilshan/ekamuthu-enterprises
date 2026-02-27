@@ -55,6 +55,7 @@ if (isset($_POST['create'])) {
             $QUOTATION_ITEM->quantity = $item['quantity'] ?? 1;
             $QUOTATION_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $QUOTATION_ITEM->duration = $item['duration'] ?? 0;
+            $QUOTATION_ITEM->unit_price = $item['unit_price'] ?? 0;
             $QUOTATION_ITEM->amount = $item['amount'] ?? 0;
             $QUOTATION_ITEM->status = 'pending';
             $QUOTATION_ITEM->remark = $item['remark'] ?? '';
@@ -137,6 +138,7 @@ if (isset($_POST['update'])) {
             $QUOTATION_ITEM->quantity = $item['quantity'] ?? 1;
             $QUOTATION_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $QUOTATION_ITEM->duration = $item['duration'] ?? 0;
+            $QUOTATION_ITEM->unit_price = $item['unit_price'] ?? 0;
             $QUOTATION_ITEM->amount = $item['amount'] ?? 0;
             $QUOTATION_ITEM->status = $item['status'] ?? 'pending';
             $QUOTATION_ITEM->remark = $item['remark'] ?? '';
@@ -152,6 +154,7 @@ if (isset($_POST['update'])) {
             $QUOTATION_ITEM->quantity = $item['quantity'] ?? 1;
             $QUOTATION_ITEM->rent_type = $item['rent_type'] ?? 'day';
             $QUOTATION_ITEM->duration = $item['duration'] ?? 0;
+            $QUOTATION_ITEM->unit_price = $item['unit_price'] ?? 0;
             $QUOTATION_ITEM->amount = $item['amount'] ?? 0;
             $QUOTATION_ITEM->status = 'pending';
             $QUOTATION_ITEM->remark = $item['remark'] ?? '';
