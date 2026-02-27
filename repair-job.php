@@ -355,7 +355,7 @@ $job_code = '0' . ($lastId + 1);
                                     <h5 class="font-size-16 mb-3">Cost Summary - පිරිවැය සාරාංශය</h5>
                                     <div class="row">
                                         <!-- Repair Charge (Manual) -->
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label class="form-label">Repair Charge - අලුත්වැඩියා ගාස්තුව</label>
                                             <div class="input-group mb-3">
                                                 <span class="input-group-text">Rs.</span>
@@ -363,8 +363,24 @@ $job_code = '0' . ($lastId + 1);
                                             </div>
                                         </div>
 
-                                        <!-- Commission Percentage -->
+                                        <!-- Employee Dropdown -->
                                         <div class="col-md-3">
+                                            <label class="form-label">Employee - සේවකයා <span class="text-danger">*</span></label>
+                                            <select class="form-select mb-3" id="employee_id" name="employee_id">
+                                                <option value=""> -- Select Employee -- </option>
+                                                <?php
+                                                $EMPLOYEE = new EmployeeMaster(NULL);
+                                                foreach ($EMPLOYEE->all() as $employee) {
+                                                    ?>
+                                                    <option value="<?php echo $employee['id']; ?>">
+                                                        <?php echo $employee['name']; ?> (<?php echo $employee['code']; ?>)
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+
+                                        <!-- Commission Percentage -->
+                                        <div class="col-md-2">
                                             <label class="form-label">Commission %</label>
                                             <div class="input-group mb-3">
                                                 <input type="number" class="form-control fw-bold text-end" id="commission_percentage" name="commission_percentage" value="15" min="0" max="100" step="0.01">
@@ -373,7 +389,7 @@ $job_code = '0' . ($lastId + 1);
                                         </div>
 
                                         <!-- Commission Amount Display -->
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label class="form-label">Commission Amount</label>
                                             <div class="input-group mb-3">
                                                 <span class="input-group-text">Rs.</span>

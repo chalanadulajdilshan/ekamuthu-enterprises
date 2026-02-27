@@ -56,6 +56,7 @@ if (isset($_POST['create'])) {
     $JOB->commission_amount = $_POST['commission_amount'] ?? 0;
     $JOB->total_cost = 0;
     $JOB->remark = $_POST['remark'] ?? '';
+    $JOB->employee_id = $_POST['employee_id'] ?? null;
     $JOB->is_outsource = $_POST['is_outsource'] ?? 0;
     $JOB->outsource_name = $_POST['outsource_name'] ?? '';
     $JOB->outsource_address = $_POST['outsource_address'] ?? '';
@@ -129,6 +130,7 @@ if (isset($_POST['update'])) {
     $JOB->commission_percentage = $_POST['commission_percentage'] ?? 15;
     $JOB->commission_amount = $_POST['commission_amount'] ?? 0;
     $JOB->remark = $_POST['remark'] ?? '';
+    $JOB->employee_id = $_POST['employee_id'] ?? null;
     $JOB->is_outsource = $_POST['is_outsource'] ?? 0;
     $JOB->outsource_name = $_POST['outsource_name'] ?? '';
     $JOB->outsource_address = $_POST['outsource_address'] ?? '';
@@ -242,6 +244,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_job_details') {
                 "commission_amount" => $JOB->commission_amount,
                 "total_cost" => $JOB->total_cost,
                 "remark" => $JOB->remark,
+                "employee_id" => $JOB->employee_id,
                 "is_outsource" => $JOB->is_outsource,
                 "outsource_name" => $JOB->outsource_name,
                 "outsource_address" => $JOB->outsource_address,

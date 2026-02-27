@@ -21,7 +21,7 @@ $(document).ready(function () {
         }
 
         // Show loading state...
-        $('#reportTableBody').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
+        $('#reportTableBody').html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
 
         $.ajax({
             url: "ajax/php/repair-job-report.php",
@@ -58,6 +58,7 @@ $(document).ready(function () {
                                     <td>${item.customer_name}</td>
                                     <td>${item.machine_name}</td>
                                     <td>${item.status}</td>
+                                    <td>${item.employee_name}</td>
                                     <td class="text-end">${item.repair_charge}</td>
                                     <td class="text-end">${item.commission_amount}</td>
                                     <td class="text-end">${item.item_cost}</td>
@@ -108,7 +109,7 @@ $(document).ready(function () {
             },
             error: function () {
                 swal("Error", "Server error occurred", "error");
-                $('#reportTableBody').html('<tr><td colspan="9" class="text-center text-danger">Error loading data</td></tr>');
+                $('#reportTableBody').html('<tr><td colspan="10" class="text-center text-danger">Error loading data</td></tr>');
             }
         });
     }

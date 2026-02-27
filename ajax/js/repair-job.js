@@ -292,6 +292,7 @@ jQuery(document).ready(function () {
                     $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2)).trigger('change');
                     $("#commission_percentage").val(parseFloat(job.commission_percentage || 15).toFixed(2)).trigger('change');
                     $("#commission_amount").val(parseFloat(job.commission_amount || 0).toFixed(2));
+                    $("#employee_id").val(job.employee_id || "");
                     $("#is_outsource").prop("checked", job.is_outsource == 1);
                     $("#outsource_name").val(job.outsource_name || "");
                     $("#outsource_address").val(job.outsource_address || "");
@@ -396,6 +397,9 @@ jQuery(document).ready(function () {
         } else if ($("#technical_issue").val().trim() === "") {
             errorMessage = "Technical Issue Details are required";
             isValid = false;
+        } else if ($("#employee_id").val() === "") {
+            errorMessage = "Please select an employee";
+            isValid = false;
         } else if (parseFloat($("#repair_charge").val()) < 0) {
             errorMessage = "Repair Charge cannot be negative";
             isValid = false;
@@ -443,6 +447,7 @@ jQuery(document).ready(function () {
             repair_charge: $("#repair_charge").val(),
             commission_percentage: $("#commission_percentage").val(),
             commission_amount: $("#commission_amount").val(),
+            employee_id: $("#employee_id").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -514,6 +519,7 @@ jQuery(document).ready(function () {
             repair_charge: $("#repair_charge").val(),
             commission_percentage: $("#commission_percentage").val(),
             commission_amount: $("#commission_amount").val(),
+            employee_id: $("#employee_id").val(),
             remark: $("#remark").val(),
             items: JSON.stringify(repairItems)
         };
@@ -604,6 +610,7 @@ jQuery(document).ready(function () {
         $("#outsource_cost").val("0.00");
         $("#commission_percentage").val("15");
         $("#commission_amount").val("0.00");
+        $("#employee_id").val("");
         $("#total_cost_display").val("0.00");
         repairItems = [];
         updateRepairItemsTable();

@@ -104,7 +104,7 @@ $employee_id = 'EM/0' . ($lastId + 1);
                                     <form id="form-data" autocomplete="off">
                                         <div class="row">
 
-                                            <h2 class="font-size-16 mb-1">PERSONAL INFORMATION</h2>
+                                            <!-- <h2 class="font-size-16 mb-1">PERSONAL INFORMATION</h2> -->
 
                                             <div class="col-md-2">
                                                 <label class="form-label" for="code">Ref No </label>
@@ -127,104 +127,102 @@ $employee_id = 'EM/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-2">
-                                                <label for="full_name" class="form-label">Full Name</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="full_name" name="full_name" type="text"
-                                                        placeholder="Employee Name" class="form-control">
+                                            <div style="display: none;">
+                                                <div class="col-md-2">
+                                                    <label for="full_name" class="form-label">Full Name</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="full_name" name="full_name" type="text"
+                                                            placeholder="Employee Name" class="form-control">
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="col-md-2">
-                                                <label for="gender" class="form-label">Gender <span
-                                                        class="text-danger">*</span></label>
-                                                <select id="gender" name="gender" class="form-select">
-                                                    <option value="" selected> -- Select Gender -- </option>
-                                                    <option value="male">Male</option>
-                                                    <option value="female">Female</option>
-                                                    <option value="other">Other</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <label class="form-label" for="birthday">Birth Day</label>
-                                                <input id="birthday" name="birthday" type="date" class="form-control">
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <label for="nic_no" class="form-label">NIC No</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="nic_no" name="nic_no" type="text" placeholder="NIC No"
-                                                        class="form-control">
+                                                <div class="col-md-2">
+                                                    <label for="gender" class="form-label">Gender <span
+                                                            class="text-danger">*</span></label>
+                                                    <select id="gender" name="gender" class="form-select">
+                                                        <option value="male" selected>Male</option>
+                                                        <option value="female">Female</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
                                                 </div>
-                                            </div>
 
-                                            <div class="col-md-2">
-                                                <label for="mobile_1" class="form-label">Mobile No 1</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="mobile_1" name="mobile_1" type="text"
-                                                        placeholder="Mobile No 1" class="form-control">
+                                                <div class="col-md-2">
+                                                    <label class="form-label" for="birthday">Birth Day</label>
+                                                    <input id="birthday" name="birthday" type="date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                                                 </div>
-                                            </div>
 
-                                            <div class="col-md-2">
-                                                <label for="mobile_2" class="form-label">Mobile No 2</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="mobile_2" name="mobile_2" type="text"
-                                                        placeholder="Mobile No 2" class="form-control">
+                                                <div class="col-md-2">
+                                                    <label for="nic_no" class="form-label">NIC No</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="nic_no" name="nic_no" type="text" placeholder="NIC No"
+                                                            class="form-control" value="N/A">
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="col-md-2">
-                                                <label for="email" class="form-label">Email <span
-                                                        class="text-danger">*</span></label>
-                                                <input id="email" name="email" type="email" class="form-control"
-                                                    placeholder="Email">
-                                            </div>
-
-                                            <h2 class="font-size-16 mb-1">EMPLOYEE INFORMATION</h2>
-
-                                            <div class="col-md-2">
-                                                <label for="epf_available" class="form-label">EPF Available <span
-                                                        class="text-danger">*</span></label>
-                                                <select id="epf_available" name="epf_available" class="form-select">
-                                                    <option value="" selected>-- Select EPF Available --</option>
-                                                    <option value="available">Available</option>
-                                                    <option value="not_available">Not Available</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <label for="epf_no" class="form-label">EPF No</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="epf_no" name="epf_no" type="text" placeholder="EPF No"
-                                                        class="form-control" disabled>
+                                                <div class="col-md-2">
+                                                    <label for="mobile_1" class="form-label">Mobile No 1</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="mobile_1" name="mobile_1" type="text"
+                                                            placeholder="Mobile No 1" class="form-control" value="0000000000">
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="col-md-2">
-                                                <label for="finger_print_no" class="form-label">Finger Print No</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="finger_print_no" name="finger_print_no" type="text"
-                                                        placeholder="Finger Print No" class="form-control">
+                                                <div class="col-md-2">
+                                                    <label for="mobile_2" class="form-label">Mobile No 2</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="mobile_2" name="mobile_2" type="text"
+                                                            placeholder="Mobile No 2" class="form-control">
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="col-md-2">
-                                                <label for="department_id" class="form-label">Department <span
-                                                        class="text-danger">*</span></label>
-                                                <select id="department_id" name="department_id" class="form-select"
-                                                    required>
-                                                    <option value=""> --Select Department --</option>
-                                                    <?php
-                                                    $DEPARTMENT_MASTER = new DepartmentMaster(NULL);
-                                                    foreach ($DEPARTMENT_MASTER->getActiveDepartment() as $department_master) {
-                                                        ?>
-                                                        <option value="<?php echo $department_master['id']; ?>">
-                                                            <?php echo $department_master['name']; ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
+                                                <div class="col-md-2">
+                                                    <label for="email" class="form-label">Email <span
+                                                            class="text-danger">*</span></label>
+                                                    <input id="email" name="email" type="email" class="form-control"
+                                                        placeholder="Email" value="no-email@example.com">
+                                                </div>
+
+                                                <h2 class="font-size-16 mb-1">EMPLOYEE INFORMATION</h2>
+
+                                                <div class="col-md-2">
+                                                    <label for="epf_available" class="form-label">EPF Available <span
+                                                            class="text-danger">*</span></label>
+                                                    <select id="epf_available" name="epf_available" class="form-select">
+                                                        <option value="not_available" selected>Not Available</option>
+                                                        <option value="available">Available</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-md-2">
+                                                    <label for="epf_no" class="form-label">EPF No</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="epf_no" name="epf_no" type="text" placeholder="EPF No"
+                                                            class="form-control" disabled>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-2">
+                                                    <label for="finger_print_no" class="form-label">Finger Print No</label>
+                                                    <div class="input-group mb-3">
+                                                        <input id="finger_print_no" name="finger_print_no" type="text"
+                                                            placeholder="Finger Print No" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-2">
+                                                    <label for="department_id" class="form-label">Department <span
+                                                            class="text-danger">*</span></label>
+                                                    <select id="department_id" name="department_id" class="form-select">
+                                                        <?php
+                                                        $DEPARTMENT_MASTER = new DepartmentMaster(NULL);
+                                                        foreach ($DEPARTMENT_MASTER->getActiveDepartment() as $department_master) {
+                                                            ?>
+                                                            <option value="<?php echo $department_master['id']; ?>">
+                                                                <?php echo $department_master['name']; ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </div>
                                             </div>
 
 
@@ -267,13 +265,6 @@ $employee_id = 'EM/0' . ($lastId + 1);
                                         <th>#</th>
                                         <th>Ref No</th>
                                         <th>Name</th>
-                                        <th>Birth Day</th>
-                                        <th>NIC No</th>
-                                        <th>Mobile No 1</th>
-                                        <th>EPF Available</th>
-                                        <th>EPF No</th>
-                                        <th>Finger Print No</th>
-                                        <th>Department</th>
                                     </tr>
                                 </thead>
 
@@ -303,19 +294,6 @@ $employee_id = 'EM/0' . ($lastId + 1);
                                             <td><?php echo $key; ?></td>
                                             <td><?php echo htmlspecialchars($employee['code']); ?></td>
                                             <td><?php echo htmlspecialchars($employee['name']); ?></td>
-                                            <td><?php echo htmlspecialchars($employee['birthday']); ?></td>
-                                            <td><?php echo htmlspecialchars($employee['nic_no']); ?></td>
-                                            <td><?php echo htmlspecialchars($employee['mobile_1']); ?></td>
-                                            <td>
-                                                <?php if ($employee['epf_available'] == 1): ?>
-                                                    <span class="badge bg-soft-success font-size-12">Available</span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-soft-danger font-size-12">Not Available</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($employee['epf_no']); ?></td>
-                                            <td><?php echo htmlspecialchars($employee['finger_print_no']); ?></td>
-                                            <td><?php echo htmlspecialchars($DEPARTMENT_MASTER->name); ?></td>
                                         </tr>
 
                                     <?php } ?>

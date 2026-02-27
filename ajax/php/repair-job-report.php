@@ -13,20 +13,23 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
     $db = Database::getInstance();
 
     // Base query
-    $query = "SELECT * FROM `repair_jobs` WHERE 1=1";
+    $query = "SELECT r.*, e.name as employee_name 
+              FROM `repair_jobs` r 
+              LEFT JOIN `employee_master` e ON r.employee_id = e.id 
+              WHERE 1=1";
 
     // Date filter (using created_at or item_breakdown_date - usually created_at for reports)
     // Let's use created_at casting to DATE for filter
     if ($from_date && $to_date) {
-        $query .= " AND DATE(created_at) BETWEEN '$from_date' AND '$to_date'";
+        $query .= " AND DATE(r.created_at) BETWEEN '$from_date' AND '$to_date'";
     }
 
     // Status filter
     if ($status != 'all') {
-        $query .= " AND job_status = '$status'";
+        $query .= " AND r.job_status = '$status'";
     }
 
-    $query .= " ORDER BY created_at DESC";
+    $query .= " ORDER BY r.created_at DESC";
 
     $result = $db->readQuery($query);
 
@@ -59,6 +62,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
             'customer_name' => $row['customer_name'] . ($row['customer_phone'] ? ' (' . $row['customer_phone'] . ')' : ''),
             'machine_name' => $row['machine_name'],
             'status' => $status_badge,
+            'employee_name' => $row['employee_name'] ?? 'Not Assigned',
             'repair_charge' => number_format($repair_charge, 2),
             'commission_amount' => number_format($commission_amount, 2),
             'item_cost' => number_format($item_cost, 2),

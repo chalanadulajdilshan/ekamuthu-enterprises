@@ -11,8 +11,9 @@ class RepairJob
     public $customer_address;
     public $customer_phone;
     public $item_breakdown_date;
-    public $technical_issue;
     public $job_status;
+    public $employee_id;
+    public $technical_issue;
     public $repair_charge;
     public $commission_percentage;
     public $commission_amount;
@@ -43,8 +44,9 @@ class RepairJob
                 $this->customer_address = $result['customer_address'];
                 $this->customer_phone = $result['customer_phone'];
                 $this->item_breakdown_date = $result['item_breakdown_date'];
-                $this->technical_issue = $result['technical_issue'];
                 $this->job_status = $result['job_status'];
+                $this->employee_id = $result['employee_id'];
+                $this->technical_issue = $result['technical_issue'];
                 $this->repair_charge = $result['repair_charge'];
                 $this->commission_percentage = $result['commission_percentage'];
                 $this->commission_amount = $result['commission_amount'];
@@ -65,7 +67,7 @@ class RepairJob
         $db = Database::getInstance();
         $query = "INSERT INTO `repair_jobs` (
             `job_code`, `item_type`, `machine_code`, `machine_name`, `customer_name`, `customer_address`, `customer_phone`,
-            `item_breakdown_date`, `technical_issue`, `job_status`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`,
+            `item_breakdown_date`, `job_status`, `employee_id`, `technical_issue`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`,
             `is_outsource`, `outsource_name`, `outsource_address`, `outsource_phone`, `outsource_cost`
         ) VALUES (
             '" . $db->escapeString($this->job_code) . "',
@@ -76,8 +78,9 @@ class RepairJob
             '" . $db->escapeString($this->customer_address) . "',
             '" . $db->escapeString($this->customer_phone) . "',
             " . ($this->item_breakdown_date ? "'" . $db->escapeString($this->item_breakdown_date) . "'" : "NULL") . ",
-            '" . $db->escapeString($this->technical_issue) . "',
             '" . $db->escapeString($this->job_status) . "',
+            " . ($this->employee_id ? "'" . (int) $this->employee_id . "'" : "NULL") . ",
+            '" . $db->escapeString($this->technical_issue) . "',
             '" . floatval($this->repair_charge) . "',
             '" . floatval($this->commission_percentage) . "',
             '" . floatval($this->commission_amount) . "',
@@ -111,8 +114,9 @@ class RepairJob
             `customer_address` = '" . $db->escapeString($this->customer_address) . "',
             `customer_phone` = '" . $db->escapeString($this->customer_phone) . "',
             `item_breakdown_date` = " . ($this->item_breakdown_date ? "'" . $db->escapeString($this->item_breakdown_date) . "'" : "NULL") . ",
-            `technical_issue` = '" . $db->escapeString($this->technical_issue) . "',
             `job_status` = '" . $db->escapeString($this->job_status) . "',
+            `employee_id` = " . ($this->employee_id ? "'" . (int) $this->employee_id . "'" : "NULL") . ",
+            `technical_issue` = '" . $db->escapeString($this->technical_issue) . "',
             `repair_charge` = '" . floatval($this->repair_charge) . "',
             `commission_percentage` = '" . floatval($this->commission_percentage) . "',
             `commission_amount` = '" . floatval($this->commission_amount) . "',
@@ -180,8 +184,9 @@ class RepairJob
             $this->customer_address = $result['customer_address'];
             $this->customer_phone = $result['customer_phone'];
             $this->item_breakdown_date = $result['item_breakdown_date'];
-            $this->technical_issue = $result['technical_issue'];
             $this->job_status = $result['job_status'];
+            $this->employee_id = $result['employee_id'];
+            $this->technical_issue = $result['technical_issue'];
             $this->repair_charge = $result['repair_charge'];
             $this->commission_percentage = $result['commission_percentage'];
             $this->commission_amount = $result['commission_amount'];
