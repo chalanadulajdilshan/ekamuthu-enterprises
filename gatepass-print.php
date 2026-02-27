@@ -15,6 +15,7 @@ if (!$GATEPASS->id) {
 }
 
 $EQUIPMENT_RENT = new EquipmentRent($GATEPASS->invoice_id);
+$CUSTOMER = new CustomerMaster($EQUIPMENT_RENT->customer_id);
 $GATEPASS_ITEMS = $GATEPASS->getItems();
 
 ?>
@@ -260,7 +261,14 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
     <div class="details-box">
         <div class="form-row">
             <div class="form-label">නම :</div>
-            <div class="form-value"><?php echo htmlspecialchars($GATEPASS->name); ?></div>
+            <div class="form-value">
+                <?php 
+                echo htmlspecialchars($GATEPASS->name); 
+                if ($CUSTOMER->mobile_number) {
+                    echo " (" . htmlspecialchars($CUSTOMER->mobile_number) . ")";
+                }
+                ?>
+            </div>
         </div>
         
         <div class="form-row">

@@ -193,7 +193,7 @@ $(document).ready(function () {
 
         var formData = {
             action: 'save',
-            gatepass_code: $('#gatepass_code').val(),
+            gatepass_code: $('#gatepass_code_display').val(),
             invoice_id: $('#invoice_id').val(),
             name: name,
             address: $('#address').val(),
