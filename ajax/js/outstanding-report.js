@@ -39,6 +39,11 @@ $(document).ready(function () {
         $('#billDetailModal').modal('show');
     });
 
+    // Print modal content
+    $('#billModalPrint').on('click', function () {
+        printBillDetails();
+    });
+
 });
 
 function loadReport() {
@@ -330,6 +335,38 @@ function fillBillDetailsModal(data) {
     // Totals in modal summary
     $('#billModalRecordedTotal').text(fmt(data.recorded_outstanding_raw || data.recorded_outstanding));
     $('#billModalProjectedTotal').text(fmt(data.projected_outstanding_raw || data.projected_outstanding));
+}
+
+function printBillDetails() {
+    var modalBody = $('#billDetailModal .modal-body').html();
+    var title = $('#billDetailModalLabel').text();
+
+    var printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>${title}</title>
+            <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+            <style>
+                body { padding: 20px; font-size: 13px; }
+                .table { width: 100%; }
+                .table th, .table td { vertical-align: middle; }
+            </style>
+        </head>
+        <body>
+            <h4 class="mb-3">${title}</h4>
+            ${modalBody}
+            <script>
+                window.onload = function() {
+                    window.focus();
+                    window.print();
+                    window.onafterprint = function() { window.close(); };
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
 }
 
 function formatDetail(rowData) {

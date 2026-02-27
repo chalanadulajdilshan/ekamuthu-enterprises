@@ -323,6 +323,7 @@ include 'auth.php';
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="billModalPrint"><i class="uil uil-print me-1"></i> Print</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
