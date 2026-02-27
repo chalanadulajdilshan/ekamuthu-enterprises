@@ -6,14 +6,40 @@ $action = $_POST['action'] ?? '';
 
 if ($action === 'get_outstanding_report') {
     $customerId = isset($_POST['customer_id']) && !empty($_POST['customer_id']) ? (int)$_POST['customer_id'] : 0;
+    $fromDateRaw = $_POST['from_date'] ?? '';
+    $toDateRaw = $_POST['to_date'] ?? '';
+
+    $fromDate = null;
+    $toDate = null;
+
+    if (!empty($fromDateRaw)) {
+        $fromDt = DateTime::createFromFormat('Y-m-d', $fromDateRaw);
+        if ($fromDt) {
+            $fromDate = $fromDt->format('Y-m-d');
+        }
+    }
+
+    if (!empty($toDateRaw)) {
+        $toDt = DateTime::createFromFormat('Y-m-d', $toDateRaw);
+        if ($toDt) {
+            $toDate = $toDt->format('Y-m-d');
+        }
+    }
 
     $where = "WHERE 1=1";
     if ($customerId > 0) {
         $where .= " AND er.customer_id = $customerId";
     }
+    if ($fromDate && $toDate) {
+        $where .= " AND DATE(er.rental_date) BETWEEN '$fromDate' AND '$toDate'";
+    } elseif ($fromDate) {
+        $where .= " AND DATE(er.rental_date) >= '$fromDate'";
+    } elseif ($toDate) {
+        $where .= " AND DATE(er.rental_date) <= '$toDate'";
+    }
 
     $db = Database::getInstance();
-    $today = date('Y-m-d');
+    $today = $toDate ?: date('Y-m-d');
 
     $rentSummary = [];
 

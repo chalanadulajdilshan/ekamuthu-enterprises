@@ -2,6 +2,14 @@ let reportTable;
 
 $(document).ready(function () {
 
+    // Default date range: first day of current month to today
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const fmt = $.datepicker.formatDate('yy-mm-dd', firstDay);
+    const fmtToday = $.datepicker.formatDate('yy-mm-dd', today);
+    $('#from_date').val(fmt);
+    $('#to_date').val(fmtToday);
+
     loadReport();
 
     // Generate Report Button
@@ -48,6 +56,8 @@ $(document).ready(function () {
 
 function loadReport() {
     var customerId = $('#customer_id').val();
+    var fromDate = $('#from_date').val();
+    var toDate = $('#to_date').val();
 
     if ($.fn.DataTable.isDataTable('#reportTable')) {
         $('#reportTable').DataTable().destroy();
@@ -60,7 +70,9 @@ function loadReport() {
             "type": "POST",
             "data": {
                 action: 'get_outstanding_report',
-                customer_id: customerId
+                customer_id: customerId,
+                from_date: fromDate,
+                to_date: toDate
             },
             "dataSrc": function (json) {
                 // Update top summary cards if API provided totals
@@ -145,6 +157,8 @@ function loadReport() {
 
 function openPrintWindow(isSummary) {
     var customerId = $('#customer_id').val();
+    var fromDate = $('#from_date').val();
+    var toDate = $('#to_date').val();
     var url = 'print-outstanding-report.php';
     var searchTerm = '';
 
@@ -155,6 +169,12 @@ function openPrintWindow(isSummary) {
     const params = [];
     if (customerId) {
         params.push('customer_id=' + customerId);
+    }
+    if (fromDate) {
+        params.push('from_date=' + encodeURIComponent(fromDate));
+    }
+    if (toDate) {
+        params.push('to_date=' + encodeURIComponent(toDate));
     }
     if (searchTerm) {
         params.push('q=' + encodeURIComponent(searchTerm));
