@@ -251,7 +251,8 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
     <!-- Meta Info -->
     <div class="meta-section">
         <div class="gp-number"><?php echo htmlspecialchars($GATEPASS->gatepass_code); ?></div>
-        <div class="gp-date">දිනය : <span style="border-bottom: 2px dotted #888; min-width: 120px; display: inline-block; text-align: center;"><?php echo date('d/m/Y', strtotime($GATEPASS->gatepass_date)); ?></span></div>
+        <div class="gp-date">බිල්පත් අංකය (Bill No) : <span style="border-bottom: 2px dotted #888; min-width: 100px; display: inline-block; text-align: center;"><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></span></div>
+        <div class="gp-date">දිනය : <span style="border-bottom: 2px dotted #888; min-width: 100px; display: inline-block; text-align: center;"><?php echo date('d/m/Y', strtotime($GATEPASS->gatepass_date)); ?></span></div>
     </div>
 
     <!-- Title -->
