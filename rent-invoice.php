@@ -554,7 +554,6 @@ if (!empty($customerMobile)) {
                                 <th>කාල සීමාව</th>
                                 <th class="text-center">ප්‍රමාණය</th>
                                 <th class="text-end">මුදල</th>
-                                <th class="text-end">තැන්පත් කල යුතු මුදල</th>
                             </tr>
                         </thead>
                         <tbody style="font-size:13px;">
@@ -582,7 +581,6 @@ if (!empty($customerMobile)) {
                                     </td>
                                     <td class="text-center"><?php echo intval($item['quantity'] ?? 1); ?></td>
                                     <td class="text-end"><?php echo number_format($item['amount'], 2); ?></td>
-                                    <td class="text-end"><?php echo number_format(floatval($item['deposit_amount'] ?? 0), 2); ?></td>
                                 </tr>
                             <?php endforeach; ?>
 
