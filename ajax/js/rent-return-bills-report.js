@@ -521,13 +521,13 @@ $(document).ready(function () {
 
         data.forEach((item) => {
             let badgeClass = 'badge-rent';
-            let badgeStyle = 'background-color: #f1b44c; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 10px;';
+            let badgeStyle = 'background-color: #f1b44c; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: 600;';
 
             const billTypeSinhala = item.bill_type === 'Rent' ? 'කුලියට දීම' : 'ආපසු ලබා ගැනීම';
 
             if (item.bill_type === 'Return') {
                 badgeClass = 'badge-return';
-                badgeStyle = 'background-color: #50a5f1; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 10px;';
+                badgeStyle = 'background-color: #50a5f1; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: 600;';
             }
 
             html += `
@@ -537,7 +537,7 @@ $(document).ready(function () {
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.date || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_name || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_tel || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${item.customer_address || '-'}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">${item.customer_address || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_nic || '-'}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.day_count || '-'}${item.after_9am == 1 ? ' <span style="background-color: #dc3545; color: #fff; padding: 2px 4px; border-radius: 3px; font-size: 9px; margin-left: 5px; font-weight: bold;">+1 DAY</span>' : ''}</td>
                   <td style="border: 1px solid #ddd; padding: 8px;">${item.rent_date || '-'}</td>
