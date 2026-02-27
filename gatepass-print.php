@@ -58,17 +58,17 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             }
 
             @page {
-                size: auto;
+                size: A5;
                 margin: 5mm;
             }
         }
 
         #invoice-content {
             background-color: #fffbef; /* Slight yellowish tint for paper look on screen */
-            width: 210mm;
+            width: 148mm;
             margin: auto;
-            min-height: 297mm;
-            padding: 20mm;
+            min-height: 210mm;
+            padding: 10mm;
             font-family: 'Inter', sans-serif;
             color: #1a1a1a;
         }
@@ -94,7 +94,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             font-size: 14px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .meta-section {
@@ -120,18 +120,18 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             font-weight: bold;
             font-size: 18px;
             text-decoration: underline;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .details-box {
             border: 2px solid #555;
             border-radius: 12px;
-            padding: 30px;
+            padding: 15px;
             position: relative;
         }
 
         .form-row {
-            margin-bottom: 25px;
+            margin-bottom: 5px;
             display: flex;
             align-items: baseline;
         }
@@ -151,14 +151,14 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             font-weight: bold;
             padding-left: 10px;
             color: #003366; /* Blueish ink look */
-            min-height: 20px;
+            min-height: 15px;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            margin-bottom: 30px;
+            margin-top: 5px;
+            margin-bottom: 10px;
         }
 
         .items-table th, .items-table td {
@@ -179,7 +179,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
         }
 
         .signature-section {
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .signature-title {
@@ -190,7 +190,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
         }
 
         .authorization-text {
-            margin-top: 30px;
+            margin-top: 15px;
             font-size: 14px;
             line-height: 1.6;
             color: #000;
@@ -198,7 +198,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
 
         .manager-signature {
             text-align: right;
-            margin-top: 50px;
+            margin-top: 25px;
             padding-right: 40px;
         }
 
@@ -356,7 +356,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             },
             jsPDF: {
                 unit: 'mm',
-                format: 'a4',
+                format: 'a5',
                 orientation: 'portrait'
             }
         };
