@@ -398,13 +398,13 @@ $(document).ready(function () {
           .header h1 {
               margin: 0 0 10px 0;
               color: #000;
-              font-size: 24px;
+              font-size: 32px;
               font-weight: bold;
           }
           .header p {
               margin: 5px 0;
               color: #000;
-              font-size: 14px;
+              font-size: 18px;
           }
           .summary {
               background-color: #f0f0f0;
@@ -417,6 +417,7 @@ $(document).ready(function () {
               margin: 0 0 10px 0;
               color: #000;
               font-weight: bold;
+              font-size: 20px;
           }
           .summary-grid {
               display: grid;
@@ -424,7 +425,7 @@ $(document).ready(function () {
               gap: 10px;
           }
           .summary-item {
-              font-size: 14px;
+              font-size: 18px;
               color: #000;
           }
           .summary-item strong {
@@ -435,7 +436,7 @@ $(document).ready(function () {
               width: 100%;
               border-collapse: collapse;
               margin: 15px 0;
-              font-size: 14px;
+              font-size: 16px;
               page-break-inside: auto;
               border: 1px solid #000;
           }
@@ -451,7 +452,7 @@ $(document).ready(function () {
               color: #000;
               font-weight: bold;
               text-transform: uppercase;
-              font-size: 16px;
+              font-size: 20px;
               padding: 10px;
               border: 1px solid #000;
           }
