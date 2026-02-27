@@ -6,9 +6,25 @@ $customerId = isset($_GET['customer_id']) && !empty($_GET['customer_id']) ? (int
 $searchTerm = isset($_GET['q']) ? trim($_GET['q']) : '';
 $isSummary = isset($_GET['summary']) && $_GET['summary'] == '1';
 
+// Date range filters (align with UI)
+$fromDate = null;
+$toDate = null;
+if (!empty($_GET['from_date'])) {
+    $fromDt = DateTime::createFromFormat('Y-m-d', $_GET['from_date']);
+    if ($fromDt) {
+        $fromDate = $fromDt->format('Y-m-d');
+    }
+}
+if (!empty($_GET['to_date'])) {
+    $toDt = DateTime::createFromFormat('Y-m-d', $_GET['to_date']);
+    if ($toDt) {
+        $toDate = $toDt->format('Y-m-d');
+    }
+}
+
 $db = Database::getInstance();
 
-$today = date('Y-m-d');
+$today = $toDate ?: date('Y-m-d');
 $where = "WHERE 1=1";
 if ($customerId > 0) {
     $where .= " AND er.customer_id = $customerId";
@@ -16,6 +32,13 @@ if ($customerId > 0) {
 if (!empty($searchTerm)) {
     $safeTerm = method_exists($db, 'getConnection') ? mysqli_real_escape_string($db->getConnection(), $searchTerm) : addslashes($searchTerm);
     $where .= " AND er.bill_number LIKE '%$safeTerm%'";
+}
+if ($fromDate && $toDate) {
+    $where .= " AND DATE(er.rental_date) BETWEEN '$fromDate' AND '$toDate'";
+} elseif ($fromDate) {
+    $where .= " AND DATE(er.rental_date) >= '$fromDate'";
+} elseif ($toDate) {
+    $where .= " AND DATE(er.rental_date) <= '$toDate'";
 }
 
 $customerFilterName = '';
