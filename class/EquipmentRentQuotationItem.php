@@ -11,6 +11,7 @@ class EquipmentRentQuotationItem
     public $quantity;
     public $rent_type;
     public $duration;
+    public $unit_price;
     public $amount;
     public $transport;
     public $deposit;
@@ -36,6 +37,7 @@ class EquipmentRentQuotationItem
                 $this->quantity = $result['quantity'];
                 $this->rent_type = $result['rent_type'];
                 $this->duration = $result['duration'];
+                $this->unit_price = $result['unit_price'] ?? 0.00;
                 $this->amount = $result['amount'];
                 $this->transport = $result['transport'] ?? 0.00;
                 $this->deposit = $result['deposit'] ?? 0.00;
@@ -50,10 +52,10 @@ class EquipmentRentQuotationItem
     public function create()
     {
         $query = "INSERT INTO `equipment_rent_quotation_items` (
-            `quotation_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`
+            `quotation_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `return_date`, `quantity`, `rent_type`, `duration`, `unit_price`, `amount`, `status`, `remark`
         ) VALUES (
             '$this->quotation_id', '$this->equipment_id', '$this->sub_equipment_id', '$this->rental_date', " .
-            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark'
+            ($this->return_date ? "'$this->return_date'" : "NULL") . ", '$this->quantity', '$this->rent_type', '$this->duration', '$this->unit_price', '$this->amount', '$this->status', '$this->remark'
         )";
 
         $db = Database::getInstance();
@@ -78,6 +80,7 @@ class EquipmentRentQuotationItem
             `quantity` = '$this->quantity',
             `rent_type` = '$this->rent_type',
             `duration` = '$this->duration',
+            `unit_price` = '$this->unit_price',
             `amount` = '$this->amount',
             `status` = '$this->status',
             `remark` = '$this->remark'

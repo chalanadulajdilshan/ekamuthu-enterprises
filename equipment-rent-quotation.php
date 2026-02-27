@@ -266,7 +266,12 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 value="1">
                                         </div>
 
-                                        <div class="col-md-2">
+                                        <div class="col-md-1">
+                                            <label class="form-label">Unit Price - ඒකක මිල</label>
+                                            <input type="text" class="form-control" id="item_unit_price" placeholder="0.00" readonly>
+                                        </div>
+
+                                        <div class="col-md-1">
                                             <label class="form-label">Amount - අගය</label>
                                             <input type="text" class="form-control" id="item_amount"
                                                 placeholder="0.00">
@@ -310,6 +315,7 @@ $quotation_number = 'ERQ/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <th>Type</th>
                                                     <th>Duration</th>
                                                     <th>Qty</th>
+                                                    <th>Unit Price</th>
                                                     <th>Amount</th>
                                                     <th>Rental Date</th>
                                                     <th>Return Date</th>
