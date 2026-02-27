@@ -113,6 +113,17 @@ include 'auth.php';
                                                 </button>
                                             </div>
                                         </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Date Range</label>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <input type="text" id="from_date" class="form-control date-picker" placeholder="From" autocomplete="off">
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" id="to_date" class="form-control date-picker" placeholder="To" autocomplete="off">
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
                                             <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> Generate Report</button>
                                             <button id="printBtn" class="btn btn-success"><i class="uil uil-print"></i> Print (Detailed)</button>
