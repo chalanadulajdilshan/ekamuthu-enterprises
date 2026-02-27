@@ -85,14 +85,14 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
         .header-title {
             text-align: center;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 5px;
             color: #000;
         }
 
         .header-subtitle {
             text-align: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             color: #333;
             margin-bottom: 15px;
@@ -106,20 +106,20 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
         }
 
         .gp-number {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
             color: #444;
         }
 
         .gp-date {
-            font-size: 15px;
+            font-size: 13px;
             font-weight: bold;
         }
 
         .main-title {
             text-align: center;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             text-decoration: underline;
             margin-bottom: 15px;
         }
@@ -138,7 +138,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
         }
 
         .form-label {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
             white-space: nowrap;
             margin-right: 10px;
@@ -148,7 +148,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
         .form-value {
             border-bottom: 2px dotted #888;
             flex-grow: 1;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: bold;
             padding-left: 10px;
             color: #003366; /* Blueish ink look */
@@ -166,7 +166,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             border: 1px solid #333;
             padding: 6px 10px;
             text-align: left;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .items-table th {
@@ -185,14 +185,14 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
 
         .signature-title {
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
             margin-bottom: 10px;
             text-decoration: underline;
         }
 
         .authorization-text {
             margin-top: 15px;
-            font-size: 14px;
+            font-size: 12px;
             line-height: 1.6;
             color: #000;
         }
@@ -215,7 +215,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             width: 200px;
             text-align: center;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
             margin-left: auto;
         }
     </style>
@@ -285,9 +285,9 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
             <thead>
                 <tr>
                     <th style="width: 50px;">#</th>
-                    <th>විස්තරය (Item Description)</th>
-                    <th style="width: 100px; text-align: center;">ප්‍රමාණය (Qty)</th>
-                    <th>කරුණු (Remarks)</th>
+                    <th>විස්තරය</th>
+                    <th style="width: 100px; text-align: center;">ප්‍රමාණය</th>
+                    <th>කරුණු</th>
                 </tr>
             </thead>
             <tbody>
@@ -308,7 +308,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
                 <?php endforeach; ?>
                 <?php if (empty($GATEPASS_ITEMS)): ?>
                     <tr>
-                        <td colspan="4" style="text-align: center;">No items listed</td>
+                        <td colspan="4" style="text-align: center;">උපකරණ ඇතුළත් කර නොමැත (No items listed)</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -341,7 +341,7 @@ $GATEPASS_ITEMS = $GATEPASS->getItems();
     </div>
     
     <!-- Footer Internal Note (Bill Ref) -->
-    <div style="margin-top: 20px; font-size: 12px; color: #888; text-align: right;" class="no-print">
+    <div style="margin-top: 20px; font-size: 10px; color: #888; text-align: right;" class="no-print">
         Bill Ref: <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?> (Internal Ref)
     </div>
 </div>
