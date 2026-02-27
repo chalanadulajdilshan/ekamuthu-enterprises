@@ -99,7 +99,7 @@ $equipment_type_str = implode(", ", $equipment_types);
                                             <div class="row mb-4">
                                                 <div class="col-md-2">
                                                     <label class="form-label">Gate Pass No</label>
-                                                    <input type="text" class="form-control bg-light" id="gatepass_code_display" readonly value="Loading...">
+                                                    <input type="text" class="form-control" id="gatepass_code_display" value="Loading...">
                                                     <input type="hidden" id="gatepass_code" name="gatepass_code">
                                                 </div>
                                                 <div class="col-md-2">
