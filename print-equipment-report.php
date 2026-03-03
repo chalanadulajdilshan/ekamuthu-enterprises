@@ -18,7 +18,7 @@ $query = "SELECT r.*, c.name as customer_name, c.mobile_number
           FROM `equipment_rent` r 
           LEFT JOIN `customer_master` c ON r.customer_id = c.id 
           WHERE $where 
-          ORDER BY r.rental_date DESC, r.id DESC";
+          ORDER BY r.bill_number ASC";
 
 $result = $db->readQuery($query);
 
