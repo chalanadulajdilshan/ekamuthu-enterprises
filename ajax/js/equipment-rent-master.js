@@ -2501,14 +2501,15 @@ jQuery(document).ready(function () {
       success: function (res) {
         var calc = res && res.calculation ? res.calculation : {};
 
+        // Show day count first at the top of the summary
         var previewHtml =
+          "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
+        previewHtml +=
           "<p><strong>Return Date:</strong> " +
           returnDate +
           " " +
           returnTime +
           "</p>";
-        previewHtml +=
-          "<p><strong>Day Count:</strong> " + dayCountText + "</p>";
         previewHtml +=
           "<p><strong>After 9:00 AM:</strong> " +
           (after9am ? "Yes (extra day will be counted)" : "No") +
