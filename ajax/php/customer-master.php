@@ -249,7 +249,8 @@ if (isset($_POST['create'])) {
                 "code" => $created->code,
                 "name" => $created->name,
                 "mobile_number" => $created->mobile_number,
-                "address" => $created->address
+                "address" => $created->address,
+                "workplace_address" => $created->workplace_address
             ]
         ]);
         exit();

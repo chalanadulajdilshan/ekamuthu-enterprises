@@ -1260,11 +1260,8 @@ $bill_number = $lastId + 1;
                                 </div>
 
                                 <div class="col-12 col-md-8 col-lg-4">
-                                    <!-- Workplace address hidden as per request -->
-                                    <div style="display:none;">
-                                        <label for="modal_workplace_address" class="form-label">Workplace Address</label>
-                                        <input id="modal_workplace_address" name="modal_workplace_address" type="hidden" class="form-control mb-3" placeholder="Enter workplace address">
-                                    </div>
+                                    <label for="modal_workplace_address" class="form-label">Workplace Address</label>
+                                    <input id="modal_workplace_address" name="modal_workplace_address" type="text" class="form-control mb-3" placeholder="Enter workplace address">
                                 </div>
 
                                 <div class="col-6 col-md-4 col-lg-2 d-flex align-items-center">
@@ -1869,6 +1866,8 @@ $bill_number = $lastId + 1;
                 success: function(response) {
                     if (response.status === 'success') {
                         const returned = response.data || {};
+                        const workplaceAddress = returned.workplace_address || $('#modal_workplace_address').val();
+
                         swal({
                             title: "Success!",
                             text: "Customer added successfully",
@@ -1882,6 +1881,8 @@ $bill_number = $lastId + 1;
                         const displayCode = returned.code || formData.code || '';
                         const displayName = returned.name || formData.name || '';
                         $('#customer_display').val(displayCode + (displayName ? ' - ' + displayName : ''));
+                        // Auto-fill workplace address on main form
+                        $('#workplace_address').val(workplaceAddress || '');
 
                         // Clear modal form
                         $('#modal-customer-form')[0].reset();

@@ -1363,7 +1363,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
     // If no search term, only load a small initial set to keep modal light
     $limitClause = ($search === '') ? 'LIMIT 5' : 'LIMIT 500';
 
-    $sql = "SELECT id, code, name, mobile_number, address, nic, old_outstanding, is_blacklisted, customer_photo, nic_image_1, nic_image_2 FROM customer_master $where ORDER BY name ASC $limitClause";
+    $sql = "SELECT id, code, name, mobile_number, address, workplace_address, nic, old_outstanding, is_blacklisted, customer_photo, nic_image_1, nic_image_2 FROM customer_master $where ORDER BY name ASC $limitClause";
     $result = $db->readQuery($sql);
 
     $data = [];
@@ -1374,6 +1374,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'search_customers_simple') {
             'name' => $row['name'],
             'mobile_number' => $row['mobile_number'],
             'address' => $row['address'],
+            'workplace_address' => $row['workplace_address'] ?? '',
             'nic' => $row['nic'],
             'outstanding' => number_format($row['old_outstanding'] ?? 0, 2),
             'is_blacklisted' => $row['is_blacklisted'] ?? 0,

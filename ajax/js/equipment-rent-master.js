@@ -1633,6 +1633,8 @@ jQuery(document).ready(function () {
             row.code +
             "' data-blacklist='" +
             (row.is_blacklisted || 0) +
+            "' data-workplace-address='" +
+            (row.workplace_address || '') +
             "'>" +
             "<td>" +
             (row.id || "") +
@@ -1687,10 +1689,12 @@ jQuery(document).ready(function () {
     var id = $row.data("id");
     var code = $row.data("code");
     var name = $row.data("name");
+    var workplaceAddress = $row.data("workplace-address") || "";
     var outstanding = $row.find("td").eq(6).text() || "0.00";
     if (id) {
       $("#customer_id").val(id);
       $("#customer_display").val(code + " - " + name);
+      $("#workplace_address").val(workplaceAddress);
       $("#customerOutstandingValue").text(outstanding);
       $("#customerOutstandingAlert").show();
       loadCustomerDocs(id);
