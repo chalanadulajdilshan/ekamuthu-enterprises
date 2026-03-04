@@ -248,13 +248,13 @@ jQuery(document).ready(function () {
             columns: [
                 { data: "id", title: "#ID" },
                 { data: "job_code", title: "Job Code" },
+                { data: "item_breakdown_date", title: "Date" },
                 { data: "item_type", title: "Item Type" },
                 { data: "customer_name", title: "Customer" },
                 { data: "customer_phone", title: "Phone" },
                 { data: "status_label", title: "Status" },
                 { data: "total_cost", title: "Total Cost" }
             ],
-            order: [[0, "desc"]],
             pageLength: 50
         });
 
