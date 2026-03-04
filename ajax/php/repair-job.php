@@ -45,7 +45,7 @@ if (isset($_POST['create'])) {
     $JOB->item_type = $_POST['item_type'] ?? 'customer';
     $JOB->machine_code = $_POST['machine_code'] ?? '';
     $JOB->machine_name = $_POST['machine_name'] ?? '';
-    $JOB->customer_name = $_POST['customer_name'] ?? '';
+    $JOB->customer_name = ($JOB->item_type === 'company') ? 'P.S Ekamuthu Enterprises' : ($_POST['customer_name'] ?? '');
     $JOB->customer_address = $_POST['customer_address'] ?? '';
     $JOB->customer_phone = $_POST['customer_phone'] ?? '';
     $JOB->item_breakdown_date = !empty($_POST['item_breakdown_date']) ? $_POST['item_breakdown_date'] : null;
@@ -120,7 +120,7 @@ if (isset($_POST['update'])) {
     $JOB->item_type = $_POST['item_type'] ?? 'customer';
     $JOB->machine_code = $_POST['machine_code'] ?? '';
     $JOB->machine_name = $_POST['machine_name'] ?? '';
-    $JOB->customer_name = $_POST['customer_name'] ?? '';
+    $JOB->customer_name = ($JOB->item_type === 'company') ? 'P.S Ekamuthu Enterprises' : ($_POST['customer_name'] ?? '');
     $JOB->customer_address = $_POST['customer_address'] ?? '';
     $JOB->customer_phone = $_POST['customer_phone'] ?? '';
     $JOB->item_breakdown_date = !empty($_POST['item_breakdown_date']) ? $_POST['item_breakdown_date'] : null;

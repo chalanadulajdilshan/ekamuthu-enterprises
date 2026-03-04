@@ -317,11 +317,13 @@ if ($row = mysqli_fetch_assoc($result)) {
                 $('#fromDate').datepicker('setDate', firstDay);
             });
             
-             // Initialize with Status = Pending and Empty Dates (for All Pending)
-            $('#statusFilter').val('pending');
-            // Ensure dates are empty
-            $('#fromDate').val('');
-            $('#toDate').val('');
+             // Initialize with Status = All Statuses and dates to current month
+            $('#statusFilter').val('all');
+            
+            const initToday = new Date();
+            const initFirstDay = new Date(initToday.getFullYear(), initToday.getMonth(), 1);
+            $('#toDate').datepicker('setDate', initToday);
+            $('#fromDate').datepicker('setDate', initFirstDay);
         });
     </script>
 
