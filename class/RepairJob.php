@@ -234,8 +234,25 @@ class RepairJob
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
+        // Order filter
+        $orderColumnIndex = $request['order'][0]['column'] ?? 0;
+        $orderDir = $request['order'][0]['dir'] ?? 'desc';
+        
+        $columns = [
+            0 => 'id',
+            1 => 'job_code',
+            2 => 'item_breakdown_date',
+            3 => 'item_type',
+            4 => 'customer_name',
+            5 => 'customer_phone',
+            6 => 'job_status',
+            7 => 'total_cost'
+        ];
+        
+        $orderBy = $columns[$orderColumnIndex] ?? 'id';
+
         // Paginated query
-        $sql = "SELECT * FROM repair_jobs $where ORDER BY id DESC LIMIT $start, $length";
+        $sql = "SELECT * FROM repair_jobs $where ORDER BY $orderBy $orderDir LIMIT $start, $length";
         $dataQuery = $db->readQuery($sql);
 
         $data = [];
