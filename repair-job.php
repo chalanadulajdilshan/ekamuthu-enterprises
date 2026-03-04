@@ -437,6 +437,7 @@ $job_code = '0' . ($lastId + 1);
                                     <tr>
                                         <th>#ID</th>
                                         <th>Job Code</th>
+                                        <th>Date - දිනය</th>
                                         <th>Item Type</th>
                                         <th>Customer</th>
                                         <th>Phone</th>
