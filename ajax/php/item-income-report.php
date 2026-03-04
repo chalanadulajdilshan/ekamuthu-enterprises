@@ -24,10 +24,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
                     e.id AS equipment_id,
                     e.code AS equipment_code,
                     e.item_name AS equipment_name,
+                    e.value AS equipment_value,
                     eri.sub_equipment_id,
                     se.code AS sub_equipment_code,
                     COALESCE(se.value, 0) AS sub_equipment_value,
-                    COUNT(err.id) AS rented_qty,
+                    SUM(err.return_qty) AS rented_qty,
                     SUM($rentalCalc) AS rent_value
                 FROM equipment_rent_returns err
                 INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
@@ -52,10 +53,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
             ];
         }
 
+        // Prefer sub_equipment value; if null/zero fallback to equipment value
+        $value = floatval($row['sub_equipment_value']);
+        if ($value == 0) {
+            $value = floatval($row['equipment_value'] ?? 0);
+        }
+
         $equipmentMap[$eqId]['sub_equipment'][] = [
             'sub_equipment_id' => $row['sub_equipment_id'],
             'sub_equipment_code' => $row['sub_equipment_code'] ?? null,
-            'value' => floatval($row['sub_equipment_value']),
+            'value' => $value,
             'rented_qty' => intval($row['rented_qty']),
             'rent_value' => floatval($row['rent_value']),
             'repair_qty' => 0,
@@ -90,6 +97,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
     $totalRentValue = 0;
     $totalRepairCost = 0;
     $totalProfit = 0;
+    $totalRentedQty = 0;
 
     foreach ($equipmentMap as &$eq) {
         $eqTotals = ['value' => 0, 'rented_qty' => 0, 'rent_value' => 0, 'repair_qty' => 0, 'repair_cost' => 0];
@@ -104,6 +112,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
             $se['rent_value'] = round($se['rent_value'], 2);
             $se['repair_cost'] = round($se['repair_cost'], 2);
             $se['profit'] = round($se['rent_value'] - $se['repair_cost'], 2);
+            // ROI based on value: (profit / value) * 100
             $se['roi'] = ($se['value'] > 0) ? round(($se['profit'] / $se['value']) * 100, 2) : 0;
 
             $eqTotals['value'] += $se['value'];
@@ -122,24 +131,33 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
             'repair_qty' => $eqTotals['repair_qty'],
             'repair_cost' => round($eqTotals['repair_cost'], 2),
             'profit' => round($eqProfit, 2),
+            // ROI based on value: (profit / value) * 100
             'roi' => ($eqTotals['value'] > 0) ? round(($eqProfit / $eqTotals['value']) * 100, 2) : 0
         ];
 
         $totalValue += $eqTotals['value'];
+        $totalRentedQty += $eqTotals['rented_qty'];
         $totalRentValue += $eqTotals['rent_value'];
         $totalRepairCost += $eqTotals['repair_cost'];
         $totalProfit += $eqProfit;
     }
     unset($eq);
 
+    // Sort equipment by ROI descending
+    usort($equipmentMap, function ($a, $b) {
+        return ($b['totals']['roi'] ?? 0) <=> ($a['totals']['roi'] ?? 0);
+    });
+
     echo json_encode([
         'status' => 'success',
         'data' => array_values($equipmentMap),
         'summary' => [
             'total_value' => number_format($totalValue, 2),
+            'total_rented_qty' => number_format($totalRentedQty, 0),
             'total_rent_value' => number_format($totalRentValue, 2),
             'total_repair_cost' => number_format($totalRepairCost, 2),
             'total_profit' => number_format($totalProfit, 2),
+            // ROI based on total value: (profit / value) * 100
             'total_roi' => ($totalValue > 0) ? number_format(($totalProfit / $totalValue) * 100, 2) : '0.00'
         ]
     ]);

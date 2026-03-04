@@ -71,17 +71,20 @@ include 'auth.php';
                             </div>
 
                             <div class="row" id="summarySection" style="display:none;">
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Value</p><h5 class="mb-0" id="sumValue">0.00</h5></div></div>
+                                <div class="col-lg-2 col-md-3 col-sm-6">
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">කුලියට දුන් එකතුව ප්‍රමාණය</p><h5 class="mb-0" id="sumRentedQty">0</h5></div></div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Rent Value</p><h5 class="mb-0 text-primary" id="sumRentValue">0.00</h5></div></div>
+                                <div class="col-lg-2 col-md-3 col-sm-6">
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">එකතුව කුලී අගය</p><h5 class="mb-0 text-primary" id="sumRentValue">0.00</h5></div></div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Repair Cost</p><h5 class="mb-0 text-danger" id="sumRepairCost">0.00</h5></div></div>
+                                <div class="col-lg-3 col-md-3 col-sm-6">
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">එකතුව අලුත්වැඩියා වියදම</p><h5 class="mb-0 text-danger" id="sumRepairCost">0.00</h5></div></div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Profit</p><h5 class="mb-0 text-success" id="sumProfit">0.00</h5></div></div>
+                                <div class="col-lg-3 col-md-3 col-sm-6">
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">එකතුව ලාභය</p><h5 class="mb-0 text-success" id="sumProfit">0.00</h5></div></div>
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-sm-6">
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">අගය එකතුව</p><h5 class="mb-0" id="sumValue">0.00</h5></div></div>
                                 </div>
                             </div>
 
@@ -92,14 +95,14 @@ include 'auth.php';
                                             <thead class="table-dark">
                                                 <tr>
                                                     <th style="width:30px;"></th>
-                                                    <th>Item / Sub Equipment</th>
-                                                    <th class="text-end">Value</th>
-                                                    <th class="text-end">Rented Qty</th>
-                                                    <th class="text-end">Rent Value</th>
-                                                    <th class="text-end">Repair Qty</th>
-                                                    <th class="text-end">Repair Cost</th>
-                                                    <th class="text-end">Profit</th>
-                                                    <th class="text-end">ROI %</th>
+                                                    <th>අයිතම</th>
+                                                    <th class="text-end">අගය</th>
+                                                    <th class="text-end">කුලියට දුන් ප්‍රමාණය</th>
+                                                    <th class="text-end">කුලී අගය</th>
+                                                    <th class="text-end">අලුත්වැඩියා කල ප්‍රමාණය</th>
+                                                    <th class="text-end">අලුත්වැඩියා වියදම</th>
+                                                    <th class="text-end">ලාභය</th>
+                                                    <th class="text-end">ආයෝජනයන් මත ප්‍රතිලාභ ප්‍රතිශතය (ROI)</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="reportTableBody"></tbody>
