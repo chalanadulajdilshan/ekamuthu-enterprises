@@ -38,6 +38,103 @@ $(document).ready(function () {
         $("#toDate").datepicker('setDate', today);
     }
 
+    // Initialize DataTable
+    let reportTable = $('#reportTable').DataTable({
+        columns: [
+            {
+                className: 'details-control text-center',
+                orderable: false,
+                data: null,
+                defaultContent: '<button class="btn btn-sm btn-soft-primary"><i class="bx bx-plus"></i></button>',
+                width: '30px'
+            },
+            {
+                data: 'bill_type', render: function (data) {
+                    let badgeClass = data === 'Return' ? 'badge-return' : 'badge-rent';
+                    return `<span class="bill-type-badge ${badgeClass}">${data}</span>`;
+                }
+            },
+            { data: 'bill_no' },
+            { data: 'date' },
+            { data: 'customer_name' },
+            { data: 'customer_tel' },
+            { data: 'customer_address' },
+            { data: 'customer_nic' },
+            {
+                data: 'day_count', render: function (data, type, row) {
+                    return `${data || '-'}${row.after_9am == 1 ? ' <span class="badge bg-danger">+1 DAY</span>' : ''}`;
+                }
+            },
+            { data: 'rent_date' },
+            { data: 'return_date' },
+            { data: 'quantity', className: 'text-end' },
+            {
+                data: 'deposit', className: 'text-end', render: function (data) {
+                    return parseFloat(data || 0).toFixed(2);
+                }
+            },
+            {
+                data: 'amount', className: 'text-end', render: function (data) {
+                    return parseFloat(data || 0).toFixed(2);
+                }
+            },
+            {
+                data: 'extra_amount', className: 'text-end', render: function (data) {
+                    return parseFloat(data || 0).toFixed(2);
+                }
+            },
+            { data: 'profit_balance', className: 'text-end fw-bold' },
+            { data: 'remarks' }
+        ],
+        order: [[3, 'desc']], // Sort by date by default
+        pageLength: 50,
+        responsive: false,
+        autoWidth: false,
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>t<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        drawCallback: function () {
+            // Adjust columns on draw
+            $(this).DataTable().columns.adjust();
+        }
+    });
+
+    // Add event listener for opening and closing details
+    $('#reportTable tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = reportTable.row(tr);
+        var icon = $(this).find('i');
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            icon.removeClass('bx-minus').addClass('bx-plus');
+        } else {
+            row.child(formatChildRow(row.data())).show();
+            tr.addClass('shown');
+            icon.removeClass('bx-plus').addClass('bx-minus');
+        }
+    });
+
+    // Helper to format child row
+    function formatChildRow(d) {
+        return `
+            <div class="p-3 bg-light rounded shadow-sm m-2">
+                <table class="table table-sm table-bordered mb-0 bg-white">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item Name</th>
+                            <th class="text-end">Daily Rent</th>
+                            <th class="text-end">Day Count</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${renderItemsTable(d.items)}
+                    </tbody>
+                </table>
+            </div>`;
+    }
+
     // Auto-load report data immediately on page open
     loadReportData();
 
@@ -83,7 +180,7 @@ $(document).ready(function () {
         $("#reportForm")[0].reset();
         $("#billType").val("all");
         $("#reportInfoSection").hide();
-        $("#reportTableBody").empty();
+        reportTable.clear().draw();
         $("#totalAmount").text("0.00");
         $("#totalExtraAmount").text("0.00");
         $("#totalProfit").text("0.00");
@@ -107,10 +204,7 @@ $(document).ready(function () {
         const billType = $("#billType").val();
         const billNo = $("#billNo").val().trim();
 
-        console.log("From Date:", fromDate);
-        console.log("To Date:", toDate);
-        console.log("Bill Type:", billType);
-        console.log("Bill No:", billNo);
+        console.log("Loading Report Data for:", { fromDate, toDate, billType, billNo });
 
         // Validation: ensure either date range or bill number
         if ((!fromDate || !toDate) && billNo === "") {
@@ -126,18 +220,16 @@ $(document).ready(function () {
             bill_no: billNo
         };
 
-        console.log("Sending request with data:", requestData);
-
         $.ajax({
             url: "ajax/php/rent-return-bills-report.php",
             type: "POST",
             dataType: "json",
             data: requestData,
             beforeSend: function () {
-                console.log("Sending request...");
-                $("#reportTableBody").html(
-                    '<tr><td colspan="16" class="text-center">Loading...</td></tr>'
-                );
+                // We don't manually clear the table here because DataTables handles state
+                // but let's clear it just in case
+                reportTable.clear().draw();
+                // Custom loading overlay if needed or use the built-in processing
             },
             success: function (response) {
                 console.log("Server response:", response);
@@ -157,9 +249,6 @@ $(document).ready(function () {
                             : "Error loading data";
                     console.error("Error response:", errorMsg);
                     alert(errorMsg);
-                    $("#reportTableBody").html(
-                        '<tr><td colspan="8" class="text-center">No data found</td></tr>'
-                    );
                 }
             },
             error: function (xhr, status, error) {
@@ -169,85 +258,21 @@ $(document).ready(function () {
                     response: xhr.responseText,
                 });
                 alert("Error loading data. Please check console for details.");
-                $("#reportTableBody").html(
-                    '<tr><td colspan="8" class="text-center">Error loading data</td></tr>'
-                );
-            },
-            complete: function () {
-                console.log("Request completed");
-            },
+            }
         });
     }
 
     // Render report data in table
     function renderReportData(data, summary) {
-        const tbody = $("#reportTableBody");
-        tbody.empty();
+        reportTable.clear();
 
-        if (!data || data.length === 0) {
-            tbody.html(
-                '<tr><td colspan="16" class="text-center">No bills found for the selected date range</td></tr>'
-            );
-            $("#totalQty").text("0");
-            $("#totalAmount").text("0.00");
-            return;
+        if (data && data.length > 0) {
+            reportTable.rows.add(data).draw();
+            // Need to adjust columns after data is loaded and rendered
+            setTimeout(function () {
+                reportTable.columns.adjust().draw(false);
+            }, 100);
         }
-
-        data.forEach(function (item, index) {
-            // Determine badge class based on bill type
-            let badgeClass = 'badge-rent';
-            if (item.bill_type === 'Return') {
-                badgeClass = 'badge-return';
-            }
-
-            const rowId = `bill-${index}`;
-            const detailsId = `details-${index}`;
-
-            const row = `
-                <tr id="${rowId}" class="main-row" data-details-id="#${detailsId}" style="cursor: pointer;">
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-soft-primary details-control">
-                            <i class="bx bx-plus"></i>
-                        </button>
-                    </td>
-                    <td><span class="bill-type-badge ${badgeClass}">${item.bill_type}</span></td>
-                    <td>${item.bill_no || '-'}</td>
-                    <td>${item.date || '-'}</td>
-                    <td>${item.customer_name || '-'}</td>
-                    <td>${item.customer_tel || '-'}</td>
-                    <td>${item.customer_address || '-'}</td>
-                    <td>${item.customer_nic || '-'}</td>
-                    <td>${item.day_count || '-'}${item.after_9am == 1 ? ' <span class="badge bg-danger">+1 DAY</span>' : ''}</td>
-                    <td>${item.rent_date || '-'}</td>
-                    <td>${item.return_date || '-'}</td>
-                    <td class="text-end">${item.quantity || 0}</td>
-                    <td class="text-end">${parseFloat(item.deposit || 0).toFixed(2)}</td>
-                    <td class="text-end">${item.amount || '0.00'}</td>
-                    <td class="text-end">${item.extra_amount || '0.00'}</td>
-                    <td class="text-end fw-bold">${item.profit_balance}</td>
-                    <td>${item.remarks || "-"}</td>
-                </tr>
-                <tr id="${detailsId}" class="details-row" style="display: none; background-color: #f8f9fa;">
-                    <td colspan="16" class="p-3">
-                        <table class="table table-sm table-bordered mb-0" style="background-color: #fff;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th class="text-end">Daily Rent</th>
-                                    <th class="text-end">Day Count</th>
-                                    <th class="text-end">Qty</th>
-                                    <th class="text-end">Profit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${renderItemsTable(item.items)}
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>`;
-
-            tbody.append(row);
-        });
 
         // Update totals
         $("#totalQty").text(summary.total_quantity);
@@ -255,27 +280,8 @@ $(document).ready(function () {
         $('#totalExtraAmount').text(summary.total_extra_amount);
         $('#totalProfit').text(summary.total_profit);
         $('#totalDeposit').text(summary.total_deposit);
-
-        // Re-attach click handlers (or rely on delegation if setup outside)
-        // Since we empty tbody, delegation on #reportTableBody is best.
     }
 
-    // Event Delegation for Row Click (Setup once)
-    $(document).off('click', 'tr.main-row').on('click', 'tr.main-row', function (e) {
-        // Prevent event from bubbling up if a child element (like a button) was clicked
-        if ($(e.target).closest('.details-control').length) {
-            // If the button was clicked, let its own handler (if any) or the delegated handler proceed
-            // For this setup, the row click handler will also catch the button click,
-            // so we just need to ensure the correct target is passed to toggleDetails.
-            const targetId = $(this).data('details-id');
-            const btn = $(this).find('.details-control');
-            toggleDetails(targetId, btn);
-        } else if (!$(e.target).is('a, button, input, select, textarea')) { // Ignore clicks on interactive elements
-            const targetId = $(this).data('details-id');
-            const btn = $(this).find('.details-control');
-            toggleDetails(targetId, btn);
-        }
-    });
 
     // Helper to render items table rows
     function renderItemsTable(items) {
@@ -292,19 +298,6 @@ $(document).ready(function () {
         `).join('');
     }
 
-    // Toggle Details Function
-    function toggleDetails(targetId, btn) {
-        const row = $(targetId);
-        const icon = btn.find('i');
-
-        if (row.is(':visible')) {
-            row.hide();
-            icon.removeClass('bx-minus').addClass('bx-plus');
-        } else {
-            row.show();
-            icon.removeClass('bx-plus').addClass('bx-minus');
-        }
-    }
 
     // Export to PDF functionality
     $("#exportToPdf").on("click", function () {
@@ -381,99 +374,86 @@ $(document).ready(function () {
       <meta charset="utf-8">
       <title>කුලියට දීම සහ ආපසු ලබා ගැනීම් වාර්තාව - ${dateRange}</title>
       <style>
-          @page { margin: 20px; }
+          @page { size: A4 landscape; margin: 10mm; }
           body {
               font-family: 'Iskoola Pota', 'Noto Sans Sinhala', 'Arial', sans-serif;
               margin: 0;
               padding: 0;
               color: #000;
-              line-height: 1.4;
+              line-height: 1.2;
+              font-size: 9px;
           }
           .header {
               text-align: center;
-              margin-bottom: 30px;
-              padding-bottom: 15px;
-              border-bottom: 2px solid #000;
+              margin-bottom: 15px;
+              padding-bottom: 10px;
+              border-bottom: 1px solid #000;
           }
           .header h1 {
-              margin: 0 0 10px 0;
-              color: #000;
-              font-size: 32px;
+              margin: 0 0 5px 0;
+              font-size: 18px;
               font-weight: bold;
           }
           .header p {
-              margin: 5px 0;
-              color: #000;
-              font-size: 18px;
+              margin: 2px 0;
+              font-size: 10px;
           }
           .summary {
-              background-color: #f0f0f0;
-              padding: 15px;
-              border-radius: 5px;
-              margin-bottom: 20px;
-              border-left: 5px solid #000;
+              background-color: #f8f9fa;
+              padding: 10px;
+              border-radius: 4px;
+              margin-bottom: 15px;
+              border: 1px solid #ddd;
           }
           .summary h3 {
-              margin: 0 0 10px 0;
-              color: #000;
-              font-weight: bold;
-              font-size: 20px;
+              margin: 0 0 8px 0;
+              font-size: 12px;
+              border-bottom: 1px solid #eee;
+              padding-bottom: 4px;
           }
           .summary-grid {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-              gap: 10px;
+              display: flex;
+              flex-wrap: wrap;
+              gap: 15px;
           }
           .summary-item {
-              font-size: 18px;
-              color: #000;
-          }
-          .summary-item strong {
-              color: #000;
-              font-weight: bold;
+              font-size: 10px;
           }
           table {
               width: 100%;
               border-collapse: collapse;
-              margin: 15px 0;
-              font-size: 16px;
-              page-break-inside: auto;
+              margin: 10px 0;
+              table-layout: fixed;
               border: 1px solid #000;
           }
           th, td {
-              border: 1px solid #333;
-              padding: 8px 10px;
-              text-align: left;
-              vertical-align: top;
-              color: #000;
+              border: 1px solid #000;
+              padding: 4px 6px;
+              word-wrap: break-word;
+              overflow: hidden;
+              vertical-align: middle;
           }
           thead th {
-              background-color: #e9ecef;
-              color: #000;
+              background-color: #f0f0f0;
               font-weight: bold;
               text-transform: uppercase;
-              font-size: 20px;
-              padding: 10px;
-              border: 1px solid #000;
+              font-size: 9px;
+              text-align: center;
           }
           .text-right { text-align: right; }
           .text-center { text-align: center; }
           .badge {
-              padding: 3px 6px;
-              border-radius: 3px;
-              font-size: 9px;
+              padding: 2px 4px;
+              border-radius: 2px;
+              font-size: 8px;
               font-weight: bold;
+              display: inline-block;
           }
-          .badge-rent { background-color: #000; color: white; }
-          .badge-return { background-color: #000; color: white; }
-          .badge-issue { background-color: #000; color: white; }
           .footer {
-              margin-top: 40px;
-              padding-top: 20px;
+              margin-top: 20px;
+              font-size: 8px;
               text-align: center;
-              font-size: 11px;
-              color: #000;
-              border-top: 1px solid #000;
+              color: #666;
           }
       </style>
   </head>
@@ -483,71 +463,57 @@ $(document).ready(function () {
           <p>සකස් කළ දිනය: ${new Date().toLocaleString()}</p>
       </div>
 
-
       <div class="summary">
           <h3>වාර්තා සාරාංශය</h3>
           <div class="summary-grid">
               <div class="summary-item"><strong>කාල පරාසය:</strong> ${dateRange}</div>
-              <div class="summary-item"><strong>මුළු බිල්පත් ගණන:</strong> ${totalBills}</div>
-              <div class="summary-item"><strong>කුලියට දීම බිල්පත්:</strong> ${totalRentBills}</div>
-              <div class="summary-item"><strong>ආපසු ලබා ගැනීම් බිල්පත්:</strong> ${totalReturnBills}</div>
-               <div class="summary-item"><strong>මුළු ලාභය:</strong> Rs. ${totalAmount}</div>
-               <div class="summary-item"><strong>මුළු ආපසු ගෙවීම් / මුදල් ලැබීම්:</strong> Rs. ${totalProfitExport}</div>
+              <div class="summary-item"><strong>මුළු බිල්පත්:</strong> ${totalBills}</div>
+              <div class="summary-item"><strong>කුලියට දීම:</strong> ${totalRentBills}</div>
+              <div class="summary-item"><strong>ආපසු ලබා ගැනීම්:</strong> ${totalReturnBills}</div>
+              <div class="summary-item"><strong>මුළු ලාභය:</strong> Rs. ${totalAmount}</div>
+              <div class="summary-item"><strong>මුළු ලැබීම්/ගෙවීම්:</strong> Rs. ${totalProfitExport}</div>
           </div>
       </div>
 
-
       <table>
           <thead>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">බිල්පත් වර්ගය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">බිල්පත් අංකය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">දිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">පාරිභෝගිකයා</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">දුරකථන</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">ලිපිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">හැඳුනුම්පත් අංකය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">දින ගණන</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">කුලියට ගත් දිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">ආපසු ලබා දුන් දිනය</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">ප්‍රමාණය</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">තැන්පතුව</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">ලාභය</th>
-                 <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">අතිරේක මුදල</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px; text-align: right;">ආපසු ගෙවීම් / මුදල් ලැබීම්</th>
-                <th style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">සටහන්</th>
-            </tr>
-        </thead>
-        <tbody>`;
+              <tr>
+                <th style="width: 7%;">වර්ගය</th>
+                <th style="width: 6%;">අංකය</th>
+                <th style="width: 8%;">දිනය</th>
+                <th style="width: 12%;">පාරිභෝගිකයා</th>
+                <th style="width: 8%;">දුරකථන</th>
+                <th style="width: 15%;">ලිපිනය</th>
+                <th style="width: 10%;">හැඳුනුම්පත</th>
+                <th style="width: 4%;">දින</th>
+                <th style="width: 10%;">සටහන</th>
+                <th style="width: 4%; text-align: right;">ප්‍රමාණය</th>
+                <th style="width: 5%; text-align: right;">තැන්පතුව</th>
+                <th style="width: 5%; text-align: right;">ලාභය</th>
+                <th style="width: 6%; text-align: right;">අතිරේක</th>
+              </tr>
+          </thead>
+          <tbody>`;
 
         data.forEach((item) => {
-            let badgeClass = 'badge-rent';
-            let badgeStyle = 'background-color: #f1b44c; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: 600;';
-
-            const billTypeSinhala = item.bill_type === 'Rent' ? 'කුලියට දීම' : 'ආපසු ලබා ගැනීම';
-
-            if (item.bill_type === 'Return') {
-                badgeClass = 'badge-return';
-                badgeStyle = 'background-color: #50a5f1; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: 600;';
-            }
+            const billTypeSinhala = item.bill_type === 'Rent' ? 'කුලියට' : 'ආපසු';
+            const badgeBg = item.bill_type === 'Rent' ? '#f1b44c' : '#50a5f1';
 
             html += `
               <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;"><span style="${badgeStyle}">${billTypeSinhala}</span></td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.bill_no || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.date || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_name || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_tel || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; font-size: 16px;">${item.customer_address || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.customer_nic || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.day_count || '-'}${item.after_9am == 1 ? ' <span style="background-color: #dc3545; color: #fff; padding: 2px 4px; border-radius: 3px; font-size: 9px; margin-left: 5px; font-weight: bold;">+1 DAY</span>' : ''}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.rent_date || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.return_date || '-'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item.quantity || 0}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item.deposit || '0.00'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item.amount || '0.00'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item.extra_amount || '0.00'}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>${item.profit_balance}</strong></td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${item.remarks || '-'}</td>
+                  <td class="text-center"><span class="badge" style="background-color: ${badgeBg}; color: white;">${billTypeSinhala}</span></td>
+                  <td class="text-center">${item.bill_no || '-'}</td>
+                  <td class="text-center">${item.date || '-'}</td>
+                  <td>${item.customer_name || '-'}</td>
+                  <td class="text-center">${item.customer_tel || '-'}</td>
+                  <td style="font-size: 8px;">${item.customer_address || '-'}</td>
+                  <td class="text-center">${item.customer_nic || '-'}</td>
+                  <td class="text-center">${item.day_count || '-'}${item.after_9am == 1 ? '<br><span style="color:red; font-size:7px;">+1 DAY</span>' : ''}</td>
+                  <td style="font-size: 8px;">${item.remarks || '-'}</td>
+                  <td class="text-right">${item.quantity || 0}</td>
+                  <td class="text-right">${item.deposit || '0.00'}</td>
+                  <td class="text-right">${item.amount || '0.00'}</td>
+                  <td class="text-right">${item.extra_amount || '0.00'}</td>
               </tr>`;
         });
 
@@ -555,20 +521,18 @@ $(document).ready(function () {
           </tbody>
           <tfoot>
               <tr style="background-color: #f8f9fa; font-weight: bold;">
-                  <td colspan="10" style="border: 1px solid #ddd; padding: 8px; text-align: right;">එකතුව</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_quantity}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">-</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_amount}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_extra_amount}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${summary.total_profit}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;"></td>
+                  <td colspan="9" class="text-right">එකතුව</td>
+                  <td class="text-right">${summary.total_quantity}</td>
+                  <td class="text-right">-</td>
+                  <td class="text-right">${summary.total_amount}</td>
+                  <td class="text-right">${summary.total_extra_amount}</td>
               </tr>
           </tfoot>
       </table>
 
       <div class="footer">
           <p>මෙම වාර්තාව ජනනය කරන ලද්දේ එකමුතු එන්ටර්ප්‍රයිසස් බිල්පත් කළමනාකරණ පද්ධතිය මගිනි</p>
-          <p style="margin: 5px 0 0 0; font-size: 10px; color: #bdc3c7;">පිටුව <span class="pageNumber"></span> න් <span class="totalPages"></span></p>
+          <p>පිටුව <span class="pageNumber"></span> න් <span class="totalPages"></span></p>
       </div>
   </body>
   </html>`;

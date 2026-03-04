@@ -45,7 +45,7 @@ $(document).ready(function () {
                                 <td>${row.customer_name || ''}</td>
                                 <td>${row.mobile_number || ''}</td>
                                 <td class="text-center fw-bold">${row.rent_count}</td>
-                                <td class="text-end">${Number(row.total_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td class="text-end">${Number(row.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                 <td>${row.last_rental_date || ''}</td>
                             </tr>
                         `;
@@ -58,7 +58,7 @@ $(document).ready(function () {
 
                 $('#statTotalCustomers').text(res.data.length);
                 $('#statTotalRentals').text(totalRentals);
-                $('#statTotalAmount').text(totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                $('#statTotalAmount').text(totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 $('#printDateRange').text('From ' + fromDate + ' to ' + toDate);
 
                 table = $('#frequencyTable').DataTable({
@@ -81,7 +81,16 @@ $(document).ready(function () {
     });
 
     $('#printBtn').on('click', function () {
-        window.print();
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+
+        if (!fromDate || !toDate) {
+            swal("Error", "Please select a valid date range", "error");
+            return;
+        }
+
+        var url = 'print-equipment-rent-frequency.php?from_date=' + fromDate + '&to_date=' + toDate;
+        window.open(url, '_blank');
     });
 
     // Default date range current month

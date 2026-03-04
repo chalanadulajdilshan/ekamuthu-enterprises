@@ -62,6 +62,85 @@ include 'auth.php';
             color: #ffffff !important;
             font-weight: bold;
         }
+
+        /* Modern DataTable Header */
+        #reportTable thead th {
+            background-color: #4e73df;
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: middle;
+            padding: 15px 10px;
+            white-space: nowrap;
+        }
+
+        #reportTable thead .sorting:before, 
+        #reportTable thead .sorting:after,
+        #reportTable thead .sorting_asc:before,
+        #reportTable thead .sorting_asc:after,
+        #reportTable thead .sorting_desc:before,
+        #reportTable thead .sorting_desc:after {
+            color: #ffffff !important;
+            opacity: 0.5;
+        }
+
+        #reportTable thead .sorting_asc:before,
+        #reportTable thead .sorting_desc:after {
+            opacity: 1;
+        }
+
+        #reportTable tbody td {
+            vertical-align: middle;
+            font-size: 13.5px;
+            color: #444;
+            padding: 10px;
+        }
+
+        #reportTable tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.03);
+            transition: background-color 0.2s ease;
+        }
+
+        .bill-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge-rent {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .badge-return {
+            background-color: #f1f8e9;
+            color: #388e3c;
+            border: 1px solid #dcedc8;
+        }
+
+        .dataTables_wrapper .dataTables_length, 
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 15px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 20px;
+            padding: 5px 15px;
+            border: 1px solid #d1d3e2;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 
@@ -186,7 +265,8 @@ include 'auth.php';
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <table id="reportTable" class="table table-bordered dt-responsive nowrap w-100">
+                                    <div class="table-responsive">
+                                        <table id="reportTable" class="table table-bordered table-hover w-100">
                                         <thead>
                                             <tr>
                                                 <th style="width: 30px;"></th>
@@ -222,7 +302,8 @@ include 'auth.php';
                                                 <td></td>
                                             </tr>
                                         </tfoot>
-                                    </table>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
