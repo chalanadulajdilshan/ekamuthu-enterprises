@@ -37,7 +37,7 @@ include 'auth.php';
                                 <div class="card-body">
                                     <h5 class="card-title mb-3">Filter by Status</h5>
                                     <div class="row align-items-end">
-                                        <div class="col-md-3">
+                                        <div class="col-md-6">
                                             <label class="form-label">Status</label>
                                             <select class="form-select" id="status_filter">
                                                 <option value="">All</option>
@@ -46,14 +46,6 @@ include 'auth.php';
                                                 <option value="repair">Repair</option>
                                                 <option value="damage">Damaged</option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Date From</label>
-                                            <input type="date" class="form-control" id="from_date" value="<?php echo date('Y-m-01'); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Date To</label>
-                                            <input type="date" class="form-control" id="to_date" value="<?php echo date('Y-m-d'); ?>">
                                         </div>
                                         <div class="col-md-3">
                                             <button type="button" id="btn-filter" class="btn btn-primary w-100">
@@ -71,7 +63,7 @@ include 'auth.php';
                         <div class="col-md-2 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
-                                    <h6 class="text-muted mb-2">Total Equipment</h6>
+                                    <h6 class="text-muted mb-2">Overall Total Equipment</h6>
                                     <h4 class="mb-0" id="count-total">0</h4>
                                 </div>
                             </div>
@@ -126,8 +118,6 @@ include 'auth.php';
                                                     <th>Department</th>
                                                     <th>Status</th>
                                                     <th class="text-end">Cur. Qty</th>
-                                                    <th class="text-end">Rented (Period)</th>
-                                                    <th class="text-end">Returned (Period)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>

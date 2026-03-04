@@ -7,8 +7,6 @@ $(document).ready(function () {
             "type": "POST",
             "data": function (d) {
                 d.status = $('#status_filter').val();
-                d.from_date = $('#from_date').val();
-                d.to_date = $('#to_date').val();
             }
         },
         "columns": [
@@ -54,14 +52,6 @@ $(document).ready(function () {
             {
                 "data": "quantity",
                 "className": "text-end"
-            },
-            {
-                "data": "rented_in_range",
-                "className": "text-end"
-            },
-            {
-                "data": "returned_in_range",
-                "className": "text-end"
             }
         ],
         "order": [[1, "asc"]], // Sort by Code
@@ -73,7 +63,7 @@ $(document).ready(function () {
         loadStatusCounts();
     });
 
-    $('#status_filter, #from_date, #to_date').change(function () {
+    $('#status_filter').change(function () {
         table.ajax.reload();
         loadStatusCounts();
     });
@@ -99,7 +89,10 @@ $(document).ready(function () {
         $.ajax({
             url: "ajax/php/equipment-status-report.php",
             type: "POST",
-            data: { action: "get_stats" },
+            data: {
+                action: "get_stats",
+                status: $('#status_filter').val()
+            },
             dataType: "json",
             success: function (resp) {
                 if (resp.status === "success") {
