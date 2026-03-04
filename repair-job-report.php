@@ -49,106 +49,7 @@ include 'auth.php';
             background-color: #f8f9fa;
         }
     </style>
-    <style media="print">
-        @page {
-            size: landscape;
-            margin: 10mm;
-        }
 
-        /* Hide everything by default */
-        body * {
-            visibility: hidden;
-        }
-
-        /* Show the main container and its children */
-        .container-fluid,
-        .container-fluid * {
-            visibility: visible;
-        }
-
-        /* Position the container at the top left */
-        .container-fluid {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Explicitly hide navigation, header, footer, etc. */
-        #page-topbar,
-        .vertical-menu,
-        .main-content .page-content .container-fluid .row:first-child, /* Page Title Row */
-        .card-body form,
-        .footer,
-        .navbar-header,
-        .dataTables_length,
-        .dataTables_filter,
-        .dataTables_info,
-        .dataTables_paginate {
-            display: none !important;
-        }
-
-        /* Print Header Styling */
-        .print-header {
-            display: block !important;
-            text-align: center;
-            margin-bottom: 20px;
-            visibility: visible !important;
-            position: relative; 
-        }
-        
-        .print-header h2 { margin: 0; font-size: 24px; font-weight: bold; color: #000; }
-        .print-header p { margin: 5px 0; font-size: 14px; color: #000; }
-        
-        /* Adjust card styling for print */
-        .card {
-            border: none !important;
-            box-shadow: none !important;
-            margin-bottom: 0 !important;
-        }
-
-        .card-body {
-            padding: 0 !important;
-        }
-
-        /* Ensure table fits and looks good */
-        .table-responsive {
-            overflow: visible !important;
-        }
-        
-        table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-size: 10px !important; /* Reduce font size for print */
-        }
-        table td, table th {
-            padding: 4px !important; /* Reduce padding */
-            border: 1px solid #000 !important;
-        }
-        
-        /* Make Summary Cards look cleaner */
-        #summarySection { 
-            display: flex !important; 
-            flex-wrap: wrap; 
-            margin-bottom: 20px;
-        }
-        #summarySection .col-md-3 {
-            flex: 0 0 25%;
-            max-width: 25%;
-            padding: 0 5px;
-        }
-        .mini-stats-wid .card-body {
-            border: 1px solid #ddd;
-            padding: 10px !important;
-        }
-        
-        /* Ensure text is black */
-        body, p, h1, h2, h3, h4, h5, h6, td, th {
-            color: #000 !important;
-        }
-    </style>
 <?php
 // Get Repair Job Page ID for redirection
 $db = Database::getInstance();
@@ -173,15 +74,7 @@ if ($row = mysqli_fetch_assoc($result)) {
         <div class="main-content">
             <div class="page-content">
                 <div class="container-fluid">
-                    <!-- Print Header -->
-                    <div class="d-none d-print-block print-header">
-                        <h2><?php echo $COMPANY_PROFILE_DETAILS->name ?></h2>
-                        <p><?php echo $COMPANY_PROFILE_DETAILS->address ?></p>
-                        <p>Phone: <?php echo $COMPANY_PROFILE_DETAILS->mobile_number_1 ?> | Email: <?php echo $COMPANY_PROFILE_DETAILS->email ?></p>
-                        <hr style="border-top: 2px solid #000;">
-                        <h4 class="mt-3">Repair Jobs Report - අලුත්වැඩියා රැකියා වාර්තාව</h4>
-                        <p>Generated on: <?php echo date('Y-m-d H:i:s'); ?></p>
-                    </div>
+
 
                     <!-- start page title -->
                     <div class="row">

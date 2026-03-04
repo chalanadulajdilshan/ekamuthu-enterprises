@@ -87,7 +87,8 @@ $(document).ready(function () {
                         buttons: [
                             'copy', 'csv', 'excel', 'pdf', 'print'
                         ],
-                        order: [[1, 'desc']] // Order by Date
+                        order: [[1, 'desc']], // Order by Date
+                        pageLength: 25
                     });
 
                     // Row click event
@@ -126,9 +127,14 @@ $(document).ready(function () {
         location.reload();
     });
 
-    // Print Button Click
+    // Print Button Click - open dedicated print page
     $('#printBtn').click(function () {
-        window.print();
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        var status = $('#statusFilter').val();
+
+        var url = `print-repair-job-report.php?from_date=${fromDate}&to_date=${toDate}&status=${status}`;
+        window.open(url, '_blank');
     });
 
     // Load initial data
