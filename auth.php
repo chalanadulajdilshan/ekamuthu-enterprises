@@ -53,6 +53,7 @@ $skipPages[] = 'system-payment-required.php';
 // Allow printable reports without permission check
 $skipPages[] = 'print-return-income-report.php';
 $skipPages[] = 'print-outstanding-report.php';
+$skipPages[] = 'print-item-income-report.php';
 
 foreach ($nonPermissionPages as $page) {
     $skipPages[] = $page['page']; // add page name to skipPages array

@@ -13,6 +13,7 @@ $(document).ready(function () {
             success: function (res) {
                 if (res.status !== 'success') { swal('Error', res.message || 'Failed', 'error'); return; }
                 $('#sumValue').text(res.summary.total_value);
+                $('#sumRentedQty').text(res.summary.total_rented_qty);
                 $('#sumRentValue').text(res.summary.total_rent_value);
                 $('#sumRepairCost').text(res.summary.total_repair_cost);
                 $('#sumProfit').text(res.summary.total_profit);
@@ -84,7 +85,7 @@ $(document).ready(function () {
     $('#resetBtn').click(function () { location.reload(); });
     $('#printBtn').click(function () {
         var f=$('#fromDate').val(), t=$('#toDate').val();
-        if (f&&t) window.open('print-return-income-report.php?from='+f+'&to='+t,'_blank');
+        if (f&&t) window.open('print-item-income-report.php?from='+f+'&to='+t,'_blank');
         else swal('Error','Please select a date range first','error');
     });
 
