@@ -103,6 +103,11 @@ $chargesData = mysqli_fetch_assoc($chargesResult);
 $total_charges = floatval($chargesData['total_charges'] ?? 0);
 $refund_balance = $total_deposit - $total_charges;
 
+// Only show refund balance when there are actual returns; no returns = no refund paid to customer
+if (empty($return_rows)) {
+    $refund_balance = 0;
+}
+
 // Calculate total customer paid across all returns
 $total_customer_paid = 0;
 $total_extra_charges = 0;
@@ -112,6 +117,8 @@ foreach ($return_rows as $rr) {
     $total_extra_charges += floatval($rr['extra_charge_amount'] ?? 0);
     $total_repair_cost += floatval($rr['repair_cost'] ?? 0);
 }
+// Include deposit in total customer paid (deposit is money the customer paid upfront)
+$total_customer_paid += $total_deposit;
 
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;

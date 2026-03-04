@@ -1,116 +1,96 @@
 $(document).ready(function () {
-    function formatNumber(num) {
-        return parseFloat(num || 0).toFixed(2);
-    }
-
-    function renderSummary(summary) {
-        $('#sumRental').text(summary.rental);
-        $('#sumExtraDay').text(summary.extra_day);
-        $('#sumPenalty').text(summary.penalty);
-        $('#sumAdditional').text(summary.additional);
-        $('#sumDamage').text(summary.damage);
-
-        // Footer totals
-        $('#sumRentalFoot').text(summary.rental);
-        $('#sumExtraDayFoot').text(summary.extra_day);
-        $('#sumPenaltyFoot').text(summary.penalty);
-        $('#sumAdditionalFoot').text(summary.additional);
-        $('#sumDamageFoot').text(summary.damage);
-    }
+    function fmt(n) { return parseFloat(n || 0).toFixed(2); }
+    function pc(v) { return v >= 0 ? 'profit-positive' : 'profit-negative'; }
 
     function loadReport() {
-        const fromDate = $('#fromDate').val();
-        const toDate = $('#toDate').val();
-
-        if (!fromDate || !toDate) {
-            swal('Error', 'Please select a valid date range', 'error');
-            return;
-        }
-
+        var fromDate = $('#fromDate').val(), toDate = $('#toDate').val();
+        if (!fromDate || !toDate) { swal('Error', 'Please select a valid date range', 'error'); return; }
         $('#summarySection').show();
-        $('#reportTableBody').html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
-
+        $('#reportTableBody').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
         $.ajax({
-            url: 'ajax/php/item-income-report.php',
-            method: 'POST',
-            dataType: 'json',
-            data: {
-                action: 'get_item_income_report',
-                from_date: fromDate,
-                to_date: toDate
-            },
+            url: 'ajax/php/item-income-report.php', method: 'POST', dataType: 'json',
+            data: { action: 'get_item_income_report', from_date: fromDate, to_date: toDate },
             success: function (res) {
-                if (res.status !== 'success') {
-                    swal('Error', res.message || 'Failed to load data', 'error');
-                    return;
-                }
-
-                let rows = '';
-                if (res.data.length > 0) {
-                    res.data.forEach(function (item) {
-                        rows += `
-                            <tr>
-                                <td>${item.item_label}</td>
-                                <td class="text-end">${item.total_return_qty}</td>
-                                <td class="text-end">${formatNumber(item.rental_amount)}</td>
-                                <td class="text-end">${formatNumber(item.extra_day_amount)}</td>
-                                <td class="text-end">${formatNumber(item.penalty_amount)}</td>
-                                <td class="text-end text-success">${formatNumber(item.additional_payment)}</td>
-                                <td class="text-end text-danger">${formatNumber(item.damage_amount)}</td>
-                            </tr>`;
-                    });
-                } else {
-                    rows = '<tr><td colspan="7" class="text-center">No records found</td></tr>';
-                }
-
-                $('#reportTableBody').html(rows);
-                renderSummary(res.summary);
-
-                if ($.fn.DataTable.isDataTable('#reportTable')) {
-                    $('#reportTable').DataTable().destroy();
-                }
-
-                $('#reportTable').DataTable({
-                    order: [[0, 'asc']],
-                    pageLength: 50
+                if (res.status !== 'success') { swal('Error', res.message || 'Failed', 'error'); return; }
+                $('#sumValue').text(res.summary.total_value);
+                $('#sumRentValue').text(res.summary.total_rent_value);
+                $('#sumRepairCost').text(res.summary.total_repair_cost);
+                $('#sumProfit').text(res.summary.total_profit);
+                var d = res.data, rows = '', tV=0,tRQ=0,tRV=0,tPQ=0,tPC=0,tPR=0;
+                if (!d.length) { $('#reportTableBody').html('<tr><td colspan="9" class="text-center">No records found</td></tr>'); return; }
+                d.forEach(function(eq, i) {
+                    var id='eq_'+i, t=eq.totals, hasSub=eq.sub_equipment.some(function(s){return s.sub_equipment_code!==null;});
+                    var btn = hasSub ? '<button class="btn btn-sm btn-outline-primary toggle-btn" data-target="'+id+'">+</button>' : '';
+                    var label = eq.equipment_code + ' - ' + eq.equipment_name;
+                    rows += '<tr class="equipment-row" data-target="'+id+'">';
+                    rows += '<td class="text-center">'+btn+'</td>';
+                    rows += '<td>'+label+'</td>';
+                    rows += '<td class="text-end">'+fmt(t.value)+'</td>';
+                    rows += '<td class="text-end">'+t.rented_qty+'</td>';
+                    rows += '<td class="text-end">'+fmt(t.rent_value)+'</td>';
+                    rows += '<td class="text-end">'+t.repair_qty+'</td>';
+                    rows += '<td class="text-end">'+fmt(t.repair_cost)+'</td>';
+                    rows += '<td class="text-end '+pc(t.profit)+'">'+fmt(t.profit)+'</td>';
+                    rows += '<td class="text-end">'+fmt(t.roi)+'%</td>';
+                    rows += '</tr>';
+                    if (hasSub) {
+                        eq.sub_equipment.forEach(function(se) {
+                            if (!se.sub_equipment_code) return;
+                            rows += '<tr class="sub-equipment-row '+id+'" style="display:none;">';
+                            rows += '<td></td>';
+                            rows += '<td>'+se.sub_equipment_code+'</td>';
+                            rows += '<td class="text-end">'+fmt(se.value)+'</td>';
+                            rows += '<td class="text-end">'+se.rented_qty+'</td>';
+                            rows += '<td class="text-end">'+fmt(se.rent_value)+'</td>';
+                            rows += '<td class="text-end">'+se.repair_qty+'</td>';
+                            rows += '<td class="text-end">'+fmt(se.repair_cost)+'</td>';
+                            rows += '<td class="text-end '+pc(se.profit)+'">'+fmt(se.profit)+'</td>';
+                            rows += '<td class="text-end">'+fmt(se.roi)+'%</td>';
+                            rows += '</tr>';
+                        });
+                    }
+                    tV+=t.value; tRQ+=t.rented_qty; tRV+=t.rent_value; tPQ+=t.repair_qty; tPC+=t.repair_cost; tPR+=t.profit;
                 });
+                $('#reportTableBody').html(rows);
+                var roi = tV>0 ? ((tPR/tV)*100).toFixed(2) : '0.00';
+                $('#footValue').text(fmt(tV));
+                $('#footRentedQty').text(tRQ);
+                $('#footRentValue').text(fmt(tRV));
+                $('#footRepairQty').text(tPQ);
+                $('#footRepairCost').text(fmt(tPC));
+                $('#footProfit').html('<span class="'+pc(tPR)+'">'+fmt(tPR)+'</span>');
+                $('#footRoi').text(roi+'%');
             },
             error: function () {
                 swal('Error', 'Server error occurred', 'error');
-                $('#reportTableBody').html('<tr><td colspan="10" class="text-center text-danger">Error loading data</td></tr>');
+                $('#reportTableBody').html('<tr><td colspan="9" class="text-center text-danger">Error loading data</td></tr>');
             }
         });
     }
 
+    $(document).on('click', '.toggle-btn', function (e) {
+        e.stopPropagation();
+        var target = $(this).data('target');
+        var subs = $('.sub-equipment-row.' + target);
+        if (subs.first().is(':visible')) { subs.hide(); $(this).text('+'); }
+        else { subs.show(); $(this).text('-'); }
+    });
+
+    $(document).on('click', '.equipment-row', function () {
+        $(this).find('.toggle-btn').click();
+    });
+
     $('#searchBtn').click(loadReport);
-
-    $('#resetBtn').click(function () {
-        location.reload();
-    });
-
+    $('#resetBtn').click(function () { location.reload(); });
     $('#printBtn').click(function () {
-        const fromDate = $('#fromDate').val();
-        const toDate = $('#toDate').val();
-        if (fromDate && toDate) {
-            window.open('print-return-income-report.php?from=' + fromDate + '&to=' + toDate, '_blank');
-        } else {
-            swal('Error', 'Please select a date range first', 'error');
-        }
+        var f=$('#fromDate').val(), t=$('#toDate').val();
+        if (f&&t) window.open('print-return-income-report.php?from='+f+'&to='+t,'_blank');
+        else swal('Error','Please select a date range first','error');
     });
 
-    // Default to current month
-    const date = new Date();
-    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-    function formatDate(d) {
-        const month = ('0' + (d.getMonth() + 1)).slice(-2);
-        const day = ('0' + d.getDate()).slice(-2);
-        return [d.getFullYear(), month, day].join('-');
-    }
-
-    $('#fromDate').val(formatDate(firstDay));
-    $('#toDate').val(formatDate(lastDay));
-
+    var now = new Date();
+    function pad(d) { var m=('0'+(d.getMonth()+1)).slice(-2), dy=('0'+d.getDate()).slice(-2); return [d.getFullYear(),m,dy].join('-'); }
+    $('#fromDate').val(pad(new Date(now.getFullYear(), now.getMonth(), 1)));
+    $('#toDate').val(pad(new Date(now.getFullYear(), now.getMonth()+1, 0)));
     loadReport();
 });

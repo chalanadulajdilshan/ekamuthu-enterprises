@@ -19,6 +19,14 @@ include 'auth.php';
             .card { box-shadow: none !important; border: none !important; }
             body { background-color: #fff !important; }
         }
+        .equipment-row { background-color: #f0f4f8 !important; font-weight: 600; cursor: pointer; }
+        .equipment-row:hover { background-color: #e2e8f0 !important; }
+        .sub-equipment-row { background-color: #fff !important; }
+        .sub-equipment-row td:nth-child(2) { padding-left: 35px !important; }
+        .toggle-btn { width: 26px; height: 26px; padding: 0; font-size: 14px; font-weight: bold; line-height: 24px; border-radius: 4px; }
+        .profit-positive { color: #28a745; }
+        .profit-negative { color: #dc3545; }
+        #reportTable tbody tr td { vertical-align: middle; }
     </style>
 </head>
 <body data-layout="horizontal" data-topbar="colored">
@@ -64,47 +72,48 @@ include 'auth.php';
 
                             <div class="row" id="summarySection" style="display:none;">
                                 <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Rental</p><h5 class="mb-0" id="sumRental">0.00</h5></div></div>
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Value</p><h5 class="mb-0" id="sumValue">0.00</h5></div></div>
                                 </div>
                                 <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Extra Day</p><h5 class="mb-0" id="sumExtraDay">0.00</h5></div></div>
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Rent Value</p><h5 class="mb-0 text-primary" id="sumRentValue">0.00</h5></div></div>
                                 </div>
                                 <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Penalty</p><h5 class="mb-0" id="sumPenalty">0.00</h5></div></div>
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Repair Cost</p><h5 class="mb-0 text-danger" id="sumRepairCost">0.00</h5></div></div>
                                 </div>
                                 <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Additional</p><h5 class="mb-0 text-success" id="sumAdditional">0.00</h5></div></div>
-                                </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Damage</p><h5 class="mb-0 text-danger" id="sumDamage">0.00</h5></div></div>
+                                    <div class="card mini-stats-wid"><div class="card-body"><p class="text-muted fw-medium mb-1">Total Profit</p><h5 class="mb-0 text-success" id="sumProfit">0.00</h5></div></div>
                                 </div>
                             </div>
 
                             <div class="card">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="reportTable" class="table table-bordered table-striped dt-responsive nowrap w-100">
-                                            <thead>
+                                        <table id="reportTable" class="table table-bordered dt-responsive nowrap w-100 mb-0">
+                                            <thead class="table-dark">
                                                 <tr>
+                                                    <th style="width:30px;"></th>
                                                     <th>Item / Sub Equipment</th>
-                                                    <th class="text-end">Returned Qty</th>
-                                                    <th class="text-end">Rental</th>
-                                                    <th class="text-end">Extra Day</th>
-                                                    <th class="text-end">Penalty</th>
-                                                    <th class="text-end">Additional</th>
-                                                    <th class="text-end">Damage</th>
+                                                    <th class="text-end">Value</th>
+                                                    <th class="text-end">Rented Qty</th>
+                                                    <th class="text-end">Rent Value</th>
+                                                    <th class="text-end">Repair Qty</th>
+                                                    <th class="text-end">Repair Cost</th>
+                                                    <th class="text-end">Profit</th>
+                                                    <th class="text-end">ROI %</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="reportTableBody"></tbody>
                                             <tfoot>
                                                 <tr class="fw-bold bg-light">
+                                                    <th></th>
                                                     <th class="text-end">TOTAL</th>
-                                                    <td></td>
-                                                    <td class="text-end" id="sumRentalFoot">-</td>
-                                                    <td class="text-end" id="sumExtraDayFoot">-</td>
-                                                    <td class="text-end" id="sumPenaltyFoot">-</td>
-                                                    <td class="text-end" id="sumAdditionalFoot">-</td>
-                                                    <td class="text-end" id="sumDamageFoot">-</td>
+                                                    <th class="text-end" id="footValue">-</th>
+                                                    <th class="text-end" id="footRentedQty">-</th>
+                                                    <th class="text-end" id="footRentValue">-</th>
+                                                    <th class="text-end" id="footRepairQty">-</th>
+                                                    <th class="text-end" id="footRepairCost">-</th>
+                                                    <th class="text-end" id="footProfit">-</th>
+                                                    <th class="text-end" id="footRoi">-</th>
                                                 </tr>
                                             </tfoot>
                                         </table>
