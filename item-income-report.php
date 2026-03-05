@@ -48,7 +48,7 @@ include 'auth.php';
                             <div class="card no-print">
                                 <div class="card-body">
                                     <form id="reportForm">
-                                        <div class="row align-items-end">
+                                        <div class="row align-items-end g-3">
                                             <div class="col-md-3">
                                                 <label for="fromDate" class="form-label">From Date</label>
                                                 <input type="text" class="form-control date-picker" id="fromDate" name="fromDate" autocomplete="off">
@@ -57,7 +57,11 @@ include 'auth.php';
                                                 <label for="toDate" class="form-label">To Date</label>
                                                 <input type="text" class="form-control date-picker" id="toDate" name="toDate" autocomplete="off">
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
+                                                <label for="equipmentCode" class="form-label">Equipment Code</label>
+                                                <input type="text" class="form-control" id="equipmentCode" name="equipmentCode" placeholder="e.g. 021" autocomplete="off">
+                                            </div>
+                                            <div class="col-md-3">
                                                 <label class="d-block">&nbsp;</label>
                                                 <div class="d-flex gap-2 flex-wrap">
                                                     <button type="button" class="btn btn-primary" id="searchBtn"><i class="mdi mdi-magnify me-1"></i> Search</button>
@@ -134,6 +138,9 @@ include 'auth.php';
     </div>
 
     <?php include 'main-js.php'; ?>
+    <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="ajax/js/item-income-report.js?v=<?php echo time(); ?>"></script>
     <script>
         $(function() {

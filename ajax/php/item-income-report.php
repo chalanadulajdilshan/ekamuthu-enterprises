@@ -5,8 +5,11 @@ header('Content-Type: application/json; charset=UTF-8');
 if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
     $from_date = $_POST['from_date'] ?? date('Y-m-d');
     $to_date   = $_POST['to_date'] ?? date('Y-m-d');
+    $equipment_code = trim($_POST['equipment_code'] ?? '');
 
     $db = Database::getInstance();
+    $equipment_code = $db->escapeString($equipment_code);
+    $equipmentWhere = $equipment_code !== '' ? " AND (e.code LIKE '%$equipment_code%' OR se.code LIKE '%$equipment_code%')" : '';
 
     // Rental amount calculation per return row (with rental_override support)
     $rentalCalc = "CASE WHEN err.rental_override IS NOT NULL
@@ -34,7 +37,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
                 INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
                 LEFT JOIN equipment e ON eri.equipment_id = e.id
                 LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
-                WHERE err.return_date BETWEEN '$from_date' AND '$to_date'
+                WHERE err.return_date BETWEEN '$from_date' AND '$to_date' $equipmentWhere
                 GROUP BY e.id, eri.sub_equipment_id
                 ORDER BY e.code ASC, se.code ASC";
 
@@ -81,6 +84,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_income_report') {
                     WHERE rj.item_type = 'company'
                     AND rj.created_at BETWEEN '$from_date 00:00:00' AND '$to_date 23:59:59'
                     AND rj.machine_code != ''
+                    " . ($equipment_code !== '' ? " AND rj.machine_code LIKE '%$equipment_code%'" : '') . "
                     GROUP BY rj.machine_code";
 
     $repairResult = $db->readQuery($repairQuery);

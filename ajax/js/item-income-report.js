@@ -3,13 +3,13 @@ $(document).ready(function () {
     function pc(v) { return v >= 0 ? 'profit-positive' : 'profit-negative'; }
 
     function loadReport() {
-        var fromDate = $('#fromDate').val(), toDate = $('#toDate').val();
+        var fromDate = $('#fromDate').val(), toDate = $('#toDate').val(), code = $('#equipmentCode').val().trim();
         if (!fromDate || !toDate) { swal('Error', 'Please select a valid date range', 'error'); return; }
         $('#summarySection').show();
         $('#reportTableBody').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
         $.ajax({
             url: 'ajax/php/item-income-report.php', method: 'POST', dataType: 'json',
-            data: { action: 'get_item_income_report', from_date: fromDate, to_date: toDate },
+            data: { action: 'get_item_income_report', from_date: fromDate, to_date: toDate, equipment_code: code },
             success: function (res) {
                 if (res.status !== 'success') { swal('Error', res.message || 'Failed', 'error'); return; }
                 $('#sumValue').text(res.summary.total_value);
@@ -84,9 +84,12 @@ $(document).ready(function () {
     $('#searchBtn').click(loadReport);
     $('#resetBtn').click(function () { location.reload(); });
     $('#printBtn').click(function () {
-        var f=$('#fromDate').val(), t=$('#toDate').val();
-        if (f&&t) window.open('print-item-income-report.php?from='+f+'&to='+t,'_blank');
-        else swal('Error','Please select a date range first','error');
+        var f=$('#fromDate').val(), t=$('#toDate').val(), c=$('#equipmentCode').val().trim();
+        if (f&&t) {
+            var url='print-item-income-report.php?from='+f+'&to='+t;
+            if(c) url += '&code='+encodeURIComponent(c);
+            window.open(url,'_blank');
+        } else swal('Error','Please select a date range first','error');
     });
 
     var now = new Date();
