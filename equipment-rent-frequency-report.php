@@ -135,9 +135,6 @@ include 'auth.php';
     </div>
 
     <?php include 'main-js.php'; ?>
-    <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="ajax/js/equipment-rent-frequency-report.js?v=<?php echo time(); ?>"></script>
     <script>
         $(function() {

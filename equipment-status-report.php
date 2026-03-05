@@ -339,8 +339,6 @@ include 'auth.php';
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
     <!-- Datatables -->
-    <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script> 
     <script src="assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
     <?php include 'main-js.php' ?>
     

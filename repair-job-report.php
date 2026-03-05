@@ -282,13 +282,10 @@ if ($row = mysqli_fetch_assoc($result)) {
     <?php include 'main-js.php'; ?>
 
     <!-- Required datatable js -->
-    <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
     <script src="assets/libs/moment/min/moment.min.js"></script>
     <script src="assets/libs/daterangepicker/daterangepicker.min.js"></script>
     <!-- jQuery UI Datepicker -->
     <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
     <!-- Custom JS for Repair Job Report -->
     <script src="ajax/js/repair-job-report.js?v=<?php echo time(); ?>"></script>

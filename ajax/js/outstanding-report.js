@@ -13,22 +13,22 @@ $(document).ready(function () {
     loadReport();
 
     // Generate Report Button
-    $('#generateBtn').click(function() {
+    $('#generateBtn').click(function () {
         loadReport();
     });
 
     // Print Report (detailed)
-    $('#printBtn').click(function() {
+    $('#printBtn').click(function () {
         openPrintWindow(false);
     });
 
     // Print Report (summary only)
-    $('#printSummaryBtn').click(function() {
+    $('#printSummaryBtn').click(function () {
         openPrintWindow(true);
     });
 
     // Clear Customer
-    $('#clearCustomer').click(function() {
+    $('#clearCustomer').click(function () {
         $('#customer_code').val('');
         $('#customer_id').val('');
         loadReport();
@@ -88,7 +88,7 @@ function loadReport() {
                 return json.data || [];
             }
         },
-        "order": [[ 2, "desc" ]],
+        "order": [[2, "desc"]],
         "columns": [
             {
                 "data": null,
@@ -100,7 +100,7 @@ function loadReport() {
             { "data": "rental_date" },
             { "data": "payment_type_name" },
             { "data": "customer_name" },
-            { 
+            {
                 "data": "status_label",
                 "render": function (data) {
                     return data === 'Returned'
