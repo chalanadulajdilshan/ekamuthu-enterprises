@@ -102,6 +102,7 @@ include 'auth.php';
                                                     <th>අයිතම</th>
                                                     <th class="text-end">අගය</th>
                                                     <th class="text-end">කුලියට දුන් ප්‍රමාණය</th>
+                                                    <th class="text-end">කිස්මත් දින</th>
                                                     <th class="text-end">කුලී අගය</th>
                                                     <th class="text-end">අලුත්වැඩියා කල ප්‍රමාණය</th>
                                                     <th class="text-end">අලුත්වැඩියා වියදම</th>
@@ -116,6 +117,7 @@ include 'auth.php';
                                                     <th class="text-end">TOTAL</th>
                                                     <th class="text-end" id="footValue">-</th>
                                                     <th class="text-end" id="footRentedQty">-</th>
+                                                    <th class="text-end" id="footBillableDays">-</th>
                                                     <th class="text-end" id="footRentValue">-</th>
                                                     <th class="text-end" id="footRepairQty">-</th>
                                                     <th class="text-end" id="footRepairCost">-</th>
