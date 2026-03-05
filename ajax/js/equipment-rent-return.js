@@ -171,6 +171,9 @@ $(document).ready(function () {
       success: function (response) {
         if (response.status === "success") {
           const calc = response.data;
+          const totalRent =
+            parseFloat(calc.rental_amount || 0) +
+            parseFloat(calc.extra_day_amount || 0);
 
           if (after9amExtraDay) {
             $("#extra_day_amount").prop("disabled", false);
@@ -236,6 +239,12 @@ $(document).ready(function () {
                                 <tr>
                                     <td>Extra Day Amount:</td>
                                     <td class="text-right">Rs. ${parseFloat(calc.extra_day_amount || 0).toFixed(2)}</td>
+                                </tr>`;
+
+          settlementHtml += `
+                                <tr>
+                                    <td><strong>Total Rent:</strong></td>
+                                    <td class="text-right"><strong>Rs. ${totalRent.toFixed(2)}</strong></td>
                                 </tr>`;
 
           if (calc.is_late) {

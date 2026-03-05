@@ -2535,6 +2535,14 @@ jQuery(document).ready(function () {
         settlement.push(
           "Extra Day: Rs. " + formatCurrency(calc.extra_day_amount),
         );
+
+        var totalRent =
+          Number(rentalValue || 0) + Number(calc.extra_day_amount || 0);
+        var totalWithExtra =
+          Number(totalRent || 0) + Number(calc.extra_charge_amount || 0);
+        settlement.push(
+          "Total Rent: Rs. " + formatCurrency(totalWithExtra),
+        );
         settlement.push(
           "Damage: Rs. " + formatCurrency(calc.damage_amount),
         );

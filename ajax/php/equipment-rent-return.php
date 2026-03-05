@@ -79,6 +79,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     $RETURN->refund_amount = $calculation['refund_amount'];
     $RETURN->additional_payment = $calculation['additional_payment'];
     $RETURN->remark = $remark;
+
+    // Persist total rent at item-level
+    $RENT_ITEM = new EquipmentRentItem($rent_item_id);
+    $RENT_ITEM->total_rent_amount = $calculation['total_rent_amount'] ?? 0;
+    $RENT_ITEM->update();
     
     // Outstanding tracking
     $customer_paid = floatval($_POST['customer_paid'] ?? 0);
@@ -99,6 +104,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
         
         // Check if all items for this rent are returned
         $EQUIPMENT_RENT = new EquipmentRent($RENT_ITEM->rent_id);
+        
+        // Update header total rent as sum of items
+        $db = Database::getInstance();
+        $sumRes = mysqli_fetch_assoc($db->readQuery("SELECT COALESCE(SUM(total_rent_amount),0) AS total FROM equipment_rent_items WHERE rent_id = " . (int)$RENT_ITEM->rent_id));
+        $EQUIPMENT_RENT->total_rent_amount = $sumRes['total'] ?? 0;
+        $EQUIPMENT_RENT->update();
         if (!$EQUIPMENT_RENT->hasActiveRentals()) {
             $EQUIPMENT_RENT->status = 'returned';
             // Use latest return date/time across all items for this rent

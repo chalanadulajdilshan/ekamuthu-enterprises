@@ -13,6 +13,7 @@ class EquipmentRentItem
     public $rent_type;
     public $duration;
     public $amount;
+    public $total_rent_amount;
     public $deposit_amount;
     public $status;
     public $department_id;
@@ -39,6 +40,7 @@ class EquipmentRentItem
                 $this->rent_type = $result['rent_type'];
                 $this->duration = $result['duration'];
                 $this->amount = $result['amount'];
+                $this->total_rent_amount = $result['total_rent_amount'] ?? 0;
                 $this->deposit_amount = $result['deposit_amount'] ?? 0;
                 $this->status = $result['status'];
                 $this->department_id = $result['department_id'] ?? null;
@@ -60,9 +62,9 @@ class EquipmentRentItem
         $now = date('Y-m-d H:i:s');
 
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`, `created_at`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `total_rent_amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`, `created_at`
         ) VALUES (
-            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue, '$now'
+            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->total_rent_amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue, '$now'
         )";
 
         $db = Database::getInstance();
@@ -112,6 +114,7 @@ class EquipmentRentItem
             `rent_type` = '$this->rent_type',
             `duration` = '$this->duration',
             `amount` = '$this->amount',
+            `total_rent_amount` = '$this->total_rent_amount',
             `deposit_amount` = '$this->deposit_amount',
             `status` = '$this->status',
             `department_id` = $deptValue,

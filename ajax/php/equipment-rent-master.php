@@ -905,6 +905,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         $totals['extra_charge_amount'] = round($extraChargeTotal, 2);
         $totals['repair_cost'] = round($repairCost, 2);
         $totalRawChargesWithExtra = $totalRawCharges + $extraChargeTotal;
+        $totals['total_rent_amount'] = $totalRawChargesWithExtra;
         foreach ($itemCalculations as &$entry) {
             $itemShare = $totalRawCharges > 0
                 ? ($entry['raw_charge'] / $totalRawCharges) * $extraChargeTotal
@@ -936,6 +937,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         $totalCustomerPaid = isset($_POST['customer_paid']) ? floatval($_POST['customer_paid']) : 0;
         $totalAdditionalPayment = $totals['additional_payment'];
 
+        // Persist header total rent amount
+        $EQUIPMENT_RENT->total_rent_amount = $totals['total_rent_amount'];
+
         // Handle company_refund_paid for partial refund scenarios
         $totalCompanyRefundPaid = isset($_POST['company_refund_paid']) ? floatval($_POST['company_refund_paid']) : 0;
         $totalRefundAmount = $totals['refund_amount'];
@@ -949,6 +953,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $pendingQty = $entry['pendingQty'];
             $calculation = $entry['calculation'];
             $rawCharge = $entry['raw_charge_with_extra'] ?? ($entry['raw_charge'] + ($entry['extra_charge_share'] ?? 0));
+            $itemTotalRent = round($rawCharge, 2);
 
             // Distribute repair cost proportionally based on raw charge
             $repairShare = ($totalRawChargesWithExtra > 0)
@@ -1010,6 +1015,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $return_id = $RETURN->create();
 
             if ($return_id) {
+                // Update item total rent amount
+                $ITEM_MODEL = new EquipmentRentItem($item['id']);
+                $ITEM_MODEL->total_rent_amount = $itemTotalRent;
+                $ITEM_MODEL->update();
                 // Mark item as returned
                 $RENT_ITEM = new EquipmentRentItem($item['id']);
                 $RENT_ITEM->markAsReturned();
