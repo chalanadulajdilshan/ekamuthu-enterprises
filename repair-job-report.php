@@ -15,7 +15,8 @@ include 'auth.php';
     <!-- include main CSS -->
     <?php include 'main-css.php' ?>
     <link href="assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css">
-    <link href="assets/libs/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css">
+    <!-- Required datatable js -->
+    <script src="assets/libs/moment/min/moment.min.js"></script>
     <style>
         /* Report styling */
         .report-info-card {
@@ -120,11 +121,6 @@ if ($row = mysqli_fetch_assoc($result)) {
                                                                 <option value="delivered">Delivered</option>
                                                                 <option value="cannot_repair">Cannot Repair</option>
                                                             </select>
-                                                        </div>
-                                                        <div class="col-md-3 d-flex gap-3">
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" id="setToday">
-                                                                <i class="mdi mdi-calendar-today me-1"></i> Today
-                                                            </button>
                                                         </div>
                                                     </div>
                                                     <div class="mt-2">
@@ -284,43 +280,14 @@ if ($row = mysqli_fetch_assoc($result)) {
     <!-- Required datatable js -->
     <script src="assets/libs/moment/min/moment.min.js"></script>
     <script src="assets/libs/daterangepicker/daterangepicker.min.js"></script>
-    <!-- jQuery UI Datepicker -->
-    <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
     <!-- Custom JS for Repair Job Report -->
     <script src="ajax/js/repair-job-report.js?v=<?php echo time(); ?>"></script>
 
     <script>
         $(document).ready(function() {
-            // Initialize the datepicker with proper configuration
-            $(".date-picker").datepicker({
-                dateFormat: 'yy-mm-dd',
-                changeMonth: true,
-                changeYear: true,
-                yearRange: '1900:2099',
-                showButtonPanel: true,
-                showOn: 'focus',
-                showAnim: 'fadeIn',
-                buttonImageOnly: false
-            });
-
-            // Set to today's date and first day of month when clicking the Today button
-            $('#setToday').click(function(e) {
-                e.preventDefault();
-                const today = new Date();
-                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-                $('#toDate').datepicker('setDate', today);
-                $('#fromDate').datepicker('setDate', firstDay);
-            });
-            
-             // Initialize with Status = All Statuses and dates to current month
+            // Initialize with Status = All Statuses
             $('#statusFilter').val('all');
-            
-            const initToday = new Date();
-            const initFirstDay = new Date(initToday.getFullYear(), initToday.getMonth(), 1);
-            $('#toDate').datepicker('setDate', initToday);
-            $('#fromDate').datepicker('setDate', initFirstDay);
         });
     </script>
 

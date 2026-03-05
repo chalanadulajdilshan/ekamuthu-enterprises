@@ -6,11 +6,10 @@ header('Content-Type: application/json; charset=UTF8');
 
 // Get repair job report
 if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
-    $from_date = $_POST['from_date'] ?? null;
-    $to_date = $_POST['to_date'] ?? null;
-    $status = $_POST['status'] ?? 'all';
-
     $db = Database::getInstance();
+    $from_date = isset($_POST['from_date']) ? $db->escapeString($_POST['from_date']) : null;
+    $to_date = isset($_POST['to_date']) ? $db->escapeString($_POST['to_date']) : null;
+    $status = isset($_POST['status']) ? $db->escapeString($_POST['status']) : 'all';
 
     // Base query
     $query = "SELECT r.*, e.name as employee_name 
@@ -18,8 +17,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
               LEFT JOIN `employee_master` e ON r.employee_id = e.id 
               WHERE 1=1";
 
-    // Date filter (using created_at or item_breakdown_date - usually created_at for reports)
-    // Let's use created_at casting to DATE for filter
+    // Date filter
     if ($from_date && $to_date) {
         $query .= " AND DATE(r.created_at) BETWEEN '$from_date' AND '$to_date'";
     }

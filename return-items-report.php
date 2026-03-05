@@ -201,7 +201,6 @@ include 'auth.php';
 
     <!-- Required datatable js -->
     <script src="assets/libs/moment/min/moment.min.js"></script>
-    <script src="assets/libs/daterangepicker/daterangepicker.min.js"></script>
     <!-- jQuery UI Datepicker -->
     <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 

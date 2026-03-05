@@ -15,102 +15,85 @@ $(document).ready(function () {
         // Show summary section
         $('#summarySection').show();
 
-        // Destroy existing table if exists
+        // If table is already initialized, just reload its data
         if ($.fn.DataTable.isDataTable('#reportTable')) {
-            $('#reportTable').DataTable().destroy();
+            $('#reportTable').DataTable().ajax.reload();
+            return;
         }
 
-        // Show loading state...
-        $('#reportTableBody').html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
-
-        $.ajax({
-            url: "ajax/php/repair-job-report.php",
-            type: "POST",
-            data: {
-                action: "get_repair_job_report",
-                from_date: fromDate,
-                to_date: toDate,
-                status: status
-            },
-            dataType: "JSON",
-            success: function (result) {
-                if (result.status === "success") {
-
-                    // Update Summary Cards
-                    $('#statTotalJobs').text(result.summary.total_jobs);
-                    $('#statTotalRevenue').text(result.summary.total_revenue);
-                    $('#statTotalCommission').text(result.summary.total_commission);
-                    $('#statRepairCharges').text(result.summary.total_repair_charges);
-
-                    // Populate Table
-                    var rows = "";
-                    var tblTotalRepairCharge = 0;
-                    var tblTotalCommission = 0;
-                    var tblTotalItemCost = 0;
-                    var tblTotalCost = 0;
-
-                    if (result.data.length > 0) {
-                        result.data.forEach(function (item) {
-                            rows += `
-                                <tr>
-                                    <td>${item.job_code}</td>
-                                    <td>${item.created_at}</td>
-                                    <td>${item.customer_name}</td>
-                                    <td>${item.machine_name}</td>
-                                    <td>${item.status}</td>
-                                    <td>${item.employee_name}</td>
-                                    <td class="text-end">${item.repair_charge}</td>
-                                    <td class="text-end">${item.commission_amount}</td>
-                                    <td class="text-end">${item.item_cost}</td>
-                                    <td class="text-end">${item.total_cost}</td>
-                                </tr>
-                            `;
-
-                            tblTotalRepairCharge += parseFloat(item.val_repair_charge);
-                            tblTotalCommission += parseFloat(item.val_commission);
-                            tblTotalItemCost += parseFloat(item.val_item_cost);
-                            tblTotalCost += parseFloat(item.val_total_cost);
-                        });
+        // Initialize DataTable with AJAX source
+        reportTable = $('#reportTable').DataTable({
+            "processing": true,
+            "serverSide": false, // Client-side processing as before
+            "ajax": {
+                "url": "ajax/php/repair-job-report.php",
+                "type": "POST",
+                "data": function (d) {
+                    d.action = "get_repair_job_report";
+                    d.from_date = $('#fromDate').val();
+                    d.to_date = $('#toDate').val();
+                    d.status = $('#statusFilter').val();
+                },
+                "dataSrc": function (json) {
+                    if (json.status !== "success") {
+                        swal("Error", json.message || "Failed to load report", "error");
+                        return [];
                     }
 
-                    $('#reportTableBody').html(rows);
+                    // Update Top Summary Cards
+                    $('#statTotalJobs').text(json.summary.total_jobs);
+                    $('#statTotalRevenue').text(json.summary.total_revenue);
+                    $('#statTotalCommission').text(json.summary.total_commission);
+                    $('#statRepairCharges').text(json.summary.total_repair_charges);
 
-                    // Update Footer Totals
-                    $('#tblTotalRepairCharge').text(tblTotalRepairCharge.toFixed(2));
-                    $('#tblTotalCommission').text(tblTotalCommission.toFixed(2));
-                    $('#tblTotalItemCost').text(tblTotalItemCost.toFixed(2));
-                    $('#tblTotalCost').text(tblTotalCost.toFixed(2));
-
-                    // Re-initialize DataTable
-                    reportTable = $('#reportTable').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: [
-                            'copy', 'csv', 'excel', 'pdf', 'print'
-                        ],
-                        order: [[1, 'desc']], // Order by Date
-                        pageLength: 25
-                    });
-
-                    // Row click event
-                    $('#reportTable tbody').off('click').on('click', 'tr', function () {
-                        var data = reportTable.row(this).data();
-                        // Data is an array in the order of columns, but we built it with strings. 
-                        // Wait, we can't easily access hidden ID if we didn't add it as a column or data attribute.
-                        // Actually, result.data is our source object array, but DataTable renders array of values if we didn't specify columns: [data:...] option in init.
-                        // But here we built HTML manually in rows += ...
-                        // So the DataTable is initialized on existing DOM.
-                        // We do NOT have the ID in the DOM (tr/td).
-
-                        // Let's modify the row building to include data-id attribute on TR
-                    });
-
-                } else {
-                    swal("Error", result.message || "Failed to load report", "error");
+                    return json.data || [];
                 }
             },
-            error: function () {
-                swal("Error", "Server error occurred", "error");
-                $('#reportTableBody').html('<tr><td colspan="10" class="text-center text-danger">Error loading data</td></tr>');
+            "columns": [
+                { "data": "job_code" },
+                { "data": "created_at" },
+                { "data": "customer_name" },
+                { "data": "machine_name" },
+                { "data": "status" },
+                { "data": "employee_name" },
+                { "data": "repair_charge", "className": "text-end" },
+                { "data": "commission_amount", "className": "text-end" },
+                { "data": "item_cost", "className": "text-end" },
+                { "data": "total_cost", "className": "text-end" }
+            ],
+            "order": [[1, "desc"]],
+            "pageLength": 25,
+            "createdRow": function (row, data, dataIndex) {
+                $(row).attr('data-id', data.id);
+                $(row).css('cursor', 'pointer');
+            },
+            "footerCallback": function (row, data, start, end, display) {
+                var api = this.api();
+
+                var totalRepairCharge = 0;
+                var totalCommission = 0;
+                var totalItemCost = 0;
+                var totalCost = 0;
+
+                data.forEach(function (item) {
+                    totalRepairCharge += parseFloat(item.val_repair_charge || 0);
+                    totalCommission += parseFloat(item.val_commission || 0);
+                    totalItemCost += parseFloat(item.val_item_cost || 0);
+                    totalCost += parseFloat(item.val_total_cost || 0);
+                });
+
+                $('#tblTotalRepairCharge').text(totalRepairCharge.toFixed(2));
+                $('#tblTotalCommission').text(totalCommission.toFixed(2));
+                $('#tblTotalItemCost').text(totalItemCost.toFixed(2));
+                $('#tblTotalCost').text(totalCost.toFixed(2));
+            }
+        });
+
+        // Row click event using delegation
+        $('#reportTable tbody').on('click', 'tr', function () {
+            var repairJobId = $(this).attr('data-id');
+            if (repairJobId && typeof repairJobPageId !== 'undefined') {
+                window.location.href = `repair-job.php?id=${repairJobId}&page_id=${repairJobPageId}`;
             }
         });
     }
@@ -136,6 +119,26 @@ $(document).ready(function () {
         var url = `print-repair-job-report.php?from_date=${fromDate}&to_date=${toDate}&status=${status}`;
         window.open(url, '_blank');
     });
+
+    // Set default dates: 1st of current month to Today
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Use format Date helper if available or standard YYYY-MM-DD
+    function formatDate(date) {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+
+        return [year, month, day].join('-');
+    }
+
+    $('#fromDate').val(formatDate(firstDay));
+    $('#toDate').val(formatDate(today));
 
     // Load initial data
     loadReport();
