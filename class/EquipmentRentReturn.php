@@ -606,6 +606,7 @@ class EquipmentRentReturn
         
         return [
             'error' => false,
+            'total_rent_amount' => round($rental_amount + $finalExtraDayAmount, 2),
             'deposit_for_return' => round($deposit_for_return, 2),
             'customer_deposit_share' => round($customer_deposit_share, 2),
             'customer_deposit_original' => round($customer_deposit, 2),

@@ -20,6 +20,7 @@ class EquipmentRent
     public $transport_cost;
     public $deposit_total;
     public $payment_type_id;
+    public $total_rent_amount;
     public $total_items;
     public $cheque_number;
     public $cheque_date;
@@ -55,6 +56,7 @@ class EquipmentRent
                 $this->transport_cost = $result['transport_cost'] ?? 0;
                 $this->deposit_total = $result['deposit_total'] ?? 0;
                 $this->payment_type_id = $result['payment_type_id'] ?? null;
+                $this->total_rent_amount = $result['total_rent_amount'] ?? 0;
                 $this->remark = $result['remark'];
                 $this->workplace_address = $result['workplace_address'] ?? null;
                 $this->total_items = $result['total_items'] ?? 0;
@@ -77,12 +79,13 @@ class EquipmentRent
         $now = date('Y-m-d H:i:s');
 
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `workplace_address`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `bank_slip`, `created_by`, `created_at`
+            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `workplace_address`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `total_rent_amount`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `bank_slip`, `created_by`, `created_at`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ", " .
             ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '" . ($this->is_cancelled ? 1 : 0) . "', '" . addslashes($this->remark) . "', " . ($this->workplace_address ? "'" . addslashes($this->workplace_address) . "'" : "NULL") . ", '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
             ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
+            ($this->total_rent_amount ? "'" . $this->total_rent_amount . "'" : "0") . ", " .
             ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ", " .
             ($this->cheque_date ? "'$this->cheque_date'" : "NULL") . ", " .
             ($this->cheque_branch_id ? "'" . addslashes($this->cheque_branch_id) . "'" : "NULL") . ", " .
@@ -124,10 +127,11 @@ class EquipmentRent
             `transport_cost` = '$this->transport_cost',
             `deposit_total` = '$this->deposit_total',
             `payment_type_id` = " . ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ",
+            `total_rent_amount` = '" . ($this->total_rent_amount ? $this->total_rent_amount : 0) . "',
             `cheque_number` = " . ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ",
             `cheque_date` = " . ($this->cheque_date ? "'$this->cheque_date'" : "NULL") . ",
-            `cheque_branch_id` = " . ($this->cheque_branch_id ? "'$this->cheque_branch_id'" : "NULL") . ",
-            `transfer_branch_id` = " . ($this->transfer_branch_id ? "'$this->transfer_branch_id'" : "NULL") . ",
+            `cheque_branch_id` = " . ($this->cheque_branch_id ? "'" . addslashes($this->cheque_branch_id) . "'" : "NULL") . ",
+            `transfer_branch_id` = " . ($this->transfer_branch_id ? "'" . addslashes($this->transfer_branch_id) . "'" : "NULL") . ",
             `bank_account_number` = " . ($this->bank_account_number ? "'" . addslashes($this->bank_account_number) . "'" : "NULL") . ",
             `bank_reference` = " . ($this->bank_reference ? "'" . addslashes($this->bank_reference) . "'" : "NULL") . ",
             `bank_slip` = " . ($this->bank_slip ? "'" . addslashes($this->bank_slip) . "'" : "NULL") . ",
