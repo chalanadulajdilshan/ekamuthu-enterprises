@@ -252,7 +252,7 @@ foreach ($rentSummary as $rentId => $summary) {
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
     $recordedPaid = $summary['recorded_paid'] ?? 0;
 
-    // Sum deposits for display; they should not reduce outstanding
+    // Sum deposits; they count as payments but do not add to rent charges
     $depositTotal = 0;
     if (!empty($summary['deposits'])) {
         foreach ($summary['deposits'] as $dep) {
@@ -260,17 +260,18 @@ foreach ($rentSummary as $rentId => $summary) {
         }
     }
 
-    $balance = max(0, ($recordedOutstanding + $projectedOutstanding) - $recordedPaid);
-
-    // Total paid displayed as recorded payments + deposits
+    // Align with on-screen report: charges exclude deposits, payments include deposits
+    $totalCharges = $recordedOutstanding + $projectedOutstanding;
     $totalPaid = $recordedPaid + $depositTotal;
+    $balance = max(0, $totalCharges - $totalPaid);
 
-    // Mirror UI: only include rows with a pending balance
+    // Only include rows with pending balance
     if ($balance <= 0) {
         continue;
     }
 
-    $totalRent = $totalPaid + $balance;
+    // Total rent shown equals charges (deposits not added)
+    $totalRent = $totalCharges;
 
     $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
         ? 'Returned'

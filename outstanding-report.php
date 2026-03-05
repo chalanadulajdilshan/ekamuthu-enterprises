@@ -179,6 +179,7 @@ include 'auth.php';
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3" id="billModalDateLabel"></div>
                     <div class="row mb-3">
                         <div class="col-md-3"><strong>Invoice No:</strong> <span id="billModalInvoice">-</span></div>
                         <div class="col-md-3"><strong>Date:</strong> <span id="billModalDate">-</span> <small class="text-muted" id="billModalDayCount"></small></div>

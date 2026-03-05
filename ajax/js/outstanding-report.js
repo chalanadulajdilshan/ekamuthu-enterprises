@@ -220,6 +220,14 @@ function fillBillDetailsModal(data) {
         ? '<span class="badge bg-success">Returned</span>'
         : '<span class="badge bg-warning text-dark">Not Returned</span>');
 
+    // Today date label (e.g., 2026/05/03 දිනට ගෙවිය යුතු මුදල)
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, '0');
+    var dateLabel = yyyy + '/' + mm + '/' + dd + ' දිනට ගෙවිය යුතු මුදල';
+    $('#billModalDateLabel').html('<strong>' + dateLabel + '</strong>');
+
     $('#billModalTotalRent').text(fmt(data.total_rent));
     $('#billModalTotalPaid').text(fmt(data.total_paid));
     $('#billModalBalance').text(fmt(data.balance));
@@ -369,8 +377,9 @@ function printBillDetails() {
             <link rel="stylesheet" href="assets/css/bootstrap.min.css">
             <style>
                 body { padding: 20px; font-size: 13px; }
-                .table { width: 100%; }
-                .table th, .table td { vertical-align: middle; }
+                .table { width: 100%; border-collapse: collapse !important; }
+                .table th, .table td { vertical-align: middle; border: 1px solid #000 !important; }
+                .table thead th { background: #f1f3f5 !important; }
             </style>
         </head>
         <body>
