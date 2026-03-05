@@ -102,7 +102,7 @@ include 'auth.php';
                                                     <th>අයිතම</th>
                                                     <th class="text-end">අගය</th>
                                                     <th class="text-end">කුලියට දුන් ප්‍රමාණය</th>
-                                                    <th class="text-end">කිස්මත් දින</th>
+                                                    <th class="text-end">මුලු දින</th>
                                                     <th class="text-end">කුලී අගය</th>
                                                     <th class="text-end">අලුත්වැඩියා කල ප්‍රමාණය</th>
                                                     <th class="text-end">අලුත්වැඩියා වියදම</th>

@@ -17,6 +17,8 @@ $rentalCalc = "CASE WHEN err.rental_override IS NOT NULL
                        END
                    END";
 
+$billableDaysExpr = "GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))";
+
 $query = "SELECT 
                 e.id AS equipment_id,
                 e.code AS equipment_code,
@@ -26,6 +28,7 @@ $query = "SELECT
                 se.code AS sub_equipment_code,
                 COALESCE(se.value, 0) AS sub_equipment_value,
                 SUM(err.return_qty) AS rented_qty,
+                SUM($billableDaysExpr * err.return_qty) AS billable_days,
                 SUM($rentalCalc) AS rent_value
             FROM equipment_rent_returns err
             INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
@@ -58,6 +61,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         'sub_equipment_code' => $row['sub_equipment_code'] ?? null,
         'value' => $value,
         'rented_qty' => intval($row['rented_qty']),
+        'billable_days' => intval($row['billable_days']),
         'rent_value' => floatval($row['rent_value']),
         'repair_qty' => 0,
         'repair_cost' => 0,
@@ -89,9 +93,10 @@ $totalRentValue = 0;
 $totalRepairCost = 0;
 $totalProfit = 0;
 $totalRentedQty = 0;
+$totalBillableDays = 0;
 
 foreach ($equipmentMap as &$eq) {
-    $eqTotals = ['value' => 0, 'rented_qty' => 0, 'rent_value' => 0, 'repair_qty' => 0, 'repair_cost' => 0];
+    $eqTotals = ['value' => 0, 'rented_qty' => 0, 'billable_days' => 0, 'rent_value' => 0, 'repair_qty' => 0, 'repair_cost' => 0];
 
     foreach ($eq['sub_equipment'] as &$se) {
         $seCode = $se['sub_equipment_code'];
@@ -107,6 +112,7 @@ foreach ($equipmentMap as &$eq) {
 
         $eqTotals['value'] += $se['value'];
         $eqTotals['rented_qty'] += $se['rented_qty'];
+        $eqTotals['billable_days'] += $se['billable_days'];
         $eqTotals['rent_value'] += $se['rent_value'];
         $eqTotals['repair_qty'] += $se['repair_qty'];
         $eqTotals['repair_cost'] += $se['repair_cost'];
@@ -117,6 +123,7 @@ foreach ($equipmentMap as &$eq) {
     $eq['totals'] = [
         'value' => round($eqTotals['value'], 2),
         'rented_qty' => $eqTotals['rented_qty'],
+        'billable_days' => $eqTotals['billable_days'],
         'rent_value' => round($eqTotals['rent_value'], 2),
         'repair_qty' => $eqTotals['repair_qty'],
         'repair_cost' => round($eqTotals['repair_cost'], 2),
@@ -126,6 +133,7 @@ foreach ($equipmentMap as &$eq) {
 
     $totalValue += $eqTotals['value'];
     $totalRentedQty += $eqTotals['rented_qty'];
+    $totalBillableDays += $eqTotals['billable_days'];
     $totalRentValue += $eqTotals['rent_value'];
     $totalRepairCost += $eqTotals['repair_cost'];
     $totalProfit += $eqProfit;
@@ -183,6 +191,10 @@ usort($equipmentMap, function ($a, $b) {
             <div class="card-value"><?php echo number_format($totalRentedQty, 0); ?></div>
         </div>
         <div class="card">
+            <div class="card-label">මුලු දින එකතුව</div>
+            <div class="card-value"><?php echo number_format($totalBillableDays, 0); ?></div>
+        </div>
+        <div class="card">
             <div class="card-label">එකතුව කුලී අගය</div>
             <div class="card-value">Rs. <?php echo number_format($totalRentValue, 2); ?></div>
         </div>
@@ -206,6 +218,7 @@ usort($equipmentMap, function ($a, $b) {
                 <th>අයිතම</th>
                 <th class="text-right">අගය</th>
                 <th class="text-right">කුලියට දුන් ප්‍රමාණය</th>
+                <th class="text-right">මුලු දින</th>
                 <th class="text-right">කුලී අගය</th>
                 <th class="text-right">අලුත්වැඩියා කල ප්‍රමාණය</th>
                 <th class="text-right">අලුත්වැඩියා වියදම</th>
@@ -222,6 +235,7 @@ usort($equipmentMap, function ($a, $b) {
                         <td><?php echo $eq['equipment_code'] . ' - ' . $eq['equipment_name']; ?></td>
                         <td class="text-right"><?php echo number_format($eq['totals']['value'], 2); ?></td>
                         <td class="text-right"><?php echo $eq['totals']['rented_qty']; ?></td>
+                        <td class="text-right"><?php echo $eq['totals']['billable_days']; ?></td>
                         <td class="text-right"><?php echo number_format($eq['totals']['rent_value'], 2); ?></td>
                         <td class="text-right"><?php echo $eq['totals']['repair_qty']; ?></td>
                         <td class="text-right"><?php echo number_format($eq['totals']['repair_cost'], 2); ?></td>
@@ -235,6 +249,7 @@ usort($equipmentMap, function ($a, $b) {
                                 <td><?php echo $se['sub_equipment_code']; ?></td>
                                 <td class="text-right"><?php echo number_format($se['value'], 2); ?></td>
                                 <td class="text-right"><?php echo $se['rented_qty']; ?></td>
+                                <td class="text-right"><?php echo $se['billable_days']; ?></td>
                                 <td class="text-right"><?php echo number_format($se['rent_value'], 2); ?></td>
                                 <td class="text-right"><?php echo $se['repair_qty']; ?></td>
                                 <td class="text-right"><?php echo number_format($se['repair_cost'], 2); ?></td>
