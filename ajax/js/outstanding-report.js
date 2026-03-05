@@ -367,23 +367,29 @@ function fillBillDetailsModal(data) {
 
 function printBillDetails() {
     var modalBody = $('#billDetailModal .modal-body').html();
-    var title = $('#billDetailModalLabel').text();
 
     var printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html>
         <head>
-            <title>${title}</title>
+            <title></title>
             <link rel="stylesheet" href="assets/css/bootstrap.min.css">
             <style>
-                body { padding: 20px; font-size: 13px; }
-                .table { width: 100%; border-collapse: collapse !important; }
-                .table th, .table td { vertical-align: middle; border: 1px solid #000 !important; }
+                @page { margin: 5mm 5mm 7mm 5mm; }
+                body { padding: 4px; font-size: 13px; }
+                #billModalDateLabel { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+                .modal-body .row { margin-bottom: 7px; }
+                .modal-body .p-3 { padding: 9px !important; }
+                .card-title, h6, h5 { margin-bottom: 7px; font-size: 14px; }
+                .modal-body .border span { font-size: 13.2px; }
+                .table { width: 100%; border-collapse: collapse !important; margin-bottom: 7px; }
+                .table th, .table td { vertical-align: middle; border: 1px solid #000 !important; padding: 5px; font-size: 12.8px; }
                 .table thead th { background: #f1f3f5 !important; }
+                .table tfoot th, .table tfoot td { padding: 5px; }
+                .table-sm > :not(caption) > * > * { padding: 5px; }
             </style>
         </head>
         <body>
-            <h4 class="mb-3">${title}</h4>
             ${modalBody}
             <script>
                 window.onload = function() {
