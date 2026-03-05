@@ -19,7 +19,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
 
     // Date filter
     if ($from_date && $to_date) {
-        $query .= " AND DATE(r.created_at) BETWEEN '$from_date' AND '$to_date'";
+        $query .= " AND r.item_breakdown_date BETWEEN '$from_date' AND '$to_date'";
     }
 
     // Status filter
@@ -27,7 +27,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
         $query .= " AND r.job_status = '$status'";
     }
 
-    $query .= " ORDER BY r.created_at DESC";
+    $query .= " ORDER BY r.item_breakdown_date DESC, r.id DESC";
 
     $result = $db->readQuery($query);
 
@@ -56,7 +56,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
 
         $data[] = [
             'job_code' => $row['job_code'],
-            'created_at' => $row['created_at'],
+            'item_breakdown_date' => $row['item_breakdown_date'],
             'customer_name' => $row['customer_name'] . ($row['customer_phone'] ? ' (' . $row['customer_phone'] . ')' : ''),
             'machine_name' => $row['machine_name'],
             'status' => $status_badge,

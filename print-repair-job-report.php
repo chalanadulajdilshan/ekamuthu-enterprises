@@ -15,14 +15,14 @@ $query = "SELECT r.*, e.name as employee_name
           WHERE 1=1";
 
 if (!empty($from_date) && !empty($to_date)) {
-    $query .= " AND DATE(r.created_at) BETWEEN '$from_date' AND '$to_date'";
+    $query .= " AND r.item_breakdown_date BETWEEN '$from_date' AND '$to_date'";
 }
 
 if ($status != 'all') {
     $query .= " AND r.job_status = '$status'";
 }
 
-$query .= " ORDER BY r.created_at DESC";
+$query .= " ORDER BY r.item_breakdown_date DESC, r.id DESC";
 
 $result = $db->readQuery($query);
 
@@ -167,7 +167,7 @@ $status_title = $status_title_map[$status] ?? 'All Statuses';
                 <?php foreach ($report_data as $row): ?>
                 <tr>
                     <td><?php echo $row['job_code']; ?></td>
-                    <td><?php echo date('Y-m-d', strtotime($row['created_at'])); ?></td>
+                    <td><?php echo $row['item_breakdown_date']; ?></td>
                     <td><?php echo $row['customer_display']; ?></td>
                     <td><?php echo $row['machine_name']; ?></td>
                     <td><?php echo $row['status_label']; ?></td>

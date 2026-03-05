@@ -51,7 +51,7 @@ $(document).ready(function () {
             },
             "columns": [
                 { "data": "job_code" },
-                { "data": "created_at" },
+                { "data": "item_breakdown_date" },
                 { "data": "customer_name" },
                 { "data": "machine_name" },
                 { "data": "status" },
@@ -93,7 +93,7 @@ $(document).ready(function () {
         $('#reportTable tbody').on('click', 'tr', function () {
             var repairJobId = $(this).attr('data-id');
             if (repairJobId && typeof repairJobPageId !== 'undefined') {
-                window.location.href = `repair-job.php?id=${repairJobId}&page_id=${repairJobPageId}`;
+                window.location.href = `repair-job.php?job_id=${repairJobId}&page_id=${repairJobPageId}`;
             }
         });
     }
