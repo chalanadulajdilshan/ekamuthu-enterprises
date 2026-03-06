@@ -10,6 +10,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
     $from_date = isset($_POST['from_date']) ? $db->escapeString($_POST['from_date']) : null;
     $to_date = isset($_POST['to_date']) ? $db->escapeString($_POST['to_date']) : null;
     $status = isset($_POST['status']) ? $db->escapeString($_POST['status']) : 'all';
+    $employee_id = isset($_POST['employee_id']) ? $db->escapeString($_POST['employee_id']) : 'all';
 
     // Base query
     $query = "SELECT r.*, e.name as employee_name 
@@ -25,6 +26,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
     // Status filter
     if ($status != 'all') {
         $query .= " AND r.job_status = '$status'";
+    }
+
+    // Employee filter
+    if ($employee_id != 'all') {
+        $query .= " AND r.employee_id = '$employee_id'";
     }
 
     $query .= " ORDER BY r.item_breakdown_date DESC, r.id DESC";

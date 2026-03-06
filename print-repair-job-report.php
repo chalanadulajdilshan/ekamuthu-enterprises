@@ -5,6 +5,7 @@ include 'auth.php';
 $from_date = $_GET['from_date'] ?? date('Y-m-d');
 $to_date = $_GET['to_date'] ?? date('Y-m-d');
 $status = $_GET['status'] ?? 'all';
+$employee_id = $_GET['employee_id'] ?? 'all';
 
 $db = Database::getInstance();
 
@@ -20,6 +21,10 @@ if (!empty($from_date) && !empty($to_date)) {
 
 if ($status != 'all') {
     $query .= " AND r.job_status = '$status'";
+}
+
+if ($employee_id != 'all') {
+    $query .= " AND r.employee_id = '$employee_id'";
 }
 
 $query .= " ORDER BY r.item_breakdown_date DESC, r.id DESC";
@@ -76,6 +81,12 @@ $status_title_map = [
     'cannot_repair' => 'Cannot Repair - අලුත්වැඩියා කළ නොහැක'
 ];
 $status_title = $status_title_map[$status] ?? 'All Statuses';
+
+$employee_title = "All Employees";
+if ($employee_id != 'all') {
+    $EMP = new EmployeeMaster($employee_id);
+    $employee_title = $EMP->name . ' (' . $EMP->code . ')';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -124,7 +135,7 @@ $status_title = $status_title_map[$status] ?? 'All Statuses';
             සිට: <?php echo $from_date ?> &nbsp; දක්වා: <?php echo $to_date ?>
         </span>
         <span style="font-size: 14px; font-weight: normal; color: #555;">
-            තත්ත්වය (Status): <?php echo $status_title; ?>
+            තත්ත්වය (Status): <?php echo $status_title; ?> | සේවකයා (Employee): <?php echo $employee_title; ?>
         </span>
     </div>
 
