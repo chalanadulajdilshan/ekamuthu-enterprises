@@ -2433,7 +2433,7 @@ jQuery(document).ready(function () {
   // Format amounts with thousand separators and two decimals
   function formatCurrency(value) {
     var num = Number(value || 0);
-    return num.toLocaleString("en-IN", {
+    return num.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });

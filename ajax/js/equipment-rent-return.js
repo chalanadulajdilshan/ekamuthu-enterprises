@@ -54,15 +54,14 @@ $(document).ready(function () {
                                     <div><strong>Pending Qty:</strong> ${data.pending_qty}</div>
                                 </div>
                                 <div class="col-md-6 mb-2">
-                                    <div><strong>Customer Deposit:</strong> Rs. ${parseFloat(data.customer_deposit || 0).toFixed(2)}</div>
-                                    <div><strong>Deposit Per Unit:</strong> Rs. ${(parseFloat(
-                                      data.quantity || 1,
-                                    ) > 0
-                                      ? parseFloat(data.deposit_amount || 0) /
-                                        parseFloat(data.quantity || 1)
-                                      : 0
-                                    ).toFixed(2)}</div>
-                                    <div><strong class="text-danger">Damage Per Unit (catalog):</strong> <span class="text-danger">Rs. ${parseFloat(data.equipment_damage || 0).toFixed(2)}</span></div>
+                                    <div><strong>Customer Deposit:</strong> Rs. ${formatAmount(data.customer_deposit)}</div>
+                                    <div><strong>Deposit Per Unit:</strong> Rs. ${formatAmount(
+            parseFloat(data.quantity || 1) > 0
+              ? parseFloat(data.deposit_amount || 0) /
+              parseFloat(data.quantity || 1)
+              : 0
+          )}</div>
+                                    <div><strong class="text-danger">Damage Per Unit (catalog):</strong> <span class="text-danger">Rs. ${formatAmount(data.equipment_damage)}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -82,29 +81,29 @@ $(document).ready(function () {
             data.returns.forEach(function (ret) {
               let settlementText = "";
               if (parseFloat(ret.refund_amount) > 0) {
-                settlementText = `<span class="text-success">Refund: Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</span>`;
+                settlementText = `<span class="text-success">Refund: Rs. ${formatAmount(ret.refund_amount)}</span>`;
               } else if (parseFloat(ret.additional_payment) > 0) {
-                settlementText = `<span class="text-danger">Pay: Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</span>`;
+                settlementText = `<span class="text-danger">Pay: Rs. ${formatAmount(ret.additional_payment)}</span>`;
               } else {
                 settlementText = '<span class="text-muted">No charge</span>';
               }
 
               const penaltyText =
                 parseFloat(ret.penalty_amount || 0) > 0
-                  ? `<span class="text-danger">Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)</span>`
+                  ? `<span class="text-danger">Rs. ${formatAmount(ret.penalty_amount)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)</span>`
                   : "-";
 
               returnsHtml += `<tr>
                                 <td>${ret.return_date}</td>
                                 <td>${ret.return_time || "-"}</td>
                                 <td>${ret.return_qty}</td>
-                                <td>Rs. ${parseFloat(ret.rental_amount || 0).toFixed(2)}</td>
-                                <td>Rs. ${parseFloat(ret.extra_day_amount || 0).toFixed(2)}</td>
+                                <td>Rs. ${formatAmount(ret.rental_amount)}</td>
+                                <td>Rs. ${formatAmount(ret.extra_day_amount)}</td>
                                 <td>${penaltyText}</td>
-                                <td>Rs. ${parseFloat(ret.damage_amount).toFixed(2)}</td>
+                                <td>Rs. ${formatAmount(ret.damage_amount)}</td>
                                 <td>${settlementText}</td>
-                                <td>Rs. ${parseFloat(ret.customer_paid || 0).toFixed(2)}</td>
-                                <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + "</span>" : "-"}</td>
+                                <td>Rs. ${formatAmount(ret.customer_paid)}</td>
+                                <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + formatAmount(ret.outstanding_amount) + "</span>" : "-"}</td>
                                 <td>${ret.remark || "-"}</td>
                             </tr>`;
             });
@@ -180,7 +179,7 @@ $(document).ready(function () {
             const currentExtra = parseFloat($("#extra_day_amount").val());
             if (!currentExtra || currentExtra <= 0) {
               $("#extra_day_amount").val(
-                parseFloat(calc.extra_day_amount || 0).toFixed(2),
+                formatAmount(calc.extra_day_amount)
               );
             }
           } else {
@@ -210,7 +209,7 @@ $(document).ready(function () {
                                 </tr>
                                 <tr>
                                     <td>Deposit for this qty:</td>
-                                    <td class="text-right">Rs. ${calc.customer_deposit_share.toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.customer_deposit_share)}</td>
                                 </tr>`;
 
           if (isFixedRate) {
@@ -231,20 +230,20 @@ $(document).ready(function () {
                                 </tr>
                                 <tr>
                                     <td>Daily Rate (per unit):</td>
-                                    <td class="text-right">Rs. ${calc.per_unit_daily.toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.per_unit_daily)}</td>
                                 </tr>`;
           }
 
           settlementHtml += `
                                 <tr>
                                     <td>Extra Day Amount:</td>
-                                    <td class="text-right">Rs. ${parseFloat(calc.extra_day_amount || 0).toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.extra_day_amount)}</td>
                                 </tr>`;
 
           settlementHtml += `
                                 <tr>
                                     <td><strong>Total Rent:</strong></td>
-                                    <td class="text-right"><strong>Rs. ${totalRent.toFixed(2)}</strong></td>
+                                    <td class="text-right"><strong>Rs. ${formatAmount(totalRent)}</strong></td>
                                 </tr>`;
 
           if (calc.is_late) {
@@ -255,31 +254,31 @@ $(document).ready(function () {
                                 </tr>
                                 <tr class="text-danger">
                                     <td>Penalty (${calc.penalty_percentage}%):</td>
-                                    <td class="text-right">Rs. ${parseFloat(calc.penalty_amount || 0).toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.penalty_amount)}</td>
                                 </tr>`;
           }
 
           settlementHtml += `
                                 <tr>
                                     <td>Rental for this qty:</td>
-                                    <td class="text-right">Rs. ${calc.rental_amount.toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.rental_amount)}</td>
                                 </tr>
                                 <tr>
                                     <td>Damage Amount:</td>
-                                    <td class="text-right">Rs. ${calc.damage_amount.toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.damage_amount)}</td>
                                 </tr>
                                 <tr>
                                     <td>Net Settlement:</td>
-                                    <td class="text-right">Rs. ${calc.settle_amount.toFixed(2)}</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.settle_amount)}</td>
                                 </tr>
                                 <tr class="border-top">
                                     <td><strong>Settlement:</strong></td>
                                     <td class="text-right">`;
 
           if (calc.refund_amount > 0) {
-            settlementHtml += `<strong class="text-success">Refund: Rs. ${calc.refund_amount.toFixed(2)}</strong>`;
+            settlementHtml += `<strong class="text-success">Refund: Rs. ${formatAmount(calc.refund_amount)}</strong>`;
           } else if (calc.additional_payment > 0) {
-            settlementHtml += `<strong class="text-danger">Customer Pays: Rs. ${calc.additional_payment.toFixed(2)}</strong>`;
+            settlementHtml += `<strong class="text-danger">Customer Pays: Rs. ${formatAmount(calc.additional_payment)}</strong>`;
           } else {
             settlementHtml += `<strong class="text-muted">No charge (Break-even)</strong>`;
           }
@@ -316,7 +315,7 @@ $(document).ready(function () {
               .on("input", function () {
                 const paid = parseFloat($(this).val()) || 0;
                 const outstanding = Math.max(0, additionalPayment - paid);
-                $("#outstanding_display").text("Rs. " + outstanding.toFixed(2));
+                $("#outstanding_display").text("Rs. " + formatAmount(outstanding));
                 if (outstanding > 0) {
                   $("#outstanding_display")
                     .removeClass("text-success text-muted")
@@ -494,7 +493,7 @@ $(document).ready(function () {
             response.returns.forEach(function (ret) {
               const penaltyText =
                 parseFloat(ret.penalty_amount || 0) > 0
-                  ? `Rs. ${parseFloat(ret.penalty_amount).toFixed(2)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)`
+                  ? `Rs. ${formatAmount(ret.penalty_amount)} (${parseFloat(ret.penalty_percentage || 0).toFixed(0)}%)`
                   : "-";
 
               // Damage refund action button
@@ -526,13 +525,13 @@ $(document).ready(function () {
                                     <td>${ret.return_date}</td>
                                     <td>${ret.return_time || "-"}</td>
                                     <td>${ret.return_qty}</td>
-                                    <td>Rs. ${damageAmt.toFixed(2)}</td>
-                                    <td>Rs. ${parseFloat(ret.extra_day_amount || 0).toFixed(2)}</td>
+                                    <td>Rs. ${formatAmount(damageAmt)}</td>
+                                    <td>Rs. ${formatAmount(ret.extra_day_amount)}</td>
                                     <td class="text-danger">${penaltyText}</td>
-                                    <td class="text-success">Rs. ${parseFloat(ret.refund_amount).toFixed(2)}</td>
-                                    <td class="text-danger">Rs. ${parseFloat(ret.additional_payment).toFixed(2)}</td>
-                                    <td>Rs. ${parseFloat(ret.customer_paid || 0).toFixed(2)}</td>
-                                    <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + parseFloat(ret.outstanding_amount).toFixed(2) + "</span>" : "-"}</td>
+                                    <td class="text-success">Rs. ${formatAmount(ret.refund_amount)}</td>
+                                    <td class="text-danger">Rs. ${formatAmount(ret.additional_payment)}</td>
+                                    <td>Rs. ${formatAmount(ret.customer_paid)}</td>
+                                    <td>${parseFloat(ret.outstanding_amount || 0) > 0 ? '<span class="text-warning">Rs. ' + formatAmount(ret.outstanding_amount) + "</span>" : "-"}</td>
                                     <td>${damageActionHtml}</td>
                                 </tr>`;
             });
@@ -544,9 +543,9 @@ $(document).ready(function () {
                                             <td colspan="3">Total Settlement:</td>
                                             <td colspan="2"></td>
                                             <td></td>
-                                            <td class="text-success">Rs. ${response.settlement.total_refund.toFixed(2)}</td>
-                                            <td class="text-danger">Rs. ${response.settlement.total_additional.toFixed(2)}</td>
-                                            <td colspan="4">Net: Rs. ${response.settlement.net_settlement.toFixed(2)}</td>
+                                            <td class="text-success">Rs. ${formatAmount(response.settlement.total_refund)}</td>
+                                            <td class="text-danger">Rs. ${formatAmount(response.settlement.total_additional)}</td>
+                                            <td colspan="4">Net: Rs. ${formatAmount(response.settlement.net_settlement)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -573,32 +572,32 @@ $(document).ready(function () {
 
           // Initialize datepicker
           $("#returnsHistoryModal .refund-date").datepicker({
-              dateFormat: 'yy-mm-dd',
-              changeMonth: true,
-              changeYear: true,
-              autoclose: true,
-              beforeShow: function(input) {
-                  const $input = $(input);
-                  const $dp = $('#ui-datepicker-div');
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            autoclose: true,
+            beforeShow: function (input) {
+              const $input = $(input);
+              const $dp = $('#ui-datepicker-div');
 
-                  setTimeout(function() {
-                      const $modal = $input.closest('.modal');
+              setTimeout(function () {
+                const $modal = $input.closest('.modal');
 
-                      if ($modal.length) {
-                          const modalOffset = $modal.offset();
-                          const inputOffset = $input.offset();
+                if ($modal.length) {
+                  const modalOffset = $modal.offset();
+                  const inputOffset = $input.offset();
 
-                          $dp.appendTo($modal).css({
-                              top: inputOffset.top - modalOffset.top + $input.outerHeight(),
-                              left: inputOffset.left - modalOffset.left,
-                              'z-index': (parseInt($modal.css('z-index'), 10) || 1050) + 2,
-                              position: 'absolute'
-                          });
-                      } else {
-                          $dp.appendTo('body').css({'z-index': 1052});
-                      }
-                  }, 0);
-              }
+                  $dp.appendTo($modal).css({
+                    top: inputOffset.top - modalOffset.top + $input.outerHeight(),
+                    left: inputOffset.left - modalOffset.left,
+                    'z-index': (parseInt($modal.css('z-index'), 10) || 1050) + 2,
+                    position: 'absolute'
+                  });
+                } else {
+                  $dp.appendTo('body').css({ 'z-index': 1052 });
+                }
+              }, 0);
+            }
           });
 
           // Bind refund damage button click
@@ -613,10 +612,10 @@ $(document).ready(function () {
               const row = btn.closest('td');
               const refundDate = row.find('.refund-date').val();
               const refundTime = row.find('.refund-time').val();
-              
+
               if (!refundDate) {
-                  swal({ title: 'Error!', text: 'Please select a refund date', type: 'error', timer: 2000, showConfirmButton: false });
-                  return;
+                swal({ title: 'Error!', text: 'Please select a refund date', type: 'error', timer: 2000, showConfirmButton: false });
+                return;
               }
 
               swal(
