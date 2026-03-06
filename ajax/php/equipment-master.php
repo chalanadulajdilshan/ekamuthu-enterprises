@@ -199,6 +199,16 @@ if (isset($_POST['filter'])) {
 
     // Search filter
     $where = "WHERE 1=1";
+    $department_id = $_REQUEST['department_id'] ?? 'all';
+    if ($department_id !== 'all') {
+        $where .= " AND department_id = " . (int) $department_id;
+    }
+
+    $no_sub_only = isset($_REQUEST['no_sub_only']) && filter_var($_REQUEST['no_sub_only'], FILTER_VALIDATE_BOOLEAN);
+    if ($no_sub_only) {
+        $where .= " AND no_sub_items = 1";
+    }
+
     if (!empty($search)) {
         if ($searchSubOnly) {
             // Search ONLY in sub_equipment
@@ -294,8 +304,18 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
     
     $search = $_POST['search'] ?? '';
     $searchSubOnly = isset($_POST['search_sub_only']) && filter_var($_POST['search_sub_only'], FILTER_VALIDATE_BOOLEAN);
+    $department_id = $_POST['department_id'] ?? 'all';
 
     $where = "WHERE 1=1";
+    if ($department_id !== 'all') {
+        $where .= " AND department_id = " . (int) $department_id;
+    }
+
+    $no_sub_only = isset($_POST['no_sub_only']) && filter_var($_POST['no_sub_only'], FILTER_VALIDATE_BOOLEAN);
+    if ($no_sub_only) {
+        $where .= " AND no_sub_items = 1";
+    }
+
     if (!empty($search)) {
         if ($searchSubOnly) {
             $where .= " AND EXISTS (SELECT 1 FROM sub_equipment se WHERE se.equipment_id = equipment.id AND se.code LIKE '%$search%')";
@@ -490,7 +510,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_equipment_totals') {
     $db = Database::getInstance();
 
     // Total equipment count
-    $totalSql = "SELECT COUNT(*) as total FROM equipment";
+    $where = "WHERE 1=1";
+    $department_id = $_POST['department_id'] ?? 'all';
+    if ($department_id !== 'all') {
+        $where .= " AND department_id = " . (int) $department_id;
+    }
+
+    $no_sub_only = isset($_POST['no_sub_only']) && filter_var($_POST['no_sub_only'], FILTER_VALIDATE_BOOLEAN);
+    if ($no_sub_only) {
+        $where .= " AND no_sub_items = 1";
+    }
+
+    $totalSql = "SELECT COUNT(*) as total FROM equipment $where";
     $totalResult = $db->readQuery($totalSql);
     $total = mysqli_fetch_assoc($totalResult)['total'] ?? 0;
 

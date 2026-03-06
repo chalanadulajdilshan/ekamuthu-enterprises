@@ -72,6 +72,21 @@ $EQUIPMENT = new Equipment(NULL);
                             <div class="card">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-end mb-3 align-items-center">
+                                        <div class="form-check form-check-inline me-3 mb-0">
+                                            <input class="form-check-input" type="checkbox" id="noSubOnly">
+                                            <label class="form-check-label fw-bold ps-1 mb-0 align-middle" for="noSubOnly">No Sub Equipment Only</label>
+                                        </div>
+                                        <div class="me-3" id="departmentFilterContainer" style="min-width: 250px; display: none;">
+                                            <select class="form-select" id="departmentFilter">
+                                                <option value="all">All Departments</option>
+                                                <?php
+                                                $DEPT = new DepartmentMaster();
+                                                foreach ($DEPT->all() as $dept) {
+                                                    echo '<option value="' . $dept['id'] . '">' . $dept['name'] . '</option>';
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
                                         <button class="btn btn-secondary me-3" id="printStockBtn">
                                             <i class="uil uil-print me-1"></i> Print Stock
                                         </button>

@@ -9,6 +9,8 @@ jQuery(document).ready(function () {
       data: function (d) {
         d.filter = true;
         d.search_sub_only = $("#searchSubOnly").is(":checked");
+        d.no_sub_only = $("#noSubOnly").is(":checked");
+        d.department_id = $("#departmentFilter").val();
       },
       dataSrc: function (json) {
         return json.data;
@@ -138,6 +140,24 @@ jQuery(document).ready(function () {
     table.ajax.reload();
   });
 
+  // Handle No Sub Only checkbox change
+  $("#noSubOnly").on("change", function () {
+    if ($(this).is(":checked")) {
+      $("#departmentFilterContainer").fadeIn();
+    } else {
+      $("#departmentFilterContainer").fadeOut();
+      $("#departmentFilter").val("all");
+    }
+    table.ajax.reload();
+    loadSummaryTotals();
+  });
+
+  // Reload table on department filter change
+  $("#departmentFilter").on("change", function () {
+    table.ajax.reload();
+    loadSummaryTotals();
+  });
+
   // Print Stock Button Handler
   $("#printStockBtn").click(function () {
     var searchTerm = table.search();
@@ -156,6 +176,8 @@ jQuery(document).ready(function () {
         action: "print_stock",
         search: searchTerm,
         search_sub_only: isSubSearch,
+        no_sub_only: $("#noSubOnly").is(":checked"),
+        department_id: $("#departmentFilter").val(),
       },
       success: function (resp) {
         if (resp && resp.status === "success") {
@@ -343,7 +365,11 @@ jQuery(document).ready(function () {
       url: "ajax/php/equipment-master.php",
       type: "POST",
       dataType: "json",
-      data: { action: "get_equipment_totals" },
+      data: {
+        action: "get_equipment_totals",
+        no_sub_only: $("#noSubOnly").is(":checked"),
+        department_id: $("#departmentFilter").val()
+      },
       success: function (resp) {
         if (resp && resp.status === "success") {
           const data = resp.data;
@@ -701,36 +727,36 @@ jQuery(document).ready(function () {
     items.forEach(function (item, idx) {
       tbody.append(
         "<tr>" +
-          "<td>" +
-          (idx + 1) +
-          "</td>" +
-          "<td>" +
-          (item.equipment_code || "") +
-          " - " +
-          (item.equipment_name || "") +
-          "</td>" +
-          "<td>" +
-          (item.sub_equipment_code || "-") +
-          "</td>" +
-          "<td>" +
-          (item.quantity || 0) +
-          "</td>" +
-          "<td>" +
-          (item.total_returned_qty || 0) +
-          "</td>" +
-          "<td>" +
-          (item.rent_type || "-") +
-          "</td>" +
-          "<td>" +
-          (item.duration || "-") +
-          "</td>" +
-          "<td>" +
-          (item.amount || "0.00") +
-          "</td>" +
-          "<td>" +
-          (item.status ? item.status.toUpperCase() : "-") +
-          "</td>" +
-          "</tr>",
+        "<td>" +
+        (idx + 1) +
+        "</td>" +
+        "<td>" +
+        (item.equipment_code || "") +
+        " - " +
+        (item.equipment_name || "") +
+        "</td>" +
+        "<td>" +
+        (item.sub_equipment_code || "-") +
+        "</td>" +
+        "<td>" +
+        (item.quantity || 0) +
+        "</td>" +
+        "<td>" +
+        (item.total_returned_qty || 0) +
+        "</td>" +
+        "<td>" +
+        (item.rent_type || "-") +
+        "</td>" +
+        "<td>" +
+        (item.duration || "-") +
+        "</td>" +
+        "<td>" +
+        (item.amount || "0.00") +
+        "</td>" +
+        "<td>" +
+        (item.status ? item.status.toUpperCase() : "-") +
+        "</td>" +
+        "</tr>",
       );
     });
   }
@@ -817,22 +843,22 @@ jQuery(document).ready(function () {
             result.items.forEach(function (item, idx) {
               tbody.append(
                 "<tr>" +
-                  "<td>" +
-                  (idx + 1) +
-                  "</td>" +
-                  "<td>" +
-                  (item.item_name || "-") +
-                  "</td>" +
-                  "<td class='text-center'>" +
-                  (item.quantity || 0) +
-                  "</td>" +
-                  "<td class='text-end'>" +
-                  parseFloat(item.unit_price || 0).toFixed(2) +
-                  "</td>" +
-                  "<td class='text-end'>" +
-                  parseFloat(item.total_price || 0).toFixed(2) +
-                  "</td>" +
-                  "</tr>",
+                "<td>" +
+                (idx + 1) +
+                "</td>" +
+                "<td>" +
+                (item.item_name || "-") +
+                "</td>" +
+                "<td class='text-center'>" +
+                (item.quantity || 0) +
+                "</td>" +
+                "<td class='text-end'>" +
+                parseFloat(item.unit_price || 0).toFixed(2) +
+                "</td>" +
+                "<td class='text-end'>" +
+                parseFloat(item.total_price || 0).toFixed(2) +
+                "</td>" +
+                "</tr>",
               );
             });
           } else {
