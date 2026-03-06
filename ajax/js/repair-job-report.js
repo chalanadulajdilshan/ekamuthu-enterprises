@@ -33,6 +33,7 @@ $(document).ready(function () {
                     d.from_date = $('#fromDate').val();
                     d.to_date = $('#toDate').val();
                     d.status = $('#statusFilter').val();
+                    d.employee_id = $('#employeeFilter').val();
                 },
                 "dataSrc": function (json) {
                     if (json.status !== "success") {
@@ -116,8 +117,9 @@ $(document).ready(function () {
         var fromDate = $('#fromDate').val();
         var toDate = $('#toDate').val();
         var status = $('#statusFilter').val();
+        var employeeId = $('#employeeFilter').val();
 
-        var url = `print-repair-job-report.php?from_date=${fromDate}&to_date=${toDate}&status=${status}`;
+        var url = `print-repair-job-report.php?from_date=${fromDate}&to_date=${toDate}&status=${status}&employee_id=${employeeId}`;
         window.open(url, '_blank');
     });
 

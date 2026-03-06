@@ -70,17 +70,17 @@ $(document).ready(function () {
             { data: 'quantity', className: 'text-end' },
             {
                 data: 'deposit', className: 'text-end', render: function (data) {
-                    return parseFloat(data || 0).toFixed(2);
+                    return formatNumber(data);
                 }
             },
             {
                 data: 'amount', className: 'text-end', render: function (data) {
-                    return parseFloat(data || 0).toFixed(2);
+                    return formatNumber(data);
                 }
             },
             {
                 data: 'extra_amount', className: 'text-end', render: function (data) {
-                    return parseFloat(data || 0).toFixed(2);
+                    return formatNumber(data);
                 }
             },
             { data: 'profit_balance', className: 'text-end fw-bold' },
@@ -470,8 +470,8 @@ $(document).ready(function () {
               <div class="summary-item"><strong>මුළු බිල්පත්:</strong> ${totalBills}</div>
               <div class="summary-item"><strong>කුලියට දීම:</strong> ${totalRentBills}</div>
               <div class="summary-item"><strong>ආපසු ලබා ගැනීම්:</strong> ${totalReturnBills}</div>
-              <div class="summary-item"><strong>මුළු ලාභය:</strong> Rs. ${totalAmount}</div>
-              <div class="summary-item"><strong>මුළු ලැබීම්/ගෙවීම්:</strong> Rs. ${totalProfitExport}</div>
+              <div class="summary-item"><strong>මුළු ලාභය:</strong> Rs. ${formatNumber(totalAmount)}</div>
+              <div class="summary-item"><strong>මුළු ලැබීම්/ගෙවීම්:</strong> Rs. ${formatNumber(totalProfitExport)}</div>
           </div>
       </div>
 
@@ -511,9 +511,9 @@ $(document).ready(function () {
                   <td class="text-center">${item.day_count || '-'}${item.after_9am == 1 ? '<br><span style="color:red; font-size:7px;">+1 DAY</span>' : ''}</td>
                   <td style="font-size: 8px;">${item.remarks || '-'}</td>
                   <td class="text-right">${item.quantity || 0}</td>
-                  <td class="text-right">${item.deposit || '0.00'}</td>
-                  <td class="text-right">${item.amount || '0.00'}</td>
-                  <td class="text-right">${item.extra_amount || '0.00'}</td>
+                  <td class="text-right">${formatNumber(item.deposit)}</td>
+                  <td class="text-right">${formatNumber(item.amount)}</td>
+                  <td class="text-right">${formatNumber(item.extra_amount)}</td>
               </tr>`;
         });
 
@@ -524,8 +524,8 @@ $(document).ready(function () {
                   <td colspan="9" class="text-right">එකතුව</td>
                   <td class="text-right">${summary.total_quantity}</td>
                   <td class="text-right">-</td>
-                  <td class="text-right">${summary.total_amount}</td>
-                  <td class="text-right">${summary.total_extra_amount}</td>
+                  <td class="text-right">${formatNumber(summary.total_amount)}</td>
+                  <td class="text-right">${formatNumber(summary.total_extra_amount)}</td>
               </tr>
           </tfoot>
       </table>

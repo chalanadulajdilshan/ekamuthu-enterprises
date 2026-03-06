@@ -122,6 +122,18 @@ if ($row = mysqli_fetch_assoc($result)) {
                                                                 <option value="cannot_repair">Cannot Repair</option>
                                                             </select>
                                                         </div>
+                                                        <div class="col-md-3">
+                                                            <label for="employeeFilter" class="form-label fw-semibold text-muted mb-2">Employee - සේවකයා</label>
+                                                            <select class="form-select" id="employeeFilter" name="employeeFilter">
+                                                                <option value="all">All Employees</option>
+                                                                <?php
+                                                                $EMPLOYEE = new EmployeeMaster();
+                                                                foreach ($EMPLOYEE->all() as $employee) {
+                                                                    echo '<option value="' . $employee['id'] . '">' . $employee['name'] . ' (' . $employee['code'] . ')</option>';
+                                                                }
+                                                                ?>
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                     <div class="mt-2">
                                                         <small class="text-muted"><i class="mdi mdi-information-outline me-1"></i> Select filters to view report</small>

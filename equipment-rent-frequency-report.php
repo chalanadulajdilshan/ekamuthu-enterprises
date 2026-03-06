@@ -40,6 +40,9 @@ include 'auth.php';
             body { background-color: #fff !important; }
             .print-only { display: block !important; }
         }
+        #frequencyTable tbody tr {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body data-layout="horizontal" data-topbar="colored">
@@ -107,6 +110,7 @@ include 'auth.php';
                                             <table id="frequencyTable" class="table table-bordered table-striped dt-responsive nowrap w-100">
                                                 <thead>
                                                     <tr>
+                                                        <th style="width: 20px;"></th>
                                                         <th>#</th>
                                                         <th>Customer Code</th>
                                                         <th>Customer Name</th>
@@ -117,7 +121,7 @@ include 'auth.php';
                                                     </tr>
                                                 </thead>
                                                 <tbody id="frequencyTableBody">
-                                                    <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                                                    <tr><td colspan="8" class="text-center">Loading...</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -132,6 +136,8 @@ include 'auth.php';
             </div>
             <?php include 'footer.php'; ?>
         </div>
+    </div>
+
     </div>
 
     <?php include 'main-js.php'; ?>

@@ -119,7 +119,7 @@ $(document).ready(function () {
           $("#dateRangeDisplay").text(response.summary.date_range);
           $("#totalReturns").text(response.summary.total_returns);
           $("#totalItems").text(response.summary.total_items);
-          $("#totalAmount").text(response.summary.total_amount);
+          $("#totalAmount").text(formatNumber(response.summary.total_amount));
         } else {
           const errorMsg =
             response && response.message
@@ -173,8 +173,8 @@ $(document).ready(function () {
                     <td>${item.item_code || ""}</td>
                     <td>${item.item_name || ""}</td>
                     <td class="text-end">${item.return_quantity || 0}</td>
-                    <td class="text-end">${item.unit_price || "0.00"}</td>
-                    <td class="text-end">${item.total_amount || "0.00"}</td>
+                    <td class="text-end">${formatNumber(item.unit_price)}</td>
+                    <td class="text-end">${formatNumber(item.total_amount)}</td>
                     <td>${item.return_reason || "-"}</td>
                 </tr>`;
 
@@ -183,7 +183,7 @@ $(document).ready(function () {
 
     // Update totals
     $("#totalReturnQty").text(summary.total_quantity);
-    $("#totalReturnAmount").text(summary.total_amount);
+    $("#totalReturnAmount").text(formatNumber(summary.total_amount));
   }
 
   // Export to PDF functionality
@@ -226,7 +226,7 @@ $(document).ready(function () {
         } else {
           alert(
             "Failed to retrieve export data: " +
-              (response.message || "Unknown error")
+            (response.message || "Unknown error")
           );
         }
       },
@@ -346,7 +346,7 @@ $(document).ready(function () {
               <div class="summary-item"><strong>Date Range:</strong> ${dateRange}</div>
               <div class="summary-item"><strong>Total Returns:</strong> ${totalReturns}</div>
               <div class="summary-item"><strong>Total Items:</strong> ${totalItems}</div>
-              <div class="summary-item"><strong>Total Amount:</strong> ${totalAmount}</div>
+              <div class="summary-item"><strong>Total Amount:</strong> ${formatNumber(totalAmount)}</div>
           </div>
       </div>
 
@@ -377,8 +377,8 @@ $(document).ready(function () {
                   <td>${item.item_code || "-"}</td>
                   <td>${item.item_name || "-"}</td>
                   <td class="text-right">${item.return_quantity || 0}</td>
-                  <td class="text-right">${item.unit_price || "0.00"}</td>
-                  <td class="text-right">${item.total_amount || "0.00"}</td>
+                  <td class="text-right">${formatNumber(item.unit_price)}</td>
+                  <td class="text-right">${formatNumber(item.total_amount)}</td>
                   <td>${item.return_reason || "-"}</td>
               </tr>`;
     });
