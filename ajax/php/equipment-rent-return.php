@@ -150,7 +150,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_returns') {
     }
     
     $returns = EquipmentRentReturn::getByRentItemId($rent_item_id);
-    $settlement = EquipmentRentReturn::getTotalSettlementAmount($rent_item_id);
+    
+    // Calculate totals from recalculated values to stay consistent with displayed rows
+    $total_refund = 0;
+    $total_additional = 0;
+    foreach ($returns as $ret) {
+        $total_refund += floatval($ret['refund_amount'] ?? 0);
+        $total_additional += floatval($ret['additional_payment'] ?? 0);
+    }
+    $settlement = [
+        'total_refund' => round($total_refund, 2),
+        'total_additional' => round($total_additional, 2),
+        'net_settlement' => round($total_additional - $total_refund, 2)
+    ];
     
     echo json_encode([
         "status" => "success",
