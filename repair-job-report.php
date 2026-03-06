@@ -237,7 +237,8 @@ if ($row = mysqli_fetch_assoc($result)) {
                                         <thead>
                                             <tr>
                                                 <th>Job Code - කේතය</th>
-                                                <th>Date - දිනය</th>
+                                                <th>Breakdown Date - දිනය</th>
+                                                <th>Complete Date - අවසන් කළ දිනය</th>
                                                 <th>Customer - පාරිභෝගික</th>
                                                 <th>Machine/Item - යන්ත්‍රය</th>
                                                 <th>Status - තත්ත්වය</th>
@@ -253,7 +254,7 @@ if ($row = mysqli_fetch_assoc($result)) {
                                         </tbody>
                                         <tfoot>
                                             <tr class="total-highlight">
-                                                <th colspan="6" class="text-end">Total:</th>
+                                                <th colspan="7" class="text-end">Total:</th>
                                                 <td id="tblTotalRepairCharge" class="text-end">0.00</td>
                                                 <td id="tblTotalCommission" class="text-end">0.00</td>
                                                 <td id="tblTotalItemCost" class="text-end">0.00</td>

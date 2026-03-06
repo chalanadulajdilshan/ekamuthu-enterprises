@@ -151,7 +151,8 @@ $status_title = $status_title_map[$status] ?? 'All Statuses';
         <thead>
             <tr>
                 <th>Job Code - කේතය</th>
-                <th>Date - දිනය</th>
+                <th>Breakdown Date - දිනය</th>
+                <th>Complete Date - දිනය</th>
                 <th>Customer - පාරිභෝගික</th>
                 <th>Machine/Item - යන්ත්‍රය</th>
                 <th>Status - තත්ත්වය</th>
@@ -168,6 +169,7 @@ $status_title = $status_title_map[$status] ?? 'All Statuses';
                 <tr>
                     <td><?php echo $row['job_code']; ?></td>
                     <td><?php echo $row['item_breakdown_date']; ?></td>
+                    <td><?php echo $row['item_completed_date']; ?></td>
                     <td><?php echo $row['customer_display']; ?></td>
                     <td><?php echo $row['machine_name']; ?></td>
                     <td><?php echo $row['status_label']; ?></td>
@@ -179,7 +181,7 @@ $status_title = $status_title_map[$status] ?? 'All Statuses';
                 </tr>
                 <?php endforeach; ?>
                 <tr style="font-weight: bold; background-color: #f0f0f0;">
-                    <td colspan="6" class="text-right">එකතුව (TOTAL):</td>
+                    <td colspan="7" class="text-right">එකතුව (TOTAL):</td>
                     <td class="text-right"><?php echo number_format($total_repair_charges, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_commission, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_item_cost, 2); ?></td>

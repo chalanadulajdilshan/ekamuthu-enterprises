@@ -52,6 +52,7 @@ $(document).ready(function () {
             "columns": [
                 { "data": "job_code" },
                 { "data": "item_breakdown_date" },
+                { "data": "item_completed_date" },
                 { "data": "customer_name" },
                 { "data": "machine_name" },
                 { "data": "status" },

@@ -57,6 +57,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
         $data[] = [
             'job_code' => $row['job_code'],
             'item_breakdown_date' => $row['item_breakdown_date'],
+            'item_completed_date' => $row['item_completed_date'] ?? '',
             'customer_name' => $row['customer_name'] . ($row['customer_phone'] ? ' (' . $row['customer_phone'] . ')' : ''),
             'machine_name' => $row['machine_name'],
             'status' => $status_badge,
