@@ -188,6 +188,14 @@ include 'auth.php';
                         <div class="col-md-6"><strong>Customer:</strong> <span id="billModalCustomer">-</span></div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><strong>Calculate Outstanding To Date:</strong></label>
+                            <input type="text" id="billModalCalcDate" class="form-control date-picker" placeholder="Select Date" autocomplete="off">
+                            <small class="text-muted">Select a date to calculate outstanding up to that date</small>
+                        </div>
+                    </div>
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="border rounded p-3 h-100 bg-light">

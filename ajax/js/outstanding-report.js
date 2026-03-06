@@ -1,4 +1,5 @@
 let reportTable;
+let currentBillData = null;
 
 $(document).ready(function () {
 
@@ -50,6 +51,14 @@ $(document).ready(function () {
     // Print modal content
     $('#billModalPrint').on('click', function () {
         printBillDetails();
+    });
+
+    // Recalculate outstanding when date changes
+    $(document).on('change', '#billModalCalcDate', function () {
+        const selectedDate = $(this).val();
+        if (selectedDate) {
+            recalculateOutstandingToDate(selectedDate);
+        }
     });
 
 });
@@ -191,21 +200,27 @@ function openPrintWindow(isSummary) {
 }
 
 function fillBillDetailsModal(data) {
+    currentBillData = data;
     var fmt = function (val) { return formatAmount(parseAmount(val)); };
 
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
+    
+    // Set default calculation date to today
+    var currentDate = new Date();
+    const fmtToday = $.datepicker.formatDate('yy-mm-dd', currentDate);
+    $('#billModalCalcDate').val(fmtToday);
 
     // Show day count from rental date to today (inclusive)
     var dayCountText = '';
     if (data.rental_date) {
         var startDate = new Date(data.rental_date);
         if (!isNaN(startDate.getTime())) {
-            var today = new Date();
+            var endDate = new Date();
             var startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-            var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            var todayMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
             var diffMs = todayMidnight - startMidnight;
-            var days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1); // inclusive of start date
+            var days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1);
             dayCountText = '(' + days + ' day' + (days !== 1 ? 's' : '') + ')';
         }
     }
@@ -221,10 +236,10 @@ function fillBillDetailsModal(data) {
         : '<span class="badge bg-warning text-dark">Not Returned</span>');
 
     // Today date label (e.g., 2026/05/03 දිනට ගෙවිය යුතු මුදල)
-    var today = new Date();
-    var yyyy = today.getFullYear();
-    var mm = String(today.getMonth() + 1).padStart(2, '0');
-    var dd = String(today.getDate()).padStart(2, '0');
+    var labelDate = new Date();
+    var yyyy = labelDate.getFullYear();
+    var mm = String(labelDate.getMonth() + 1).padStart(2, '0');
+    var dd = String(labelDate.getDate()).padStart(2, '0');
     var dateLabel = yyyy + '/' + mm + '/' + dd + ' දිනට ගෙවිය යුතු මුදල';
     $('#billModalDateLabel').html('<strong>' + dateLabel + '</strong>');
 
@@ -365,8 +380,118 @@ function fillBillDetailsModal(data) {
     $('#billModalProjectedTotal').text(fmt(data.projected_outstanding_raw || data.projected_outstanding));
 }
 
+function recalculateOutstandingToDate(selectedDate) {
+    if (!currentBillData) return;
+
+    var fmt = function (val) { return formatAmount(parseAmount(val)); };
+    var data = currentBillData;
+    
+    // Parse selected date
+    var calcDate = new Date(selectedDate);
+    if (isNaN(calcDate.getTime())) return;
+
+    // Update date label with selected date
+    var yyyy = calcDate.getFullYear();
+    var mm = String(calcDate.getMonth() + 1).padStart(2, '0');
+    var dd = String(calcDate.getDate()).padStart(2, '0');
+    var dateLabel = yyyy + '/' + mm + '/' + dd + ' දිනට ගෙවිය යුතු මුදල';
+    $('#billModalDateLabel').html('<strong>' + dateLabel + '</strong>');
+
+    // Recalculate day count from rental date to selected date
+    var dayCountText = '';
+    if (data.rental_date) {
+        var startDate = new Date(data.rental_date);
+        if (!isNaN(startDate.getTime())) {
+            var startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            var calcMidnight = new Date(calcDate.getFullYear(), calcDate.getMonth(), calcDate.getDate());
+            var diffMs = calcMidnight - startMidnight;
+            var days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1);
+            dayCountText = '(' + days + ' day' + (days !== 1 ? 's' : '') + ')';
+        }
+    }
+    $('#billModalDayCount').text(dayCountText);
+
+    // Recalculate projected outstanding for pending items up to selected date
+    var projectedOutstanding = 0;
+    
+    if (data.items && data.items.length) {
+        data.items.forEach(function (item) {
+            var pendingQty = parseFloat(item.pending_qty || 0);
+            if (pendingQty <= 0) return;
+
+            // Calculate days from rental date to selected date
+            var rentalDate = new Date(data.rental_date);
+            if (isNaN(rentalDate.getTime())) return;
+            
+            var rentalMidnight = new Date(rentalDate.getFullYear(), rentalDate.getMonth(), rentalDate.getDate());
+            var calcMidnight = new Date(calcDate.getFullYear(), calcDate.getMonth(), calcDate.getDate());
+            var usedDays = Math.max(1, Math.floor((calcMidnight - rentalMidnight) / (1000 * 60 * 60 * 24)) + 1);
+            
+            // Calculate per unit daily rate
+            var totalQty = parseFloat(item.quantity || 0);
+            var totalAmount = parseFloat(item.amount || 0);
+            var perUnitDaily = totalQty > 0 ? (totalAmount / totalQty) : 0;
+            
+            // Calculate projected amount for pending quantity
+            var projectedAmount = pendingQty * usedDays * perUnitDaily;
+            projectedOutstanding += projectedAmount;
+        });
+    }
+
+    // Filter recorded outstanding and payments up to selected date
+    var recordedOutstanding = 0;
+    var recordedPaid = 0;
+    
+    if (data.recorded_details && data.recorded_details.length) {
+        data.recorded_details.forEach(function (detail) {
+            var returnDate = new Date(detail.return_date);
+            if (!isNaN(returnDate.getTime()) && returnDate <= calcDate) {
+                recordedOutstanding += parseFloat(detail.outstanding_amount || 0);
+                recordedPaid += parseFloat(detail.customer_paid || 0);
+            }
+        });
+    }
+
+    // Filter payments up to selected date
+    var totalPayments = 0;
+    if (data.payments && data.payments.length) {
+        data.payments.forEach(function (payment) {
+            var paymentDate = new Date(payment.entry_date);
+            if (!isNaN(paymentDate.getTime()) && paymentDate <= calcDate) {
+                totalPayments += parseFloat(payment.amount || 0);
+            }
+        });
+    }
+
+    // Filter deposits up to selected date
+    var totalDeposits = 0;
+    if (data.deposits && data.deposits.length) {
+        data.deposits.forEach(function (deposit) {
+            var depositDate = new Date(deposit.payment_date);
+            if (!isNaN(depositDate.getTime()) && depositDate <= calcDate) {
+                totalDeposits += parseFloat(deposit.amount || 0);
+            }
+        });
+    }
+
+    // Calculate totals
+    var totalCharges = recordedOutstanding + projectedOutstanding;
+    var totalPaid = recordedPaid + totalDeposits + totalPayments;
+    var balance = Math.max(0, totalCharges - totalPaid);
+
+    // Update display
+    $('#billModalTotalRent').text(fmt(totalCharges));
+    $('#billModalTotalPaid').text(fmt(totalPaid));
+    $('#billModalBalance').text(fmt(balance));
+    $('#billModalRecordedTotal').text(fmt(recordedOutstanding));
+    $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
+}
+
 function printBillDetails() {
-    var modalBody = $('#billDetailModal .modal-body').html();
+    var modalBodyClone = $('#billDetailModal .modal-body').clone();
+    // Remove the calculation date row from print content
+    modalBodyClone.find('#billModalCalcDate').closest('.row').remove();
+    var modalBody = modalBodyClone.html();
 
     var printWindow = window.open('', '_blank');
     printWindow.document.write(`
