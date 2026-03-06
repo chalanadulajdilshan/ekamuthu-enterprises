@@ -287,7 +287,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     if ($lastId < 5564) {
         $lastId = 5564;
     }
-    $newCode = 'RJ/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
+    $newCode = ($lastId + 1);
 
     echo json_encode([
         "status" => "success",

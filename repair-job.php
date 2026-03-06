@@ -12,7 +12,7 @@ $lastId = $DOCUMENT_TRACKING->repair_job_id ?? 0;
 if ($lastId < 5564) {
     $lastId = 5564;
 }
-$job_code = '0' . ($lastId + 1);
+$job_code = ($lastId + 1);
 ?>
 
 <head>
