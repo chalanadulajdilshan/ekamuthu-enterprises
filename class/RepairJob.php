@@ -11,6 +11,7 @@ class RepairJob
     public $customer_address;
     public $customer_phone;
     public $item_breakdown_date;
+    public $item_completed_date;
     public $job_status;
     public $employee_id;
     public $technical_issue;
@@ -44,6 +45,7 @@ class RepairJob
                 $this->customer_address = $result['customer_address'];
                 $this->customer_phone = $result['customer_phone'];
                 $this->item_breakdown_date = $result['item_breakdown_date'];
+                $this->item_completed_date = $result['item_completed_date'];
                 $this->job_status = $result['job_status'];
                 $this->employee_id = $result['employee_id'];
                 $this->technical_issue = $result['technical_issue'];
@@ -67,7 +69,7 @@ class RepairJob
         $db = Database::getInstance();
         $query = "INSERT INTO `repair_jobs` (
             `job_code`, `item_type`, `machine_code`, `machine_name`, `customer_name`, `customer_address`, `customer_phone`,
-            `item_breakdown_date`, `job_status`, `employee_id`, `technical_issue`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`,
+            `item_breakdown_date`, `item_completed_date`, `job_status`, `employee_id`, `technical_issue`, `repair_charge`, `commission_percentage`, `commission_amount`, `total_cost`, `remark`,
             `is_outsource`, `outsource_name`, `outsource_address`, `outsource_phone`, `outsource_cost`
         ) VALUES (
             '" . $db->escapeString($this->job_code) . "',
@@ -78,6 +80,7 @@ class RepairJob
             '" . $db->escapeString($this->customer_address) . "',
             '" . $db->escapeString($this->customer_phone) . "',
             " . ($this->item_breakdown_date ? "'" . $db->escapeString($this->item_breakdown_date) . "'" : "NULL") . ",
+            " . ($this->item_completed_date ? "'" . $db->escapeString($this->item_completed_date) . "'" : "NULL") . ",
             '" . $db->escapeString($this->job_status) . "',
             " . ($this->employee_id ? "'" . (int) $this->employee_id . "'" : "NULL") . ",
             '" . $db->escapeString($this->technical_issue) . "',
@@ -114,6 +117,7 @@ class RepairJob
             `customer_address` = '" . $db->escapeString($this->customer_address) . "',
             `customer_phone` = '" . $db->escapeString($this->customer_phone) . "',
             `item_breakdown_date` = " . ($this->item_breakdown_date ? "'" . $db->escapeString($this->item_breakdown_date) . "'" : "NULL") . ",
+            `item_completed_date` = " . ($this->item_completed_date ? "'" . $db->escapeString($this->item_completed_date) . "'" : "NULL") . ",
             `job_status` = '" . $db->escapeString($this->job_status) . "',
             `employee_id` = " . ($this->employee_id ? "'" . (int) $this->employee_id . "'" : "NULL") . ",
             `technical_issue` = '" . $db->escapeString($this->technical_issue) . "',
@@ -184,6 +188,7 @@ class RepairJob
             $this->customer_address = $result['customer_address'];
             $this->customer_phone = $result['customer_phone'];
             $this->item_breakdown_date = $result['item_breakdown_date'];
+            $this->item_completed_date = $result['item_completed_date'];
             $this->job_status = $result['job_status'];
             $this->employee_id = $result['employee_id'];
             $this->technical_issue = $result['technical_issue'];

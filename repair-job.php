@@ -169,6 +169,8 @@ $job_code = ($lastId + 1);
                                                     </div>
                                                 </div>
 
+                                                
+
 
                                                 <!-- Job Status -->
                                                 <div class="col-md-3">
@@ -364,7 +366,7 @@ $job_code = ($lastId + 1);
                                         </div>
 
                                         <!-- Employee Dropdown -->
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label class="form-label">Employee - සේවකයා <span class="text-danger">*</span></label>
                                             <select class="form-select mb-3" id="employee_id" name="employee_id">
                                                 <option value=""> -- Select Employee -- </option>
@@ -377,6 +379,14 @@ $job_code = ($lastId + 1);
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                                        </div>
+                                        <!-- Complete Date -->
+                                        <div class="col-md-2" id="completed_date_section" style="display: none;">
+                                            <label for="item_completed_date" class="form-label">Complete Date - අවසන් කළ දිනය <span class="text-danger">*</span></label>
+                                            <div class="mb-3">
+                                                <input id="item_completed_date" name="item_completed_date" type="text"
+                                                    class="form-control date-picker-date" value="">
+                                            </div>
                                         </div>
 
                                         <!-- Commission Percentage -->
@@ -398,7 +408,7 @@ $job_code = ($lastId + 1);
                                         </div>
 
                                         <!-- Total Cost Display (Calculated) -->
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label class="form-label">Total Repair Cost - මුළු පිරිවැය</label>
                                             <div class="input-group mb-3">
                                                 <span class="input-group-text">Rs.</span>

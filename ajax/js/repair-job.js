@@ -70,6 +70,16 @@ jQuery(document).ready(function () {
         }
     }
 
+    // Show/hide completed date section based on status
+    function toggleCompletedDateSection() {
+        var status = $("#job_status").val();
+        if (status === "completed") {
+            $("#completed_date_section").slideDown();
+        } else {
+            $("#completed_date_section").slideUp();
+        }
+    }
+
     // Check job code uniqueness
     function checkJobCodeDuplicate(jobCode) {
         isJobCodeDuplicate = false;
@@ -155,9 +165,10 @@ jQuery(document).ready(function () {
         calculateGrandTotal();
     });
 
-    // Event: Toggle repair items section on status change
+    // Event: Toggle sections on status change
     $("#job_status").on("change", function () {
         toggleRepairItemsSection();
+        toggleCompletedDateSection();
     });
 
     // Event: Toggle machine section on item type change
@@ -287,6 +298,7 @@ jQuery(document).ready(function () {
                     $("#customer_address").val(job.customer_address || "");
                     $("#customer_phone").val(job.customer_phone || "");
                     $("#item_breakdown_date").val(job.item_breakdown_date || "");
+                    $("#item_completed_date").val(job.item_completed_date || "");
                     $("#technical_issue").val(job.technical_issue || "");
                     $("#job_status").val(job.job_status || "pending").trigger('change');
                     $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2)).trigger('change');
@@ -307,6 +319,8 @@ jQuery(document).ready(function () {
                     // Toggle sections based on loaded data
                     toggleMachineSection();
                     toggleOutsourceSection();
+                    toggleRepairItemsSection();
+                    toggleCompletedDateSection();
 
                     // Load items
                     repairItems = result.items.map(function (item) {
@@ -400,6 +414,9 @@ jQuery(document).ready(function () {
         } else if ($("#employee_id").val() === "") {
             errorMessage = "Please select an employee";
             isValid = false;
+        } else if ($("#job_status").val() === "completed" && $("#item_completed_date").val().trim() === "") {
+            errorMessage = "Complete Date is required for completed jobs";
+            isValid = false;
         } else if (parseFloat($("#repair_charge").val()) < 0) {
             errorMessage = "Repair Charge cannot be negative";
             isValid = false;
@@ -437,6 +454,7 @@ jQuery(document).ready(function () {
             customer_address: $("#customer_address").val(),
             customer_phone: $("#customer_phone").val(),
             item_breakdown_date: $("#item_breakdown_date").val(),
+            item_completed_date: $("#item_completed_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
             is_outsource: $("#is_outsource").is(":checked") ? 1 : 0,
@@ -505,10 +523,8 @@ jQuery(document).ready(function () {
             item_type: $("input[name='item_type']:checked").val(),
             machine_code: $("#machine_code").val(),
             machine_name: $("#machine_name").val(),
-            customer_name: $("#customer_name").val(),
-            customer_address: $("#customer_address").val(),
-            customer_phone: $("#customer_phone").val(),
             item_breakdown_date: $("#item_breakdown_date").val(),
+            item_completed_date: $("#item_completed_date").val(),
             technical_issue: $("#technical_issue").val(),
             job_status: $("#job_status").val(),
             is_outsource: $("#is_outsource").is(":checked") ? 1 : 0,
@@ -606,6 +622,7 @@ jQuery(document).ready(function () {
         $("#job_status").val("pending");
         $("#machine_code").val("");
         $("#machine_name").val("");
+        $("#item_completed_date").val("");
         $("#repair_charge").val("0.00");
         $("#outsource_cost").val("0.00");
         $("#commission_percentage").val("15");
@@ -617,6 +634,7 @@ jQuery(document).ready(function () {
         toggleRepairItemsSection();
         toggleMachineSection();
         toggleOutsourceSection();
+        toggleCompletedDateSection();
         $("#create").show();
         $("#update").hide();
         $(".delete-job").hide();
