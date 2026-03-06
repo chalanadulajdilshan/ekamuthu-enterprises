@@ -7,16 +7,6 @@ $to_date   = $_GET['to'] ?? date('Y-m-d');
 
 $db = Database::getInstance();
 
-$rentalCalc = "CASE WHEN err.rental_override IS NOT NULL
-                       THEN err.rental_override
-                       ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
-                           THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
-                           ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                               * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
-                               * err.return_qty)
-                       END
-                   END";
-
 $billableDaysExpr = "GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))";
 
 $query = "SELECT 
@@ -27,14 +17,22 @@ $query = "SELECT
                 eri.sub_equipment_id,
                 se.code AS sub_equipment_code,
                 COALESCE(se.value, 0) AS sub_equipment_value,
-                SUM(err.return_qty) AS rented_qty,
-                SUM($billableDaysExpr * err.return_qty) AS billable_days,
-                SUM($rentalCalc) AS rent_value
-            FROM equipment_rent_returns err
-            INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                SUM(COALESCE(ret.return_qty, 0)) AS rented_qty,
+                SUM(COALESCE(ret.billable_days, 0)) AS billable_days,
+                SUM(COALESCE(eri.total_rent_amount, 0)) AS rent_value
+            FROM equipment_rent_items eri
+            INNER JOIN (
+                SELECT err.rent_item_id,
+                       SUM(err.return_qty) AS return_qty,
+                       SUM($billableDaysExpr * err.return_qty) AS billable_days
+                FROM equipment_rent_returns err
+                INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id
+                WHERE err.return_date BETWEEN '$from_date' AND '$to_date'
+                GROUP BY err.rent_item_id
+            ) ret ON ret.rent_item_id = eri.id
             LEFT JOIN equipment e ON eri.equipment_id = e.id
             LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
-            WHERE err.return_date BETWEEN '$from_date' AND '$to_date'
+            WHERE 1 = 1
             GROUP BY e.id, eri.sub_equipment_id
             ORDER BY e.code ASC, se.code ASC";
 

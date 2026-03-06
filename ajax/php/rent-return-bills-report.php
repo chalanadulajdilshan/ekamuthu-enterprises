@@ -51,6 +51,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 e.item_name,
                 se.code as sub_item_code,
                 eri.amount as item_amount,
+                eri.total_rent_amount as total_rent_amount,
                 eri.duration as day_count,
                 eri.quantity as quantity,
                 eri.rent_type,
@@ -96,8 +97,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             $qty = floatval($row['quantity']);
             $days = floatval($row['day_count']);
             
-            // For Issue (Rent) bills, the upfront profit is the agreed amount
-            $itemProfit = $dailyRent;
+            // For Issue (Rent) bills, use total_rent_amount from rent item table
+            $itemProfit = floatval($row['total_rent_amount']);
 
             // Add Item
             $bills['rent_' . $billNo]['items'][] = [
@@ -150,6 +151,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 e.item_name,
                 se.code as sub_item_code,
                 eri.amount as base_item_amount,
+                eri.total_rent_amount as total_rent_amount,
                 eri.quantity as base_item_qty,
                 eri.rent_type,
                 er_status.rent_status,
@@ -183,27 +185,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             $baseQty = floatval($row['base_item_qty']);
             $dayCount = floatval($row['calculated_days']);
             
-            // Check if fixed-rate item
-            $isFixedRate = intval($row['is_fixed_rate'] ?? 0) === 1;
-
-            if ($isFixedRate) {
-                // Fixed-rate: flat amount regardless of days
-                $qtyScale = ($baseQty > 0) ? ($returnQty / $baseQty) : 1;
-                $rentalProfit = $lineRate * $qtyScale;
-                $effectiveLineRate = $lineRate;
-                $scaledDailyRate = $lineRate * $qtyScale;
-            } else {
-                // Effective Daily Rate for the line = (Line Rate / (Month? 30 : 1))
-                // The rate is already for the total quantity, so we scale by (returnQty / baseQty) if partial return
-                $effectiveLineRate = ($row['rent_type'] === 'month') ? ($lineRate / 30) : $lineRate;
-                $qtyScale = ($baseQty > 0) ? ($returnQty / $baseQty) : 1;
-                $scaledDailyRate = $effectiveLineRate * $qtyScale;
-                
-                // Profit for return = (Scaled Daily Rate * Day Count) + Damage Amount
-                // Extra Day and Penalty amounts are shown in the "Extra Amount" column separately
-                $rentalProfit = $scaledDailyRate * $dayCount;
-            }
-            $totalItemProfit = $rentalProfit + floatval($row['damage_amount']);
+            // Use total_rent_amount from rent item table
+            $totalItemProfit = floatval($row['total_rent_amount']);
 
             // Initialize Grouped Return Bill if not exists
             if (!isset($bills[$key])) {
@@ -313,9 +296,10 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             'quantity' => $billTotalQty,
             'deposit' => $bill['deposit'],
             'profit_balance' => ($bill['rent_status'] === 'returned' && $bill['bill_type'] === 'Return') ? number_format($bill['deposit'] - ($billTotalAmount + $billTotalExtraAmount), 2) : '-',
-            'amount' => number_format($billTotalAmount, 2),
+            // Send raw numbers to avoid comma-induced truncation in JS
+            'amount' => round($billTotalAmount, 2),
             'extra_amount_list' => implode(', ', array_map(function($v) { return number_format($v, 2); }, $displayExtraAmounts)),
-            'extra_amount' => number_format($billTotalExtraAmount, 2),
+            'extra_amount' => round($billTotalExtraAmount, 2),
             'remarks' => $bill['remarks'],
             'items' => $bill['items']
         ];
