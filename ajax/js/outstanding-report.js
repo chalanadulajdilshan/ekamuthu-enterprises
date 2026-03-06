@@ -490,7 +490,7 @@ function recalculateOutstandingToDate(selectedDate) {
 function printBillDetails() {
     var modalBodyClone = $('#billDetailModal .modal-body').clone();
     // Remove the calculation date row from print content
-    modalBodyClone.find('#billModalCalcDate').closest('.row').remove();
+    modalBodyClone.find('.print-hide').remove();
     var modalBody = modalBodyClone.html();
 
     var printWindow = window.open('', '_blank');
@@ -512,6 +512,7 @@ function printBillDetails() {
                 .table thead th { background: #f1f3f5 !important; }
                 .table tfoot th, .table tfoot td { padding: 5px; }
                 .table-sm > :not(caption) > * > * { padding: 5px; }
+                .print-hide { display: none !important; }
             </style>
         </head>
         <body>

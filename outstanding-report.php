@@ -58,6 +58,11 @@ include 'auth.php';
         .table tbody td {
             vertical-align: middle;
         }
+        /* Hide elements marked for print exclusion */
+        .print-hide { display: block; }
+        @media print {
+            .print-hide { display: none !important; }
+        }
     </style>
 </head>
 
@@ -188,7 +193,7 @@ include 'auth.php';
                         <div class="col-md-6"><strong>Customer:</strong> <span id="billModalCustomer">-</span></div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="row mb-3 print-hide">
                         <div class="col-md-4">
                             <label class="form-label"><strong>Calculate Outstanding To Date:</strong></label>
                             <input type="text" id="billModalCalcDate" class="form-control date-picker" placeholder="Select Date" autocomplete="off">
