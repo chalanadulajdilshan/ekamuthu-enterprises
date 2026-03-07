@@ -690,7 +690,7 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">Paid to Customer:</td>
+                                <td class="summary-label">Customer Pay:</td>
                                 <td class="summary-value">
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="fw-semibold"><?php echo number_format($refund_balance, 2); ?></span>
