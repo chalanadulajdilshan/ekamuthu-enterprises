@@ -69,71 +69,122 @@ jQuery(document).ready(function () {
     });
   });
 
-  // add customers for same formate
-  $("#customerModal").on("shown.bs.modal", function () {
-    loadCustomerTable();
-  });
+  // Customer modal: manual search (code/name/mobile/company) replacing DataTable
+  const customerSearchInput = $("#customerSearchInput");
+  const customerSearchResults = $("#customerSearchResults");
 
-  //loard customers all
-  function loadCustomerTable() {
-    // Destroy if already initialized
-    if ($.fn.DataTable.isDataTable("#customerTable")) {
-      $("#customerTable").DataTable().destroy();
+  function debounce(fn, delay) {
+    let t;
+    return function (...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  function renderCustomerRows(customers) {
+    if (!customers || customers.length === 0) {
+      customerSearchResults.html(
+        '<tr><td colspan="5" class="text-center text-muted">No customers found</td></tr>'
+      );
+      return;
     }
 
-    $("#customerTable").DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "ajax/php/customer-master.php",
-        type: "POST",
-        data: function (d) {
-          d.filter = true;
-          d.category = 1;
-        },
-        dataSrc: function (json) {
-          return json.data;
-        },
-        error: function (xhr) {
-          console.error("Server Error Response:", xhr.responseText);
-        },
-      },
-      columns: [
-        { data: "key", title: "#ID" },
-        { data: "code", title: "Code" },
-        { data: "name", title: "Name" },
-        { data: "mobile_number", title: "Mobile Number" },
-        { data: "email", title: "Email" },
-        { data: "vat_no", title: "VAT" },
-        { data: "outstanding", title: "Outstanding" },
-      ],
-      order: [[0, "desc"]],
-      pageLength: 100,
-    });
+    const rows = customers
+      .map((c) => {
+        const mobile = c.mobile_number || c.mobile_number_2 || "";
+        const company = c.is_company == 1 ? c.company_name || "" : "";
+        const outstanding = parseFloat(c.outstanding || c.old_outstanding || 0).toFixed(2);
+        const address = c.address || "";
+        const vat = c.vat_no || "";
+        return `
+          <tr class="customer-row" data-id="${c.id}" data-code="${c.code}" data-name="${c.name}" data-mobile="${mobile}" data-outstanding="${outstanding}" data-address="${address}" data-company="${company}" data-vat="${vat}">
+            <td>${c.code || ""}</td>
+            <td>${c.name || ""}</td>
+            <td>${mobile}</td>
+            <td>${company}</td>
+            <td class="text-end">${outstanding}</td>
+          </tr>`;
+      })
+      .join("");
 
-    $("#customerTable tbody").on("click", "tr", function () {
-      var data = $("#customerTable").DataTable().row(this).data();
-
-      if (data) {
-        $("#customer_id").val(data.id);
-        $("#customer_code").val(data.code);
-        $("#customer_name").val(data.name);
-        $("#customer_address").val(data.address);
-        $("#customer_mobile").val(data.mobile_number);
-        $("#customer_vat_no").val(data.vat_no);
-        $("#customerModal").modal("hide");
-        $("#outstandingInvoiceAmount").val(data.outstanding);
-
-        let total =
-          (parseFloat(toNumber($("#outstandingInvoiceAmount").val())) || 0) +
-          (parseFloat(toNumber($("#returnChequeAmount").val())) || 0) +
-          (parseFloat(toNumber($("#pendingChequeAmount").val())) || 0) +
-          (parseFloat(toNumber($("#psdChequeSettlements").val())) || 0);
-
-        $("#totalAmount").val(total.toFixed(2));
-      }
-    });
+    customerSearchResults.html(rows);
   }
+
+  const fetchCustomers = debounce(function (term) {
+    customerSearchResults.html(
+      '<tr><td colspan="5" class="text-center text-muted">Searching...</td></tr>'
+    );
+
+    $.ajax({
+      url: "ajax/php/customer-master.php",
+      method: "POST",
+      dataType: "json",
+      data: {
+        get_all_customers: true,
+        search: term || "",
+      },
+      success: function (res) {
+        if (res && res.status === "success") {
+          renderCustomerRows(res.data || []);
+        } else {
+          customerSearchResults.html(
+            '<tr><td colspan="5" class="text-center text-muted">No customers found</td></tr>'
+          );
+        }
+      },
+      error: function () {
+        customerSearchResults.html(
+          '<tr><td colspan="5" class="text-center text-danger">Error loading customers</td></tr>'
+        );
+      },
+    });
+  }, 300);
+
+  $("#customerModal").on("shown.bs.modal", function () {
+    customerSearchInput.val("").focus();
+    customerSearchResults.html(
+      '<tr><td colspan="5" class="text-center text-muted">Start typing to search customers...</td></tr>'
+    );
+  });
+
+  customerSearchInput.on("keyup", function () {
+    const term = $(this).val();
+    if (!term || term.trim().length === 0) {
+      customerSearchResults.html(
+        '<tr><td colspan="5" class="text-center text-muted">Start typing to search customers...</td></tr>'
+      );
+      return;
+    }
+    fetchCustomers(term.trim());
+  });
+
+  customerSearchResults.on("click", ".customer-row", function () {
+    const id = $(this).data("id") || "";
+    const code = $(this).data("code") || "";
+    const name = $(this).data("name") || "";
+    const mobile = $(this).data("mobile") || "";
+    const outstanding = $(this).data("outstanding") || "";
+
+    $("#customer_id").val(id);
+    $("#customer_code").val(code);
+    $("#customer_name").val(name);
+    $("#customer_address").val($(this).data("address") || "");
+    $("#customer_mobile").val(mobile);
+    $("#customer_vat_no").val($(this).data("vat") || "");
+    $("#outstandingInvoiceAmount").val(outstanding);
+
+    // Recalculate total if related fields exist
+    if ($("#totalAmount").length) {
+      let total =
+        (parseFloat(toNumber($("#outstandingInvoiceAmount").val())) || 0) +
+        (parseFloat(toNumber($("#returnChequeAmount").val())) || 0) +
+        (parseFloat(toNumber($("#pendingChequeAmount").val())) || 0) +
+        (parseFloat(toNumber($("#psdChequeSettlements").val())) || 0);
+      $("#totalAmount").val(total.toFixed(2));
+    }
+
+    $("#customerModal").modal("hide");
+  });
 
   function toNumber(val) {
     return parseFloat(val.replace(/,/g, "")) || 0;

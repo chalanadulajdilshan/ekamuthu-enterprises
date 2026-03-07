@@ -450,6 +450,7 @@ if (isset($_POST['get_all_customers'])) {
         $searchTerm = mysqli_real_escape_string($db->DB_CON, $search);
         $searchCondition = " AND (
             name LIKE '%$searchTerm%' OR 
+            company_name LIKE '%$searchTerm%' OR 
             nic LIKE '%$searchTerm%' OR 
             mobile_number LIKE '%$searchTerm%' OR 
             mobile_number_2 LIKE '%$searchTerm%' OR
