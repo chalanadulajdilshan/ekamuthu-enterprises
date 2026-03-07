@@ -2426,6 +2426,29 @@ jQuery(document).ready(function () {
 
   // Ensure return_all_date remains editable when modal is shown
   $("#returnAllModal").on("shown.bs.modal", function () {
+    // Re-init datepicker every time modal opens to recover after other modals (e.g., deposit)
+    if ($.fn.datepicker) {
+      $("#return_all_date")
+        .datepicker("destroy")
+        .datepicker({
+          dateFormat: "yy-mm-dd",
+          changeMonth: true,
+          changeYear: true,
+          autoclose: true,
+          todayHighlight: true,
+          onClose: function () {
+            $(this).prop("readonly", false).removeAttr("readonly");
+          },
+        });
+    }
+    $("#return_all_date").prop("readonly", false).removeAttr("readonly");
+  });
+
+  // Clean up datepicker when modal is hidden so it can be reattached cleanly next open
+  $("#returnAllModal").on("hidden.bs.modal", function () {
+    if ($.fn.datepicker) {
+      $("#return_all_date").datepicker("destroy");
+    }
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
