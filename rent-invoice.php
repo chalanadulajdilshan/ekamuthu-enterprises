@@ -45,11 +45,11 @@ $has_month = in_array('month', $rent_types, true);
 $has_daily = count($rent_types) === 0 ? false : ($has_month ? count($rent_types) > 1 : true);
 
 if ($has_month && !$has_daily) {
-    $rent_label = 'මසක කුලී මුදල:';
+    $rent_label = 'Monthly Rental:';
 } elseif (!$has_month && $has_daily) {
-    $rent_label = 'කුලී මුදල:';
+    $rent_label = 'Rental Amount:';
 } else {
-    $rent_label = 'කුලී මුදල:';
+    $rent_label = 'Rental Amount:';
 }
 
 // Collect return rows across items for print
@@ -476,7 +476,7 @@ if (!empty($customerMobile)) {
 
 <div class="container mt-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 no-print gap-2">
-        <h4 class="mb-0">උපකරණ කුලී ඉන්වොයිසිය</h4>
+        <h4 class="mb-0">Equipment Rent Invoice</h4>
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <button onclick="window.print()" class="btn btn-success ms-2">Print / PDF</button>
             <button onclick="shareViaWhatsApp()" class="btn btn-success ms-2 no-print">
@@ -502,19 +502,19 @@ if (!empty($customerMobile)) {
                 <!-- Centered Title -->
                 <div class="row mb-3">
                     <div class="col-12 text-center">
-                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:0; display:inline-block;">උපකරණ කුලී ඉන්වොයිසිය</h3>
+                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:0; display:inline-block;">Equipment Rent Invoice</h3>
                     </div>
                 </div>
 
                 <div class="row mb-4">
                     <div class="col-md-6 text-sm-start text-md-start">
                         <div style="font-size:15px; line-height:1.6;">
-                            <p class="mb-1"><strong>නම :</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
-                            <p class="mb-1"><strong>දැනට පදිංචි ලිපිනය :</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>දු.ර:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Name :</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
+                            <p class="mb-1"><strong>Address :</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Tel:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
                             <p class="mb-1"><strong>WP No:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>ජා.හැ.අ:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>වැඩ බිමේ ලිපිනය:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
+                            <p class="mb-1"><strong>Work Site Address:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
                             <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>
                                 <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->guarantor_address); ?></p>
                             <?php endif; ?>
@@ -530,12 +530,12 @@ if (!empty($customerMobile)) {
                         </div>
                         <div class="invoice-meta">
                             <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>නිකුත් කරන දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                            <p class="mb-1" style="font-size:14px;"><strong>Issued Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
                             <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong>කුලියට ගත් දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
+                                <p class="mb-1" style="font-size:14px;"><strong>Rented Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
                             <?php endif; ?>
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong>ලැබුණු දිනය:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
+                                <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
                             <?php endif; ?>
                             <p class="mb-1" style="font-size:14px;">
                                 <strong>Status:</strong> 
@@ -555,12 +555,12 @@ if (!empty($customerMobile)) {
                         <thead class="table-light">
                             <tr>
                                 <th>No.</th>
-                                <th>උපකරණ නම</th>
-                                <th>කේතය</th>
-                                <th>වර්ගය</th>
-                                <th>කාල සීමාව</th>
-                                <th class="text-center">ප්‍රමාණය</th>
-                                <th class="text-end">මුදල</th>
+                                <th>Equipment Name</th>
+                                <th>Code</th>
+                                <th>Type</th>
+                                <th>Duration</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Amount</th>
                             </tr>
                         </thead>
                         <tbody style="font-size:13px;">
@@ -598,7 +598,7 @@ if (!empty($customerMobile)) {
                 <?php if (!empty($return_rows)): ?>
                 <!-- Returns Table -->
                 <div class="table-responsive mt-3">
-                    <h5 class="mt-3 mb-2">ලැබීම්</h5>
+                    <h5 class="mt-3 mb-2">Returns</h5>
                     <table class="table table-bordered table-centered print-bordered">
                         <thead class="table-light">
                             <tr>
@@ -668,15 +668,15 @@ if (!empty($customerMobile)) {
                                 <td class="summary-value"><?php echo number_format($hire_amount, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">තැන්පත් කල මුදල:</td>
+                                <td class="summary-label">Deposit Amount:</td>
                                 <td class="summary-value"><?php echo number_format($total_deposit, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">ප්‍රවාහනය:</td>
+                                <td class="summary-label">Transport:</td>
                                 <td class="summary-value"><?php echo number_format($transport_amount, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">සම්පූර්ණ කුලී මුදල:</td>
+                                <td class="summary-label">Total Rental Amount:</td>
                                 <td class="summary-value"><?php echo number_format($hire_amount + $transport_amount + $total_extra_charges, 2); ?></td>
                             </tr>
                             <?php if ($total_repair_cost > 0): ?>
@@ -686,11 +686,11 @@ if (!empty($customerMobile)) {
                             </tr>
                             <?php endif; ?>
                             <tr>
-                                <td class="summary-label">පාරිභෝගිකයා ගෙවූ මුදල :</td>
+                                <td class="summary-label">Total Paid by Customer:</td>
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
                             <tr>
-                                <td class="summary-label">පාරිභෝගිකයාට ගෙවූ මුදල:</td>
+                                <td class="summary-label">Paid to Customer:</td>
                                 <td class="summary-value">
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="fw-semibold"><?php echo number_format($refund_balance, 2); ?></span>
@@ -786,9 +786,9 @@ if (!empty($customerMobile)) {
                     <div class="col-12">
                         <table class="signature-table" style="width:100%;">
                             <tr>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>සකස් කළේ</strong></td>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>අනුමත කළේ</strong></td>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>පාරිභෝගික අත්සන</strong></td>
+                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Prepared By</strong></td>
+                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Approved By</strong></td>
+                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Customer Signature</strong></td>
                             </tr>
                         </table>
                     </div>
