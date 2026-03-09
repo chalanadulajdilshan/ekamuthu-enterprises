@@ -6,6 +6,7 @@ $from_date = $_GET['from_date'] ?? date('Y-m-d');
 $to_date = $_GET['to_date'] ?? date('Y-m-d');
 $status = $_GET['status'] ?? 'all';
 $employee_id = $_GET['employee_id'] ?? 'all';
+$search_query = $_GET['search_query'] ?? '';
 
 $db = Database::getInstance();
 
@@ -14,6 +15,11 @@ $query = "SELECT r.*, e.name as employee_name
           FROM `repair_jobs` r 
           LEFT JOIN `employee_master` e ON r.employee_id = e.id 
           WHERE 1=1";
+
+if (!empty($search_query)) {
+    $search_query_esc = $db->escapeString($search_query);
+    $query .= " AND (r.machine_name LIKE '%$search_query_esc%' OR r.machine_code LIKE '%$search_query_esc%' OR r.job_code LIKE '%$search_query_esc%')";
+}
 
 if (!empty($from_date) && !empty($to_date)) {
     $query .= " AND r.item_breakdown_date BETWEEN '$from_date' AND '$to_date'";
@@ -136,6 +142,9 @@ if ($employee_id != 'all') {
         </span>
         <span style="font-size: 14px; font-weight: normal; color: #555;">
             තත්ත්වය (Status): <?php echo $status_title; ?> | සේවකයා (Employee): <?php echo $employee_title; ?>
+            <?php if (!empty($search_query)): ?>
+                | සෙවීම (Search): <?php echo htmlspecialchars($search_query); ?>
+            <?php endif; ?>
         </span>
     </div>
 
@@ -166,6 +175,7 @@ if ($employee_id != 'all') {
                 <th>Complete Date - දිනය</th>
                 <th>Customer - පාරිභෝගික</th>
                 <th>Machine/Item - යන්ත්‍රය</th>
+                <th>Code - කේතය</th>
                 <th>Status - තත්ත්වය</th>
                 <th>Employee - සේවකයා</th>
                 <th class="text-right">Repair Charge<br>ගාස්තුව</th>
@@ -183,6 +193,7 @@ if ($employee_id != 'all') {
                     <td><?php echo $row['item_completed_date']; ?></td>
                     <td><?php echo $row['customer_display']; ?></td>
                     <td><?php echo $row['machine_name']; ?></td>
+                    <td><?php echo $row['machine_code']; ?></td>
                     <td><?php echo $row['status_label']; ?></td>
                     <td><?php echo $row['employee_name']; ?></td>
                     <td class="text-right"><?php echo number_format($row['repair_charge'], 2); ?></td>
@@ -192,7 +203,7 @@ if ($employee_id != 'all') {
                 </tr>
                 <?php endforeach; ?>
                 <tr style="font-weight: bold; background-color: #f0f0f0;">
-                    <td colspan="7" class="text-right">එකතුව (TOTAL):</td>
+                    <td colspan="8" class="text-right">එකතුව (TOTAL):</td>
                     <td class="text-right"><?php echo number_format($total_repair_charges, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_commission, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_item_cost, 2); ?></td>

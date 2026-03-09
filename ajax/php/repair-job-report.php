@@ -11,12 +11,18 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
     $to_date = isset($_POST['to_date']) ? $db->escapeString($_POST['to_date']) : null;
     $status = isset($_POST['status']) ? $db->escapeString($_POST['status']) : 'all';
     $employee_id = isset($_POST['employee_id']) ? $db->escapeString($_POST['employee_id']) : 'all';
+    $search_query = isset($_POST['search_query']) ? $db->escapeString($_POST['search_query']) : '';
 
     // Base query
     $query = "SELECT r.*, e.name as employee_name 
               FROM `repair_jobs` r 
               LEFT JOIN `employee_master` e ON r.employee_id = e.id 
               WHERE 1=1";
+
+    // Search filter
+    if (!empty($search_query)) {
+        $query .= " AND (r.machine_name LIKE '%$search_query%' OR r.machine_code LIKE '%$search_query%' OR r.job_code LIKE '%$search_query%')";
+    }
 
     // Date filter
     if ($from_date && $to_date) {
@@ -38,6 +44,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
     $result = $db->readQuery($query);
 
     $data = [];
+    $employee_summary = [];
     $total_jobs = 0;
     $total_revenue = 0;
     $total_commission = 0;
@@ -48,7 +55,25 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
         $repair_charge = floatval($row['repair_charge']);
         $commission_amount = floatval($row['commission_amount']);
         $total_cost = floatval($row['total_cost']);
-        $item_cost = $total_cost - $repair_charge; // Approximate item cost derived
+        $item_cost = $total_cost - $repair_charge; 
+
+        $emp_id = $row['employee_id'] ?? 0;
+        $emp_name = $row['employee_name'] ?? 'Not Assigned';
+        $job_status = $row['job_status'];
+
+        if (!isset($employee_summary[$emp_id])) {
+            $employee_summary[$emp_id] = [
+                'name' => $emp_name,
+                'pending' => 0,
+                'in_progress' => 0,
+                'completed' => 0,
+                'delivered' => 0,
+                'cannot_repair' => 0,
+                'total' => 0
+            ];
+        }
+        $employee_summary[$emp_id][$job_status] = ($employee_summary[$emp_id][$job_status] ?? 0) + 1;
+        $employee_summary[$emp_id]['total']++;
 
         // Format status label
         $status_labels = [
@@ -66,13 +91,13 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
             'item_completed_date' => $row['item_completed_date'] ?? '',
             'customer_name' => $row['customer_name'] . ($row['customer_phone'] ? ' (' . $row['customer_phone'] . ')' : ''),
             'machine_name' => $row['machine_name'],
+            'machine_code' => $row['machine_code'],
             'status' => $status_badge,
             'employee_name' => $row['employee_name'] ?? 'Not Assigned',
             'repair_charge' => number_format($repair_charge, 2),
             'commission_amount' => number_format($commission_amount, 2),
             'item_cost' => number_format($item_cost, 2),
             'total_cost' => number_format($total_cost, 2),
-            // Unformatted values for potential client-side summation if needed
             'val_repair_charge' => $repair_charge,
             'val_commission' => $commission_amount,
             'val_item_cost' => $item_cost,
@@ -89,6 +114,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
     echo json_encode([
         'status' => 'success',
         'data' => $data,
+        'employee_summary' => array_values($employee_summary),
         'summary' => [
             'total_jobs' => $total_jobs,
             'total_revenue' => number_format($total_revenue, 2),

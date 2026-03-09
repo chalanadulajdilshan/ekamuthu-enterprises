@@ -135,15 +135,19 @@ if ($row = mysqli_fetch_assoc($result)) {
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="mt-2">
-                                                        <small class="text-muted"><i class="mdi mdi-information-outline me-1"></i> Select filters to view report</small>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="row mt-3">
-                                            <div class="col-md-12">
+                                        <div class="row mt-3 g-3 align-items-end">
+                                            <div class="col-md-4">
+                                                <label for="searchQuery" class="form-label fw-semibold text-muted mb-2">Search Machine/Code - යන්ත්‍රය/කේතය සෙවීම</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i class="mdi mdi-magnify text-primary"></i></span>
+                                                    <input type="text" class="form-control" id="searchQuery" name="searchQuery" placeholder="Search by Machine Name, Equipment Code or Job Code...">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8">
                                                 <button type="button" class="btn btn-primary me-1" id="searchBtn">
                                                     <i class="mdi mdi-magnify me-1"></i> Search
                                                 </button>
@@ -163,7 +167,7 @@ if ($row = mysqli_fetch_assoc($result)) {
 
                     <!-- Summary Cards (Hidden by default) -->
                     <div class="row" id="summarySection" style="display: none;">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="card mini-stats-wid">
                                 <div class="card-body">
                                     <div class="d-flex">
@@ -182,7 +186,7 @@ if ($row = mysqli_fetch_assoc($result)) {
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="card mini-stats-wid">
                                 <div class="card-body">
                                     <div class="d-flex">
@@ -201,7 +205,8 @@ if ($row = mysqli_fetch_assoc($result)) {
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <!-- Total Commission Hidden -->
+                        <div class="col-md-3" style="display: none;">
                             <div class="card mini-stats-wid">
                                 <div class="card-body">
                                     <div class="d-flex">
@@ -220,7 +225,7 @@ if ($row = mysqli_fetch_assoc($result)) {
                                 </div>
                             </div>
                         </div>
-                         <div class="col-md-3">
+                         <div class="col-md-4">
                             <div class="card mini-stats-wid">
                                 <div class="card-body">
                                     <div class="d-flex">
@@ -241,6 +246,34 @@ if ($row = mysqli_fetch_assoc($result)) {
                         </div>
                     </div>
 
+                    <div class="row mt-4" id="employeeSummaryRow" style="display: none;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-4">Employee Productivity Summary - සේවක කාර්යක්ෂමතාවය</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-centered table-nowrap mb-0" id="employeeSummaryTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Employee Name - නම</th>
+                                                    <th class="text-center">Pending - පොරොත්තු</th>
+                                                    <th class="text-center">In Progress - ප්‍රගතියේ</th>
+                                                    <th class="text-center">Completed - සම්පූර්ණයි</th>
+                                                    <th class="text-center">Delivered - භාර දෙන ලදී</th>
+                                                    <th class="text-center">Cannot Repair - අලුත්වැඩියා කළ නොහැක</th>
+                                                    <th class="text-center fw-bold">Total - මුළු</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="employeeSummaryBody">
+                                                <!-- Dynamic Content -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -253,12 +286,14 @@ if ($row = mysqli_fetch_assoc($result)) {
                                                 <th>Complete Date - අවසන් කළ දිනය</th>
                                                 <th>Customer - පාරිභෝගික</th>
                                                 <th>Machine/Item - යන්ත්‍රය</th>
+                                                <th>Code - කේතය</th>
                                                 <th>Status - තත්ත්වය</th>
                                                 <th>Employee - සේවකයා</th>
                                                 <th class="text-end">Repair Charge - ගාස්තුව</th>
                                                 <th class="text-end">Commission - කොමිස්</th>
                                                 <th class="text-end">Item Cost - අයිතම</th>
                                                 <th class="text-end">Total Cost - මුළු</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="reportTableBody">
@@ -266,11 +301,12 @@ if ($row = mysqli_fetch_assoc($result)) {
                                         </tbody>
                                         <tfoot>
                                             <tr class="total-highlight">
-                                                <th colspan="7" class="text-end">Total:</th>
+                                                <th colspan="8" class="text-end">Total:</th>
                                                 <td id="tblTotalRepairCharge" class="text-end">0.00</td>
                                                 <td id="tblTotalCommission" class="text-end">0.00</td>
                                                 <td id="tblTotalItemCost" class="text-end">0.00</td>
                                                 <td id="tblTotalCost" class="text-end">0.00</td>
+                                                <td></td>
                                             </tr>
                                         </tfoot>
                                     </table>

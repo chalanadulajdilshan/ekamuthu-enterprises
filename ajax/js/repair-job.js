@@ -149,7 +149,7 @@ jQuery(document).ready(function () {
             $("#outsource_cost").val("0.00");
 
             // Enable commission fields and restore default
-            $("#commission_percentage").val(15).prop("readonly", false);
+            $("#commission_percentage").val(0).prop("readonly", false);
             $("#commission_amount").prop("readonly", true); // Amount is calc-only but percentage is editable
         }
         calculateGrandTotal();
@@ -302,7 +302,7 @@ jQuery(document).ready(function () {
                     $("#technical_issue").val(job.technical_issue || "");
                     $("#job_status").val(job.job_status || "pending").trigger('change');
                     $("#repair_charge").val(parseFloat(job.repair_charge || 0).toFixed(2)).trigger('change');
-                    $("#commission_percentage").val(parseFloat(job.commission_percentage || 15).toFixed(2)).trigger('change');
+                    $("#commission_percentage").val(parseFloat(job.commission_percentage || 0).toFixed(2)).trigger('change');
                     $("#commission_amount").val(parseFloat(job.commission_amount || 0).toFixed(2));
                     $("#employee_id").val(job.employee_id || "");
                     $("#is_outsource").prop("checked", job.is_outsource == 1);
@@ -625,7 +625,7 @@ jQuery(document).ready(function () {
         $("#item_completed_date").val("");
         $("#repair_charge").val("0.00");
         $("#outsource_cost").val("0.00");
-        $("#commission_percentage").val("15");
+        $("#commission_percentage").val("0");
         $("#commission_amount").val("0.00");
         $("#employee_id").val("");
         $("#total_cost_display").val("0.00");

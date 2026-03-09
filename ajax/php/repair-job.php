@@ -53,7 +53,7 @@ if (isset($_POST['create'])) {
     $JOB->technical_issue = $_POST['technical_issue'] ?? '';
     $JOB->job_status = $_POST['job_status'] ?? 'pending';
     $JOB->repair_charge = $_POST['repair_charge'] ?? 0;
-    $JOB->commission_percentage = $_POST['commission_percentage'] ?? 15;
+    $JOB->commission_percentage = $_POST['commission_percentage'] ?? 0;
     $JOB->commission_amount = $_POST['commission_amount'] ?? 0;
     $JOB->total_cost = 0;
     $JOB->remark = $_POST['remark'] ?? '';
@@ -129,7 +129,7 @@ if (isset($_POST['update'])) {
     $JOB->technical_issue = $_POST['technical_issue'] ?? '';
     $JOB->job_status = $_POST['job_status'] ?? 'pending';
     $JOB->repair_charge = $_POST['repair_charge'] ?? 0;
-    $JOB->commission_percentage = $_POST['commission_percentage'] ?? 15;
+    $JOB->commission_percentage = $_POST['commission_percentage'] ?? 0;
     $JOB->commission_amount = $_POST['commission_amount'] ?? 0;
     $JOB->remark = $_POST['remark'] ?? '';
     $JOB->employee_id = $_POST['employee_id'] ?? null;
