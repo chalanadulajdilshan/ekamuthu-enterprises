@@ -52,11 +52,29 @@ if ($action === 'get_customer_bills') {
         
         $total_amount = (float)$row['initial_amount'] + $additional - $refund;
         
+        // Fetch items for this bill
+        $itemsSql = "SELECT 
+                        e.item_name AS item_name,
+                        eri.quantity
+                    FROM equipment_rent_items eri
+                    JOIN equipment e ON e.id = eri.equipment_id
+                    WHERE eri.rent_id = $rentId";
+
+        $itemsRes = $db->readQuery($itemsSql);
+        $items = [];
+        while ($itemRow = mysqli_fetch_assoc($itemsRes)) {
+            $items[] = [
+                'item_name' => $itemRow['item_name'],
+                'quantity' => $itemRow['quantity']
+            ];
+        }
+
         $bills[] = [
             'bill_number' => $row['bill_number'],
             'date' => $row['rental_date'],
             'amount' => $total_amount,
-            'remarks' => $row['remark']
+            'remarks' => $row['remark'],
+            'items' => $items
         ];
     }
 

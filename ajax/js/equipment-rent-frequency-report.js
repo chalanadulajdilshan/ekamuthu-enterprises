@@ -97,80 +97,79 @@ $(document).ready(function () {
         window.open(url, '_blank');
     });
 
-    // Delegated click handler for expandable rows
-    $('#frequencyTableBody').on('click', 'td.dt-control', function (e) {
-        e.stopPropagation();
-        var tr = $(this).closest('tr');
-        var row = table.row(tr);
+    // Delegated click handler for row click -> open modal with invoices and rented items
+    $('#frequencyTableBody').on('click', 'tr.clickable-row', function () {
+        const customerId = $(this).data('customer-id');
+        const customerName = $(this).data('customer-name');
+        const customerCode = $(this).data('customer-code');
+        const fromDate = $('#fromDate').val();
+        const toDate = $('#toDate').val();
 
-        if (row.child.isShown()) {
-            // This row is already open - close it
-            row.child.hide();
-            tr.removeClass('shown');
-            $(this).find('i').removeClass('mdi-minus-circle-outline').addClass('mdi-plus-circle-outline');
-        } else {
-            // Open this row
-            const customerId = tr.data('customer-id');
-            const fromDate = $('#fromDate').val();
-            const toDate = $('#toDate').val();
+        $('#invoiceModalLabel').text('Invoices - ' + (customerName || ''));
+        $('#invoiceModalSub').text('Customer Code: ' + (customerCode || '-') + ' | From ' + fromDate + ' to ' + toDate);
+        $('#invoiceModalBody').html('<div class="text-center text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading invoices...</div>');
 
-            // Show loading placeholder
-            row.child('<div class="text-center p-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading bills...</div>').show();
-            tr.addClass('shown');
-            $(this).find('i').removeClass('mdi-plus-circle-outline').addClass('mdi-minus-circle-outline');
+        var modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+        modal.show();
 
-            $.ajax({
-                url: 'ajax/php/equipment-rent-frequency-report.php',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    action: 'get_customer_bills',
-                    customer_id: customerId,
-                    from_date: fromDate,
-                    to_date: toDate
-                },
-                success: function (res) {
-                    if (res.status === 'success') {
-                        row.child(formatBillsTable(res.data)).show();
-                    } else {
-                        row.child(`<div class="text-center p-3 text-danger">Error: ${res.message}</div>`).show();
-                    }
-                },
-                error: function () {
-                    row.child('<div class="text-center p-3 text-danger">Failed to load bills data.</div>').show();
+        $.ajax({
+            url: 'ajax/php/equipment-rent-frequency-report.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'get_customer_bills',
+                customer_id: customerId,
+                from_date: fromDate,
+                to_date: toDate
+            },
+            success: function (res) {
+                if (res.status === 'success') {
+                    $('#invoiceModalBody').html(renderInvoices(res.data));
+                } else {
+                    $('#invoiceModalBody').html(`<div class="alert alert-danger mb-0">${res.message || 'Failed to load invoices.'}</div>`);
                 }
-            });
-        }
+            },
+            error: function () {
+                $('#invoiceModalBody').html('<div class="alert alert-danger mb-0">Server error occurred while loading invoices.</div>');
+            }
+        });
     });
 
-    function formatBillsTable(bills) {
+    function renderInvoices(bills) {
         if (!bills || bills.length === 0) {
-            return '<div class="p-3 text-center bg-light border">No bills found for this period.</div>';
+            return '<div class="p-3 text-center text-muted">No invoices found for this period.</div>';
         }
 
         let html = `
-            <div class="p-4 bg-light border-top border-bottom">
-                <h6 class="mb-3"><i class="mdi mdi-receipt me-1"></i> Customer Bills Details</h6>
-                <table class="table table-sm table-bordered bg-white mb-0">
-                    <thead class="bg-secondary text-white">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th style="width: 50px;">#</th>
-                            <th style="width: 150px;">Bill No</th>
+                            <th style="width: 40px;">#</th>
+                            <th style="width: 150px;">Invoice No</th>
                             <th style="width: 120px;">Date</th>
-                            <th class="text-end" style="width: 150px;">Total Amount</th>
-                            <th>Remarks</th>
+                            <th class="text-end" style="width: 140px;">Total Amount</th>
+                            <th>Items Rented</th>
                         </tr>
                     </thead>
                     <tbody>`;
 
         bills.forEach((bill, index) => {
+            const items = bill.items || [];
+            let itemHtml = '';
+            if (items.length === 0) {
+                itemHtml = '<div class="text-muted">No items</div>';
+            } else {
+                itemHtml = '<ul class="mb-0 ps-3">' + items.map(it => `<li>${it.item_name || 'Item'} - Qty: ${it.quantity || 0}</li>`).join('') + '</ul>';
+            }
+
             html += `
                 <tr>
                     <td>${index + 1}</td>
                     <td class="fw-bold text-primary">${bill.bill_number}</td>
                     <td>${bill.date}</td>
-                    <td class="text-end fw-bold text-success">${Number(bill.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td>${bill.remarks || '-'}</td>
+                    <td class="text-end fw-bold text-success">${Number(bill.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>${itemHtml}</td>
                 </tr>`;
         });
 
