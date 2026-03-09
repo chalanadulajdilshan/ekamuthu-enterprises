@@ -10,10 +10,14 @@
 
             <div class="modal-body">
                 <div class="row mb-3">
-                    <div class="col-12">
-                        <input type="text" id="customerSearchInput" class="form-control" placeholder="Search by NIC, Name, or Mobile Number...">
+                    <div class="col-md-10">
+                        <input type="text" id="companySearchInput" class="form-control" placeholder="Search by Company Name, Customer Name, Code, Mobile Number, or NIC...">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" id="searchCustomerBtn" class="btn btn-primary w-100">Search</button>
                     </div>
                 </div>
+
                 <div class="row">
                     <div class="col-12">
                         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">

@@ -293,17 +293,25 @@ jQuery(document).ready(function () {
 
   // When the modal is shown, load all customers
   $("#AllCustomerModal").on("shown.bs.modal", function () {
-    $("#customerSearchInput").val("");
+    $("#companySearchInput").val("");
     loadAllCustomerTable("");
   });
 
-  // Search input handler
-  $("#customerSearchInput").on("keyup", function () {
-    var searchTerm = $(this).val();
-    loadAllCustomerTable(searchTerm);
+  // Search button click handler
+  $("#searchCustomerBtn").on("click", function () {
+    var companySearch = $("#companySearchInput").val();
+    loadAllCustomerTable(companySearch);
   });
 
-  function loadAllCustomerTable(searchTerm) {
+  // Search on Enter key
+  $("#companySearchInput").on("keypress", function (e) {
+    if (e.which === 13) {
+      var companySearch = $("#companySearchInput").val();
+      loadAllCustomerTable(companySearch);
+    }
+  });
+
+  function loadAllCustomerTable(companySearch) {
     var $tbody = $("#allCustomerTable tbody");
     var $status = $("#customerTableStatus");
 
@@ -315,7 +323,8 @@ jQuery(document).ready(function () {
       type: "POST",
       data: {
         get_all_customers: true,
-        search: searchTerm || ""
+        search: "",
+        company_search: companySearch || ""
       },
       dataType: "json",
       success: function (response) {

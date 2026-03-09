@@ -441,21 +441,39 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
 // Get all customers with search (no pagination limit)
 if (isset($_POST['get_all_customers'])) {
     $search = isset($_POST['search']) ? trim($_POST['search']) : '';
+    $companySearch = isset($_POST['company_search']) ? trim($_POST['company_search']) : '';
     
     $db = Database::getInstance();
     
     // Build search condition
     $searchCondition = "";
+    $conditions = [];
+    
     if (!empty($search)) {
         $searchTerm = mysqli_real_escape_string($db->DB_CON, $search);
-        $searchCondition = " AND (
+        $conditions[] = "(
             name LIKE '%$searchTerm%' OR 
-            company_name LIKE '%$searchTerm%' OR 
             nic LIKE '%$searchTerm%' OR 
             mobile_number LIKE '%$searchTerm%' OR 
             mobile_number_2 LIKE '%$searchTerm%' OR
             code LIKE '%$searchTerm%'
         )";
+    }
+    
+    if (!empty($companySearch)) {
+        $companyTerm = mysqli_real_escape_string($db->DB_CON, $companySearch);
+        $conditions[] = "(
+            company_name LIKE '%$companyTerm%' OR
+            name LIKE '%$companyTerm%' OR
+            code LIKE '%$companyTerm%' OR
+            mobile_number LIKE '%$companyTerm%' OR
+            mobile_number_2 LIKE '%$companyTerm%' OR
+            nic LIKE '%$companyTerm%'
+        )";
+    }
+    
+    if (!empty($conditions)) {
+        $searchCondition = " AND (" . implode(" AND ", $conditions) . ")";
     }
     
     // Fetch all customers matching search
