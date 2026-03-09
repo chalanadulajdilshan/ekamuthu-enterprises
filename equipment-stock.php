@@ -87,9 +87,14 @@ $EQUIPMENT = new Equipment(NULL);
                                                 ?>
                                             </select>
                                         </div>
-                                        <button class="btn btn-secondary me-3" id="printStockBtn">
-                                            <i class="uil uil-print me-1"></i> Print Stock
-                                        </button>
+                                        <div class="d-flex me-3 gap-2">
+                                            <button class="btn btn-secondary" id="printStockNormalBtn" type="button" title="Print Normal Report">
+                                                <i class="uil uil-print me-1"></i> Normal Print
+                                            </button>
+                                            <button class="btn btn-primary" id="printStockDetailedBtn" type="button" title="Print Detailed Report">
+                                                <i class="uil uil-copy me-1"></i> Detailed Print
+                                            </button>
+                                        </div>
                                         <div class="form-check form-switch form-switch-lg mb-0" dir="ltr">
                                             <input class="form-check-input" type="checkbox" id="searchSubOnly">
                                             <label class="form-check-label fw-bold ps-2 mb-0 align-middle" for="searchSubOnly">Search Sub Equipment Only</label>

@@ -159,13 +159,15 @@ jQuery(document).ready(function () {
   });
 
   // Print Stock Button Handler
-  $("#printStockBtn").click(function () {
+  $("#printStockNormalBtn, #printStockDetailedBtn").click(function (e) {
+    e.preventDefault();
+    var isDetailed = $(this).attr('id') === 'printStockDetailedBtn';
     var searchTerm = table.search();
     var isSubSearch = $("#searchSubOnly").is(":checked");
 
     var btn = $(this);
     var originalText = btn.html();
-    btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Generating...');
+    btn.html('<i class="fa fa-spinner fa-spin me-1"></i>...');
     btn.prop("disabled", true);
 
     $.ajax({
@@ -181,7 +183,7 @@ jQuery(document).ready(function () {
       },
       success: function (resp) {
         if (resp && resp.status === "success") {
-          printStockReport(resp.data);
+          printStockReport(resp.data, isDetailed);
         } else {
           alert("Failed to load data for printing.");
         }
@@ -196,7 +198,7 @@ jQuery(document).ready(function () {
     });
   });
 
-  function printStockReport(data) {
+  function printStockReport(data, isDetailed) {
     var d = new Date();
     var dateStr =
       d.getFullYear() +
@@ -212,11 +214,11 @@ jQuery(document).ready(function () {
     var html = "<html><head><title>Equipment Stock Report</title>";
     html += "<style>";
     html += "@page { margin: 20px; }";
-    html += "body { font-family: Arial, sans-serif; font-size: 12px; }";
+    html += "body { font-family: Arial, sans-serif; font-size: 8px; }";
     html +=
-      "table { width: 100%; border-collapse: collapse; margin-top: 20px; }";
+      "table { width: 100%; border-collapse: collapse; margin-top: 10px; }";
     html +=
-      "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }";
+      "th, td { border: 1px solid #ddd; padding: 2px 4px; text-align: left; }";
     html += "th { background-color: #f2f2f2; font-weight: bold; }";
     html += ".text-end { text-align: right; }";
     html += ".header { text-align: center; margin-bottom: 20px; }";
@@ -253,7 +255,7 @@ jQuery(document).ready(function () {
         html +=
           "<td><strong>" +
           (item.item_name || "-") +
-          '</strong><br><small style="color:red; font-size:10px;">Day: ' +
+          '</strong><br><small style="color:red; font-size:7px;">Day: ' +
           rentDay +
           " | Month: " +
           rentMonth +
@@ -273,24 +275,61 @@ jQuery(document).ready(function () {
           '<td class="text-end">' +
           parseFloat(item.quantity || 0).toLocaleString("en-US") +
           "</td>";
-        html += "</tr>";
-
         totalValue += parseFloat(item.value || 0);
         totalQty += parseFloat(item.quantity || 0);
 
-        // Render Sub Items
-        if (item.sub_items && item.sub_items.length > 0) {
+        // Render Department Wise Stock Summary (Only in Detailed)
+        if (isDetailed && item.department_stock && item.department_stock.length > 0) {
+          html += '<tr><td colspan="8" style="padding: 0;">';
+          html += '<div style="padding: 5px 20px; background-color: #f8f9fa;">';
+          html += '<h4 style="margin: 2px 0; font-size: 8px; color: #333;">Department Wise Stock Summary</h4>';
+          html +=
+            '<table style="width: 100%; border: 1px solid #dee2e6; margin-bottom: 5px; background-color: #fff;">';
+          html += "<thead><tr style='background-color: #e9ecef;'>";
+          html +=
+            '<th style="padding: 2px 4px; font-size: 7px; border: 1px solid #dee2e6;">Department</th>';
+          html +=
+            '<th style="padding: 2px 4px; font-size: 7px; border: 1px solid #dee2e6; text-align: center;">Total</th>';
+          html +=
+            '<th style="padding: 2px 4px; font-size: 7px; border: 1px solid #dee2e6; text-align: center;">Available</th>';
+          html +=
+            '<th style="padding: 2px 4px; font-size: 7px; border: 1px solid #dee2e6; text-align: center;">Rented</th>';
+          if (!item.no_sub_items) {
+            html += '<th style="padding: 2px 4px; font-size: 7px; border: 1px solid #dee2e6; text-align: center;">Repair</th>';
+            html += '<th style="padding: 2px 4px; font-size: 7px; border: 1px solid #dee2e6; text-align: center;">Damage</th>';
+          }
+          html += "</tr></thead><tbody>";
+
+          $.each(item.department_stock, function (k, dept) {
+            html += "<tr>";
+            html += '<td style="padding: 2px 4px; border: 1px solid #dee2e6; font-size: 7px;">' + dept.department_name + '</td>';
+            html += '<td style="padding: 2px 4px; border: 1px solid #dee2e6; font-size: 7px; text-align: center;">' + dept.qty + '</td>';
+            html += '<td style="padding: 2px 4px; border: 1px solid #dee2e6; font-size: 7px; text-align: center; color: green; font-weight: bold;">' + dept.available_qty + '</td>';
+            html += '<td style="padding: 2px 4px; border: 1px solid #dee2e6; font-size: 7px; text-align: center; color: blue;">' + dept.rented_qty + '</td>';
+            if (!item.no_sub_items) {
+              html += '<td style="padding: 2px 4px; border: 1px solid #dee2e6; font-size: 7px; text-align: center; color: orange;">' + (dept.repair_qty || 0) + '</td>';
+              html += '<td style="padding: 2px 4px; border: 1px solid #dee2e6; font-size: 7px; text-align: center; color: red;">' + (dept.damage_qty || 0) + '</td>';
+            }
+            html += "</tr>";
+          });
+
+          html += "</tbody></table>";
+          html += "</div></td></tr>";
+        }
+
+        // Render Sub Items (Only in Detailed)
+        if (isDetailed && item.sub_items && item.sub_items.length > 0) {
           html += '<tr><td colspan="8" style="padding: 0;">';
           html += '<div style="padding: 5px 20px; background-color: #f8f9fa;">';
           html +=
             '<table style="width: auto; border: 1px solid #dee2e6; margin-bottom: 5px; background-color: #fff;">';
           html += "<thead><tr>";
           html +=
-            '<th style="padding: 4px 8px; font-size: 11px; background-color: #e9ecef;">#</th>';
+            '<th style="padding: 2px 4px; font-size: 7px; background-color: #e9ecef;">#</th>';
           html +=
-            '<th style="padding: 4px 8px; font-size: 11px; background-color: #e9ecef;">Sub Code</th>';
+            '<th style="padding: 2px 4px; font-size: 7px; background-color: #e9ecef;">Sub Code</th>';
           html +=
-            '<th style="padding: 4px 8px; font-size: 11px; background-color: #e9ecef;">Status</th>';
+            '<th style="padding: 2px 4px; font-size: 7px; background-color: #e9ecef;">Status</th>';
           html += "</tr></thead><tbody>";
 
           $.each(item.sub_items, function (j, sub) {
@@ -304,15 +343,15 @@ jQuery(document).ready(function () {
 
             html += "<tr>";
             html +=
-              '<td style="padding: 3px 8px; border: 1px solid #dee2e6; font-size: 11px;">' +
+              '<td style="padding: 1px 4px; border: 1px solid #dee2e6; font-size: 7px;">' +
               (j + 1) +
               "</td>";
             html +=
-              '<td style="padding: 3px 8px; border: 1px solid #dee2e6; font-size: 11px;"><strong>' +
+              '<td style="padding: 1px 4px; border: 1px solid #dee2e6; font-size: 7px;"><strong>' +
               sub.code +
               "</strong></td>";
             html +=
-              '<td style="padding: 3px 8px; border: 1px solid #dee2e6; font-size: 11px; color:' +
+              '<td style="padding: 1px 4px; border: 1px solid #dee2e6; font-size: 7px; color:' +
               statusColor +
               ';">' +
               (sub.rental_status || "AVAILABLE").toUpperCase() +
@@ -326,16 +365,8 @@ jQuery(document).ready(function () {
       });
 
       html += '<tfoot><tr style="background:#f9f9f9; font-weight:bold;">';
-      html += '<td colspan="5" class="text-end">Total</td>';
-      html +=
-        '<td class="text-end">' +
-        totalValue.toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }) +
-        "</td>";
-      html +=
-        '<td class="text-end">' + totalQty.toLocaleString("en-US") + "</td>";
+      html += '<td colspan="7" class="text-end">Total Quantity</td>';
+      html += '<td class="text-end">' + totalQty.toLocaleString("en-US") + "</td>";
       html += "</tr></tfoot>";
     } else {
       html +=

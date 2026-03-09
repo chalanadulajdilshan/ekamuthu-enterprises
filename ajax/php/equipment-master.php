@@ -200,13 +200,17 @@ if (isset($_POST['filter'])) {
     // Search filter
     $where = "WHERE 1=1";
     $department_id = $_REQUEST['department_id'] ?? 'all';
-    if ($department_id !== 'all') {
-        $where .= " AND department_id = " . (int) $department_id;
-    }
 
     $no_sub_only = isset($_REQUEST['no_sub_only']) && filter_var($_REQUEST['no_sub_only'], FILTER_VALIDATE_BOOLEAN);
     if ($no_sub_only) {
         $where .= " AND no_sub_items = 1";
+        if ($department_id !== 'all') {
+            $where .= " AND id IN (SELECT equipment_id FROM sub_equipment WHERE department_id = " . (int)$department_id . ")";
+        }
+    } else {
+        if ($department_id !== 'all') {
+            $where .= " AND department_id = " . (int) $department_id;
+        }
     }
 
     if (!empty($search)) {
@@ -243,13 +247,39 @@ if (isset($_POST['filter'])) {
             }
         }
 
-        // Get department name
+        // Get department name and customized quantity
         $departmentName = '-';
-        if (!empty($row['department_id'])) {
-            $deptQuery = "SELECT name FROM department_master WHERE id = " . (int) $row['department_id'];
-            $deptResult = $db->readQuery($deptQuery);
-            if ($deptResult && $deptRow = mysqli_fetch_assoc($deptResult)) {
-                $departmentName = $deptRow['name'];
+        $itemQuantity = $row['quantity'];
+
+        if ($no_sub_only && $department_id !== 'all') {
+            // For no_sub items filtered by department, fetch that department's specific stock from sub_equipment
+            $subDeptQuery = "SELECT dm.name, se.qty FROM sub_equipment se
+                             JOIN department_master dm ON se.department_id = dm.id
+                             WHERE se.equipment_id = " . (int)$row['id'] . " AND se.department_id = " . (int)$department_id;
+            $subDeptResult = $db->readQuery($subDeptQuery);
+            if ($subDeptResult && $subDeptRow = mysqli_fetch_assoc($subDeptResult)) {
+                $departmentName = $subDeptRow['name'];
+                $itemQuantity = $subDeptRow['qty'];
+            }
+        } else {
+            $subDeptQuery = "SELECT DISTINCT dm.name FROM sub_equipment se
+                             JOIN department_master dm ON se.department_id = dm.id
+                             WHERE se.equipment_id = " . (int)$row['id'];
+            $subDeptResult = $db->readQuery($subDeptQuery);
+            $deptNames = [];
+            if ($subDeptResult) {
+                while ($subDeptRow = mysqli_fetch_assoc($subDeptResult)) {
+                    $deptNames[] = $subDeptRow['name'];
+                }
+            }
+            if (count($deptNames) > 0) {
+                $departmentName = implode('<br>', $deptNames);
+            } elseif (!empty($row['department_id'])) {
+                $deptQuery = "SELECT name FROM department_master WHERE id = " . (int) $row['department_id'];
+                $deptResult = $db->readQuery($deptQuery);
+                if ($deptResult && $deptRow = mysqli_fetch_assoc($deptResult)) {
+                    $departmentName = $deptRow['name'];
+                }
             }
         }
 
@@ -269,7 +299,7 @@ if (isset($_POST['filter'])) {
             "deposit_one_day" => $row['deposit_one_day'],
             "rent_one_month" => $row['rent_one_month'],
             "value" => $row['value'],
-            "quantity" => $row['quantity'],
+            "quantity" => $itemQuantity,
             "no_sub_items" => $row['no_sub_items'],
             "change_value" => $row['change_value'] ?? 0,
             "is_fixed_rate" => $row['is_fixed_rate'] ?? 0,
@@ -306,14 +336,17 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
     $searchSubOnly = isset($_POST['search_sub_only']) && filter_var($_POST['search_sub_only'], FILTER_VALIDATE_BOOLEAN);
     $department_id = $_POST['department_id'] ?? 'all';
 
-    $where = "WHERE 1=1";
-    if ($department_id !== 'all') {
-        $where .= " AND department_id = " . (int) $department_id;
-    }
-
     $no_sub_only = isset($_POST['no_sub_only']) && filter_var($_POST['no_sub_only'], FILTER_VALIDATE_BOOLEAN);
+    $where = "WHERE 1=1";
     if ($no_sub_only) {
         $where .= " AND no_sub_items = 1";
+        if ($department_id !== 'all') {
+            $where .= " AND id IN (SELECT equipment_id FROM sub_equipment se WHERE se.department_id = " . (int) $department_id . ")";
+        }
+    } else {
+        if ($department_id !== 'all') {
+            $where .= " AND department_id = " . (int) $department_id;
+        }
     }
 
     if (!empty($search)) {
@@ -339,13 +372,38 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
             }
         }
 
-        // Get department name
+        // Get department name and customized quantity
         $departmentName = '-';
-        if (!empty($row['department_id'])) {
-            $deptQuery = "SELECT name FROM department_master WHERE id = " . (int) $row['department_id'];
-            $deptResult = $db->readQuery($deptQuery);
-            if ($deptResult && $deptRow = mysqli_fetch_assoc($deptResult)) {
-                $departmentName = $deptRow['name'];
+        $itemQuantity = $row['quantity'];
+
+        if ($no_sub_only && $department_id !== 'all') {
+            $subDeptQuery = "SELECT dm.name, se.qty FROM sub_equipment se
+                             JOIN department_master dm ON se.department_id = dm.id
+                             WHERE se.equipment_id = " . (int) $row['id'] . " AND se.department_id = " . (int) $department_id;
+            $subDeptResult = $db->readQuery($subDeptQuery);
+            if ($subDeptResult && $subDeptRow = mysqli_fetch_assoc($subDeptResult)) {
+                $departmentName = $subDeptRow['name'];
+                $itemQuantity = $subDeptRow['qty'];
+            }
+        } else {
+            $subDeptQuery = "SELECT DISTINCT dm.name FROM sub_equipment se
+                             JOIN department_master dm ON se.department_id = dm.id
+                             WHERE se.equipment_id = " . (int)$row['id'];
+            $subDeptResult = $db->readQuery($subDeptQuery);
+            $deptNames = [];
+            if ($subDeptResult) {
+                while ($subDeptRow = mysqli_fetch_assoc($subDeptResult)) {
+                    $deptNames[] = $subDeptRow['name'];
+                }
+            }
+            if (count($deptNames) > 0) {
+                $departmentName = implode(', ', $deptNames);
+            } elseif (!empty($row['department_id'])) {
+                $deptQuery = "SELECT name FROM department_master WHERE id = " . (int) $row['department_id'];
+                $deptResult = $db->readQuery($deptQuery);
+                if ($deptResult && $deptRow = mysqli_fetch_assoc($deptResult)) {
+                    $departmentName = $deptRow['name'];
+                }
             }
         }
 
@@ -370,6 +428,59 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
              }
         }
 
+        // Get department-wise stock breakdown
+        $deptStock = [];
+        $deptSql = "SELECT dm.name as department_name, se.qty, se.department_id,
+                    (
+                        SELECT COALESCE(SUM(eri.quantity - (SELECT COALESCE(SUM(return_qty),0) FROM equipment_rent_returns WHERE rent_item_id = eri.id)), 0)
+                        FROM equipment_rent_items eri 
+                        WHERE eri.equipment_id = se.equipment_id 
+                        AND eri.department_id = se.department_id 
+                        AND eri.status = 'rented'
+                        AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                    ) as dynamic_rented_qty
+                    FROM sub_equipment se
+                    JOIN department_master dm ON se.department_id = dm.id
+                    WHERE se.equipment_id = " . (int)$row['id'];
+        
+        $deptResult = $db->readQuery($deptSql);
+        if ($row['no_sub_items'] == 1) {
+            // Non-sub-equipment: use dynamic rented qty calculation
+            while ($deptRow = mysqli_fetch_assoc($deptResult)) {
+                $qty = (float)$deptRow['qty'];
+                $rented = (float)$deptRow['dynamic_rented_qty'];
+                $deptStock[] = [
+                    'department_name' => $deptRow['department_name'],
+                    'qty' => $qty,
+                    'available_qty' => max(0, $qty - $rented),
+                    'rented_qty' => $rented
+                ];
+            }
+        } else {
+            // Sub-equipment: count by status
+            $subDeptSql = "SELECT dm.name as department_name,
+                           COUNT(*) as total,
+                           SUM(CASE WHEN rental_status IN ('available', 'returned') THEN 1 ELSE 0 END) as available,
+                           SUM(CASE WHEN rental_status IN ('rent', 'rented') THEN 1 ELSE 0 END) as rented,
+                           SUM(CASE WHEN rental_status = 'repair' OR is_repair = 1 THEN 1 ELSE 0 END) as repair,
+                           SUM(CASE WHEN rental_status = 'damage' THEN 1 ELSE 0 END) as damage
+                           FROM sub_equipment se
+                           JOIN department_master dm ON se.department_id = dm.id
+                           WHERE se.equipment_id = " . (int)$row['id'] . "
+                           GROUP BY se.department_id";
+            $subDeptResult = $db->readQuery($subDeptSql);
+            while ($subDeptRow = mysqli_fetch_assoc($subDeptResult)) {
+                $deptStock[] = [
+                    'department_name' => $subDeptRow['department_name'],
+                    'qty' => $subDeptRow['total'],
+                    'available_qty' => $subDeptRow['available'],
+                    'rented_qty' => $subDeptRow['rented'],
+                    'repair_qty' => $subDeptRow['repair'],
+                    'damage_qty' => $subDeptRow['damage']
+                ];
+            }
+        }
+
         $data[] = [
             "code" => $row['code'],
             "item_name" => $row['item_name'],
@@ -378,10 +489,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
             "serial_number" => $row['serial_number'],
             "size" => $row['size'],
             "value" => $row['value'],
-            "quantity" => $row['quantity'],
+            "quantity" => $itemQuantity,
             "rent_one_day" => $row['rent_one_day'],
             "rent_one_month" => $row['rent_one_month'],
-            "sub_items" => $subItems
+            "sub_items" => $subItems,
+            "department_stock" => $deptStock
         ];
     }
 
