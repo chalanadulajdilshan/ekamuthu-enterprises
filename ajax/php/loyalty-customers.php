@@ -86,8 +86,12 @@ if (isset($_POST['filter'])) {
                 $totalsSelect
             $baseFrom 
             $having
-            ORDER BY bill_count DESC, total_rent_amount DESC 
-            LIMIT $start, $length";
+            ORDER BY bill_count DESC, total_rent_amount DESC";
+    
+    // Add LIMIT only if length is not -1 (for print all)
+    if ($length != -1) {
+        $sql .= " LIMIT $start, $length";
+    }
             
     $dataQuery = $db->readQuery($sql);
     

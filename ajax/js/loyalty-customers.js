@@ -1,5 +1,17 @@
 $(document).ready(function () {
 
+    // Build common header info for print views
+    function buildPrintInfo() {
+        var startDate = $('#start_date').val();
+        var endDate = $('#end_date').val();
+        var minSales = $('#min_sales').val();
+
+        return '<div style="margin-bottom:10px;">' +
+            '<strong>Period:</strong> ' + startDate + ' to ' + endDate +
+            (minSales ? ' | <strong>Min Sales:</strong> Rs. ' + minSales : '') +
+            '</div>';
+    }
+
     // Initialize DataTable
     var table = $('#loyaltyCustomerTable').DataTable({
         "processing": true,
@@ -7,56 +19,154 @@ $(document).ready(function () {
         "dom": 'Bfrtip',
         "buttons": [
             {
-                extend: 'print',
-                text: '<i class="uil uil-print"></i> Print',
+                text: '<i class="uil uil-print"></i> Print (Summary)',
                 className: 'btn btn-soft-secondary',
-                title: 'Loyalty Customers',
                 action: function (e, dt, button, config) {
-                    var self = this;
-                    var rows = dt.rows({ page: 'current' });
-                    var promises = [];
-
-                    rows.every(function () {
-                        var tr = $(this.node());
-                        var rowData = this.data();
-                        if (!$(tr).data('child-html')) {
-                            promises.push(fetchChildHtml(rowData).then(function (html) {
-                                $(tr).data('child-html', html);
-                            }));
+                    // Fetch all data from server for printing
+                    $.ajax({
+                        url: 'ajax/php/loyalty-customers.php',
+                        type: 'POST',
+                        data: {
+                            filter: true,
+                            start_date: $('#start_date').val(),
+                            end_date: $('#end_date').val(),
+                            min_sales: $('#min_sales').val(),
+                            start: 0,
+                            length: -1, // Get all records
+                            draw: 1
+                        },
+                        dataType: 'JSON',
+                        success: function (response) {
+                            // Build print HTML
+                            var printWindow = window.open('', '', 'height=600,width=800');
+                            var info = buildPrintInfo();
+                            
+                            var html = '<html><head><title>Loyalty Customers</title>';
+                            html += '<style>body { font-size: 12px; } table { border-collapse: collapse; width: 100%; font-size: 12px; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; } .text-center { text-align: center; } .text-end { text-align: right; } .fw-bold { font-weight: bold; }</style>';
+                            html += '</head><body>';
+                            html += '<h1>Loyalty Customers</h1>';
+                            html += info;
+                            html += '<table><thead><tr><th>#</th><th>Code</th><th>Customer Name</th><th>Mobile Number</th><th class="text-center">Total Bills</th><th class="text-end">Total Amount (Rs.)</th><th class="text-center">Points</th></tr></thead><tbody>';
+                            
+                            $.each(response.data, function (i, row) {
+                                html += '<tr>';
+                                html += '<td>' + row.key + '</td>';
+                                html += '<td>' + row.code + '</td>';
+                                html += '<td>' + row.name + '</td>';
+                                html += '<td>' + row.mobile + '</td>';
+                                html += '<td class="text-center">' + row.bill_count + '</td>';
+                                html += '<td class="text-end fw-bold">' + row.total_value + '</td>';
+                                html += '<td class="text-center fw-bold">' + row.points + '</td>';
+                                html += '</tr>';
+                            });
+                            
+                            html += '</tbody></table></body></html>';
+                            
+                            printWindow.document.write(html);
+                            printWindow.document.close();
+                            printWindow.focus();
+                            setTimeout(function() {
+                                printWindow.print();
+                                printWindow.close();
+                            }, 250);
                         }
                     });
-
-                    $.when.apply($, promises).always(function () {
-                        $.fn.dataTable.ext.buttons.print.action.call(self, e, dt, button, config);
-                    });
-                },
-                exportOptions: {
-                    columns: [1, 2, 3, 4, 5, 6, 7]
-                },
-                customize: function (win) {
-                    var startDate = $('#start_date').val();
-                    var endDate = $('#end_date').val();
-                    var minSales = $('#min_sales').val();
-
-                    var info = '<div style="margin-bottom:10px;">' +
-                        '<strong>Period:</strong> ' + startDate + ' to ' + endDate +
-                        (minSales ? ' | <strong>Min Sales:</strong> Rs. ' + minSales : '') +
-                        '</div>';
-
-                    $(win.document.body).find('h1').after(info);
-                    $(win.document.body).css('font-size', '12px');
-                    $(win.document.body).find('table').addClass('compact').css('font-size', '12px');
-
-                    // Append expanded child details under each related customer row
-                    var printRows = $(win.document.body).find('table tbody tr');
-                    table.rows({ page: 'current' }).every(function (idx) {
-                        var node = this.node();
-                        var childHtml = $(node).data('child-html');
-                        if (childHtml) {
-                            var printRow = printRows.eq(idx);
-                            if (printRow.length) {
-                                printRow.after('<tr class="child-row"><td colspan="7">' + childHtml + '</td></tr>');
-                            }
+                }
+            },
+            {
+                text: '<i class="uil uil-print"></i> Print (with Bills)',
+                className: 'btn btn-soft-secondary',
+                action: function (e, dt, button, config) {
+                    // Fetch all data from server for printing
+                    $.ajax({
+                        url: 'ajax/php/loyalty-customers.php',
+                        type: 'POST',
+                        data: {
+                            filter: true,
+                            start_date: $('#start_date').val(),
+                            end_date: $('#end_date').val(),
+                            min_sales: $('#min_sales').val(),
+                            start: 0,
+                            length: -1, // Get all records
+                            draw: 1
+                        },
+                        dataType: 'JSON',
+                        success: function (response) {
+                            // Fetch invoices for all customers
+                            var promises = [];
+                            var customersWithInvoices = [];
+                            
+                            $.each(response.data, function (i, row) {
+                                var promise = $.ajax({
+                                    url: 'ajax/php/loyalty-customers.php',
+                                    type: 'POST',
+                                    data: {
+                                        action: 'get_customer_invoices',
+                                        customer_id: row.id,
+                                        start_date: $('#start_date').val(),
+                                        end_date: $('#end_date').val()
+                                    },
+                                    dataType: 'JSON'
+                                }).then(function (invoiceResponse) {
+                                    customersWithInvoices.push({
+                                        customer: row,
+                                        invoices: invoiceResponse.data
+                                    });
+                                });
+                                promises.push(promise);
+                            });
+                            
+                            // After all invoices are fetched, build print HTML
+                            $.when.apply($, promises).always(function () {
+                                var printWindow = window.open('', '', 'height=600,width=800');
+                                var info = buildPrintInfo();
+                                
+                                var html = '<html><head><title>Loyalty Customers with Bills</title>';
+                                html += '<style>body { font-size: 12px; } table { border-collapse: collapse; width: 100%; font-size: 12px; margin-bottom: 20px; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; } .text-center { text-align: center; } .text-end { text-align: right; } .fw-bold { font-weight: bold; } .invoice-table { margin-left: 20px; margin-top: 10px; margin-bottom: 10px; } .invoice-table th { background-color: #e8e8e8; }</style>';
+                                html += '</head><body>';
+                                html += '<h1>Loyalty Customers with Bills</h1>';
+                                html += info;
+                                html += '<table><thead><tr><th>#</th><th>Code</th><th>Customer Name</th><th>Mobile Number</th><th class="text-center">Total Bills</th><th class="text-end">Total Amount (Rs.)</th><th class="text-center">Points</th></tr></thead><tbody>';
+                                
+                                $.each(customersWithInvoices, function (i, item) {
+                                    var row = item.customer;
+                                    html += '<tr>';
+                                    html += '<td>' + row.key + '</td>';
+                                    html += '<td>' + row.code + '</td>';
+                                    html += '<td>' + row.name + '</td>';
+                                    html += '<td>' + row.mobile + '</td>';
+                                    html += '<td class="text-center">' + row.bill_count + '</td>';
+                                    html += '<td class="text-end fw-bold">' + row.total_value + '</td>';
+                                    html += '<td class="text-center fw-bold">' + row.points + '</td>';
+                                    html += '</tr>';
+                                    
+                                    // Add invoices
+                                    if (item.invoices && item.invoices.length > 0) {
+                                        html += '<tr><td colspan="7">';
+                                        html += '<table class="invoice-table"><thead><tr><th>Bill Number</th><th>Date</th><th class="text-end">Amount (Rs.)</th><th>Status</th></tr></thead><tbody>';
+                                        $.each(item.invoices, function (j, invoice) {
+                                            html += '<tr>';
+                                            html += '<td>' + invoice.bill_number + '</td>';
+                                            html += '<td>' + invoice.date + '</td>';
+                                            html += '<td class="text-end">' + invoice.total_amount + '</td>';
+                                            html += '<td>' + invoice.status_label + '</td>';
+                                            html += '</tr>';
+                                        });
+                                        html += '</tbody></table>';
+                                        html += '</td></tr>';
+                                    }
+                                });
+                                
+                                html += '</tbody></table></body></html>';
+                                
+                                printWindow.document.write(html);
+                                printWindow.document.close();
+                                printWindow.focus();
+                                setTimeout(function() {
+                                    printWindow.print();
+                                    printWindow.close();
+                                }, 250);
+                            });
                         }
                     });
                 }
