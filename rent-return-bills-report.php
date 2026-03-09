@@ -163,79 +163,6 @@ include 'auth.php';
                     </div>
                     <!-- end page title -->
 
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <form id="reportForm">
-                                        <!-- Date Filter Section -->
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="card-body p-3">
-                                                    <div class="row g-3 align-items-end">
-                                                        <div class="col-md-3">
-                                                            <label for="fromDate" class="form-label fw-semibold text-muted mb-2">From Date</label>
-                                                            <div class="input-group">
-                                                                <input type="text" class="form-control date-picker" id="fromDate" name="fromDate" placeholder="Select start date">
-                                                                <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <label for="toDate" class="form-label fw-semibold text-muted mb-2">To Date</label>
-                                                            <div class="input-group">
-                                                                <input type="text" class="form-control date-picker" id="toDate" name="toDate" placeholder="Select end date">
-                                                                <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <label for="billType" class="form-label fw-semibold text-muted mb-2">Bill Type</label>
-                                                            <select class="form-select" id="billType" name="billType">
-                                                                <option value="all">All Bills</option>
-                                                                <option value="rent">Rent Bills Only</option>
-                                                                <option value="return">Return Bills Only</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <label for="billNo" class="form-label fw-semibold text-muted mb-2">Bill No</label>
-                                                            <div class="input-group">
-                                                                <input type="text" class="form-control" id="billNo" name="billNo" placeholder="Enter bill number">
-                                                                <span class="input-group-text bg-light"><i class="mdi mdi-receipt text-primary"></i></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row align-items-center mt-3 g-3">
-                                                        <div class="col-md-6">
-                                                            <small class="text-muted"><i class="mdi mdi-information-outline me-1"></i> Select date range or enter a bill number to filter rent and return bills</small>
-                                                        </div>
-                                                        <div class="col-md-6 d-flex gap-2 justify-content-md-end">
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" id="setToday">
-                                                                <i class="mdi mdi-calendar-today me-1"></i> Today
-                                                            </button>
-                                                            <button id="exportToPdf" class="btn btn-warning btn-sm">
-                                                                <i class="fas fa-file-pdf me-1"></i> Export PDF
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row mt-3">
-                                            <div class="col-md-12">
-                                                <button type="button" class="btn btn-primary me-1" id="searchBtn">
-                                                    <i class="mdi mdi-magnify me-1"></i> Search
-                                                </button>
-                                                <button type="button" class="btn btn-secondary" id="resetBtn">
-                                                    <i class="mdi mdi-refresh me-1"></i> Reset
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Report Info Card (Hidden by default) -->
                     <div class="row" id="reportInfoSection" style="display: none;">
                         <div class="col-12">
@@ -256,6 +183,76 @@ include 'auth.php';
                                             <strong>Return Bills:</strong> <span id="totalReturnBills">0</span>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form id="reportForm">
+                                        <!-- Date Filter Section -->
+                                        <div class="row g-3 align-items-end mb-4">
+                                            <div class="col-md-3">
+                                                <label for="fromDate" class="form-label fw-semibold text-muted mb-2">From Date</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control date-picker" id="fromDate" name="fromDate" placeholder="Select start date">
+                                                    <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="toDate" class="form-label fw-semibold text-muted mb-2">To Date</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control date-picker" id="toDate" name="toDate" placeholder="Select end date">
+                                                    <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="billType" class="form-label fw-semibold text-muted mb-2">Bill Type</label>
+                                                <select class="form-select" id="billType" name="billType">
+                                                    <option value="all">All Bills</option>
+                                                    <option value="rent">Rent Bills Only</option>
+                                                    <option value="return">Return Bills Only</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="d-flex justify-content-between align-items-end mb-2">
+                                                    <label for="billNo" id="billNoLabel" class="form-label fw-semibold text-muted mb-0">Search Bill No</label>
+                                                    <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
+                                                        <input class="form-check-input" type="checkbox" id="searchItemsOnly" name="searchItemsOnly" style="cursor: pointer; transform: scale(0.9);">
+                                                        <label class="form-check-label text-muted" for="searchItemsOnly" style="font-size: 0.85rem; cursor: pointer; user-select: none;">Search Items Only</label>
+                                                    </div>
+                                                </div>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="billNo" name="billNo" placeholder="Enter bill number">
+                                                    <span class="input-group-text bg-light" id="billNoIcon"><i class="mdi mdi-receipt text-primary"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row align-items-center mt-3 g-3">
+                                            <div class="col-12 d-flex justify-content-between">
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-primary btn-sm px-4" id="searchBtn">
+                                                        <i class="mdi mdi-magnify me-1"></i> Search
+                                                    </button>
+                                                    <button type="button" class="btn btn-secondary btn-sm px-4" id="resetBtn">
+                                                        <i class="mdi mdi-refresh me-1"></i> Reset
+                                                    </button>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm px-3" id="setToday">
+                                                        <i class="mdi mdi-calendar-today me-1"></i> Today
+                                                    </button>
+                                                    <button type="button" class="btn btn-warning btn-sm px-3" id="exportToPdf">
+                                                        <i class="fas fa-file-pdf me-1"></i> Export PDF
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>

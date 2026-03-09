@@ -10,6 +10,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     $to_date = $_POST['to_date'] ?? null;
     $bill_type = $_POST['bill_type'] ?? 'all';
     $bill_no = trim($_POST['bill_no'] ?? '');
+    $search_items_only = isset($_POST['search_items_only']) && filter_var($_POST['search_items_only'], FILTER_VALIDATE_BOOLEAN);
 
     if ((!$from_date || !$to_date) && $bill_no === '') {
         echo json_encode(['status' => 'error', 'message' => 'Please select a date range or enter a bill number']);
@@ -27,7 +28,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             $rentConditions[] = "er.rental_date BETWEEN '$from_date' AND '$to_date'";
         }
         if ($bill_no_filter !== '') {
-            $rentConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
+            if ($search_items_only) {
+                $rentConditions[] = "(e.item_name LIKE '%$bill_no_filter%' OR se.code LIKE '%$bill_no_filter%')";
+            } else {
+                $rentConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
+            }
         }
         if (empty($rentConditions)) {
             $rentConditions[] = '1=1';
@@ -124,7 +129,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             $returnConditions[] = "err.return_date BETWEEN '$from_date' AND '$to_date'";
         }
         if ($bill_no_filter !== '') {
-            $returnConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
+            if ($search_items_only) {
+                $returnConditions[] = "(e.item_name LIKE '%$bill_no_filter%' OR se.code LIKE '%$bill_no_filter%')";
+            } else {
+                $returnConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
+            }
         }
         if (empty($returnConditions)) {
             $returnConditions[] = '1=1';
@@ -244,7 +253,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         'total_bills' => 0,
         'total_rent_bills' => 0,
         'total_return_bills' => 0,
-        'date_range' => ($bill_no !== '' ? ($from_date && $to_date ? "$from_date to $to_date (Bill No: $bill_no)" : "Bill No: $bill_no") : "$from_date to $to_date"),
+        'date_range' => ($bill_no !== '' ? ($from_date && $to_date ? "$from_date to $to_date (" . ($search_items_only ? "Item" : "Bill No") . ": $bill_no)" : ($search_items_only ? "Item" : "Bill No") . ": $bill_no") : "$from_date to $to_date"),
         'search_bill_no' => $bill_no,
         'version' => '1.2'
     ];

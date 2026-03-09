@@ -5,7 +5,9 @@
 
 // Number formatting function with thousand separators and 2 decimal places
 function formatNumber(num) {
-    return parseFloat(num || 0).toLocaleString('en-US', {
+    if (num === null || num === undefined || num === '') return '0.00';
+    const cleanNum = String(num).replace(/,/g, '');
+    return parseFloat(cleanNum || 0).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -147,6 +149,19 @@ $(document).ready(function () {
         loadReportData(); // Auto-search when clicking Today
     });
 
+    // Handle "Search Items Only" Switch Toggle
+    $("#searchItemsOnly").on("change", function () {
+        if ($(this).is(":checked")) {
+            $("#billNoLabel").text("Search Item");
+            $("#billNo").attr("placeholder", "Enter item name or code");
+            $("#billNoIcon").html('<i class="mdi mdi-wrench text-primary"></i>');
+        } else {
+            $("#billNoLabel").text("Search Bill No");
+            $("#billNo").attr("placeholder", "Enter bill number");
+            $("#billNoIcon").html('<i class="mdi mdi-receipt text-primary"></i>');
+        }
+    });
+
     // Format date to YYYY-MM-DD
     function formatDate(date) {
         const d = new Date(date);
@@ -217,7 +232,8 @@ $(document).ready(function () {
             from_date: fromDate,
             to_date: toDate,
             bill_type: billType,
-            bill_no: billNo
+            bill_no: billNo,
+            search_items_only: $('#searchItemsOnly').is(':checked')
         };
 
         $.ajax({
@@ -328,7 +344,8 @@ $(document).ready(function () {
                 from_date: fromDate,
                 to_date: toDate,
                 bill_type: billType,
-                bill_no: billNo
+                bill_no: billNo,
+                search_items_only: $('#searchItemsOnly').is(':checked')
             },
             success: function (response) {
                 if (response && response.status === "success") {
@@ -523,7 +540,7 @@ $(document).ready(function () {
               <tr style="background-color: #f8f9fa; font-weight: bold;">
                   <td colspan="9" class="text-right">එකතුව</td>
                   <td class="text-right">${summary.total_quantity}</td>
-                  <td class="text-right">-</td>
+                  <td class="text-right">${formatNumber(summary.total_deposit)}</td>
                   <td class="text-right">${formatNumber(summary.total_amount)}</td>
                   <td class="text-right">${formatNumber(summary.total_extra_amount)}</td>
               </tr>
