@@ -125,6 +125,28 @@ include 'auth.php';
                                                 </tbody>
                                             </table>
                                         </div>
+                                        <!-- Invoice list modal -->
+                                        <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <div>
+                                                            <h5 class="modal-title mb-0" id="invoiceModalLabel">Invoices</h5>
+                                                            <small class="text-muted" id="invoiceModalSub"></small>
+                                                        </div>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div id="invoiceModalBody" class="py-2">
+                                                            <div class="text-center text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading invoices...</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
