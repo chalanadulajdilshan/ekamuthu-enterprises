@@ -252,6 +252,14 @@ foreach ($rentSummary as $rentId => $summary) {
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
     $recordedPaid = $summary['recorded_paid'] ?? 0;
 
+    // Days outstanding from rental date to the report date (inclusive, midnight-safe)
+    $rentalDt = new DateTime($summary['rental_date']);
+    $reportDt = new DateTime($today);
+    $rentalDt->setTime(0, 0, 0);
+    $reportDt->setTime(0, 0, 0);
+    $diffSeconds = max(0, $reportDt->getTimestamp() - $rentalDt->getTimestamp());
+    $outstandingDays = max(1, (int)floor($diffSeconds / 86400) + 1);
+
     // Sum deposits; they count as payments but do not add to rent charges
     $depositTotal = 0;
     if (!empty($summary['deposits'])) {
@@ -280,6 +288,7 @@ foreach ($rentSummary as $rentId => $summary) {
     $data[] = [
         'bill_number' => $summary['bill_number'],
         'rental_date' => $summary['rental_date'],
+        'outstanding_days' => $outstandingDays,
         'payment_type_name' => $summary['payment_type_name'] ?? 'N/A',
         'customer_name' => $summary['customer_name'],
         'status_label' => $statusLabel,
@@ -523,6 +532,8 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <th style="width: 40px;">#</th>
                         <th>Invoice No</th>
                         <th>Date</th>
+                        <th>Customer</th>
+                        <th>Outstanding Days</th>
                         <th>Payment Type</th>
                         <th>Status</th>
                         <th class="text-right">Rent Amount</th>
@@ -537,6 +548,8 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td><?php echo $i++; ?></td>
                             <td><strong><?php echo $row['bill_number']; ?></strong></td>
                             <td><?php echo $row['rental_date']; ?></td>
+                            <td><?php echo $row['customer_name']; ?></td>
+                            <td><?php echo $row['outstanding_days']; ?> day(s)</td>
                             <td><span style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 11px;">&nbsp;<?php echo $row['payment_type_name']; ?>&nbsp;</span></td>
                             <td><?php echo $row['status_label']; ?></td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['total_rent'], 2); ?>&nbsp;</td>
@@ -652,7 +665,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <?php endif; ?>
                         <?php endforeach; ?>
                         <tr style="background-color: #e9ecef;">
-                            <td colspan="5" class="text-right"><strong>TOTAL:</strong></td>
+                            <td colspan="7" class="text-right"><strong>TOTAL:</strong></td>
                             <td class="text-right"><strong><?php echo number_format($grandTotalRent, 2); ?></strong></td>
                             <td class="text-right text-success"><strong><?php echo number_format($grandTotalPaid, 2); ?></strong></td>
                             <td class="text-right text-danger" style="font-size: 14px;"><strong><?php echo number_format($grandTotalBalance, 2); ?></strong></td>

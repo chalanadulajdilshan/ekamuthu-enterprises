@@ -125,7 +125,17 @@ function loadReport() {
             {
                 "data": "total_paid",
                 "className": "text-end",
-                "render": function (data) { return formatAmount(parseAmount(data)); }
+                "render": function (data, type, row) {
+                    var raw = parseAmount(data);
+                    if (type !== 'display') {
+                        return raw;
+                    }
+                    var formatted = formatAmount(raw);
+                    var noDepositTag = (row && Number(row.deposit_total_raw || 0) === 0)
+                        ? ' <span class="badge bg-secondary">No Deposit</span>'
+                        : '';
+                    return formatted + noDepositTag;
+                }
             },
             {
                 "data": "balance",

@@ -26,7 +26,8 @@ if ($action === 'get_outstanding_report') {
         }
     }
 
-    $where = "WHERE 1=1";
+    // Exclude cancelled bills from all outstanding calculations
+    $where = "WHERE er.is_cancelled = 0 AND er.status <> 'cancelled'";
     if ($customerId > 0) {
         $where .= " AND er.customer_id = $customerId";
     }
@@ -430,6 +431,8 @@ if ($action === 'get_outstanding_report') {
             'projected_outstanding' => number_format($projectedOutstanding, 2),
             'recorded_outstanding_raw' => $recordedOutstanding,
             'projected_outstanding_raw' => $projectedOutstanding,
+            'deposit_total' => number_format($depositTotal, 2),
+            'deposit_total_raw' => $depositTotal,
             'payments' => $summary['payments'] ?? [],
             'recorded_details' => $summary['recorded_details'] ?? [],
             'deposits' => $summary['deposits'] ?? [],
