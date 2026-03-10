@@ -119,6 +119,7 @@ foreach ($return_rows as $rr) {
 }
 // Include deposit in total customer paid (deposit is money the customer paid upfront)
 $total_customer_paid += $total_deposit;
+$isReturnInvoice = !empty($return_rows);
 
 // Calculate net amount and outstanding
 $hire_amount = $total_amount;
@@ -476,7 +477,7 @@ if (!empty($customerMobile)) {
 
 <div class="container mt-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 no-print gap-2">
-        <h4 class="mb-0">Equipment Rent Invoice</h4>
+        <h4 class="mb-0"><?php echo $isReturnInvoice ? 'Equipment Return Invoice' : 'Equipment Rent Invoice'; ?></h4>
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <button onclick="window.print()" class="btn btn-success ms-2">Print / PDF</button>
             <button onclick="shareViaWhatsApp()" class="btn btn-success ms-2 no-print">
@@ -502,7 +503,7 @@ if (!empty($customerMobile)) {
                 <!-- Centered Title -->
                 <div class="row mb-3">
                     <div class="col-12 text-center">
-                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:0; display:inline-block;">Equipment Rent Invoice</h3>
+                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:0; display:inline-block;"><?php echo $isReturnInvoice ? 'Equipment Return Invoice' : 'Equipment Rent Invoice'; ?></h3>
                     </div>
                 </div>
 
@@ -741,7 +742,8 @@ if (!empty($customerMobile)) {
                 ];
                 ?>
 
-                <!-- Remark Section -->
+                <?php if (empty($return_rows)): ?>
+                <!-- Remark Section (hide for return bills) -->
                 <div class="mt-4">
                     <div style="border-top:2px solid #ccc; padding-top:12px;">
                         <strong>Terms & Conditions :</strong>
@@ -780,6 +782,7 @@ if (!empty($customerMobile)) {
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Signature Section -->
                 <div class="row mt-5">
