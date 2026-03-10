@@ -114,6 +114,7 @@ include 'auth.php';
                                                         <th>#</th>
                                                         <th>Customer Code</th>
                                                         <th>Customer Name</th>
+                                                        <th class="d-none">NIC</th>
                                                         <th>Mobile</th>
                                                         <th class="text-center">Total Rentals</th>
                                                         <th class="text-end">Total Amount</th>
@@ -121,7 +122,7 @@ include 'auth.php';
                                                     </tr>
                                                 </thead>
                                                 <tbody id="frequencyTableBody">
-                                                    <tr><td colspan="8" class="text-center">Loading...</td></tr>
+                                                    <tr><td colspan="9" class="text-center">Loading...</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>

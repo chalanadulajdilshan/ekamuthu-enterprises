@@ -14,7 +14,7 @@ $(document).ready(function () {
             $('#frequencyTable').DataTable().destroy();
         }
 
-        $('#frequencyTableBody').html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
+        $('#frequencyTableBody').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
 
         $.ajax({
             url: 'ajax/php/equipment-rent-frequency-report.php',
@@ -44,6 +44,7 @@ $(document).ready(function () {
                                 <td>${row.rank}</td>
                                 <td>${row.customer_code || ''}</td>
                                 <td>${row.customer_name || ''}</td>
+                                <td class="d-none">${row.nic || ''}</td>
                                 <td>${row.mobile_number || ''}</td>
                                 <td class="text-center fw-bold">${row.rent_count}</td>
                                 <td class="text-end">${Number(row.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -52,7 +53,7 @@ $(document).ready(function () {
                         `;
                     });
                 } else {
-                    rows = '<tr><td colspan="6" class="text-center">No records found</td></tr>';
+                    rows = '<tr><td colspan="9" class="text-center">No records found</td></tr>';
                 }
 
                 $('#frequencyTableBody').html(rows);
@@ -66,7 +67,8 @@ $(document).ready(function () {
                     order: [[5, 'desc']],
                     pageLength: 25,
                     columnDefs: [
-                        { targets: 0, orderable: false, searchable: false }
+                        { targets: 0, orderable: false, searchable: false },
+                        { targets: 4, visible: false, searchable: true }
                     ]
                 });
             },
