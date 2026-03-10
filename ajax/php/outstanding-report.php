@@ -2,7 +2,59 @@
 include '../../class/include.php';
 header('Content-Type: application/json');
 
+function ensureRemarksTable($db)
+{
+    // Create table if it doesn't exist to avoid query failures that break JSON responses
+    $createSql = "CREATE TABLE IF NOT EXISTS `equipment_rent_remarks` (
+        `id` INT(11) NOT NULL AUTO_INCREMENT,
+        `rent_id` INT(11) NOT NULL,
+        `remark` TEXT,
+        `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `idx_rent_id` (`rent_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+    return $db->readQuery($createSql) !== false;
+}
+
 $action = $_POST['action'] ?? '';
+
+// Save a free-form remark against a rent invoice
+if ($action === 'save_rent_remark') {
+    $rentId = isset($_POST['rent_id']) ? (int)$_POST['rent_id'] : 0;
+    $remarkText = trim($_POST['remark'] ?? '');
+
+    if ($rentId <= 0 || $remarkText === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid rent or empty remark']);
+        exit;
+    }
+
+    $db = Database::getInstance();
+    if (!ensureRemarksTable($db)) {
+        echo json_encode(['status' => 'error', 'message' => 'Cannot create remarks table']);
+        exit;
+    }
+    $remarkEscaped = mysqli_real_escape_string($db->DB_CON, $remarkText);
+    $insertSql = "INSERT INTO `equipment_rent_remarks` (`rent_id`, `remark`, `created_at`) VALUES ($rentId, '$remarkEscaped', NOW())";
+    $result = $db->readQuery($insertSql);
+
+    if ($result) {
+        $newId = mysqli_insert_id($db->DB_CON);
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Remark saved',
+            'remark' => [
+                'id' => $newId,
+                'rent_id' => $rentId,
+                'remark' => $remarkText,
+                'created_at' => date('Y-m-d H:i:s')
+            ]
+        ]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Failed to save remark']);
+    }
+    exit;
+}
 
 if ($action === 'get_outstanding_report') {
     $customerId = isset($_POST['customer_id']) && !empty($_POST['customer_id']) ? (int)$_POST['customer_id'] : 0;
@@ -62,6 +114,7 @@ if ($action === 'get_outstanding_report') {
                 'recorded_details' => [],
                 'payments' => [],
                 'deposits' => [],
+                'remarks' => [],
                 'items' => []
             ];
         }
@@ -279,6 +332,24 @@ if ($action === 'get_outstanding_report') {
             }
         }
 
+        // Free-form remarks per rent/invoice
+        if (ensureRemarksTable($db)) {
+            $remarksSql = "SELECT id, rent_id, remark, created_at FROM equipment_rent_remarks WHERE rent_id IN ($rentIdList) ORDER BY created_at DESC, id DESC";
+            $remarksResult = $db->readQuery($remarksSql);
+            if ($remarksResult) {
+                while ($remRow = mysqli_fetch_assoc($remarksResult)) {
+                    $rentId = (int)$remRow['rent_id'];
+                    if (!isset($rentSummary[$rentId])) continue;
+
+                    $rentSummary[$rentId]['remarks'][] = [
+                        'id' => (int)$remRow['id'],
+                        'remark' => $remRow['remark'] ?? '',
+                        'created_at' => $remRow['created_at'] ?? ''
+                    ];
+                }
+            }
+        }
+
         // Return history per rent/invoice
         $returnsSql = "SELECT 
                             er.id AS rent_id,
@@ -417,6 +488,7 @@ if ($action === 'get_outstanding_report') {
             : 'Not Returned';
 
         $data[] = [
+            'id' => $rentId,
             'bill_number' => $summary['bill_number'],
             'rental_date' => $summary['rental_date'],
             'payment_type_name' => $summary['payment_type_name'] ?? 'N/A',
@@ -436,6 +508,7 @@ if ($action === 'get_outstanding_report') {
             'payments' => $summary['payments'] ?? [],
             'recorded_details' => $summary['recorded_details'] ?? [],
             'deposits' => $summary['deposits'] ?? [],
+            'remarks' => $summary['remarks'] ?? [],
             'items' => $summary['items'] ?? [],
             'return_history' => $summary['return_history'] ?? []
         ];

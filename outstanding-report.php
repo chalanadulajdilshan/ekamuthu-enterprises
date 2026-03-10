@@ -315,6 +315,31 @@ include 'auth.php';
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-12">
+                            <div class="border rounded p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                    <h6 class="fw-bold mb-0">Remarks</h6>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap" style="flex:1;">
+                                        <input type="text" id="billModalRemarkInput" class="form-control form-control-sm" placeholder="Add a remark" style="min-width:360px; flex:1;">
+                                        <button class="btn btn-primary btn-sm" id="billModalRemarkSave">Save</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" id="billModalRemarks">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:160px;">Date</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="2" class="text-muted">No remarks added.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-12">
                             <div class="border rounded p-3 h-100">
                                 <h6 class="fw-bold mb-2">Return History</h6>

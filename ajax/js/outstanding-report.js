@@ -53,6 +53,11 @@ $(document).ready(function () {
         printBillDetails();
     });
 
+    // Save remark
+    $('#billModalRemarkSave').on('click', function () {
+        saveBillRemark();
+    });
+
     // Recalculate outstanding when date changes
     $(document).on('change', '#billModalCalcDate', function () {
         const selectedDate = $(this).val();
@@ -353,6 +358,9 @@ function fillBillDetailsModal(data) {
         depositTotalCell.text(formatAmount(depositTotal));
     }
 
+    // Remarks table
+    renderBillRemarks(data.remarks || []);
+
     // Return history table
     var returnBody = $('#billModalReturns tbody');
     returnBody.empty();
@@ -388,6 +396,93 @@ function fillBillDetailsModal(data) {
     // Totals in modal summary
     $('#billModalRecordedTotal').text(fmt(data.recorded_outstanding_raw || data.recorded_outstanding));
     $('#billModalProjectedTotal').text(fmt(data.projected_outstanding_raw || data.projected_outstanding));
+}
+
+function renderBillRemarks(remarks) {
+    var tbody = $('#billModalRemarks tbody');
+    tbody.empty();
+    if (!remarks || !remarks.length) {
+        tbody.append('<tr><td colspan="2" class="text-muted">No remarks added.</td></tr>');
+        return;
+    }
+
+    remarks.forEach(function (rem) {
+        var date = rem.created_at ? rem.created_at : '-';
+        var text = rem.remark ? rem.remark : '-';
+        tbody.append(`
+            <tr>
+                <td>${date}</td>
+                <td>${text}</td>
+            </tr>
+        `);
+    });
+}
+
+function saveBillRemark() {
+    if (!currentBillData || !currentBillData.id) {
+        alert('Bill not loaded');
+        return;
+    }
+
+    var remarkInput = $('#billModalRemarkInput');
+    var remark = remarkInput.val().trim();
+    if (!remark) {
+        remarkInput.focus();
+        return;
+    }
+
+    var btn = $('#billModalRemarkSave');
+    btn.prop('disabled', true).text('Saving...');
+
+    $.post('ajax/php/outstanding-report.php', {
+        action: 'save_rent_remark',
+        rent_id: currentBillData.id,
+        remark: remark
+    }).done(function (resp) {
+        if (resp && resp.status === 'success' && resp.remark) {
+            // Prepend new remark
+            currentBillData.remarks = currentBillData.remarks || [];
+            currentBillData.remarks.unshift(resp.remark);
+            renderBillRemarks(currentBillData.remarks);
+            remarkInput.val('');
+            showBillNotice('success', 'Remark saved');
+        } else {
+            showBillNotice('danger', resp && resp.message ? resp.message : 'Failed to save remark');
+        }
+    }).fail(function () {
+        showBillNotice('danger', 'Failed to save remark');
+    }).always(function () {
+        btn.prop('disabled', false).text('Save');
+    });
+}
+
+// Lightweight toast/alert helper
+function showBillNotice(type, message) {
+    var containerId = 'bill-modal-toast-container';
+    var container = document.getElementById(containerId);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = 9999;
+        container.style.maxWidth = '320px';
+        document.body.appendChild(container);
+    }
+
+    var alert = document.createElement('div');
+    alert.className = 'alert alert-' + type + ' py-2 px-3 shadow-sm mb-2';
+    alert.textContent = message;
+    container.appendChild(alert);
+
+    setTimeout(function () {
+        alert.classList.add('fade');
+        alert.style.opacity = '0';
+        setTimeout(function () {
+            if (alert.parentNode) alert.parentNode.removeChild(alert);
+        }, 300);
+    }, 2200);
 }
 
 function recalculateOutstandingToDate(selectedDate) {
