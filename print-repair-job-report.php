@@ -33,7 +33,7 @@ if ($employee_id != 'all') {
     $query .= " AND r.employee_id = '$employee_id'";
 }
 
-$query .= " ORDER BY r.item_breakdown_date DESC, r.id DESC";
+$query .= " ORDER BY r.item_breakdown_date ASC, r.id DESC";
 
 $result = $db->readQuery($query);
 
@@ -99,7 +99,7 @@ if ($employee_id != 'all') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repair Jobs Report - <?php echo $from_date ?></title>
+    <title>Repair Jobs Report <?php echo (!empty($from_date)) ? '- '.htmlspecialchars($from_date) : ''; ?></title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 14px; margin: 20px; }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px; }
@@ -138,7 +138,11 @@ if ($employee_id != 'all') {
     <div class="report-title">
         අලුත්වැඩියා රැකියා වාර්තාව (Repair Jobs Report) <br>
         <span style="font-size: 14px; font-weight: normal; display: block; margin-top: 5px;">
-            සිට: <?php echo $from_date ?> &nbsp; දක්වා: <?php echo $to_date ?>
+            <?php if (!empty($from_date) && !empty($to_date)): ?>
+                From Date (සිට): <?php echo htmlspecialchars($from_date); ?> &nbsp; | &nbsp; To Date (දක්වා): <?php echo htmlspecialchars($to_date); ?>
+            <?php else: ?>
+                All Dates (සියලුම දින)
+            <?php endif; ?>
         </span>
         <span style="font-size: 14px; font-weight: normal; color: #555;">
             තත්ත්වය (Status): <?php echo $status_title; ?> | සේවකයා (Employee): <?php echo $employee_title; ?>
