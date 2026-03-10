@@ -7,11 +7,6 @@ $(document).ready(function () {
         var toDate = $('#toDate').val();
         var status = $('#statusFilter').val();
 
-        if ((!fromDate || !toDate) && status !== 'pending' && status !== 'all') {
-            swal("Error", "Please select a valid date range", "error");
-            return;
-        }
-
         // Show summary section
         $('#summarySection').show();
 
@@ -94,7 +89,7 @@ $(document).ready(function () {
                     }
                 }
             ],
-            "order": [[1, "desc"]],
+            "order": [[0, "asc"]],
             "pageLength": 25,
             "createdRow": function (row, data, dataIndex) {
                 $(row).attr('data-id', data.id);

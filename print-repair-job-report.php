@@ -33,7 +33,7 @@ if ($employee_id != 'all') {
     $query .= " AND r.employee_id = '$employee_id'";
 }
 
-$query .= " ORDER BY r.item_breakdown_date ASC, r.id ASC";
+$query .= " ORDER BY CAST(r.job_code AS UNSIGNED) ASC";
 
 $result = $db->readQuery($query);
 

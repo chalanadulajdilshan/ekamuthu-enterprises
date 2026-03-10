@@ -39,7 +39,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
         $query .= " AND r.employee_id = '$employee_id'";
     }
 
-    $query .= " ORDER BY r.item_breakdown_date DESC, r.id DESC";
+    $query .= " ORDER BY CAST(r.job_code AS UNSIGNED) ASC";
 
     $result = $db->readQuery($query);
 
