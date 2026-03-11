@@ -1028,6 +1028,13 @@ $bill_number = $lastId + 1;
                                     <small class="text-muted text-danger">This amount will be deducted from the total.</small>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="return_all_damage_amount" class="form-label">Damage Amount (Rs.)</label>
+                                    <input type="number" min="0" step="0.01" class="form-control" id="return_all_damage_amount" placeholder="Enter damage amount" value="0">
+                                    <small class="text-muted">This amount will be added to the settlement.</small>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">

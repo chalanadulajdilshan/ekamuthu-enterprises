@@ -39,6 +39,12 @@ $(document).ready(function () {
         if (response.status === "success") {
           const data = response.data;
 
+          // Pre-fill damage amount with stored value
+          const storedDamage = parseFloat(data.stored_damage_amount || 0);
+          if (storedDamage > 0) {
+            $("#damage_amount").val(storedDamage.toFixed(2));
+          }
+
           // Display item information
           $("#returnItemInfo").html(`
                         <div class="alert alert-info mb-3">
@@ -62,6 +68,7 @@ $(document).ready(function () {
               : 0
           )}</div>
                                     <div><strong class="text-danger">Damage Per Unit (catalog):</strong> <span class="text-danger">Rs. ${formatAmount(data.equipment_damage)}</span></div>
+                                    ${storedDamage > 0 ? `<div class="mt-2"><strong class="text-warning">Stored Damage Amount:</strong> <span class="text-warning">Rs. ${formatAmount(storedDamage)}</span></div>` : ''}
                                 </div>
                             </div>
                         </div>

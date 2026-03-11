@@ -763,6 +763,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
     $repairCost = isset($_POST['repair_cost']) && $_POST['repair_cost'] !== ''
         ? max(0, floatval($_POST['repair_cost']))
         : 0;
+    $damageAmountTotal = isset($_POST['damage_amount']) && $_POST['damage_amount'] !== ''
+        ? max(0, floatval($_POST['damage_amount']))
+        : 0;
     $returnRemark = isset($_POST['return_remark'])
         ? trim($_POST['return_remark'])
         : '';
@@ -806,6 +809,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         $customerDeposit = 0;
         $totalPreviousCharges = 0;
 
+        // First pass: count total pending items to distribute damage
+        $totalPendingQty = 0;
+        foreach ($items as $item) {
+            $pendingQty = max(0, ($item['quantity'] ?? 0) - EquipmentRentReturn::getTotalReturnedQty($item['id']));
+            $totalPendingQty += $pendingQty;
+        }
+        
         foreach ($items as $item) {
             // Only process items that still have pending quantity
             $pendingQty = max(0, ($item['quantity'] ?? 0) - EquipmentRentReturn::getTotalReturnedQty($item['id']));
@@ -813,15 +823,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
                 continue;
             }
 
-            // Calculate settlement for full pending quantity
-            $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, 0, 0);
+            // Distribute damage amount proportionally based on quantity
+            $itemDamageShare = $totalPendingQty > 0 ? ($pendingQty / $totalPendingQty) * $damageAmountTotal : 0;
+
+            // Calculate settlement for full pending quantity with damage
+            $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, $itemDamageShare, $nowDate, $nowTime, $after9Flag, 0, 0);
 
             // If after-9 flag is set but extra day amount did not compute, force one extra-day charge
             // Skip override for fixed-rate items (flat charge only)
             $isFixedRate = isset($calculation['is_fixed_rate']) && intval($calculation['is_fixed_rate']) === 1;
             if (!$isFixedRate && $after9Flag === 1 && floatval($calculation['extra_day_amount'] ?? 0) <= 0) {
                 $extraOverride = floatval($calculation['per_unit_daily'] ?? 0) * $pendingQty;
-                $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, 0, $nowDate, $nowTime, $after9Flag, $extraOverride, 0);
+                $calculation = EquipmentRentReturn::calculateSettlement($item['id'], $pendingQty, $itemDamageShare, $nowDate, $nowTime, $after9Flag, $extraOverride, 0);
             }
 
             if ($calculation['error']) {

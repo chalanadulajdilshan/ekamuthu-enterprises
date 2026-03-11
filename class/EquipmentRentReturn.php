@@ -453,12 +453,13 @@ class EquipmentRentReturn
     {
         $db = Database::getInstance();
         
-        // Get rent item details with rent type and duration, including customer deposit
+        // Get rent item details with rent type and duration, including customer deposit and stored damage
         $query = "SELECT eri.*, 
                   e.deposit_one_day as deposit_per_item,
                   e.is_fixed_rate,
                   er.deposit_total as customer_deposit,
                   er.id as rent_id,
+                  COALESCE(eri.damage_amount, 0) as stored_damage_amount,
                   (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as already_returned,
                   eri.quantity - (SELECT COALESCE(SUM(return_qty), 0) FROM equipment_rent_returns WHERE rent_item_id = eri.id) as pending_qty
                   FROM equipment_rent_items eri
@@ -473,6 +474,12 @@ class EquipmentRentReturn
                 'error' => true,
                 'message' => 'Rent item not found'
             ];
+        }
+        
+        // Use stored damage amount if no damage_amount provided in parameters
+        $storedDamage = floatval($item['stored_damage_amount'] ?? 0);
+        if ($damage_amount <= 0 && $storedDamage > 0) {
+            $damage_amount = $storedDamage;
         }
         
         // Per-unit values

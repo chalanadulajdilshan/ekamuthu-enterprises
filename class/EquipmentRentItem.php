@@ -196,6 +196,7 @@ class EquipmentRentItem
                   e.code as equipment_code, e.item_name as equipment_name, e.no_sub_items,
                   se.code as sub_equipment_code,
                   dm.name as department_name,
+                  COALESCE(eri.damage_amount, 0) as damage_amount,
                   eri.quantity - COALESCE(eri.total_returned_qty, 0) as pending_qty
                   FROM `equipment_rent_items` eri
                   LEFT JOIN `equipment` e ON eri.equipment_id = e.id

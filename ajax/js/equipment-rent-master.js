@@ -2795,6 +2795,7 @@ jQuery(document).ready(function () {
         extra_charge_amount:
           parseFloat($("#return_all_extra_charge").val()) || 0,
         repair_cost: parseFloat($("#return_all_repair_cost").val()) || 0,
+        damage_amount: parseFloat($("#return_all_damage_amount").val()) || 0,
         customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
         company_refund_paid:
           parseFloat($("#return_all_company_refund_paid").val()) || 0,

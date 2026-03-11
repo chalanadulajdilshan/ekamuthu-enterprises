@@ -57,11 +57,21 @@ $return_rows = [];
 foreach ($rent_items as $ritem) {
     if (empty($ritem['id'])) continue;
     $itemReturns = EquipmentRentReturn::getByRentItemId($ritem['id']);
+    
+    // Get stored damage amount for this item
+    $storedDamage = floatval($ritem['damage_amount'] ?? 0);
+    
     foreach ($itemReturns as $ret) {
+        // Combine return damage with stored item damage
+        $returnDamage = floatval($ret['damage_amount'] ?? 0);
+        $totalDamage = $returnDamage + $storedDamage;
+        
         $return_rows[] = array_merge($ret, [
             'equipment_name' => $ritem['equipment_name'] ?? '-',
             'equipment_code' => $ritem['equipment_code'] ?? '-',
             'sub_equipment_code' => $ritem['sub_equipment_code'] ?? '-',
+            'stored_damage_amount' => $storedDamage,
+            'total_damage_display' => $totalDamage,
         ]);
     }
 }
@@ -633,7 +643,15 @@ if (!empty($customerMobile)) {
                                             -
                                         <?php endif; ?>
                                     </td>
-                                    <td class="text-end"><?php echo number_format(floatval($ret['damage_amount'] ?? 0), 2); ?></td>
+                                    <td class="text-end">
+                                        <?php 
+                                        $displayDamage = floatval($ret['total_damage_display'] ?? $ret['damage_amount'] ?? 0);
+                                        if ($displayDamage > 0): ?>
+                                            <span class="text-danger"><?php echo number_format($displayDamage, 2); ?></span>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-end"><?php echo number_format(floatval($ret['extra_charge_amount'] ?? 0), 2); ?></td>
                                     <td class="text-end">
                                         <?php if (!empty($ret['additional_payment']) && floatval($ret['additional_payment']) > 0): ?>

@@ -298,7 +298,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_details') {
               se.code as sub_equipment_code,
               er.bill_number,
               er.deposit_total as customer_deposit,
-              cm.name as customer_name
+              cm.name as customer_name,
+              COALESCE(eri.damage_amount, 0) as stored_damage_amount
               FROM equipment_rent_items eri
               LEFT JOIN equipment e ON eri.equipment_id = e.id
               LEFT JOIN sub_equipment se ON eri.sub_equipment_id = se.id
