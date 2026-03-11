@@ -53,10 +53,12 @@ while ($row = mysqli_fetch_assoc($result)) {
     // Format status label
     $status_labels = [
         'pending' => 'Pending - පොරොත්තු',
+        'checking' => 'Checking - පරීක්ෂා කරමින්',
         'in_progress' => 'In Progress - ප්‍රගතියේ',
         'completed' => 'Completed - සම්පූර්ණයි',
         'delivered' => 'Delivered - භාර දෙන ලදී',
-        'cannot_repair' => 'Cannot Repair - අලුත්වැඩියා කළ නොහැක'
+        'cannot_repair' => 'Cannot Repair - අලුත්වැඩියා කළ නොහැක',
+        'cancelled' => 'Cancelled - අවලංගුයි'
     ];
     $status_label = $status_labels[$row['job_status']] ?? ucfirst($row['job_status']);
 
@@ -70,11 +72,13 @@ while ($row = mysqli_fetch_assoc($result)) {
     
     $report_data[] = $row;
     
-    $total_jobs++;
-    $total_revenue += $total_cost;
-    $total_commission += $commission_amount;
-    $total_repair_charges += $repair_charge;
-    $total_item_cost += $item_cost;
+    if ($row['job_status'] !== 'cancelled') {
+        $total_jobs++;
+        $total_revenue += $total_cost;
+        $total_commission += $commission_amount;
+        $total_repair_charges += $repair_charge;
+        $total_item_cost += $item_cost;
+    }
 }
 
 // Convert status to readable text for subtitle
@@ -84,7 +88,8 @@ $status_title_map = [
     'in_progress' => 'In Progress - ප්‍රගතියේ',
     'completed' => 'Completed - සම්පූර්ණයි',
     'delivered' => 'Delivered - භාර දෙන ලදී',
-    'cannot_repair' => 'Cannot Repair - අලුත්වැඩියා කළ නොහැක'
+    'cannot_repair' => 'Cannot Repair - අලුත්වැඩියා කළ නොහැක',
+    'cancelled' => 'Cancelled - අවලංගුයි'
 ];
 $status_title = $status_title_map[$status] ?? 'All Statuses';
 
@@ -114,6 +119,7 @@ if ($employee_id != 'all') {
         th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
         th { background-color: #eee; }
         .text-right { text-align: right; }
+        .cancelled-row { background-color: #f8d7da !important; color: #721c24 !important; }
         .footer { margin-top: 30px; font-size: 12px; text-align: center; color: #777; border-top: 1px solid #ccc; padding-top: 10px; }
         @media print {
             button { display: none; }
@@ -191,7 +197,7 @@ if ($employee_id != 'all') {
         <tbody>
             <?php if (count($report_data) > 0): ?>
                 <?php foreach ($report_data as $row): ?>
-                <tr>
+                <tr <?php echo ($row['job_status'] === 'cancelled') ? 'class="cancelled-row"' : ''; ?>>
                     <td><?php echo $row['job_code']; ?></td>
                     <td><?php echo $row['item_breakdown_date']; ?></td>
                     <td><?php echo $row['item_completed_date']; ?></td>

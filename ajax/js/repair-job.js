@@ -266,7 +266,12 @@ jQuery(document).ready(function () {
                 { data: "status_label", title: "Status" },
                 { data: "total_cost", title: "Total Cost" }
             ],
-            pageLength: 50
+            pageLength: 50,
+            createdRow: function (row, data, dataIndex) {
+                if (data.job_status === 'cancelled') {
+                    $(row).addClass('table-danger');
+                }
+            }
         });
 
         // Row click to load job
@@ -339,6 +344,21 @@ jQuery(document).ready(function () {
                     $("#update").show();
                     $(".delete-job").show();
                     $("#print-job").show();
+                    
+                    // Handle cancelled status restrictions
+                    if (job.job_status === 'cancelled') {
+                        $("#update, #mark-delivered, #mark-undelivered, .delete-job").hide();
+                        $("#form-data input, #form-data select, #form-data textarea").prop("disabled", true);
+                        $("#addRepairItemBtn").prop("disabled", true);
+                        $(".remove-repair-item").css("pointer-events", "none").css("opacity", "0.6");
+                        $("#form-data .input-group button").prop("disabled", true);
+                    } else {
+                        $("#form-data input, #form-data select, #form-data textarea").prop("disabled", false);
+                        $("#addRepairItemBtn").prop("disabled", false);
+                        $(".remove-repair-item").css("pointer-events", "auto").css("opacity", "1");
+                        $("#form-data .input-group button").prop("disabled", false);
+                        $("#job_code").prop("readonly", true); // Keep job code read-only on update
+                    }
 
                     // Handle delivery button visibility
                     // Logic: Only show if status is completed or cannot_repair or delivered
@@ -639,6 +659,12 @@ jQuery(document).ready(function () {
         $("#update").hide();
         $(".delete-job").hide();
         $("#print-job").hide();
+        
+        // Re-enable form fields
+        $("#form-data input, #form-data select, #form-data textarea").prop("disabled", false);
+        $("#addRepairItemBtn").prop("disabled", false);
+        $("#form-data .input-group button").prop("disabled", false);
+        $("#job_code").prop("readonly", false);
 
         // Get new code
         $.ajax({

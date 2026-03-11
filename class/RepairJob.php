@@ -269,7 +269,8 @@ class RepairJob
             'in_progress' => '<span class="badge bg-soft-warning" style="font-size:13px;">In Progress</span>',
             'completed' => '<span class="badge bg-soft-success" style="font-size:13px;">Completed</span>',
             'cannot_repair' => '<span class="badge bg-soft-danger" style="font-size:13px;">Cannot Repair</span>',
-            'delivered' => '<span class="badge bg-soft-primary" style="font-size:13px;">Delivered</span>'
+            'delivered' => '<span class="badge bg-soft-primary" style="font-size:13px;">Delivered</span>',
+            'cancelled' => '<span class="badge bg-soft-secondary" style="font-size:13px;">Cancelled</span>'
         ];
 
         while ($row = mysqli_fetch_assoc($dataQuery)) {

@@ -182,6 +182,7 @@ $job_code = ($lastId + 1);
                                                         <option value="completed">Completed - සම්පූර්ණයි</option>
                                                         <option value="cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</option>
                                                         <option value="delivered">Delivered - භාර දෙන ලදී</option>
+                                                        <option value="cancelled">Cancelled - අවලංගුයි</option>
                                                     </select>
                                                 </div>  
                                                 

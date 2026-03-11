@@ -55,6 +55,7 @@ $(document).ready(function () {
                                 <td class="text-center">${emp.completed || 0}</td>
                                 <td class="text-center">${emp.delivered || 0}</td>
                                 <td class="text-center">${emp.cannot_repair || 0}</td>
+                                <td class="text-center">${emp.cancelled || 0}</td>
                                 <td class="text-center fw-bold text-primary">${emp.total || 0}</td>
                             </tr>`;
                         });
@@ -93,6 +94,9 @@ $(document).ready(function () {
             "pageLength": 25,
             "createdRow": function (row, data, dataIndex) {
                 $(row).attr('data-id', data.id);
+                if (data.status.includes('cancelled') || data.status.includes('අවලංගුයි')) {
+                     $(row).addClass('table-danger');
+                }
             },
             "footerCallback": function (row, data, start, end, display) {
                 var api = this.api();

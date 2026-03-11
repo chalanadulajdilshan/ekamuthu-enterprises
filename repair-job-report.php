@@ -43,6 +43,7 @@ include 'auth.php';
         .badge-completed { background-color: #34c38f; }
         .badge-delivered { background-color: #50a5f1; }
         .badge-cannot_repair { background-color: #f46a6a; }
+        .badge-cancelled { background-color: #74788d; }
 
         /* Total amount styling */
         .total-highlight {
@@ -119,6 +120,7 @@ if ($row = mysqli_fetch_assoc($result)) {
                                                                 <option value="in_progress">In Progress</option>
                                                                 <option value="completed">Completed</option>
                                                                 <option value="delivered">Delivered</option>
+                                                                <option value="cancelled">Cancelled</option>
                                                                 <option value="cannot_repair">Cannot Repair</option>
                                                             </select>
                                                         </div>

@@ -78,10 +78,12 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
         // Format status label
         $status_labels = [
             'pending' => '<span class="badge badge-pending">Pending - පොරොත්තු</span>',
+            'checking' => '<span class="badge badge-info">Checking - පරීක්ෂා කරමින්</span>',
             'in_progress' => '<span class="badge badge-in_progress">In Progress - ප්‍රගතියේ</span>',
             'completed' => '<span class="badge badge-completed">Completed - සම්පූර්ණයි</span>',
             'delivered' => '<span class="badge badge-delivered">Delivered - භාර දෙන ලදී</span>',
-            'cannot_repair' => '<span class="badge badge-cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</span>'
+            'cannot_repair' => '<span class="badge badge-cannot_repair">Cannot Repair - අලුත්වැඩියා කළ නොහැක</span>',
+            'cancelled' => '<span class="badge badge-cancelled">Cancelled - අවලංගුයි</span>'
         ];
         $status_badge = $status_labels[$row['job_status']] ?? $row['job_status'];
 
@@ -105,10 +107,12 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
             'id' => $row['id']
         ];
 
-        $total_jobs++;
-        $total_revenue += $total_cost;
-        $total_commission += $commission_amount;
-        $total_repair_charges += $repair_charge;
+        if ($job_status !== 'cancelled') {
+            $total_jobs++;
+            $total_revenue += $total_cost;
+            $total_commission += $commission_amount;
+            $total_repair_charges += $repair_charge;
+        }
     }
 
     echo json_encode([

@@ -117,6 +117,11 @@ if (isset($_POST['update'])) {
         exit();
     }
 
+    if ($JOB->job_status === 'cancelled') {
+        echo json_encode(["status" => "error", "message" => "This job is cancelled and cannot be updated."]);
+        exit();
+    }
+
     $JOB->job_code = $_POST['job_code'];
     $JOB->item_type = $_POST['item_type'] ?? 'customer';
     $JOB->machine_code = $_POST['machine_code'] ?? '';
