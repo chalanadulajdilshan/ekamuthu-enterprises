@@ -263,9 +263,9 @@ function fillBillDetailsModal(data) {
     if (data.customer_mobile) contactParts.push(data.customer_mobile);
     if (data.customer_mobile_2) contactParts.push(data.customer_mobile_2);
 
-    var customerBlock = '<div><strong>Customer:</strong> ' + (data.customer_name || '-') + '</div>';
-    customerBlock += '<div><strong>Mobile:</strong> ' + (contactParts.length ? contactParts.join(' / ') : '-') + '</div>';
-    customerBlock += '<div><strong>Company:</strong> ' + ((data.is_company && data.company_name) ? data.company_name : '-') + '</div>';
+    var customerBlock = '<div><strong>පාරිභෝගිකයා:</strong> ' + (data.customer_name || '-') + '</div>';
+    customerBlock += '<div><strong>දුරකථන:</strong> ' + (contactParts.length ? contactParts.join(' / ') : '-') + '</div>';
+    customerBlock += '<div><strong>සමාගම:</strong> ' + ((data.is_company && data.company_name) ? data.company_name : '-') + '</div>';
 
     $('#billModalCustomer').html(customerBlock);
     $('#billModalPayment').text(data.payment_type_name || '-');

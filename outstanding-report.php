@@ -77,7 +77,7 @@ include 'auth.php';
                     <div class="row">
                         <div class="col-12">
                             <div class="page-title-box d-flex align-items-center justify-content-between">
-                                <h4 class="mb-0">Outstanding Report</h4>
+                                <h4 class="mb-0">හිඟ බිල්පත් වාර්තාව</h4>
                             </div>
                         </div>
                     </div>
@@ -88,27 +88,27 @@ include 'auth.php';
                             <!-- Summary Cards -->
                             <div class="report-summary-box">
                                 <div class="report-stat-item">
-                                    <span class="report-stat-label">Total Rent</span>
-                                    <span class="report-stat-value" id="cardTotalRent">Rs. 0.00</span>
+                                    <span class="report-stat-label">සාමාන්‍ය කුලිය</span>
+                                    <span class="report-stat-value" id="cardTotalRent">රු. 0.00</span>
                                 </div>
                                 <div class="report-stat-item">
-                                    <span class="report-stat-label">Total Paid</span>
-                                    <span class="report-stat-value text-success-custom" id="cardTotalPaid">Rs. 0.00</span>
+                                    <span class="report-stat-label">ගෙවූ මුදල් එකතුව</span>
+                                    <span class="report-stat-value text-success-custom" id="cardTotalPaid">රු. 0.00</span>
                                 </div>
                                 <div class="report-stat-item">
-                                    <span class="report-stat-label">Total Outstanding</span>
-                                    <span class="report-stat-value text-danger-custom" id="cardTotalBalance">Rs. 0.00</span>
+                                    <span class="report-stat-label">බാക്കി මුදල්</span>
+                                    <span class="report-stat-value text-danger-custom" id="cardTotalBalance">රු. 0.00</span>
                                 </div>
                             </div>
 
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title mb-4">Filter Report</h5>
+                                    <h5 class="card-title mb-4">වාර්තාව පෙරහන් කරන්න</h5>
                                     <div class="row mb-4">
                                         <div class="col-md-4">
-                                            <label class="form-label">Customer</label>
+                                            <label class="form-label">පාරිභෝගිකයා</label>
                                             <div class="input-group">
-                                                <input id="customer_code" name="customer_code" type="text" placeholder="Select Customer (Optional)" class="form-control" readonly>
+                                                <input id="customer_code" name="customer_code" type="text" placeholder="පාරිභෝගිකයා තෝරන්න (විකල්ප)" class="form-control" readonly>
                                                 <input type="hidden" id="customer_id" name="customer_id">
                                                 <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#customerModal">
                                                     <i class="uil uil-search me-1"></i>
@@ -119,20 +119,20 @@ include 'auth.php';
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label">Date Range</label>
+                                            <label class="form-label">දිනයන් පරාසය</label>
                                             <div class="row g-2">
                                                 <div class="col-6">
-                                                    <input type="text" id="from_date" class="form-control date-picker" placeholder="From" autocomplete="off">
+                                                    <input type="text" id="from_date" class="form-control date-picker" placeholder="ආරම්භක දිනය" autocomplete="off">
                                                 </div>
                                                 <div class="col-6">
-                                                    <input type="text" id="to_date" class="form-control date-picker" placeholder="To" autocomplete="off">
+                                                    <input type="text" id="to_date" class="form-control date-picker" placeholder="අවසාන දිනය" autocomplete="off">
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
-                                            <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> Generate Report</button>
-                                            <button id="printBtn" class="btn btn-success"><i class="uil uil-print"></i> Print (Detailed)</button>
-                                            <button id="printSummaryBtn" class="btn btn-outline-success"><i class="uil uil-print"></i> Print (Summary)</button>
+                                            <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> වාර්තාව සකසන්න</button>
+                                            <button id="printBtn" class="btn btn-success"><i class="uil uil-print"></i> මුද්‍රණය (විස්තර)</button>
+                                            <button id="printSummaryBtn" class="btn btn-outline-success"><i class="uil uil-print"></i> මුද්‍රණය (සාරාංශය)</button>
                                         </div>
                                     </div>
 
@@ -141,15 +141,15 @@ include 'auth.php';
                                             <thead>
                                                 <tr>
                                                     <th style="width:40px;"></th>
-                                                    <th>Invoice No</th>
-                                                    <th>Date</th>
-                                                    <th>Payment Type</th>
-                                                    <th>Customer Name</th>
-                                                    <th>Status</th>
-                                                    <th class="text-end">Total Rent Amount</th>
-                                                    <th class="text-end">Rent + Initial Deposit</th>
-                                                    <th class="text-end">Total Paid Amount</th>
-                                                    <th class="text-end">Balance (Outstanding)</th>
+                                                    <th>ඉන්වොයිස් අංකය</th>
+                                                    <th>දිනය</th>
+                                                    <th>ගෙවීමේ වර්ගය</th>
+                                                    <th>පාරිභෝගිකයා</th>
+                                                    <th>තත්ත්වය</th>
+                                                    <th class="text-end">කුලිය (මුළු)</th>
+                                                    <th class="text-end">කුලිය + ආරම්භක තැන්පතුව</th>
+                                                    <th class="text-end">ගෙවූ මුදල</th>
+                                                    <th class="text-end">බැලන්ස් (අවැසි)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -157,7 +157,7 @@ include 'auth.php';
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th colspan="6" class="text-end">Total:</th>
+                                                    <th colspan="6" class="text-end">මුළු එකතුව:</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
                                                     <th class="text-end" id="totalRentPlusInitial">0.00</th>
                                                     <th class="text-end" id="totalPaid">0.00</th>
@@ -182,43 +182,43 @@ include 'auth.php';
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="billDetailModalLabel">Bill Details</h5>
+                    <h5 class="modal-title" id="billDetailModalLabel">බිල් විස්තර</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3" id="billModalDateLabel"></div>
                     <div class="row mb-3">
-                        <div class="col-md-3"><strong>Invoice No:</strong> <span id="billModalInvoice">-</span></div>
-                        <div class="col-md-3"><strong>Date:</strong> <span id="billModalDate">-</span> <small class="text-muted" id="billModalDayCount"></small></div>
-                        <div class="col-md-3"><strong>Payment Type:</strong> <span id="billModalPayment">-</span></div>
-                        <div class="col-md-3"><strong>Status:</strong> <span id="billModalStatus">-</span></div>
-                        <div class="col-md-6"><strong>Customer:</strong> <span id="billModalCustomer">-</span></div>
+                        <div class="col-md-3"><strong>ඉන්වොයිස් අංකය:</strong> <span id="billModalInvoice">-</span></div>
+                        <div class="col-md-3"><strong>දිනය:</strong> <span id="billModalDate">-</span> <small class="text-muted" id="billModalDayCount"></small></div>
+                        <div class="col-md-3"><strong>ගෙවීමේ වර්ගය:</strong> <span id="billModalPayment">-</span></div>
+                        <div class="col-md-3"><strong>තත්ත්වය:</strong> <span id="billModalStatus">-</span></div>
+                        <div class="col-md-6"><span id="billModalCustomer">-</span></div>
                     </div>
 
                     <div class="row mb-3 print-hide">
                         <div class="col-md-4">
-                            <label class="form-label"><strong>Calculate Outstanding To Date:</strong></label>
-                            <input type="text" id="billModalCalcDate" class="form-control date-picker" placeholder="Select Date" autocomplete="off">
-                            <small class="text-muted">Select a date to calculate outstanding up to that date</small>
+                            <label class="form-label"><strong>මෙම දිනයට හිඟ මුදල ගණනය කරන්න:</strong></label>
+                            <input type="text" id="billModalCalcDate" class="form-control date-picker" placeholder="දිනය තෝරන්න" autocomplete="off">
+                            <small class="text-muted">තෝරාගත් දිනය දක්වා හිඟ මුදල ගණනය වේ</small>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="border rounded p-3 h-100 bg-light">
-                                <div class="d-flex justify-content-between"><span>Total Rent</span><span id="billModalTotalRent">0.00</span></div>
-                                <div class="d-flex justify-content-between"><span>Total Paid</span><span id="billModalTotalPaid">0.00</span></div>
-                                <div class="d-flex justify-content-between fw-bold"><span>Balance</span><span id="billModalBalance">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>මුළු කුලිය</span><span id="billModalTotalRent">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>ගෙවූ මුදල</span><span id="billModalTotalPaid">0.00</span></div>
+                                <div class="d-flex justify-content-between fw-bold"><span>බැලන්ස්</span><span id="billModalBalance">0.00</span></div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 h-100 bg-light">
-                                <div class="d-flex justify-content-between"><span>Recorded Outstanding</span><span id="billModalRecordedTotal">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>වාර්තාගත හිඟ මුදල</span><span id="billModalRecordedTotal">0.00</span></div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 h-100 bg-light">
-                                <div class="d-flex justify-content-between"><span>Projected Outstanding</span><span id="billModalProjectedTotal">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>ඇස්තමේන්තු කළ හිඟ මුදල</span><span id="billModalProjectedTotal">0.00</span></div>
                             </div>
                         </div>
                     </div>
@@ -226,27 +226,27 @@ include 'auth.php';
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="border rounded p-3 h-100">
-                                <h6 class="fw-bold mb-2">Bill Items</h6>
+                                <h6 class="fw-bold mb-2">බිල් අයිතම</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-0" id="billModalItems">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Item</th>
-                                                <th class="text-center">Qty</th>
-                                                <th class="text-center">Duration</th>
-                                                <th class="text-center">Type</th>
-                                                <th class="text-center">Returned</th>
-                                                <th class="text-center">Pending</th>
-                                                <th class="text-center">Status</th>
-                                                <th class="text-end">Amount</th>
+                                                <th>අයිතම</th>
+                                                <th class="text-center">ප්‍රමාණය</th>
+                                                <th class="text-center">කාලය</th>
+                                                <th class="text-center">වර්ගය</th>
+                                                <th class="text-center">ආපසු</th>
+                                                <th class="text-center">සිදුවීම්</th>
+                                                <th class="text-center">තත්ත්වය</th>
+                                                <th class="text-end">මුදල</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="7" class="text-muted">No items found.</td></tr>
+                                            <tr><td colspan="7" class="text-muted">අයිතම නොමැත.</td></tr>
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th colspan="7" class="text-end">Total</th>
+                                                <th colspan="7" class="text-end">මුළු</th>
                                                 <th class="text-end" id="billModalItemsTotal">0.00</th>
                                             </tr>
                                         </tfoot>
@@ -257,20 +257,20 @@ include 'auth.php';
 
                         <div class="col-md-6">
                             <div class="border rounded p-3 h-100">
-                                <h6 class="fw-bold mb-2">Recorded Outstanding</h6>
+                                <h6 class="fw-bold mb-2">ලියාපදිංචි හිඟ බිල්පත්</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-0" id="billModalRecorded">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Return Date</th>
-                                                <th>Item</th>
-                                                <th class="text-end">Outstanding</th>
-                                                <th class="text-end">Paid</th>
-                                                <th>Remark</th>
+                                                <th>ආපසු දිනය</th>
+                                                <th>අයිතම</th>
+                                                <th class="text-end">හිඟ</th>
+                                                <th class="text-end">ගෙවූ</th>
+                                                <th>සටහන</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="5" class="text-muted">No recorded outstanding entries.</td></tr>
+                                            <tr><td colspan="5" class="text-muted">ලියාපදිංචි ඇතුළත් කිරීම් නොමැත.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -278,34 +278,34 @@ include 'auth.php';
                         </div>
                         <div class="col-md-6">
                             <div class="border rounded p-3 h-100">
-                                <h6 class="fw-bold mb-2">Payment History</h6>
+                                <h6 class="fw-bold mb-2">ගෙවීම් ඉතිහාසය</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-0" id="billModalPayments">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Date</th>
-                                                <th>Receipt No</th>
-                                                <th class="text-end">Amount</th>
-                                                <th>Method / Reference</th>
+                                                <th>දිනය</th>
+                                                <th>රිසිට් අංකය</th>
+                                                <th class="text-end">මුදල</th>
+                                                <th>වిధය / යොමු</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="4" class="text-muted">No payments recorded.</td></tr>
+                                            <tr><td colspan="4" class="text-muted">ගෙවීම් නොමැත.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <h6 class="fw-bold mb-2 mt-3">Deposit Payments</h6>
+                                <h6 class="fw-bold mb-2 mt-3">තැන්පත් ගෙවීම්</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-0" id="billModalDeposits">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Date</th>
-                                                <th>Remark</th>
-                                                <th class="text-end">Amount</th>
+                                                <th>දිනය</th>
+                                                <th>සටහන</th>
+                                                <th class="text-end">මුදල</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="3" class="text-muted">No deposit payments recorded.</td></tr>
+                                            <tr><td colspan="3" class="text-muted">තැන්පත් ගෙවීම් නොමැත.</td></tr>
                                         </tbody>
                                         <tfoot>
                                             <tr>
@@ -321,22 +321,22 @@ include 'auth.php';
                         <div class="col-12 print-hide">
                             <div class="border rounded p-3 h-100">
                                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                    <h6 class="fw-bold mb-0">Remarks</h6>
+                                    <h6 class="fw-bold mb-0">සටහන්</h6>
                                     <div class="d-flex align-items-center gap-2 flex-wrap" style="flex:1;">
-                                        <input type="text" id="billModalRemarkInput" class="form-control form-control-sm" placeholder="Add a remark" style="min-width:360px; flex:1;">
-                                        <button class="btn btn-primary btn-sm" id="billModalRemarkSave">Save</button>
+                                        <input type="text" id="billModalRemarkInput" class="form-control form-control-sm" placeholder="සටහන ඇතුළත් කරන්න" style="min-width:360px; flex:1;">
+                                        <button class="btn btn-primary btn-sm" id="billModalRemarkSave">සුරකින්න</button>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-0" id="billModalRemarks">
                                         <thead class="table-light">
                                             <tr>
-                                                <th style="width:160px;">Date</th>
-                                                <th>Remark</th>
+                                                <th style="width:160px;">දිනය</th>
+                                                <th>සටහන</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="2" class="text-muted">No remarks added.</td></tr>
+                                            <tr><td colspan="2" class="text-muted">සටහන් නොමැත.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -344,29 +344,29 @@ include 'auth.php';
                         </div>
                         <div class="col-12">
                             <div class="border rounded p-3 h-100">
-                                <h6 class="fw-bold mb-2">Return History</h6>
+                                <h6 class="fw-bold mb-2">ආපසු ඉතිහාසය</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-0" id="billModalReturns">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Date</th>
-                                                <th>Time</th>
-                                                <th>Item</th>
-                                                <th class="text-center">Qty</th>
-                                                <th class="text-end">Rental</th>
-                                                <th class="text-end">Extra</th>
-                                                <th class="text-end">Penalty</th>
-                                                <th class="text-end">Damage</th>
-                                                <th class="text-end">Extra Charge</th>
-                                                <th class="text-end">Repair</th>
-                                                <th class="text-end">Settlement</th>
-                                                <th class="text-end">Paid</th>
-                                                <th class="text-end">Outstanding</th>
-                                                <th>Remark</th>
+                                                <th>දිනය</th>
+                                                <th>වේලාව</th>
+                                                <th>අයිතම</th>
+                                                <th class="text-center">ප්‍රමාණය</th>
+                                                <th class="text-end">කුලිය</th>
+                                                <th class="text-end">අමතර</th>
+                                                <th class="text-end">දඩ</th>
+                                                <th class="text-end">හානි</th>
+                                                <th class="text-end">අමතර ගාස්තු</th>
+                                                <th class="text-end">අලුත්වැඩියා</th>
+                                                <th class="text-end">ගෙවීම</th>
+                                                <th class="text-end">ගෙවූ</th>
+                                                <th class="text-end">හිඟ</th>
+                                                <th>සටහන</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="14" class="text-muted">No return history found.</td></tr>
+                                            <tr><td colspan="14" class="text-muted">ආපසු ඉතිහාසය නොමැත.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -375,8 +375,8 @@ include 'auth.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id="billModalPrint"><i class="uil uil-print me-1"></i> Print</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="billModalPrint"><i class="uil uil-print me-1"></i> මුද්‍රණය</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">වසන්න</button>
                 </div>
             </div>
         </div>

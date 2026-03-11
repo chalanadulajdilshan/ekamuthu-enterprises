@@ -338,7 +338,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Outstanding Report - <?php echo $COMPANY_PROFILE_DETAILS->name ?? 'Company'; ?></title>
+    <title>අවසන් නොවූ වාර්තාව - <?php echo $COMPANY_PROFILE_DETAILS->name ?? 'Company'; ?></title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         
@@ -532,16 +532,20 @@ if ($customerId > 0 && empty($customerFilterName)) {
 
             <div class="summary-box">
                 <div class="stat-item">
-                    <span class="stat-label">Total Rent</span>
-                    <span class="stat-value">Rs. <?php echo number_format($grandTotalRent, 2); ?></span>
+                    <span class="stat-label">සාමාන්‍ය කුලිය</span>
+                    <span class="stat-value">රු. <?php echo number_format($grandTotalRent, 2); ?></span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Total Paid</span>
-                    <span class="stat-value text-success">Rs. <?php echo number_format($grandTotalPaid, 2); ?></span>
+                    <span class="stat-label">කුලිය + ආරම්භක තැන්පතුව</span>
+                    <span class="stat-value">රු. <?php echo number_format(array_reduce($data, function($c,$r){return $c + ($r['rent_plus_initial'] ?? 0);},0), 2); ?></span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Total Outstanding</span>
-                    <span class="stat-value text-danger">Rs. <?php echo number_format($grandTotalBalance, 2); ?></span>
+                    <span class="stat-label">ගෙවූ මුදල්</span>
+                    <span class="stat-value text-success">රු. <?php echo number_format($grandTotalPaid, 2); ?></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">අවසාන නොවූ මුදල</span>
+                    <span class="stat-value text-danger">රු. <?php echo number_format($grandTotalBalance, 2); ?></span>
                 </div>
             </div>
 
@@ -549,16 +553,16 @@ if ($customerId > 0 && empty($customerFilterName)) {
                 <thead>
                     <tr>
                         <th style="width: 40px;">#</th>
-                        <th>Invoice No</th>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Outstanding Days</th>
-                        <th>Payment Type</th>
-                        <th>Status</th>
-                        <th class="text-right">Rent Amount</th>
-                        <th class="text-right">Rent + Initial Deposit</th>
-                        <th class="text-right">Paid Amount</th>
-                        <th class="text-right">Balance</th>
+                        <th>ඉන්වොයිස් අංකය</th>
+                        <th>දිනය</th>
+                        <th>පාරිකයා</th>
+                        <th>බැරී දින</th>
+                        <th>ගෙවීමේ වර්ගය</th>
+                        <th>තත්ත්වය</th>
+                        <th class="text-right">කුලිය</th>
+                        <th class="text-right">කුලිය + ආරම්භක තැන්පතුව</th>
+                        <th class="text-right">ගෙවූ මුදල</th>
+                        <th class="text-right">බැලන්ස්</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -569,7 +573,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td><strong><?php echo $row['bill_number']; ?></strong></td>
                             <td><?php echo $row['rental_date']; ?></td>
                             <td><?php echo $row['customer_name']; ?></td>
-                            <td><?php echo $row['outstanding_days']; ?> day(s)</td>
+                            <td><?php echo $row['outstanding_days']; ?> දින</td>
                             <td><span style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 11px;">&nbsp;<?php echo $row['payment_type_name']; ?>&nbsp;</span></td>
                             <td><?php echo $row['status_label']; ?></td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['total_rent'], 2); ?>&nbsp;</td>
@@ -583,16 +587,16 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td colspan="8" style="padding:0 10px 15px 10px;">
                                 <div style="display:flex; gap:20px;">
                                     <div style="flex:1; border:1px solid #dee2e6; border-radius:6px; padding:10px;">
-                                        <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Recorded Outstanding</h4>
-                                        <p style="margin:0 0 10px; font-size:12px;">Total Recorded Outstanding: <strong><?php echo number_format($row['recorded_outstanding'], 2); ?></strong></p>
+                                        <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">ලියාපදිංචි Outstanding</h4>
+                                        <p style="margin:0 0 10px; font-size:12px;">මුළු ලියාපදිංචි Outstanding: <strong><?php echo number_format($row['recorded_outstanding'], 2); ?></strong></p>
                                         <table style="width:100%; font-size:11px;">
                                             <thead>
                                                 <tr>
-                                                    <th>Return Date</th>
-                                                    <th>Item</th>
+                                                    <th>ආපසු දිනය</th>
+                                                    <th>අයිතමය</th>
                                                     <th class="text-right">Outstanding</th>
-                                                    <th class="text-right">Paid</th>
-                                                    <th>Remark</th>
+                                                    <th class="text-right">ගෙවූ</th>
+                                                    <th>සටහන</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -607,21 +611,21 @@ if ($customerId > 0 && empty($customerFilterName)) {
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
-                                                    <tr><td colspan="5" style="text-align:center; padding:10px;">No recorded entries.</td></tr>
+                                                    <tr><td colspan="5" style="text-align:center; padding:10px;">ලියාපදිංචි ඇතුළත් කිරීම් නොමැත.</td></tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div style="flex:1; border:1px solid #dee2e6; border-radius:6px; padding:10px;">
-                                        <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Payment History</h4>
-                                        <p style="margin:0 0 10px; font-size:12px;">Projected Outstanding: <strong><?php echo number_format($row['projected_outstanding'], 2); ?></strong></p>
+                                        <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">ගෙවීම් ඉතිහාසය</h4>
+                                        <p style="margin:0 0 10px; font-size:12px;">ප්‍රජෙක්ටඩ් Outstanding: <strong><?php echo number_format($row['projected_outstanding'], 2); ?></strong></p>
                                         <table style="width:100%; font-size:11px;">
                                             <thead>
                                                 <tr>
-                                                    <th>Date</th>
-                                                    <th>Receipt No</th>
-                                                    <th class="text-right">Amount</th>
-                                                    <th>Method / Reference</th>
+                                                    <th>දිනය</th>
+                                                    <th>රිසිට් අංකය</th>
+                                                    <th class="text-right">මුදල</th>
+                                                    <th>වಿಧය / යොමු</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -649,7 +653,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
-                                                    <tr><td colspan="4" style="text-align:center; padding:10px;">No payments recorded.</td></tr>
+                                                    <tr><td colspan="4" style="text-align:center; padding:10px;">ගෙවීම් නොමැත.</td></tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
@@ -676,7 +680,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                                                     </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
-                                                <tr><td colspan="3" style="text-align:center; padding:10px;">No deposit payments.</td></tr>
+                                                <tr><td colspan="3" style="text-align:center; padding:10px;">තැන්පත් ගෙවීම් නොමැත.</td></tr>
                                             <?php endif; ?>
                                         </tbody>
                                     </table>
@@ -686,13 +690,13 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <?php endif; ?>
                         <?php endforeach; ?>
                         <tr style="background-color: #e9ecef;">
-                            <td colspan="7" class="text-right"><strong>TOTAL:</strong></td>
+                            <td colspan="7" class="text-right"><strong>සමස්තය:</strong></td>
                             <td class="text-right"><strong><?php echo number_format($grandTotalRent, 2); ?></strong></td>
                             <td class="text-right text-success"><strong><?php echo number_format($grandTotalPaid, 2); ?></strong></td>
                             <td class="text-right text-danger" style="font-size: 14px;"><strong><?php echo number_format($grandTotalBalance, 2); ?></strong></td>
                         </tr>
                     <?php else: ?>
-                        <tr><td colspan="8" style="text-align:center; padding: 40px; color: #777;">No outstanding records found for this period.</td></tr>
+                        <tr><td colspan="8" style="text-align:center; padding: 40px; color: #777;">මෙම කාලය සඳහා Outstanding ආකාර නොමැත.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
