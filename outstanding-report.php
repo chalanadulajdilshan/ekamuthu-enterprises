@@ -96,7 +96,7 @@ include 'auth.php';
                                     <span class="report-stat-value text-success-custom" id="cardTotalPaid">රු. 0.00</span>
                                 </div>
                                 <div class="report-stat-item">
-                                    <span class="report-stat-label">බാക്കി මුදල්</span>
+                                    <span class="report-stat-label">මුළු හිඟ මුදල</span>
                                     <span class="report-stat-value text-danger-custom" id="cardTotalBalance">රු. 0.00</span>
                                 </div>
                             </div>

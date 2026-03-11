@@ -56,6 +56,7 @@ $ensureSummary = function (&$rentSummary, $row) use (&$customerFilterName, $cust
             'recorded_outstanding' => 0,
             'recorded_paid' => 0,
             'projected_outstanding' => 0,
+            'damage_total' => 0,
             'recorded_details' => [],
             'payments' => []
         ];
@@ -235,6 +236,25 @@ if (!empty($rentIds)) {
             ];
         }
     }
+
+    // Damage totals per rent
+    $damageSql = "SELECT 
+                        rent_id,
+                        SUM(COALESCE(damage_amount,0)) AS damage_total
+                  FROM equipment_rent_items
+                  WHERE rent_id IN ($rentIdList)
+                  GROUP BY rent_id";
+
+    $damageResult = $db->readQuery($damageSql);
+    if ($damageResult) {
+        while ($dmgRow = mysqli_fetch_assoc($damageResult)) {
+            $rentId = (int)$dmgRow['rent_id'];
+            if (!isset($rentSummary[$rentId])) {
+                continue;
+            }
+            $rentSummary[$rentId]['damage_total'] = floatval($dmgRow['damage_total'] ?? 0);
+        }
+    }
 }
 
 // Build printable dataset
@@ -251,6 +271,7 @@ foreach ($rentSummary as $rentId => $summary) {
     $recordedOutstanding = $summary['recorded_outstanding'] ?? 0;
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
     $recordedPaid = $summary['recorded_paid'] ?? 0;
+    $damageTotal = $summary['damage_total'] ?? 0;
 
     // Days outstanding from rental date to the report date (inclusive, midnight-safe)
     $rentalDt = new DateTime($summary['rental_date']);
@@ -282,8 +303,8 @@ foreach ($rentSummary as $rentId => $summary) {
     }
     $initialDepositTotal = max(0, $depositTotal - $nonInitialDepositTotal);
 
-    // Align with on-screen report: charges exclude deposits, payments include non-initial deposits + receipts
-    $totalCharges = $recordedOutstanding + $projectedOutstanding;
+    // Align with on-screen report: charges exclude deposits, include damage; payments include non-initial deposits + receipts
+    $totalCharges = $recordedOutstanding + $projectedOutstanding + $damageTotal;
     $totalPaid = $recordedPaid + $paymentReceiptsTotal + $nonInitialDepositTotal;
     $balance = max(0, $totalCharges - $totalPaid);
 

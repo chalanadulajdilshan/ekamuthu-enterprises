@@ -391,7 +391,8 @@ function fillBillDetailsModal(data) {
                 ? '<span class="badge bg-success">Returned</span>'
                 : '<span class="badge bg-warning text-dark">Not Returned</span>';
             var amt = parseAmount(itm.amount);
-            itemsTotal += isNaN(amt) ? 0 : amt;
+            var dmg = parseFloat(itm.damage_amount || 0);
+            itemsTotal += (isNaN(amt) ? 0 : amt) + (isNaN(dmg) ? 0 : dmg);
             itemsBody.append(`
                 <tr>
                     <td>${itm.item || '-'}</td>
@@ -754,6 +755,39 @@ function printBillDetails() {
     var modalBodyClone = $('#billDetailModal .modal-body').clone();
     // Remove the calculation date row from print content
     modalBodyClone.find('.print-hide').remove();
+    
+    // Check if there's any damage amount
+    var damageText = $('#billModalDamage').text().trim();
+    var damageAmount = parseAmount(damageText);
+    
+    // Replace damage column interactive elements with plain values from currentBillData
+    if (currentBillData && currentBillData.items) {
+        modalBodyClone.find('#billModalItems tbody tr').each(function(index) {
+            var damageCell = $(this).find('td:nth-child(9)');
+            if (damageCell.length && currentBillData.items[index]) {
+                var damageValue = parseFloat(currentBillData.items[index].damage_amount || 0);
+                damageCell.html(damageValue.toFixed(2));
+                damageCell.addClass('text-end');
+            }
+        });
+    }
+    
+    // If no damage, hide the damage row and column
+    if (damageAmount <= 0) {
+        // Remove කුලිය/හානි/මුළු කුලිය breakdown, show only මුළු කුලිය
+        modalBodyClone.find('#billModalDamage').closest('.d-flex').remove();
+        modalBodyClone.find('#billModalBaseRent').closest('.d-flex').remove();
+        
+        // Remove හානි column from items table
+        modalBodyClone.find('#billModalItems thead tr th:nth-child(9)').remove();
+        modalBodyClone.find('#billModalItems tbody tr').each(function() {
+            $(this).find('td:nth-child(9)').remove();
+        });
+        
+        // Adjust footer colspan from 8 to 7
+        modalBodyClone.find('#billModalItems tfoot tr th:first-child').attr('colspan', '7');
+    }
+    
     var modalBody = modalBodyClone.html();
 
     var printWindow = window.open('', '_blank');
