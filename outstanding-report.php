@@ -316,7 +316,7 @@ include 'auth.php';
                             </div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12 print-hide">
                             <div class="border rounded p-3 h-100">
                                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                                     <h6 class="fw-bold mb-0">Remarks</h6>

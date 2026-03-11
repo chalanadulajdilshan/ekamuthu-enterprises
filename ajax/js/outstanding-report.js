@@ -243,8 +243,12 @@ function fillBillDetailsModal(data) {
     var contactParts = [];
     if (data.customer_mobile) contactParts.push(data.customer_mobile);
     if (data.customer_mobile_2) contactParts.push(data.customer_mobile_2);
-    var contactText = contactParts.length ? ' (' + contactParts.join(' / ') + ')' : '';
-    $('#billModalCustomer').text((data.customer_name || '-') + contactText);
+
+    var customerBlock = '<div><strong>Customer:</strong> ' + (data.customer_name || '-') + '</div>';
+    customerBlock += '<div><strong>Mobile:</strong> ' + (contactParts.length ? contactParts.join(' / ') : '-') + '</div>';
+    customerBlock += '<div><strong>Company:</strong> ' + ((data.is_company && data.company_name) ? data.company_name : '-') + '</div>';
+
+    $('#billModalCustomer').html(customerBlock);
     $('#billModalPayment').text(data.payment_type_name || '-');
     $('#billModalStatus').html(data.status_label === 'Returned'
         ? '<span class="badge bg-success">Returned</span>'

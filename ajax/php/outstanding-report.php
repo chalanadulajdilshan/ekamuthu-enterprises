@@ -106,6 +106,8 @@ if ($action === 'get_outstanding_report') {
                 'customer_name' => $row['customer_name'],
                 'customer_mobile' => $row['customer_mobile'] ?? '',
                 'customer_mobile_2' => $row['customer_mobile_2'] ?? '',
+                'company_name' => $row['company_name'] ?? '',
+                'is_company' => $row['is_company'] ?? 0,
                 'payment_type_name' => $row['payment_type_name'] ?? 'N/A',
                 'rent_status' => $row['rent_status'] ?? '',
                 'recorded_outstanding' => 0,
@@ -127,6 +129,8 @@ if ($action === 'get_outstanding_report') {
                         er.bill_number,
                         er.rental_date,
                         cm.name as customer_name,
+                        cm.company_name,
+                        cm.is_company,
                         cm.mobile_number as customer_mobile,
                         cm.mobile_number_2 as customer_mobile_2,
                         pt.name as payment_type_name,
@@ -157,6 +161,8 @@ if ($action === 'get_outstanding_report') {
                         er.bill_number,
                         er.rental_date,
                         cm.name as customer_name,
+                        cm.company_name,
+                        cm.is_company,
                         cm.mobile_number as customer_mobile,
                         cm.mobile_number_2 as customer_mobile_2,
                         pt.name as payment_type_name,
@@ -458,21 +464,35 @@ if ($action === 'get_outstanding_report') {
         $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
         $recordedPaid = $summary['recorded_paid'] ?? 0;
 
+        // Sum non-deposit payment receipts
+        $paymentReceiptsTotal = 0;
+        if (!empty($summary['payments'])) {
+            foreach ($summary['payments'] as $pay) {
+                $paymentReceiptsTotal += floatval($pay['amount'] ?? 0);
+            }
+        }
+
         // Sum deposits (for separate display; do not add to rent totals)
         $depositTotal = 0;
+        $nonInitialDepositTotal = 0;
         if (!empty($summary['deposits'])) {
             foreach ($summary['deposits'] as $dep) {
-                $depositTotal += floatval($dep['amount'] ?? 0);
+                $depAmount = floatval($dep['amount'] ?? 0);
+                $depositTotal += $depAmount;
+                // Count non-initial deposits toward Total Paid
+                if (strtolower(trim($dep['remark'] ?? '')) !== 'initial deposit') {
+                    $nonInitialDepositTotal += $depAmount;
+                }
             }
         }
 
         // Rental charges (do NOT include deposits)
         $totalCharges = $recordedOutstanding + $projectedOutstanding;
 
-        // Treat deposits as payments, but keep them out of total charges
-        $totalPaid = $recordedPaid + $depositTotal;
+        // Paid = recorded payments + receipt payments + non-initial deposits
+        $totalPaid = $recordedPaid + $paymentReceiptsTotal + $nonInitialDepositTotal;
 
-        // Balance = charges - all payments (including deposits)
+        // Balance = charges - actual payments (deposits excluded)
         $balance = max(0, $totalCharges - $totalPaid);
 
         // Only show rows that still have anything pending
@@ -493,6 +513,8 @@ if ($action === 'get_outstanding_report') {
             'rental_date' => $summary['rental_date'],
             'payment_type_name' => $summary['payment_type_name'] ?? 'N/A',
             'customer_name' => $summary['customer_name'],
+            'company_name' => $summary['company_name'] ?? '',
+            'is_company' => $summary['is_company'] ?? 0,
             'customer_mobile' => $summary['customer_mobile'] ?? '',
             'customer_mobile_2' => $summary['customer_mobile_2'] ?? '',
             'status_label' => $statusLabel,

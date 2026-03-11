@@ -260,17 +260,30 @@ foreach ($rentSummary as $rentId => $summary) {
     $diffSeconds = max(0, $reportDt->getTimestamp() - $rentalDt->getTimestamp());
     $outstandingDays = max(1, (int)floor($diffSeconds / 86400) + 1);
 
-    // Sum deposits; they count as payments but do not add to rent charges
-    $depositTotal = 0;
-    if (!empty($summary['deposits'])) {
-        foreach ($summary['deposits'] as $dep) {
-            $depositTotal += floatval($dep['amount'] ?? 0);
+    // Sum payment receipts
+    $paymentReceiptsTotal = 0;
+    if (!empty($summary['payments'])) {
+        foreach ($summary['payments'] as $pay) {
+            $paymentReceiptsTotal += floatval($pay['amount'] ?? 0);
         }
     }
 
-    // Align with on-screen report: charges exclude deposits, payments include deposits
+    // Sum deposits and count non-initial deposits toward payments
+    $depositTotal = 0;
+    $nonInitialDepositTotal = 0;
+    if (!empty($summary['deposits'])) {
+        foreach ($summary['deposits'] as $dep) {
+            $depAmount = floatval($dep['amount'] ?? 0);
+            $depositTotal += $depAmount;
+            if (strtolower(trim($dep['remark'] ?? '')) !== 'initial deposit') {
+                $nonInitialDepositTotal += $depAmount;
+            }
+        }
+    }
+
+    // Align with on-screen report: charges exclude deposits, payments include non-initial deposits + receipts
     $totalCharges = $recordedOutstanding + $projectedOutstanding;
-    $totalPaid = $recordedPaid + $depositTotal;
+    $totalPaid = $recordedPaid + $paymentReceiptsTotal + $nonInitialDepositTotal;
     $balance = max(0, $totalCharges - $totalPaid);
 
     // Only include rows with pending balance
