@@ -280,6 +280,7 @@ foreach ($rentSummary as $rentId => $summary) {
             }
         }
     }
+    $initialDepositTotal = max(0, $depositTotal - $nonInitialDepositTotal);
 
     // Align with on-screen report: charges exclude deposits, payments include non-initial deposits + receipts
     $totalCharges = $recordedOutstanding + $projectedOutstanding;
@@ -293,6 +294,7 @@ foreach ($rentSummary as $rentId => $summary) {
 
     // Total rent shown equals charges (deposits not added)
     $totalRent = $totalCharges;
+    $rentPlusInitial = $totalRent + $initialDepositTotal;
 
     $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
         ? 'Returned'
@@ -306,13 +308,17 @@ foreach ($rentSummary as $rentId => $summary) {
         'customer_name' => $summary['customer_name'],
         'status_label' => $statusLabel,
         'total_rent' => $totalRent,
+        'rent_plus_initial' => $rentPlusInitial,
         'total_paid' => $totalPaid,
         'balance' => $balance,
         'recorded_outstanding' => $recordedOutstanding,
         'projected_outstanding' => $projectedOutstanding,
         'recorded_details' => $summary['recorded_details'] ?? [],
         'payments' => $summary['payments'] ?? [],
-        'deposits' => $summary['deposits'] ?? []
+        'deposits' => $summary['deposits'] ?? [],
+        'initial_deposit_total' => $initialDepositTotal,
+        'deposit_total' => $depositTotal,
+        'deposit_total_raw' => $depositTotal
     ];
 
     $grandTotalRent += $totalRent;
@@ -550,6 +556,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <th>Payment Type</th>
                         <th>Status</th>
                         <th class="text-right">Rent Amount</th>
+                        <th class="text-right">Rent + Initial Deposit</th>
                         <th class="text-right">Paid Amount</th>
                         <th class="text-right">Balance</th>
                     </tr>
@@ -566,6 +573,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td><span style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 11px;">&nbsp;<?php echo $row['payment_type_name']; ?>&nbsp;</span></td>
                             <td><?php echo $row['status_label']; ?></td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['total_rent'], 2); ?>&nbsp;</td>
+                            <td class="text-right">&nbsp;<?php echo number_format($row['rent_plus_initial'], 2); ?>&nbsp;</td>
                             <td class="text-right text-success">&nbsp;<?php echo number_format($row['total_paid'], 2); ?>&nbsp;</td>
                             <td class="text-right text-danger"><strong><?php echo number_format($row['balance'], 2); ?></strong></td>
                         </tr>

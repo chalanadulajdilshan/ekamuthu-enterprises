@@ -128,6 +128,11 @@ function loadReport() {
                 "render": function (data) { return formatAmount(parseAmount(data)); }
             },
             {
+                "data": "rent_plus_initial",
+                "className": "text-end",
+                "render": function (data) { return formatAmount(parseAmount(data)); }
+            },
+            {
                 "data": "total_paid",
                 "className": "text-end",
                 "render": function (data, type, row) {
@@ -148,17 +153,31 @@ function loadReport() {
                 "render": function (data) { return formatAmount(parseAmount(data)); }
             }
         ],
+        "drawCallback": function () {
+            var api = this.api();
+            // totals based on filtered data
+            var totalRent = api.column(6, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalRentPlusInitial = api.column(7, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalPaid = api.column(8, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalBalance = api.column(9, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+
+            $('#cardTotalRent').text('Rs. ' + formatAmount(totalRent));
+            $('#cardTotalPaid').text('Rs. ' + formatAmount(totalPaid));
+            $('#cardTotalBalance').text('Rs. ' + formatAmount(totalBalance));
+        },
         "footerCallback": function (row, data, start, end, display) {
             var api = this.api();
 
             var totalRent = api.column(6).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalPaid = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalBalance = api.column(8).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalRentPlusInitial = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalPaid = api.column(8).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalBalance = api.column(9).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
 
             // Update footer
             $(api.column(6).footer()).html(formatAmount(totalRent));
-            $(api.column(7).footer()).html(formatAmount(totalPaid));
-            $(api.column(8).footer()).html(formatAmount(totalBalance));
+            $(api.column(7).footer()).html(formatAmount(totalRentPlusInitial));
+            $(api.column(8).footer()).html(formatAmount(totalPaid));
+            $(api.column(9).footer()).html(formatAmount(totalBalance));
         }
     });
 

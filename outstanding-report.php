@@ -147,6 +147,7 @@ include 'auth.php';
                                                     <th>Customer Name</th>
                                                     <th>Status</th>
                                                     <th class="text-end">Total Rent Amount</th>
+                                                    <th class="text-end">Rent + Initial Deposit</th>
                                                     <th class="text-end">Total Paid Amount</th>
                                                     <th class="text-end">Balance (Outstanding)</th>
                                                 </tr>
@@ -158,6 +159,7 @@ include 'auth.php';
                                                 <tr>
                                                     <th colspan="6" class="text-end">Total:</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
+                                                    <th class="text-end" id="totalRentPlusInitial">0.00</th>
                                                     <th class="text-end" id="totalPaid">0.00</th>
                                                     <th class="text-end" id="totalBalance">0.00</th>
                                                 </tr>

@@ -451,6 +451,7 @@ if ($action === 'get_outstanding_report') {
     // Build response payload
     $data = [];
     $grandTotalRent = 0;
+    $grandTotalRentPlusInitial = 0;
     $grandTotalPaid = 0;
     $grandTotalBalance = 0;
 
@@ -485,6 +486,7 @@ if ($action === 'get_outstanding_report') {
                 }
             }
         }
+        $initialDepositTotal = max(0, $depositTotal - $nonInitialDepositTotal);
 
         // Rental charges (do NOT include deposits)
         $totalCharges = $recordedOutstanding + $projectedOutstanding;
@@ -502,6 +504,7 @@ if ($action === 'get_outstanding_report') {
 
         // Total rent shown = total charges only (deposits not added)
         $totalRent = $totalCharges;
+        $rentPlusInitial = $totalRent + $initialDepositTotal;
 
         $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
             ? 'Returned'
@@ -519,12 +522,15 @@ if ($action === 'get_outstanding_report') {
             'customer_mobile_2' => $summary['customer_mobile_2'] ?? '',
             'status_label' => $statusLabel,
             'total_rent' => number_format($totalRent, 2),
+            'rent_plus_initial' => number_format($rentPlusInitial, 2),
             'total_paid' => number_format($totalPaid, 2),
             'balance' => number_format($balance, 2),
             'recorded_outstanding' => number_format($recordedOutstanding, 2),
             'projected_outstanding' => number_format($projectedOutstanding, 2),
             'recorded_outstanding_raw' => $recordedOutstanding,
             'projected_outstanding_raw' => $projectedOutstanding,
+            'initial_deposit_total' => number_format($initialDepositTotal, 2),
+            'initial_deposit_total_raw' => $initialDepositTotal,
             'deposit_total' => number_format($depositTotal, 2),
             'deposit_total_raw' => $depositTotal,
             'payments' => $summary['payments'] ?? [],
@@ -536,6 +542,7 @@ if ($action === 'get_outstanding_report') {
         ];
 
         $grandTotalRent += $totalRent;
+        $grandTotalRentPlusInitial += $rentPlusInitial;
         $grandTotalPaid += $totalPaid;
         $grandTotalBalance += $balance;
     }
@@ -544,6 +551,7 @@ if ($action === 'get_outstanding_report') {
         'status' => 'success',
         'data' => $data,
         'grand_total_rent' => number_format($grandTotalRent, 2),
+        'grand_total_rent_plus_initial' => number_format($grandTotalRentPlusInitial, 2),
         'grand_total_paid' => number_format($grandTotalPaid, 2),
         'grand_total_balance' => number_format($grandTotalBalance, 2)
     ]);
