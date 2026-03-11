@@ -56,10 +56,15 @@ include 'auth.php';
                             <div class="page-title-box d-flex align-items-center justify-content-between">
                                 <h4 class="mb-0">Blacklisted Customers Report</h4>
                                 <div class="page-title-right">
-                                    <ol class="breadcrumb m-0">
-                                        <li class="breadcrumb-item"><a href="javascript: void(0);">Reports</a></li>
-                                        <li class="breadcrumb-item active">Blacklisted Customers</li>
-                                    </ol>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="print-report-blacklisted-customers.php" target="_blank" class="btn btn-secondary">
+                                            <i class="uil uil-print me-1"></i> Print
+                                        </a>
+                                        <ol class="breadcrumb m-0">
+                                            <li class="breadcrumb-item"><a href="javascript: void(0);">Reports</a></li>
+                                            <li class="breadcrumb-item active">Blacklisted Customers</li>
+                                        </ol>
+                                    </div>
                                 </div>
                             </div>
                         </div>
