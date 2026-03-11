@@ -195,11 +195,16 @@ include 'auth.php';
                         <div class="col-md-6"><span id="billModalCustomer">-</span></div>
                     </div>
 
-                    <div class="row mb-3 print-hide">
-                        <div class="col-md-4">
-                            <label class="form-label"><strong>මෙම දිනයට හිඟ මුදල ගණනය කරන්න:</strong></label>
-                            <input type="text" id="billModalCalcDate" class="form-control date-picker" placeholder="දිනය තෝරන්න" autocomplete="off">
-                            <small class="text-muted">තෝරාගත් දිනය දක්වා හිඟ මුදල ගණනය වේ</small>
+                    <div class="d-flex flex-wrap gap-3 mb-3 print-hide">
+                        <div class="flex-fill" style="min-width:260px;">
+                            <label class="form-label"><strong>ආරම්භක දිනය:</strong></label>
+                            <input type="text" id="billModalCalcStartDate" class="form-control date-picker" placeholder="ආරම්භක දිනය තෝරන්න" autocomplete="off">
+                            <small class="text-muted d-block">හිඟ මුදල ගණනය ආරම්භ වන දිනය</small>
+                        </div>
+                        <div class="flex-fill" style="min-width:260px;">
+                            <label class="form-label"><strong>අවසාන දිනය:</strong></label>
+                            <input type="text" id="billModalCalcDate" class="form-control date-picker" placeholder="අවසාන දිනය තෝරන්න" autocomplete="off">
+                            <small class="text-muted d-block">හිඟ මුදල ගණනය අවසන් වන දිනය</small>
                         </div>
                     </div>
 

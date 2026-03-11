@@ -48,6 +48,66 @@ $(document).ready(function () {
         $('#billDetailModal').modal('show');
     });
 
+    // Initialize datepickers when modal is shown
+    $('#billDetailModal').on('shown.bs.modal', function () {
+        if (!$('#billModalCalcStartDate').hasClass('hasDatepicker')) {
+            $('#billModalCalcStartDate').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                onSelect: function(selectedDate) {
+                    const endDate = $('#billModalCalcDate').val();
+                    
+                    // Set maxDate for start date to not exceed end date
+                    if (endDate) {
+                        const endDateObj = $.datepicker.parseDate('yy-mm-dd', endDate);
+                        const selectedDateObj = $.datepicker.parseDate('yy-mm-dd', selectedDate);
+                        
+                        if (selectedDateObj > endDateObj) {
+                            alert('ආරම්භක දිනය අවසාන දිනයට වඩා පසුව විය නොහැක');
+                            $('#billModalCalcStartDate').val('');
+                            return;
+                        }
+                        
+                        // Update end date's minDate constraint
+                        $('#billModalCalcDate').datepicker('option', 'minDate', selectedDate);
+                        
+                        recalculateOutstandingToDateRange(selectedDate, endDate);
+                    }
+                }
+            });
+        }
+        if (!$('#billModalCalcDate').hasClass('hasDatepicker')) {
+            $('#billModalCalcDate').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                onSelect: function(selectedDate) {
+                    const startDate = $('#billModalCalcStartDate').val();
+                    
+                    // Validate that end date is not before start date
+                    if (startDate) {
+                        const startDateObj = $.datepicker.parseDate('yy-mm-dd', startDate);
+                        const selectedDateObj = $.datepicker.parseDate('yy-mm-dd', selectedDate);
+                        
+                        if (selectedDateObj < startDateObj) {
+                            alert('අවසාන දිනය ආරම්භක දිනයට පෙර විය නොහැක');
+                            $('#billModalCalcDate').val('');
+                            return;
+                        }
+                        
+                        // Update start date's maxDate constraint
+                        $('#billModalCalcStartDate').datepicker('option', 'maxDate', selectedDate);
+                    }
+                    
+                    if (selectedDate) {
+                        recalculateOutstandingToDateRange(startDate, selectedDate);
+                    }
+                }
+            });
+        }
+    });
+
     // Save damage amount from modal items table
     $('#billModalItems').on('click', '.save-damage-btn', function (e) {
         e.stopPropagation();
@@ -120,11 +180,34 @@ $(document).ready(function () {
         saveBillRemark();
     });
 
-    // Recalculate outstanding when date changes
-    $(document).on('change', '#billModalCalcDate', function () {
-        const selectedDate = $(this).val();
-        if (selectedDate) {
-            recalculateOutstandingToDate(selectedDate);
+    // Recalculate outstanding when date changes (manual input)
+    $(document).on('change', '#billModalCalcDate, #billModalCalcStartDate', function () {
+        const startDate = $('#billModalCalcStartDate').val();
+        const endDate = $('#billModalCalcDate').val();
+
+        // Validate range only if both dates present
+        if (startDate && endDate) {
+            const startDateObj = $.datepicker.parseDate('yy-mm-dd', startDate);
+            const endDateObj = $.datepicker.parseDate('yy-mm-dd', endDate);
+
+            if (startDateObj && endDateObj && startDateObj > endDateObj) {
+                alert('ආරම්භක දිනය අවසාන දිනයට වඩා පසුව විය නොහැක');
+                // Clear the field the user just changed
+                if ($(this).attr('id') === 'billModalCalcStartDate') {
+                    $('#billModalCalcStartDate').val('');
+                } else {
+                    $('#billModalCalcDate').val('');
+                }
+                return;
+            }
+
+            // Keep pickers constrained after manual edits
+            $('#billModalCalcDate').datepicker('option', 'minDate', startDate);
+            $('#billModalCalcStartDate').datepicker('option', 'maxDate', endDate);
+        }
+
+        if (endDate) {
+            recalculateOutstandingToDateRange(startDate, endDate);
         }
     });
 
@@ -302,10 +385,24 @@ function fillBillDetailsModal(data) {
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
     
-    // Set default calculation date to today
+    // Set default calculation dates: start date = rental date, end date = today
     var currentDate = new Date();
     const fmtToday = $.datepicker.formatDate('yy-mm-dd', currentDate);
     $('#billModalCalcDate').val(fmtToday);
+    
+    // Set start date to rental date if available
+    var startDateValue = '';
+    if (data.rental_date) {
+        startDateValue = data.rental_date;
+        $('#billModalCalcStartDate').val(startDateValue);
+    } else {
+        $('#billModalCalcStartDate').val('');
+    }
+    
+    // Trigger initial calculation with default date range
+    setTimeout(function() {
+        recalculateOutstandingToDateRange(startDateValue, fmtToday);
+    }, 100);
 
     // Show day count from rental date to today (inclusive)
     var dayCountText = '';
@@ -633,38 +730,60 @@ function recalculateModalTotals() {
     $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
 }
 
-function recalculateOutstandingToDate(selectedDate) {
+function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
     if (!currentBillData) return;
 
     var fmt = function (val) { return formatAmount(parseAmount(val)); };
     var data = currentBillData;
     
-    // Parse selected date
-    var calcDate = new Date(selectedDate);
-    if (isNaN(calcDate.getTime())) return;
+    // Parse end date (required)
+    var calcEndDate = new Date(endDateStr);
+    if (isNaN(calcEndDate.getTime())) return;
 
-    // Update date label with selected date
-    var yyyy = calcDate.getFullYear();
-    var mm = String(calcDate.getMonth() + 1).padStart(2, '0');
-    var dd = String(calcDate.getDate()).padStart(2, '0');
-    var dateLabel = yyyy + '/' + mm + '/' + dd + ' දිනට ගෙවිය යුතු මුදල';
+    // Parse start date (optional - defaults to rental date)
+    var calcStartDate = null;
+    if (startDateStr) {
+        calcStartDate = new Date(startDateStr);
+        if (isNaN(calcStartDate.getTime())) {
+            calcStartDate = null;
+        }
+    }
+    
+    // If no start date provided, use rental date
+    if (!calcStartDate && data.rental_date) {
+        calcStartDate = new Date(data.rental_date);
+    }
+
+    // Update date label with selected date range
+    var dateLabel = '';
+    if (calcStartDate && !isNaN(calcStartDate.getTime())) {
+        var startY = calcStartDate.getFullYear();
+        var startM = String(calcStartDate.getMonth() + 1).padStart(2, '0');
+        var startD = String(calcStartDate.getDate()).padStart(2, '0');
+        var endY = calcEndDate.getFullYear();
+        var endM = String(calcEndDate.getMonth() + 1).padStart(2, '0');
+        var endD = String(calcEndDate.getDate()).padStart(2, '0');
+        dateLabel = startY + '/' + startM + '/' + startD + ' සිට ' + endY + '/' + endM + '/' + endD + ' දක්වා හිඟ මුදල';
+    } else {
+        var endY = calcEndDate.getFullYear();
+        var endM = String(calcEndDate.getMonth() + 1).padStart(2, '0');
+        var endD = String(calcEndDate.getDate()).padStart(2, '0');
+        dateLabel = endY + '/' + endM + '/' + endD + ' දිනට ගෙවිය යුතු මුදල';
+    }
     $('#billModalDateLabel').html('<strong>' + dateLabel + '</strong>');
 
-    // Recalculate day count from rental date to selected date
+    // Recalculate day count from start date to end date
     var dayCountText = '';
-    if (data.rental_date) {
-        var startDate = new Date(data.rental_date);
-        if (!isNaN(startDate.getTime())) {
-            var startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-            var calcMidnight = new Date(calcDate.getFullYear(), calcDate.getMonth(), calcDate.getDate());
-            var diffMs = calcMidnight - startMidnight;
-            var days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1);
-            dayCountText = '(' + days + ' day' + (days !== 1 ? 's' : '') + ')';
-        }
+    if (calcStartDate && !isNaN(calcStartDate.getTime())) {
+        var startMidnight = new Date(calcStartDate.getFullYear(), calcStartDate.getMonth(), calcStartDate.getDate());
+        var endMidnight = new Date(calcEndDate.getFullYear(), calcEndDate.getMonth(), calcEndDate.getDate());
+        var diffMs = endMidnight - startMidnight;
+        var days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1);
+        dayCountText = '(' + days + ' day' + (days !== 1 ? 's' : '') + ')';
     }
     $('#billModalDayCount').text(dayCountText);
 
-    // Recalculate projected outstanding for pending items up to selected date
+    // Recalculate projected outstanding for pending items within date range
     var projectedOutstanding = 0;
     
     if (data.items && data.items.length) {
@@ -672,13 +791,13 @@ function recalculateOutstandingToDate(selectedDate) {
             var pendingQty = parseFloat(item.pending_qty || 0);
             if (pendingQty <= 0) return;
 
-            // Calculate days from rental date to selected date
-            var rentalDate = new Date(data.rental_date);
-            if (isNaN(rentalDate.getTime())) return;
+            // Use start date for calculation (rental date or user-selected start date)
+            var effectiveStartDate = calcStartDate || new Date(data.rental_date);
+            if (isNaN(effectiveStartDate.getTime())) return;
             
-            var rentalMidnight = new Date(rentalDate.getFullYear(), rentalDate.getMonth(), rentalDate.getDate());
-            var calcMidnight = new Date(calcDate.getFullYear(), calcDate.getMonth(), calcDate.getDate());
-            var usedDays = Math.max(1, Math.floor((calcMidnight - rentalMidnight) / (1000 * 60 * 60 * 24)) + 1);
+            var startMidnight = new Date(effectiveStartDate.getFullYear(), effectiveStartDate.getMonth(), effectiveStartDate.getDate());
+            var endMidnight = new Date(calcEndDate.getFullYear(), calcEndDate.getMonth(), calcEndDate.getDate());
+            var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
             
             // Calculate per unit daily rate
             var totalQty = parseFloat(item.quantity || 0);
@@ -691,38 +810,57 @@ function recalculateOutstandingToDate(selectedDate) {
         });
     }
 
-    // Filter recorded outstanding and payments up to selected date
+    // Filter recorded outstanding and payments within date range
     var recordedOutstanding = 0;
     var recordedPaid = 0;
     
     if (data.recorded_details && data.recorded_details.length) {
         data.recorded_details.forEach(function (detail) {
             var returnDate = new Date(detail.return_date);
-            if (!isNaN(returnDate.getTime()) && returnDate <= calcDate) {
-                recordedOutstanding += parseFloat(detail.outstanding_amount || 0);
-                recordedPaid += parseFloat(detail.customer_paid || 0);
+            if (!isNaN(returnDate.getTime())) {
+                // Include if return date is within the range
+                var isInRange = returnDate <= calcEndDate;
+                if (calcStartDate && !isNaN(calcStartDate.getTime())) {
+                    isInRange = isInRange && returnDate >= calcStartDate;
+                }
+                if (isInRange) {
+                    recordedOutstanding += parseFloat(detail.outstanding_amount || 0);
+                    recordedPaid += parseFloat(detail.customer_paid || 0);
+                }
             }
         });
     }
 
-    // Filter payments up to selected date
+    // Filter payments within date range
     var totalPayments = 0;
     if (data.payments && data.payments.length) {
         data.payments.forEach(function (payment) {
             var paymentDate = new Date(payment.entry_date);
-            if (!isNaN(paymentDate.getTime()) && paymentDate <= calcDate) {
-                totalPayments += parseFloat(payment.amount || 0);
+            if (!isNaN(paymentDate.getTime())) {
+                var isInRange = paymentDate <= calcEndDate;
+                if (calcStartDate && !isNaN(calcStartDate.getTime())) {
+                    isInRange = isInRange && paymentDate >= calcStartDate;
+                }
+                if (isInRange) {
+                    totalPayments += parseFloat(payment.amount || 0);
+                }
             }
         });
     }
 
-    // Filter deposits up to selected date
+    // Filter deposits within date range
     var totalDeposits = 0;
     if (data.deposits && data.deposits.length) {
         data.deposits.forEach(function (deposit) {
             var depositDate = new Date(deposit.payment_date);
-            if (!isNaN(depositDate.getTime()) && depositDate <= calcDate) {
-                totalDeposits += parseFloat(deposit.amount || 0);
+            if (!isNaN(depositDate.getTime())) {
+                var isInRange = depositDate <= calcEndDate;
+                if (calcStartDate && !isNaN(calcStartDate.getTime())) {
+                    isInRange = isInRange && depositDate >= calcStartDate;
+                }
+                if (isInRange) {
+                    totalDeposits += parseFloat(deposit.amount || 0);
+                }
             }
         });
     }
