@@ -48,6 +48,68 @@ $(document).ready(function () {
         $('#billDetailModal').modal('show');
     });
 
+    // Save damage amount from modal items table
+    $('#billModalItems').on('click', '.save-damage-btn', function (e) {
+        e.stopPropagation();
+        const btn = $(this);
+        const row = btn.closest('tr');
+        const rentItemId = btn.data('rent-item');
+        const input = row.find('.damage-input');
+        const val = parseFloat(input.val());
+
+        if (isNaN(val) || val < 0) {
+            showBillNotice('danger', 'Invalid damage amount');
+            input.focus();
+            return;
+        }
+
+        btn.prop('disabled', true).text('Saving...');
+
+        $.post('ajax/php/outstanding-report.php', {
+            action: 'save_damage_amount',
+            rent_item_id: rentItemId,
+            damage_amount: val
+        }).done(function (resp) {
+            if (resp && resp.status === 'success') {
+                input.val(parseFloat(resp.damage_amount).toFixed(2));
+                
+                // Update currentBillData with new damage amount
+                if (currentBillData && currentBillData.items) {
+                    currentBillData.items.forEach(function(item) {
+                        if (item.rent_item_id === rentItemId) {
+                            item.damage_amount = parseFloat(resp.damage_amount);
+                        }
+                    });
+                    
+                    // Recalculate modal totals
+                    recalculateModalTotals();
+                }
+                
+                // Reload main report table to update all totals
+                if (reportTable && $.fn.DataTable.isDataTable('#reportTable')) {
+                    reportTable.ajax.reload(null, false);
+                }
+                
+                showBillNotice('success', 'Damage amount saved');
+            } else {
+                showBillNotice('danger', resp && resp.message ? resp.message : 'Failed to save damage amount');
+            }
+        }).fail(function () {
+            showBillNotice('danger', 'Failed to save damage amount');
+        }).always(function () {
+            btn.prop('disabled', false).text('Save');
+        });
+    });
+
+    // Toggle damage input visibility
+    $('#billModalItems').on('click', '.toggle-damage-btn', function (e) {
+        e.stopPropagation();
+        const btn = $(this);
+        const row = btn.closest('tr');
+        row.find('.damage-editor').removeClass('d-none');
+        btn.addClass('d-none');
+    });
+
     // Print modal content
     $('#billModalPrint').on('click', function () {
         printBillDetails();
@@ -281,7 +343,21 @@ function fillBillDetailsModal(data) {
     var dateLabel = yyyy + '/' + mm + '/' + dd + ' දිනට ගෙවිය යුතු මුදල';
     $('#billModalDateLabel').html('<strong>' + dateLabel + '</strong>');
 
-    $('#billModalTotalRent').text(fmt(data.total_rent));
+    // Calculate damage total from items
+    var totalDamage = 0;
+    if (data.items && data.items.length) {
+        data.items.forEach(function(item) {
+            totalDamage += parseFloat(item.damage_amount || 0);
+        });
+    }
+
+    // Base rent = total rent - damage
+    var totalRent = parseAmount(data.total_rent);
+    var baseRent = totalRent - totalDamage;
+
+    $('#billModalBaseRent').text(fmt(baseRent));
+    $('#billModalDamage').text(fmt(totalDamage));
+    $('#billModalTotalRent').text(fmt(totalRent));
     $('#billModalTotalPaid').text(fmt(data.total_paid));
     $('#billModalBalance').text(fmt(data.balance));
 
@@ -326,11 +402,21 @@ function fillBillDetailsModal(data) {
                     <td class="text-center">${itm.pending_qty || 0}</td>
                     <td class="text-center">${statusBadge}</td>
                     <td class="text-end">${fmt(itm.amount)}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary toggle-damage-btn" title="Edit damage">
+                            <i class="uil uil-edit"></i>
+                        </button>
+                        <div class="input-group input-group-sm damage-editor d-none mt-1">
+                            <span class="input-group-text">Rs.</span>
+                            <input type="number" step="0.01" min="0" class="form-control damage-input" value="${parseFloat(itm.damage_amount || 0).toFixed(2)}" style="width:110px;">
+                            <button class="btn btn-outline-primary save-damage-btn" data-rent-item="${itm.rent_item_id}">Save</button>
+                        </div>
+                    </td>
                 </tr>
             `);
         });
     } else {
-        itemsBody.append('<tr><td colspan="7" class="text-muted">No items found.</td></tr>');
+        itemsBody.append('<tr><td colspan="9" class="text-muted">No items found.</td></tr>');
     }
     itemsTotalCell.text(formatAmount(itemsTotal));
 
@@ -508,6 +594,44 @@ function showBillNotice(type, message) {
     }, 2200);
 }
 
+function recalculateModalTotals() {
+    if (!currentBillData) return;
+    
+    var fmt = function (val) { return formatAmount(parseAmount(val)); };
+    
+    // Calculate total damage from all items
+    var totalDamage = 0;
+    if (currentBillData.items && currentBillData.items.length) {
+        currentBillData.items.forEach(function(item) {
+            totalDamage += parseFloat(item.damage_amount || 0);
+        });
+    }
+    
+    // Get recorded and projected outstanding
+    var recordedOutstanding = parseFloat(currentBillData.recorded_outstanding_raw || 0);
+    var projectedOutstanding = parseFloat(currentBillData.projected_outstanding_raw || 0);
+    
+    // Base rent (without damage)
+    var baseRent = recordedOutstanding + projectedOutstanding;
+    
+    // Calculate total rent including damage
+    var totalRent = baseRent + totalDamage;
+    
+    // Get total paid (unchanged)
+    var totalPaid = parseAmount(currentBillData.total_paid || 0);
+    
+    // Calculate balance
+    var balance = Math.max(0, totalRent - totalPaid);
+    
+    // Update display with breakdown
+    $('#billModalBaseRent').text(fmt(baseRent));
+    $('#billModalDamage').text(fmt(totalDamage));
+    $('#billModalTotalRent').text(fmt(totalRent));
+    $('#billModalBalance').text(fmt(balance));
+    $('#billModalRecordedTotal').text(fmt(recordedOutstanding));
+    $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
+}
+
 function recalculateOutstandingToDate(selectedDate) {
     if (!currentBillData) return;
 
@@ -602,12 +726,23 @@ function recalculateOutstandingToDate(selectedDate) {
         });
     }
 
+    // Calculate total damage from all items
+    var totalDamage = 0;
+    if (data.items && data.items.length) {
+        data.items.forEach(function(item) {
+            totalDamage += parseFloat(item.damage_amount || 0);
+        });
+    }
+
     // Calculate totals
-    var totalCharges = recordedOutstanding + projectedOutstanding;
+    var baseRent = recordedOutstanding + projectedOutstanding;
+    var totalCharges = baseRent + totalDamage;
     var totalPaid = recordedPaid + totalDeposits + totalPayments;
     var balance = Math.max(0, totalCharges - totalPaid);
 
-    // Update display
+    // Update display with breakdown
+    $('#billModalBaseRent').text(fmt(baseRent));
+    $('#billModalDamage').text(fmt(totalDamage));
     $('#billModalTotalRent').text(fmt(totalCharges));
     $('#billModalTotalPaid').text(fmt(totalPaid));
     $('#billModalBalance').text(fmt(balance));

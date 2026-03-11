@@ -19,6 +19,29 @@ function ensureRemarksTable($db)
 
 $action = $_POST['action'] ?? '';
 
+// Save damage amount against a rent item
+if ($action === 'save_damage_amount') {
+    $rentItemId = isset($_POST['rent_item_id']) ? (int)$_POST['rent_item_id'] : 0;
+    $damageAmount = isset($_POST['damage_amount']) ? floatval($_POST['damage_amount']) : 0;
+
+    if ($rentItemId <= 0 || $damageAmount < 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid item or amount']);
+        exit;
+    }
+
+    $db = Database::getInstance();
+    $damageAmount = round($damageAmount, 2);
+    $updateSql = "UPDATE `equipment_rent_items` SET `damage_amount` = $damageAmount, `updated_at` = NOW() WHERE `id` = $rentItemId";
+    $result = $db->readQuery($updateSql);
+
+    if ($result) {
+        echo json_encode(['status' => 'success', 'message' => 'Damage amount saved', 'rent_item_id' => $rentItemId, 'damage_amount' => number_format($damageAmount, 2, '.', '')]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Failed to save damage amount']);
+    }
+    exit;
+}
+
 // Save a free-form remark against a rent invoice
 if ($action === 'save_rent_remark') {
     $rentId = isset($_POST['rent_id']) ? (int)$_POST['rent_id'] : 0;
@@ -203,8 +226,10 @@ if ($action === 'get_outstanding_report') {
         // Bill items (base rental items)
         $itemsSql = "SELECT 
                         er.id AS rent_id,
+                        eri.id AS rent_item_id,
                         eri.quantity,
                         eri.amount,
+                        COALESCE(eri.damage_amount, 0) AS damage_amount,
                         eri.duration,
                         eri.rent_type,
                         COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0) AS returned_qty,
@@ -227,6 +252,7 @@ if ($action === 'get_outstanding_report') {
                 $pending = max(0, $qty - $returned);
                 $returnStatus = $pending <= 0 ? 'Returned' : 'Not Returned';
                 $rentSummary[$rentId]['items'][] = [
+                    'rent_item_id' => (int)($iRow['rent_item_id'] ?? 0),
                     'item' => trim(($iRow['equipment_code'] ?? '') . ' ' . ($iRow['item_name'] ?? '')),
                     'sub_equipment' => $iRow['sub_equipment_code'] ?? '',
                     'quantity' => $qty,
@@ -234,6 +260,7 @@ if ($action === 'get_outstanding_report') {
                     'pending_qty' => $pending,
                     'return_status' => $returnStatus,
                     'amount' => $iRow['amount'] ?? 0,
+                    'damage_amount' => floatval($iRow['damage_amount'] ?? 0),
                     'duration' => $iRow['duration'] ?? 0,
                     'rent_type' => $iRow['rent_type'] ?? ''
                 ];
@@ -488,8 +515,16 @@ if ($action === 'get_outstanding_report') {
         }
         $initialDepositTotal = max(0, $depositTotal - $nonInitialDepositTotal);
 
-        // Rental charges (do NOT include deposits)
-        $totalCharges = $recordedOutstanding + $projectedOutstanding;
+        // Sum damage amounts from items
+        $totalDamageAmount = 0;
+        if (!empty($summary['items'])) {
+            foreach ($summary['items'] as $item) {
+                $totalDamageAmount += floatval($item['damage_amount'] ?? 0);
+            }
+        }
+
+        // Rental charges (do NOT include deposits) + damage amounts
+        $totalCharges = $recordedOutstanding + $projectedOutstanding + $totalDamageAmount;
 
         // Paid = recorded payments + receipt payments + non-initial deposits
         $totalPaid = $recordedPaid + $paymentReceiptsTotal + $nonInitialDepositTotal;

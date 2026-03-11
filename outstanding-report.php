@@ -206,7 +206,9 @@ include 'auth.php';
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="border rounded p-3 h-100 bg-light">
-                                <div class="d-flex justify-content-between"><span>මුළු කුලිය</span><span id="billModalTotalRent">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>කුලිය</span><span id="billModalBaseRent">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>හානි</span><span id="billModalDamage">0.00</span></div>
+                                <div class="d-flex justify-content-between fw-bold"><span>මුළු කුලිය</span><span id="billModalTotalRent">0.00</span></div>
                                 <div class="d-flex justify-content-between"><span>ගෙවූ මුදල</span><span id="billModalTotalPaid">0.00</span></div>
                                 <div class="d-flex justify-content-between fw-bold"><span>බැලන්ස්</span><span id="billModalBalance">0.00</span></div>
                             </div>
@@ -239,14 +241,15 @@ include 'auth.php';
                                                 <th class="text-center">සිදුවීම්</th>
                                                 <th class="text-center">තත්ත්වය</th>
                                                 <th class="text-end">මුදල</th>
+                                                <th class="text-center">හානි</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr><td colspan="7" class="text-muted">අයිතම නොමැත.</td></tr>
+                                            <tr><td colspan="9" class="text-muted">අයිතම නොමැත.</td></tr>
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th colspan="7" class="text-end">මුළු</th>
+                                                <th colspan="8" class="text-end">මුළු</th>
                                                 <th class="text-end" id="billModalItemsTotal">0.00</th>
                                             </tr>
                                         </tfoot>
