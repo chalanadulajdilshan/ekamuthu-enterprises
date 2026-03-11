@@ -31,6 +31,10 @@ $(document).ready(function () {
                 if (result.status === "success") {
 
                     $('#statTotalTransport').text(result.summary.total_transport_cost);
+                    $('#printFromDate').text(fromDate);
+                    $('#printToDate').text(toDate);
+                    $('#printGenerated').text(new Date().toLocaleString());
+                    $('#printTotalTransport').text(result.summary.total_transport_cost);
 
                     var rows = "";
                     var totalTransport = 0;
@@ -42,7 +46,6 @@ $(document).ready(function () {
                                     <td>${item.bill_number}</td>
                                     <td>${item.created_at}</td>
                                     <td>${item.customer_name}</td>
-                                    <td>${item.code}</td>
                                     <td>${item.status}</td>
                                     <td class="text-end">${item.transport_cost}</td>
                                 </tr>
