@@ -135,7 +135,7 @@ if (!empty($customerMobile)) {
                     <div style="font-size:12px;line-height:1.3;color:#555;">
                         අංක 50, හිල් පාර, දෙහිවල &nbsp;|&nbsp; දුරකථන : 0114 579 517
                     </div>
-                    <h3 style="font-weight:bold;font-size:20px;margin:8px 0 0 0;">උපකරණ භාර ගැනීමේ පත්‍රය - <?php echo htmlspecialchars($departmentName ?: '-'); ?></h3>
+                    <h3 style="font-weight:bold;font-size:20px;margin:8px 0 0 0;">උපකරණ නිකුත් කිරීමේ පත්‍රිකාව - <?php echo htmlspecialchars($departmentName ?: '-'); ?></h3>
                 </div>
 
                 <!-- Header layout using table for print compatibility -->
