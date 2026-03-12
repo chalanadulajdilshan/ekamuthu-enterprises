@@ -19,6 +19,96 @@ function ensureRemarksTable($db)
 
 $action = $_POST['action'] ?? '';
 
+// Ensure outstanding report reference table exists
+function ensureOutstandingRefTable($db)
+{
+    $createSql = "CREATE TABLE IF NOT EXISTS `outstanding_report_refs` (
+        `id` INT(11) NOT NULL AUTO_INCREMENT,
+        `rent_id` INT(11) NOT NULL,
+        `customer_id` INT(11) NOT NULL,
+        `ref_number` VARCHAR(50) NOT NULL,
+        `year` INT(4) NOT NULL,
+        `month` INT(2) NOT NULL,
+        `from_date` DATE NOT NULL,
+        `to_date` DATE NOT NULL,
+        `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_ref` (`rent_id`, `year`, `month`),
+        KEY `idx_customer` (`customer_id`),
+        KEY `idx_ref_number` (`ref_number`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+    return $db->readQuery($createSql) !== false;
+}
+
+// Generate or retrieve outstanding report reference number
+if ($action === 'get_outstanding_ref') {
+    $rentId = isset($_POST['rent_id']) ? (int)$_POST['rent_id'] : 0;
+    $customerId = isset($_POST['customer_id']) ? (int)$_POST['customer_id'] : 0;
+    $fromDate = $_POST['from_date'] ?? '';
+    $toDate = $_POST['to_date'] ?? '';
+
+    if ($rentId <= 0 || $customerId <= 0 || empty($fromDate) || empty($toDate)) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid parameters']);
+        exit;
+    }
+
+    $db = Database::getInstance();
+    if (!ensureOutstandingRefTable($db)) {
+        echo json_encode(['status' => 'error', 'message' => 'Cannot create reference table']);
+        exit;
+    }
+
+    // Extract year and month from toDate
+    $toDt = DateTime::createFromFormat('Y-m-d', $toDate);
+    if (!$toDt) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid date format']);
+        exit;
+    }
+    $year = (int)$toDt->format('Y');
+    $month = (int)$toDt->format('m');
+
+    // Check if reference already exists
+    $checkSql = "SELECT ref_number FROM `outstanding_report_refs` WHERE `rent_id` = $rentId AND `year` = $year AND `month` = $month";
+    $checkResult = $db->readQuery($checkSql);
+    
+    if ($checkResult && mysqli_num_rows($checkResult) > 0) {
+        $row = mysqli_fetch_assoc($checkResult);
+        echo json_encode(['status' => 'success', 'ref_number' => $row['ref_number']]);
+        exit;
+    }
+
+    // Generate new reference number: OSR-YYYYMM-XXXXX
+    $prefix = 'OSR-' . $year . str_pad($month, 2, '0', STR_PAD_LEFT) . '-';
+    
+    // Get last sequence for this month
+    $seqSql = "SELECT MAX(CAST(SUBSTRING(ref_number, -5) AS UNSIGNED)) as last_seq FROM `outstanding_report_refs` WHERE `year` = $year AND `month` = $month";
+    $seqResult = $db->readQuery($seqSql);
+    $lastSeq = 0;
+    if ($seqResult && $seqRow = mysqli_fetch_assoc($seqResult)) {
+        $lastSeq = (int)($seqRow['last_seq'] ?? 0);
+    }
+    
+    $newSeq = $lastSeq + 1;
+    $refNumber = $prefix . str_pad($newSeq, 5, '0', STR_PAD_LEFT);
+
+    // Insert new reference
+    $fromDateEsc = mysqli_real_escape_string($db->DB_CON, $fromDate);
+    $toDateEsc = mysqli_real_escape_string($db->DB_CON, $toDate);
+    $refNumberEsc = mysqli_real_escape_string($db->DB_CON, $refNumber);
+    
+    $insertSql = "INSERT INTO `outstanding_report_refs` (`rent_id`, `customer_id`, `ref_number`, `year`, `month`, `from_date`, `to_date`, `created_at`) 
+                  VALUES ($rentId, $customerId, '$refNumberEsc', $year, $month, '$fromDateEsc', '$toDateEsc', NOW())";
+    
+    $result = $db->readQuery($insertSql);
+    if ($result) {
+        echo json_encode(['status' => 'success', 'ref_number' => $refNumber]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Failed to generate reference number']);
+    }
+    exit;
+}
+
 // Save damage amount against a rent item
 if ($action === 'save_damage_amount') {
     $rentItemId = isset($_POST['rent_item_id']) ? (int)$_POST['rent_item_id'] : 0;
@@ -126,6 +216,7 @@ if ($action === 'get_outstanding_report') {
             $rentSummary[$rentId] = [
                 'bill_number' => $row['bill_number'],
                 'rental_date' => $row['rental_date'],
+                'customer_id' => isset($row['customer_id']) ? (int)$row['customer_id'] : 0,
                 'customer_name' => $row['customer_name'],
                 'customer_mobile' => $row['customer_mobile'] ?? '',
                 'customer_mobile_2' => $row['customer_mobile_2'] ?? '',
@@ -151,6 +242,7 @@ if ($action === 'get_outstanding_report') {
                         er.id as rent_id,
                         er.bill_number,
                         er.rental_date,
+                        cm.id as customer_id,
                         cm.name as customer_name,
                         cm.company_name,
                         cm.is_company,
@@ -183,6 +275,7 @@ if ($action === 'get_outstanding_report') {
                         er.id as rent_id,
                         er.bill_number,
                         er.rental_date,
+                        cm.id as customer_id,
                         cm.name as customer_name,
                         cm.company_name,
                         cm.is_company,
@@ -547,6 +640,7 @@ if ($action === 'get_outstanding_report') {
 
         $data[] = [
             'id' => $rentId,
+            'customer_id' => $summary['customer_id'] ?? 0,
             'bill_number' => $summary['bill_number'],
             'rental_date' => $summary['rental_date'],
             'payment_type_name' => $summary['payment_type_name'] ?? 'N/A',

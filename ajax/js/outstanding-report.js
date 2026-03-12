@@ -380,6 +380,7 @@ function openPrintWindow(isSummary) {
 
 function fillBillDetailsModal(data) {
     currentBillData = data;
+    currentBillData.customer_id = data.customer_id || 0;
     var fmt = function (val) { return formatAmount(parseAmount(val)); };
 
     $('#billModalInvoice').text(data.bill_number || '-');
@@ -890,43 +891,173 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
 }
 
 function printBillDetails() {
-    var modalBodyClone = $('#billDetailModal .modal-body').clone();
-    // Remove the calculation date row from print content
-    modalBodyClone.find('.print-hide').remove();
+    if (!currentBillData || !currentBillData.id) {
+        alert('Bill data not loaded');
+        return;
+    }
+
+    // Get reference number first, then proceed with print
+    var fromDate = $('#from_date').val();
+    var toDate = $('#to_date').val();
     
-    // Check if there's any damage amount
-    var damageText = $('#billModalDamage').text().trim();
-    var damageAmount = parseAmount(damageText);
-    
-    // Replace damage column interactive elements with plain values from currentBillData
+    if (!fromDate || !toDate) {
+        alert('Please select date range for report');
+        return;
+    }
+
+    $.post('ajax/php/outstanding-report.php', {
+        action: 'get_outstanding_ref',
+        rent_id: currentBillData.id,
+        customer_id: currentBillData.customer_id || 0,
+        from_date: fromDate,
+        to_date: toDate
+    }).done(function(resp) {
+        if (resp && resp.status === 'success') {
+            generatePrintWindow(resp.ref_number);
+        } else {
+            alert('Failed to generate reference number: ' + (resp.message || 'Unknown error'));
+        }
+    }).fail(function() {
+        alert('Failed to retrieve reference number');
+    });
+}
+
+function generatePrintWindow(refNumber) {
+    // Gather current values from modal
+    var dateLabel = $('#billModalDateLabel').text().trim();
+    var invoice = $('#billModalInvoice').text().trim();
+    var rentalDate = $('#billModalDate').text().trim();
+    var dayCount = $('#billModalDayCount').text().trim();
+    var paymentType = $('#billModalPayment').text().trim();
+    var statusHtml = $('#billModalStatus').html();
+    var customerHtml = $('#billModalCustomer').html();
+
+    // Build English customer meta if possible
+    var customerMeta = '';
+    if (currentBillData) {
+        var phones = [];
+        if (currentBillData.customer_mobile) phones.push(currentBillData.customer_mobile);
+        if (currentBillData.customer_mobile_2) phones.push(currentBillData.customer_mobile_2);
+        customerMeta = `
+            <div><strong>Customer:</strong> ${currentBillData.customer_name || '-'}</div>
+            <div><strong>Phone:</strong> ${phones.join(' / ') || '-'}</div>
+            <div><strong>Company:</strong> ${(currentBillData.is_company && currentBillData.company_name) ? currentBillData.company_name : '-'}</div>
+        `;
+    } else {
+        customerMeta = customerHtml || '';
+    }
+
+    var baseRent = $('#billModalBaseRent').text().trim();
+    var damage = $('#billModalDamage').text().trim();
+    var totalRent = $('#billModalTotalRent').text().trim();
+    var totalPaid = $('#billModalTotalPaid').text().trim();
+    var balance = $('#billModalBalance').text().trim();
+
+    // Invoicing period from page filters (fallback to rental date if empty)
+    var fromDate = $('#from_date').val() || rentalDate;
+    var toDate = $('#to_date').val() || rentalDate;
+
+    // Initial deposit total (sum deposits)
+    var initialDeposit = '';
+    if (currentBillData && currentBillData.deposits && currentBillData.deposits.length) {
+        var depTotal = 0;
+        currentBillData.deposits.forEach(function (dep) {
+            var amt = parseAmount(dep.amount || 0);
+            if (!isNaN(amt)) depTotal += amt;
+        });
+        initialDeposit = depTotal > 0 ? depTotal.toFixed(2) : '';
+    }
+
+    // Build a clean items table clone without interactive controls
+    var itemsTable = $('#billModalItems').clone();
+    itemsTable.find('.toggle-damage-btn, .damage-editor').remove();
+
+    // Force borders inline so portrait print keeps lines
+    itemsTable.css({
+        'border': '1px solid #000',
+        'border-collapse': 'collapse'
+    });
+    itemsTable.find('th, td').css({
+        'border': '1px solid #000',
+        'padding': '5px'
+    });
+
+    // Translate table headers to English
+    itemsTable.find('thead th').each(function (idx) {
+        var map = {
+            0: 'Item',
+            1: 'Qty',
+            2: 'Duration',
+            3: 'Type',
+            4: 'Returned',
+            5: 'Pending',
+            6: 'Status',
+            7: 'Amount',
+            8: 'Damage'
+        };
+        if (map[idx]) {
+            $(this).text(map[idx]);
+        }
+    });
+    itemsTable.find('tfoot th').first().text('Total');
+
+    // Keep damage column numeric only
     if (currentBillData && currentBillData.items) {
-        modalBodyClone.find('#billModalItems tbody tr').each(function(index) {
-            var damageCell = $(this).find('td:nth-child(9)');
-            if (damageCell.length && currentBillData.items[index]) {
-                var damageValue = parseFloat(currentBillData.items[index].damage_amount || 0);
-                damageCell.html(damageValue.toFixed(2));
-                damageCell.addClass('text-end');
+        itemsTable.find('tbody tr').each(function (index) {
+            var dmgCell = $(this).find('td:nth-child(9)');
+            if (dmgCell.length && currentBillData.items[index]) {
+                var dmgVal = parseFloat(currentBillData.items[index].damage_amount || 0);
+                dmgCell.text(isNaN(dmgVal) ? '0.00' : dmgVal.toFixed(2));
+                dmgCell.addClass('text-end');
             }
         });
     }
-    
-    // If no damage, hide the damage row and column
-    if (damageAmount <= 0) {
-        // Remove කුලිය/හානි/මුළු කුලිය breakdown, show only මුළු කුලිය
-        modalBodyClone.find('#billModalDamage').closest('.d-flex').remove();
-        modalBodyClone.find('#billModalBaseRent').closest('.d-flex').remove();
-        
-        // Remove හානි column from items table
-        modalBodyClone.find('#billModalItems thead tr th:nth-child(9)').remove();
-        modalBodyClone.find('#billModalItems tbody tr').each(function() {
-            $(this).find('td:nth-child(9)').remove();
-        });
-        
-        // Adjust footer colspan from 8 to 7
-        modalBodyClone.find('#billModalItems tfoot tr th:first-child').attr('colspan', '7');
-    }
-    
-    var modalBody = modalBodyClone.html();
+
+    // Render custom print layout (exclude recorded/payments/deposits/returns)
+    var printContent = `
+        <div class="print-wrapper">
+            <div class="text-center mb-3 print-title">INVOICE - Hiring Charges</div>
+            <div class="meta grid">
+                <div class="meta-block">
+                    <div><strong>Ref No:</strong> ${refNumber || '-'}</div>
+                    <div><strong>Invoice No:</strong> ${invoice}</div>
+                    <div><strong>Date:</strong> ${rentalDate} <small>${dayCount}</small></div>
+                    ${initialDeposit ? `<div><strong>Initial Deposit:</strong> ${initialDeposit}</div>` : ''}
+                    <div class="period-row"><span>From Date:</span><span>${fromDate}</span></div>
+                    <div class="period-row"><span>To Date:</span><span>${toDate}</span></div>
+                </div>
+                <div class="meta-block">
+                    <div><strong>Invoice Basis:</strong> Monthly</div>
+                    <div><strong>Payment Type:</strong> ${paymentType}</div>
+                    <div><strong>Status:</strong> ${statusHtml || '-'}</div>
+                </div>
+                <div class="meta-block">
+                    ${customerMeta || ''}
+                </div>
+            </div>
+
+            <div class="totals">
+                <div class="totals-box">
+                    <div class="row-item"><span>Rent</span><span>${baseRent}</span></div>
+                    <div class="row-item"><span>Damage</span><span>${damage}</span></div>
+                    <div class="row-item fw-bold"><span>Total Rent</span><span>${totalRent}</span></div>
+                </div>
+                <div class="totals-box">
+                    <div class="row-item"><span>Paid</span><span>${totalPaid}</span></div>
+                    <div class="row-item fw-bold"><span>Balance</span><span>${balance}</span></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h6 class="section-title">Bill Items</h6>
+                <div class="table-responsive">${itemsTable.prop('outerHTML')}</div>
+            </div>
+
+            <div class="section footer-balance">
+                <div class="sign-line">Signature / Authorized</div>
+            </div>
+        </div>
+    `;
 
     var printWindow = window.open('', '_blank');
     printWindow.document.write(`
@@ -935,23 +1066,41 @@ function printBillDetails() {
             <title></title>
             <link rel="stylesheet" href="assets/css/bootstrap.min.css">
             <style>
-                @page { margin: 5mm 5mm 7mm 5mm; }
-                body { padding: 4px; font-size: 13px; }
-                #billModalDateLabel { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-                .modal-body .row { margin-bottom: 7px; }
-                .modal-body .p-3 { padding: 9px !important; }
-                .card-title, h6, h5 { margin-bottom: 7px; font-size: 14px; }
-                .modal-body .border span { font-size: 13.2px; }
-                .table { width: 100%; border-collapse: collapse !important; margin-bottom: 7px; }
-                .table th, .table td { vertical-align: middle; border: 1px solid #000 !important; padding: 5px; font-size: 12.8px; }
-                .table thead th { background: #f1f3f5 !important; }
-                .table tfoot th, .table tfoot td { padding: 5px; }
-                .table-sm > :not(caption) > * > * { padding: 5px; }
-                .print-hide { display: none !important; }
+                @page { margin: 6mm 8mm 8mm 8mm; }
+                body { padding: 0; font-size: 13px; color: #111; }
+                .print-wrapper { padding: 6px; }
+                .print-title { font-size: 20px; font-weight: 700; }
+                .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 10px; }
+                .meta-block { border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px 10px; background: #fafafa; font-size: 13px; }
+                .meta-block > div { margin-bottom: 2px; }
+                .period-row { display: flex; gap: 6px; padding: 0; margin: 0; font-size: 13px; line-height: 1.1; border-top: none; }
+                .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 12px 0; }
+                .totals-box { border: 1px solid #dcdcdc; border-radius: 6px; padding: 10px 12px; background: #fdfdfd; }
+                .row-item { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+                .row-item:last-child { margin-bottom: 0; }
+                .fw-bold { font-weight: 700; }
+                .section { margin-top: 8px; }
+                .section-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+                .footer-balance { display: flex; justify-content: flex-start; align-items: center; margin-top: 60px; padding-top: 10px; border-top: 1px solid #dcdcdc; }
+                .sign-line { flex: 0 0 240px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; }
+                table { width: 100%; border-collapse: collapse !important; }
+                table th, table td { border: 1px solid #000 !important; padding: 5px; font-size: 12.5px; }
+                table thead th { background: #f1f3f5; border: 1px solid #000 !important; }
+                table tfoot th, table tfoot td { font-weight: 700; border: 1px solid #000 !important; }
+                /* Reinforce borders for bootstrap tables */
+                .table { width: 100%; border-collapse: collapse !important; }
+                .table th, .table td { border: 1px solid #000 !important; }
+                .table thead th { border: 1px solid #000 !important; }
+                .table tfoot th, .table tfoot td { border: 1px solid #000 !important; }
+                .text-end { text-align: right; }
+                .text-center { text-align: center; }
+                .text-success { color: #198754; }
+                .text-danger { color: #dc3545; }
+                .badge { display: inline-block; padding: 0.2em 0.45em; font-size: 75%; font-weight: 700; border-radius: 0.2rem; }
             </style>
         </head>
         <body>
-            ${modalBody}
+            ${printContent}
             <script>
                 window.onload = function() {
                     window.focus();
