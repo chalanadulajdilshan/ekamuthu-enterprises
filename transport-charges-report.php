@@ -288,8 +288,6 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
     </div>
 
     <?php include 'main-js.php'; ?>
-    <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="ajax/js/transport-charges-report.js?v=<?php echo time(); ?>"></script>
 
