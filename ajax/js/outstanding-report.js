@@ -1086,7 +1086,7 @@ function generatePrintWindow(refNumber) {
                 .fw-bold { font-weight: 700; }
                 .section { margin-top: 8px; }
                 .section-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-                .footer-balance { display: flex; justify-content: space-between; align-items: center; margin-top: 60px; padding-top: 10px; border-top: 1px solid #dcdcdc; }
+                .footer-balance { display: flex; justify-content: space-between; align-items: center; margin-top: 60px; padding-top: 10px; border-top: none; }
                 .sign-line { flex: 0 0 240px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; }
                 .balance-box { display: inline-flex; gap: 10px; align-items: center; border: 1px solid #000; padding: 6px 10px; border-radius: 4px; background: #f8f9fa; font-size: 13px; }
                 .balance-val { font-weight: 700; }
