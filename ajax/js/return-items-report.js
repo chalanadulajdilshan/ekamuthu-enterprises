@@ -196,6 +196,26 @@ $(document).ready(function () {
       return;
     }
 
+    // Open window immediately to avoid popup blockers
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Popup blocked! Please allow popups for this site to export PDF.");
+      return;
+    }
+
+    // Show loading in the new window
+    printWindow.document.write(`
+        <html>
+        <head><title>Generating Report...</title></head>
+        <body style="font-family:sans-serif; text-align:center; padding-top:100px;">
+            <h2>Generating Report...</h2>
+            <p>Please wait while we fetch the report data.</p>
+            <div style="margin-top:20px;"><span style="display:inline-block; width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; animation:spin 2s linear infinite;"></span></div>
+            <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+        </body>
+        </html>
+    `);
+
     // Show loading state
     const originalText = $(this).html();
     $(this).html(
@@ -219,19 +239,21 @@ $(document).ready(function () {
           const summary = response.summary;
 
           if (data && data.length > 0) {
-            exportReturnItemsToPdf(data, summary);
+            exportReturnItemsToPdf(data, summary, printWindow);
           } else {
             alert("No data available for export");
+            printWindow.close();
           }
         } else {
-          alert(
-            "Failed to retrieve export data: " +
-            (response.message || "Unknown error")
-          );
+          const msg = "Failed to retrieve export data: " + (response.message || "Unknown error");
+          alert(msg);
+          printWindow.document.body.innerHTML = `<h2 style="color:red">Error</h2><p>${msg}</p>`;
         }
       },
       error: function (xhr, status, error) {
-        alert("Export failed: " + error);
+        const msg = "Export failed: " + error;
+        alert(msg);
+        printWindow.document.body.innerHTML = `<h2 style="color:red">Error</h2><p>${msg}</p>`;
       },
       complete: function () {
         // Restore button state
@@ -242,7 +264,7 @@ $(document).ready(function () {
   });
 
   // Function to export return items report data to PDF
-  function exportReturnItemsToPdf(data, summary) {
+  function exportReturnItemsToPdf(data, summary, printWindow) {
     const dateRange = summary.date_range;
     const totalReturns = summary.total_returns;
     const totalItems = summary.total_items;
@@ -394,8 +416,8 @@ $(document).ready(function () {
   </body>
   </html>`;
 
-    // Create a new window with the HTML content
-    const printWindow = window.open("", "_blank");
+    // Create a new window with the HTML content (Removed as window is passed)
+    printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
 
@@ -413,5 +435,17 @@ $(document).ready(function () {
         printWindow.close();
       }
     };
+
+    // Fallback for cases where onload might not trigger reliably after document.write
+    if (printWindow.document.readyState === 'complete') {
+        setTimeout(() => {
+            if (typeof printWindow.print === 'function') {
+                printWindow.print();
+                printWindow.onafterprint = function () {
+                    printWindow.close();
+                };
+            }
+        }, 500);
+    }
   }
 });

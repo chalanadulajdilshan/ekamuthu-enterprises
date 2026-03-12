@@ -47,7 +47,12 @@ $(document).ready(function () {
                 { data: "issue_date", title: "Date" },
                 { data: "status", title: "Status" }
             ],
-            order: [[0, "desc"]]
+            order: [[0, "desc"]],
+            createdRow: function (row, data, dataIndex) {
+                if (data.status.includes('Cancelled') || data.status.includes('cancelled')) {
+                    $(row).addClass('table-danger');
+                }
+            }
         });
 
         // Row click handler
@@ -94,7 +99,12 @@ $(document).ready(function () {
                     }
                 }
             ],
-            order: [[0, "desc"]]
+            order: [[0, "desc"]],
+            createdRow: function (row, data, dataIndex) {
+                if (data.status === 'cancelled') {
+                    $(row).addClass('table-danger');
+                }
+            }
         });
 
         // Row click handler for History (Load Details) - exclude action buttons
@@ -137,6 +147,13 @@ $(document).ready(function () {
                     $("#department_id").val(ret.department_id);
                     $("#remarks").val(ret.remarks);
 
+                    // Show selected issue note status
+                    if (ret.issue_note_status === 'cancelled') {
+                        $("#selected_issue_status_badge").html('<span class="badge bg-danger font-size-10">CANCELLED ISSUE</span>');
+                    } else {
+                        $("#selected_issue_status_badge").empty();
+                    }
+
                     // Store items (View Mode)
                     returnItems = result.items.map(function (item) {
                         return {
@@ -155,7 +172,17 @@ $(document).ready(function () {
                     });
 
                     renderItemsTable();
-                    $("#save_return").hide(); // Hide save button in view mode
+                    
+                    if (ret.status !== 'cancelled') {
+                        $("#save_return").hide(); // Hide save button in view mode
+                        $("#cancel_return").show().attr("data-id", returnId);
+                        $("#return_status_badge").html('<span class="badge bg-success font-size-12">RETURNED</span>');
+                    } else {
+                        $("#save_return").hide();
+                        $("#cancel_return").hide();
+                        $("#return_status_badge").html('<span class="badge bg-danger font-size-12">CANCELLED</span>');
+                    }
+                    
                     $("#print_return").show().attr("data-id", returnId); // Show print button
 
                 } else {
@@ -185,6 +212,12 @@ $(document).ready(function () {
                     $("#customer_name").val(note.customer_name);
                     $("#customer_phone").val(note.customer_phone);
                     $("#selected_issue_display").val(note.issue_note_code + " - " + note.issue_date);
+
+                    if (note.issue_status === 'cancelled') {
+                        $("#selected_issue_status_badge").html('<span class="badge bg-danger font-size-10">CANCELLED ISSUE</span>');
+                    } else {
+                        $("#selected_issue_status_badge").empty();
+                    }
 
                     // Handle Appending to Existing Return Note
                     current_return_id = null; // Reset
@@ -216,7 +249,9 @@ $(document).ready(function () {
 
                     renderItemsTable();
                     $("#save_return").show(); // Ensure save button is visible for new entries
+                    $("#cancel_return").hide();
                     $("#print_return").hide(); // Hide print button for new entries
+                    $("#return_status_badge").empty();
 
                 } else {
                     swal("Error!", result.message, "error");
@@ -374,5 +409,50 @@ $(document).ready(function () {
         if (id) {
             window.open("issue-return-note-print.php?id=" + id, "_blank");
         }
+    });
+
+    // Cancel Return Note
+    $("#cancel_return").click(function () {
+        var returnId = $(this).attr("data-id");
+
+        swal({
+            title: "Are you sure?",
+            text: "Do you really want to CANCEL this Return Note? This action will reverse the returned quantities.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#f46a6a",
+            confirmButtonText: "Yes, Cancel it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: "ajax/php/issue-return-note.php",
+                type: "POST",
+                data: {
+                    cancel_return: true,
+                    return_id: returnId
+                },
+                dataType: "JSON",
+                success: function (result) {
+                    if (result.status === "success") {
+                        swal({
+                            title: "Cancelled!",
+                            text: result.message,
+                            type: "success"
+                        }, function () {
+                            location.reload();
+                        });
+                        
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        swal("Error!", result.message, "error");
+                    }
+                },
+                error: function () {
+                    swal("Error!", "Failed to cancel return note", "error");
+                }
+            });
+        });
     });
 });

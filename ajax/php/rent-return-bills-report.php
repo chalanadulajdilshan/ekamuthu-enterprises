@@ -9,6 +9,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     $from_date = $_POST['from_date'] ?? null;
     $to_date = $_POST['to_date'] ?? null;
     $bill_type = $_POST['bill_type'] ?? 'all';
+    $rent_type = $_POST['rent_type'] ?? 'all';
     $bill_no = trim($_POST['bill_no'] ?? '');
     $search_items_only = isset($_POST['search_items_only']) && filter_var($_POST['search_items_only'], FILTER_VALIDATE_BOOLEAN);
 
@@ -33,6 +34,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             } else {
                 $rentConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
             }
+        }
+        if ($rent_type !== 'all') {
+            $rentConditions[] = "eri.rent_type = '$rent_type'";
         }
         if (empty($rentConditions)) {
             $rentConditions[] = '1=1';
@@ -134,6 +138,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             } else {
                 $returnConditions[] = "CAST(er.bill_number AS CHAR) LIKE '%$bill_no_filter%'";
             }
+        }
+        if ($rent_type !== 'all') {
+            $returnConditions[] = "eri.rent_type = '$rent_type'";
         }
         if (empty($returnConditions)) {
             $returnConditions[] = '1=1';

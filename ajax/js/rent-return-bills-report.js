@@ -191,9 +191,10 @@ $(document).ready(function () {
     });
 
     // Reset button click handler
-    $("#resetBtn").on("click", function () {
+        $("#resetBtn").on("click", function () {
         $("#reportForm")[0].reset();
         $("#billType").val("all");
+        $("#rentType").val("all");
         $("#reportInfoSection").hide();
         reportTable.clear().draw();
         $("#totalAmount").text("0.00");
@@ -217,9 +218,10 @@ $(document).ready(function () {
         const fromDate = $("#fromDate").val();
         const toDate = $("#toDate").val();
         const billType = $("#billType").val();
+        const rentType = $("#rentType").val();
         const billNo = $("#billNo").val().trim();
 
-        console.log("Loading Report Data for:", { fromDate, toDate, billType, billNo });
+        console.log("Loading Report Data for:", { fromDate, toDate, billType, rentType, billNo });
 
         // Validation: ensure either date range or bill number
         if ((!fromDate || !toDate) && billNo === "") {
@@ -232,6 +234,7 @@ $(document).ready(function () {
             from_date: fromDate,
             to_date: toDate,
             bill_type: billType,
+            rent_type: rentType,
             bill_no: billNo,
             search_items_only: $('#searchItemsOnly').is(':checked')
         };
@@ -320,6 +323,7 @@ $(document).ready(function () {
         const fromDate = $("#fromDate").val();
         const toDate = $("#toDate").val();
         const billType = $("#billType").val();
+        const rentType = $("#rentType").val();
         const billNo = $("#billNo").val().trim();
 
         if ((!fromDate || !toDate) && billNo === "") {
@@ -327,7 +331,27 @@ $(document).ready(function () {
             return;
         }
 
-        // Show loading state
+        // Open window immediately to avoid popup blockers
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            alert("Popup blocked! Please allow popups for this site to export PDF.");
+            return;
+        }
+
+        // Show loading in the new window
+        printWindow.document.write(`
+            <html>
+            <head><title>Generating Report...</title></head>
+            <body style="font-family:sans-serif; text-align:center; padding-top:100px;">
+                <h2>Generating Report...</h2>
+                <p>Please wait while we fetch the report data.</p>
+                <div style="margin-top:20px;"><span style="display:inline-block; width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; animation:spin 2s linear infinite;"></span></div>
+                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+            </body>
+            </html>
+        `);
+
+        // Show loading state on button
         const originalText = $(this).html();
         $(this).html(
             '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...'
@@ -344,6 +368,7 @@ $(document).ready(function () {
                 from_date: fromDate,
                 to_date: toDate,
                 bill_type: billType,
+                rent_type: rentType,
                 bill_no: billNo,
                 search_items_only: $('#searchItemsOnly').is(':checked')
             },
@@ -353,19 +378,21 @@ $(document).ready(function () {
                     const summary = response.summary;
 
                     if (data && data.length > 0) {
-                        exportToPdf(data, summary);
+                        exportToPdf(data, summary, printWindow, rentType);
                     } else {
                         alert("No data available for export");
+                        printWindow.close();
                     }
                 } else {
-                    alert(
-                        "Failed to retrieve export data: " +
-                        (response.message || "Unknown error")
-                    );
+                    const msg = "Failed to retrieve export data: " + (response.message || "Unknown error");
+                    alert(msg);
+                    printWindow.document.body.innerHTML = `<h2 style="color:red">Error</h2><p>${msg}</p>`;
                 }
             },
             error: function (xhr, status, error) {
-                alert("Export failed: " + error);
+                const msg = "Export failed: " + error;
+                alert(msg);
+                printWindow.document.body.innerHTML = `<h2 style="color:red">Error</h2><p>${msg}</p>`;
             },
             complete: function () {
                 // Restore button state
@@ -376,7 +403,7 @@ $(document).ready(function () {
     });
 
     // Function to export report data to PDF
-    function exportToPdf(data, summary) {
+    function exportToPdf(data, summary, printWindow, rentType) {
         const dateRange = summary.date_range;
         const totalBills = summary.total_bills;
         const totalRentBills = summary.total_rent_bills;
@@ -476,7 +503,7 @@ $(document).ready(function () {
   </head>
   <body>
       <div class="header">
-          <h1>කුලියට දීම සහ ආපසු ලබා ගැනීම් වාර්තාව</h1>
+          <h1>කුලියට දීම සහ ආපසු ලබා ගැනීම් වාර්තාව ${rentType !== 'all' ? (rentType === 'day' ? '(Daily)' : '(Monthly)') : ''}</h1>
           <p>සකස් කළ දිනය: ${new Date().toLocaleString()}</p>
       </div>
 
@@ -554,8 +581,8 @@ $(document).ready(function () {
   </body>
   </html>`;
 
-        // Create a new window with the HTML content
-        const printWindow = window.open("", "_blank");
+        // Create a new window with the HTML content (Removed as window is passed)
+        printWindow.document.open();
         printWindow.document.write(html);
         printWindow.document.close();
 
@@ -573,5 +600,17 @@ $(document).ready(function () {
                 printWindow.close();
             }
         };
+
+        // Fallback for cases where onload might not trigger reliably after document.write
+        if (printWindow.document.readyState === 'complete') {
+            setTimeout(() => {
+                if (typeof printWindow.print === 'function') {
+                    printWindow.print();
+                    printWindow.onafterprint = function () {
+                        printWindow.close();
+                    };
+                }
+            }, 500);
+        }
     }
 });

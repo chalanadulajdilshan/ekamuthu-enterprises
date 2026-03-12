@@ -40,6 +40,9 @@ $return_note_code = ($lastId + 1);
                             <button class="btn btn-primary" id="save_return">
                                 <i class="uil uil-save me-1"></i> Save Return Note
                             </button>
+                            <button class="btn btn-danger" id="cancel_return" style="display: none;">
+                                <i class="uil uil-trash-alt me-1"></i> Cancel Return Note
+                            </button>
                             <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#ReturnHistoryModal">
                                 <i class="uil uil-history me-1"></i> View History
                             </button>
@@ -71,7 +74,7 @@ $return_note_code = ($lastId + 1);
                                             </div>
                                             <div class="d-flex align-items-center flex-grow-1">
                                                 <div class="me-3">
-                                                    <h5 class="font-size-16 mb-1">Items Return Note - උපකරණ ආපසු ලබාගැනීම</h5>
+                                                    <h5 class="font-size-16 mb-1">Items Return Note - උපකරණ ආපසු ලබාගැනීම <span id="return_status_badge" class="ms-2"></span></h5>
                                                     <p class="text-muted text-truncate mb-0">Record items returned against Issue Notes</p>
                                                 </div>
                                             </div>
@@ -92,7 +95,7 @@ $return_note_code = ($lastId + 1);
                                                 <input type="text" class="form-control date-picker" id="return_date" value="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="form-label">Select Issue Note - නිකුත් කිරීමේ පත්‍රිකාව</label>
+                                                <label class="form-label">Select Issue Note - නිකුත් කිරීමේ පත්‍රිකාව <span id="selected_issue_status_badge" class="ms-2"></span></label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="selected_issue_display" placeholder="Select an Issue Note..." readonly>
                                                     <input type="hidden" id="issue_note_id">

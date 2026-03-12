@@ -209,7 +209,7 @@ include 'auth.php';
                                                     <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
                                                 </div>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label for="billType" class="form-label fw-semibold text-muted mb-2">Bill Type</label>
                                                 <select class="form-select" id="billType" name="billType">
                                                     <option value="all">All Bills</option>
@@ -217,7 +217,15 @@ include 'auth.php';
                                                     <option value="return">Return Bills Only</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
+                                                <label for="rentType" class="form-label fw-semibold text-muted mb-2">Rent Type</label>
+                                                <select class="form-select" id="rentType" name="rentType">
+                                                    <option value="all">All Rent Types</option>
+                                                    <option value="day">Daily Rent</option>
+                                                    <option value="month">Monthly Rent</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
                                                 <div class="d-flex justify-content-between align-items-end mb-2">
                                                     <label for="billNo" id="billNoLabel" class="form-label fw-semibold text-muted mb-0">Search Bill No</label>
                                                     <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
