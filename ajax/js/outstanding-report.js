@@ -951,7 +951,8 @@ function generatePrintWindow(refNumber) {
     var damage = $('#billModalDamage').text().trim();
     var totalRent = $('#billModalTotalRent').text().trim();
     var totalPaid = $('#billModalTotalPaid').text().trim();
-    var balance = $('#billModalBalance').text().trim();
+    // Use original balance from data, not recalculated modal value
+    var balance = currentBillData && currentBillData.balance ? formatAmount(parseAmount(currentBillData.balance)) : $('#billModalBalance').text().trim();
 
     // Invoicing period from page filters (fallback to rental date if empty)
     var fromDate = $('#from_date').val() || rentalDate;
