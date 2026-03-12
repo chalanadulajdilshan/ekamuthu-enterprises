@@ -270,8 +270,11 @@ $(document).ready(function () {
 
         if (returnItems.length === 0) {
             tbody.append('<tr id="empty_row"><td colspan="8" class="text-center py-4 text-muted"><i class="uil uil-box font-size-24 d-block mb-2"></i>Select an Issue Note to load items</td></tr>');
+            $("#returnItemsFooter").hide();
             return;
         }
+
+        $("#returnItemsFooter").show();
 
         returnItems.forEach(function (item, index) {
             var itemName = item.equipment_name;
@@ -307,6 +310,28 @@ $(document).ready(function () {
             `;
             tbody.append(row);
         });
+
+        calculateTotals();
+    }
+
+    // New Function: Calculate Totals
+    function calculateTotals() {
+        var totalIssued = 0;
+        var totalPrevReturned = 0;
+        var totalRemaining = 0;
+        var totalReturnNow = 0;
+
+        returnItems.forEach(function (item) {
+            totalIssued += parseFloat(item.issued_quantity) || 0;
+            totalPrevReturned += parseFloat(item.already_returned) || 0;
+            totalRemaining += parseFloat(item.remaining_quantity) || 0;
+            totalReturnNow += parseFloat(item.return_quantity) || 0;
+        });
+
+        $("#total_issued").text(totalIssued);
+        $("#total_prev_returned").text(totalPrevReturned);
+        $("#total_remaining").text(totalRemaining);
+        $("#total_return_now").text(totalReturnNow);
     }
 
     // Update Return Quantity
@@ -323,6 +348,7 @@ $(document).ready(function () {
         }
 
         returnItems[index].return_quantity = val;
+        calculateTotals();
     });
 
     // Update Item Remark

@@ -156,6 +156,16 @@ $return_note_code = ($lastId + 1);
                                                                 </td>
                                                             </tr>
                                                         </tbody>
+                                                        <tfoot class="table-light" id="returnItemsFooter" style="display: none;">
+                                                            <tr class="fw-bold">
+                                                                <td colspan="2" class="text-end">Total:</td>
+                                                                <td class="text-center" id="total_issued">0</td>
+                                                                <td class="text-center" id="total_prev_returned">0</td>
+                                                                <td class="text-center" id="total_remaining">0</td>
+                                                                <td class="text-center" id="total_return_now">0</td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                        </tfoot>
                                                     </table>
                                                 </div>
                                             </div>

@@ -191,6 +191,22 @@ if ($ISSUE_RETURN->department_id) {
                                 </tr>
                             <?php endfor; ?>
                         </tbody>
+                        <tfoot style="font-size:13px; font-weight:bold; background-color: #f8f9fa;">
+                            <tr>
+                                <td colspan="3" style="text-align:right;">Total:</td>
+                                <td style="text-align:center;">
+                                    <?php 
+                                    echo array_sum(array_column($note_items, 'issued_quantity')); 
+                                    ?>
+                                </td>
+                                <td style="text-align:center;">
+                                    <?php 
+                                    echo array_sum(array_column($note_items, 'return_quantity')); 
+                                    ?>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 

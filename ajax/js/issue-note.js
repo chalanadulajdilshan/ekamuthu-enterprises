@@ -251,11 +251,13 @@ $(document).ready(function () {
 
         if (issueItems.length === 0) {
             tbody.append('<tr><td colspan="9" class="text-center py-4 text-muted"><i class="uil uil-box font-size-24 d-block mb-2"></i>Select a Rent Invoice to load items</td></tr>');
+            $("#issueItemsFooter").hide();
             return;
         }
 
-        issueItems.forEach(function (item, index) {
+        $("#issueItemsFooter").show();
 
+        issueItems.forEach(function (item, index) {
             var itemName = item.equipment_name;
             if (item.sub_equipment_code) {
                 itemName += " (" + item.sub_equipment_code + ")";
@@ -294,12 +296,12 @@ $(document).ready(function () {
                     <!-- Issue Now -->
                     <td>
                         <input type="number" class="form-control form-control-sm text-center issued-qty" 
-                               data-index="${index}" value="${issueVal}" min="0" max="${item.remaining_quantity}" ${inputDisabled}>
+                                data-index="${index}" value="${issueVal}" min="0" max="${item.remaining_quantity}" ${inputDisabled}>
                     </td>
                     
                     <td>
                         <input type="text" class="form-control form-control-sm item-remark" 
-                               data-index="${index}" value="${item.remarks || ''}" placeholder="Remark" ${item.is_view_mode ? 'readonly' : ''}>
+                                data-index="${index}" value="${item.remarks || ''}" placeholder="Remark" ${item.is_view_mode ? 'readonly' : ''}>
                     </td>
                     <td>
                         ${!item.is_view_mode ?
@@ -311,6 +313,8 @@ $(document).ready(function () {
             `;
             tbody.append(row);
         });
+
+        calculateTotals();
     }
 
     // Render History Table
@@ -369,8 +373,12 @@ $(document).ready(function () {
         var max = parseInt(issueItems[index].quantity);
 
         if (val < 0) val = 0;
+        if (val > max) val = max; // Ensure issued quantity does not exceed remaining
+
+        $(this).val(val); // Update input field if value was adjusted
 
         issueItems[index].issued_quantity = val;
+        calculateTotals();
     });
 
     // Update Item Remark
@@ -516,6 +524,20 @@ $(document).ready(function () {
         e.preventDefault();
         location.reload();
     });
+
+    // Calculate Totals Function
+    function calculateTotals() {
+        var totalOrdered = 0;
+        var totalIssueNow = 0;
+
+        issueItems.forEach(function (item) {
+            totalOrdered += parseFloat(item.ordered_quantity) || 0;
+            totalIssueNow += parseFloat(item.issued_quantity) || 0;
+        });
+
+        $("#total_ordered").text(totalOrdered || 0);
+        $("#total_issue_now").text(totalIssueNow || 0);
+    }
 });
 //issue note js
 

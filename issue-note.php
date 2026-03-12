@@ -168,6 +168,16 @@ $issue_note_code = ($lastId + 1);
                                                                 </td>
                                                             </tr>
                                                         </tbody>
+                                                        <tfoot class="table-light" id="issueItemsFooter" style="display: none;">
+                                                            <tr class="fw-bold">
+                                                                <td colspan="4" class="text-end">Total:</td>
+                                                                <td class="text-center" id="total_ordered">0</td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td class="text-center" id="total_issue_now">0</td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                        </tfoot>
                                                     </table>
                                                 </div>
                                             </div>
