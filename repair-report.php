@@ -116,29 +116,25 @@ include 'auth.php';
                                                 <!-- Financials -->
                                                 <tr>
                                                     <td>
-                                                        <strong>Total cost borne by institution for outside repairs</strong><br>
-                                                        <small class="text-muted">පිට රෙපෙයාර් සඳහා ආයතනයෙන් දැරූ මුළු මුදල</small>
+                                                        <strong>Total cost borne by institution for outside repairs</strong> - <small class="text-muted">පිට රෙපෙයාර් සඳහා ආයතනයෙන් දැරූ මුළු මුදල</small>
                                                     </td>
                                                     <td class="text-end fw-bold text-danger" id="outsource_cost">0.00</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>15% Commission Amount</strong><br>
-                                                        <small class="text-muted">15% කොමිස් මුදල</small>
+                                                        <strong>15% Commission Amount</strong> - <small class="text-muted">15% කොමිස් මුදල</small>
                                                     </td>
                                                     <td class="text-end fw-bold text-success" id="commission">0.00</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Total Repair Income</strong><br>
-                                                        <small class="text-muted">සම්පූර්ණ රෙපෙයාර් මුළු මුදල</small>
+                                                        <strong>Total Repair Income</strong> - <small class="text-muted">සම්පූර්ණ රෙපෙයාර් මුළු මුදල</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="total_income">0.00</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Profit received by institution</strong><br>
-                                                        <small class="text-muted">ආයතනයට ලැබෙන ලාභය</small>
+                                                        <strong>Profit received by institution</strong> - <small class="text-muted">ආයතනයට ලැබෙන ලාභය</small>
                                                     </td>
                                                     <td class="text-end fw-bold text-primary fs-5" id="total_profit">0.00</td>
                                                 </tr>
@@ -148,64 +144,55 @@ include 'auth.php';
 
                                                 <tr>
                                                     <td>
-                                                        <strong>Total Machines (Outside + In-house)</strong><br>
-                                                        <small class="text-muted">පිට රෙපෙයාර් සහ PS රෙපෙයාර් මුළු මැෂින් ගණන</small>
+                                                        <strong>Total Machines (Outside + In-house)</strong> - <small class="text-muted">පිට රෙපෙයාර් සහ PS රෙපෙයාර් මුළු මැෂින් ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="total_machines">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Total Outside Machines</strong><br>
-                                                        <small class="text-muted">පිට මැෂින් මුළු ගණන</small>
+                                                        <strong>Total Outside Machines</strong> - <small class="text-muted">පිට මැෂින් මුළු ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="total_outsource_machines">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Total In-house Machines</strong><br>
-                                                        <small class="text-muted">ආයතනය තුළ අලුත්වැඩියා කරන ලද මැෂින් ගණන</small>
+                                                        <strong>Total In-house Machines</strong> - <small class="text-muted">ආයතනය තුළ අලුත්වැඩියා කරන ලද මැෂින් ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="total_in_house_machines">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Taken back as cannot repair</strong><br>
-                                                        <small class="text-muted">සැදීමට නොහැකි නිසා රැගෙන ගිය ගණන</small>
+                                                        <strong>Taken back as cannot repair</strong> - <small class="text-muted">සැදීමට නොහැකි නිසා රැගෙන ගිය ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="cannot_repair">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Pending</strong><br>
-                                                        <small class="text-muted">තවම පරීක්ෂා කර නොමැති ගණන</small>
+                                                        <strong>Pending</strong> - <small class="text-muted">තවම පරීක්ෂා කර නොමැති ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="pending">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Checking</strong><br>
-                                                        <small class="text-muted">පරීක්ෂා කරමින් පවතින ගණන</small>
+                                                        <strong>Checking</strong> - <small class="text-muted">පරීක්ෂා කරමින් පවතින ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="checking">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>In Progress</strong><br>
-                                                        <small class="text-muted">අලුත්වැඩියා කරමින් පවතින ගණන</small>
+                                                        <strong>In Progress</strong> - <small class="text-muted">අලුත්වැඩියා කරමින් පවතින ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="in_progress">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Repaired but NOT Taken</strong><br>
-                                                        <small class="text-muted">සාදා රැගෙන නොගිය ගණන</small>
+                                                        <strong>Repaired but NOT Taken</strong> - <small class="text-muted">සාදා රැගෙන නොගිය ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="repaired_not_taken">0</td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <strong>Repaired and TAKEN (Delivered)</strong><br>
-                                                        <small class="text-muted">සාදා රැගෙන ගිය මැෂින් ගණන</small>
+                                                        <strong>Repaired and TAKEN (Delivered)</strong> - <small class="text-muted">සාදා රැගෙන ගිය මැෂින් ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="repaired_taken">0</td>
                                                 </tr>
