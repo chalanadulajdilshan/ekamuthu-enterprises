@@ -130,7 +130,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_job_details') {
 
     $db = Database::getInstance();
     $sql = "SELECT id, job_code, created_at, customer_name, customer_phone, item_type, machine_name, machine_code, technical_issue, job_status, total_cost 
-            FROM `repair_jobs` $basic_filter $extra_filter ORDER BY id DESC";
+            FROM `repair_jobs` $basic_filter $extra_filter ORDER BY CAST(job_code AS UNSIGNED) ASC";
     
     $result = $db->readQuery($sql);
     $data = [];

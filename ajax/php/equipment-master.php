@@ -674,7 +674,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rented_invoices') {
                 AND eri.status = 'rented' 
                 AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
                 HAVING (eri.quantity - returned_qty) > 0
-                ORDER BY eri.id DESC";
+                ORDER BY er.bill_number ASC";
                 
         $result = $db->readQuery($sql);
         $data = [];

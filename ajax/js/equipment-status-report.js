@@ -202,7 +202,7 @@ $(document).ready(function () {
                         destroy: true,
                         autoWidth: false,
                         pageLength: 10,
-                        order: [[4, 'desc']], // Sort by date desc
+                        order: [[0, 'asc']], // Sort by Bill No asc
                         columns: [
                             { data: 'bill_number' },
                             { data: 'customer_name' },

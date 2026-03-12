@@ -188,10 +188,10 @@ if ($employee_id != 'all') {
                 <th>Code - කේතය</th>
                 <th>Status - තත්ත්වය</th>
                 <th>Employee - සේවකයා</th>
-                <th class="text-right">Repair Charge<br>ගාස්තුව</th>
-                <th class="text-right">Commission<br>කොමිස්</th>
-                <th class="text-right">Item Cost<br>අයිතම</th>
-                <th class="text-right">Total Cost<br>මුළු</th>
+                <th class="text-right">Repair Charge - ගාස්තුව</th>
+                <th class="text-right">Commission - කොමිස්</th>
+                <th class="text-right">Item Cost - අයිතම</th>
+                <th class="text-right">Total Cost - මුළු</th>
             </tr>
         </thead>
         <tbody>
