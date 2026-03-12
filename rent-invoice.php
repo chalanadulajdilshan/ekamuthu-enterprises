@@ -176,6 +176,35 @@ if (!empty($customerMobile)) {
     <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
 
     <style>
+        /* Rent invoice header banner */
+        .rent-header-container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .rent-header-img {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            height: 140px;
+            max-height: 140px;
+            object-fit: contain;
+            margin: 0 auto 10px auto;
+        }
+
+        @media print {
+            .rent-header-container {
+                max-width: 980px !important;
+            }
+
+            .rent-header-img {
+                margin-bottom: 6px !important;
+                height: 140px !important;
+                max-height: 140px !important;
+                max-width: 100% !important;
+            }
+        }
+
         @media print {
             .no-print {
                 display: none !important;
@@ -527,10 +556,10 @@ if (!empty($customerMobile)) {
                 }
                 ?>
                 
-                <!-- Centered Title -->
-                <div class="row mb-3">
+                <!-- Header Banner -->
+                <div class="row mb-2">
                     <div class="col-12 text-center">
-                        <h3 style="font-weight:bold;font-size:22px;border-bottom:3px solid #444; padding-bottom:2px; margin-bottom:0; display:inline-block;"><?php echo $isReturnInvoice ? 'Equipment Return Invoice' : 'Equipment Rent Invoice'; ?></h3>
+                        <img src="assets/images/rent-header.png" alt="P.S Ekamuthu Enterprises" class="rent-header-img">
                     </div>
                 </div>
 
