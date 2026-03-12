@@ -1056,6 +1056,10 @@ function generatePrintWindow(refNumber) {
 
             <div class="section footer-balance">
                 <div class="sign-line">Signature / Authorized</div>
+                <div class="balance-box">
+                    <span><strong>Outstanding (Due Balance)</strong></span>
+                    <span class="balance-val">${balance}</span>
+                </div>
             </div>
         </div>
     `;
@@ -1082,8 +1086,10 @@ function generatePrintWindow(refNumber) {
                 .fw-bold { font-weight: 700; }
                 .section { margin-top: 8px; }
                 .section-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-                .footer-balance { display: flex; justify-content: flex-start; align-items: center; margin-top: 60px; padding-top: 10px; border-top: 1px solid #dcdcdc; }
+                .footer-balance { display: flex; justify-content: space-between; align-items: center; margin-top: 60px; padding-top: 10px; border-top: 1px solid #dcdcdc; }
                 .sign-line { flex: 0 0 240px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; }
+                .balance-box { display: inline-flex; gap: 10px; align-items: center; border: 1px solid #000; padding: 6px 10px; border-radius: 4px; background: #f8f9fa; font-size: 13px; }
+                .balance-val { font-weight: 700; }
                 table { width: 100%; border-collapse: collapse !important; }
                 table th, table td { border: 1px solid #000 !important; padding: 5px; font-size: 12.5px; }
                 table thead th { background: #f1f3f5; border: 1px solid #000 !important; }
