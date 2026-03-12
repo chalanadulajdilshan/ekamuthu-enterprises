@@ -19,6 +19,14 @@ if (isset($_POST['create'])) {
     $is_append = false;
 
     if ($existing) {
+        // Check if existing note is cancelled
+        $checkCancelled = "SELECT issue_status FROM issue_notes WHERE id = " . (int)$existing['id'];
+        $statusRes = mysqli_fetch_assoc($db->readQuery($checkCancelled));
+        if ($statusRes['issue_status'] === 'cancelled') {
+            echo json_encode(["status" => "error", "message" => "This Issue Note code belongs to a CANCELLED record and cannot be reused or updated."]);
+            exit();
+        }
+
         // If code exists and belongs to the SAME invoice, we are appending
         if ($existing['rent_invoice_id'] == $_POST['rent_invoice_id']) {
             $note_id = $existing['id'];
@@ -68,7 +76,8 @@ if (isset($_POST['create'])) {
                         INNER JOIN issue_notes n ON ini.issue_note_id = n.id
                         WHERE n.rent_invoice_id = $rentId 
                         AND ini.equipment_id = $eqId 
-                        AND (ini.sub_equipment_id = $subEqId OR ($subEqId IS NULL AND ini.sub_equipment_id IS NULL))";
+                        AND (ini.sub_equipment_id = $subEqId OR ($subEqId IS NULL AND ini.sub_equipment_id IS NULL))
+                        AND n.issue_status != 'cancelled'";
         $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedQuery));
         $totalIssuedSoFar = (float)($issuedRes['issued'] ?? 0);
         
@@ -128,7 +137,8 @@ if (isset($_POST['create'])) {
         $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 
                            FROM issue_note_items ini 
                            INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
-                           WHERE n.rent_invoice_id = $rentId";
+                           WHERE n.rent_invoice_id = $rentId
+                           AND n.issue_status != 'cancelled'";
                            
         $totOrd = (float)mysqli_fetch_assoc($db->readQuery($totalOrderedSql))['total'];
         $totIss = (float)mysqli_fetch_assoc($db->readQuery($totalIssuedSql))['total'];
@@ -180,6 +190,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                             FROM issue_note_items ini
                             INNER JOIN issue_notes note ON ini.issue_note_id = note.id
                             WHERE note.rent_invoice_id = " . (int)$invoice_id . "
+                            AND note.issue_status != 'cancelled'
                             GROUP BY ini.equipment_id, ini.sub_equipment_id";
             $issuedResult = $db->readQuery($issuedQuery);
             $issuedMap = [];
@@ -272,6 +283,67 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
         "status" => "success",
         "code" => $newCode
     ]);
+    exit();
+}
+
+// Cancel Issue Note
+if (isset($_POST['action']) && $_POST['action'] === 'cancel_note') {
+    $note_id = $_POST['note_id'] ?? 0;
+    $db = Database::getInstance();
+
+    if ($note_id) {
+        $NOTE = new IssueNote($note_id);
+        if ($NOTE->id) {
+            if ($NOTE->issue_status === 'cancelled') {
+                echo json_encode(["status" => "error", "message" => "This Issue Note is already cancelled"]);
+                exit();
+            }
+            $NOTE->issue_status = 'cancelled';
+            if ($NOTE->update()) {
+                // Recalculate Invoice Issuing Status
+                $rentId = (int)$NOTE->rent_invoice_id;
+                
+                $totalOrderedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentId";
+                $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 
+                                   FROM issue_note_items ini 
+                                   INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                                   WHERE n.rent_invoice_id = $rentId
+                                   AND n.issue_status != 'cancelled'";
+                                   
+                $totOrd = (float)mysqli_fetch_assoc($db->readQuery($totalOrderedSql))['total'];
+                $totIss = (float)mysqli_fetch_assoc($db->readQuery($totalIssuedSql))['total'];
+                
+                $newDocStatus = 0; // Not Issued
+                if ($totIss > 0) {
+                    if ($totIss >= $totOrd) {
+                        $newDocStatus = 2; // Fully Issued
+                    } else {
+                        $newDocStatus = 1; // Partially Issued
+                    }
+                }
+                
+                $db->readQuery("UPDATE equipment_rent SET issue_status = $newDocStatus WHERE id = $rentId");
+
+                // Audit Log
+                $AUDIT_LOG = new AuditLog(null);
+                $AUDIT_LOG->ref_id = $NOTE->id;
+                $AUDIT_LOG->ref_code = $NOTE->issue_note_code;
+                $AUDIT_LOG->action = 'CANCEL';
+                $AUDIT_LOG->description = 'CANCELLED ISSUE NOTE #' . $NOTE->issue_note_code;
+                $AUDIT_LOG->user_id = $_SESSION['id'] ?? 0;
+                $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+                $AUDIT_LOG->create();
+
+                echo json_encode(["status" => "success", "message" => "Issue Note cancelled successfully"]);
+            } else {
+                echo json_encode(["status" => "error", "message" => "Failed to update status"]);
+            }
+        } else {
+            echo json_encode(["status" => "error", "message" => "Issue Note not found"]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Issue Note ID required"]);
+    }
     exit();
 }
 

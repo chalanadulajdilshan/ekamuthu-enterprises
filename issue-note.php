@@ -41,6 +41,9 @@ $issue_note_code = ($lastId + 1);
                             <button class="btn btn-primary" id="save_note">
                                 <i class="uil uil-save me-1"></i> Save Issue Note
                             </button>
+                            <button class="btn btn-danger" id="cancel_note" style="display: none;">
+                                <i class="uil uil-times me-1"></i> Cancel Issue Note
+                            </button>
                             <button class="btn btn-info" id="print_note" style="display: none;">
                                 <i class="uil uil-print me-1"></i> Print
                             </button>
@@ -69,7 +72,7 @@ $issue_note_code = ($lastId + 1);
                                             </div>
                                             <div class="d-flex align-items-center flex-grow-1">
                                                 <div class="me-3">
-                                                    <h5 class="font-size-16 mb-1">Warehouse Issue Note</h5>
+                                                    <h5 class="font-size-16 mb-1">Warehouse Issue Note <span id="note_status_badge" class="ms-2"></span></h5>
                                                     <p class="text-muted text-truncate mb-0">Issue items based on confirmed Rent Invoices</p>
                                                 </div>
                                             </div>
@@ -218,11 +221,6 @@ $issue_note_code = ($lastId + 1);
                             <table id="rentInvoiceTable" class="table table-bordered table-hover dt-responsive nowrap w-100">
                                 <thead>
                                     <tr>
-                                        <th>#ID</th>
-                                        <th>Ref No</th>
-                                        <th>Customer</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -251,7 +249,6 @@ $issue_note_code = ($lastId + 1);
                                         <th>Issue Note No</th>
                                         <th>Ref Invoice</th>
                                         <th>Customer</th>
-                                        <th>Department</th>
                                         <th>Date</th>
                                         <th>Status</th>
                                     </tr>

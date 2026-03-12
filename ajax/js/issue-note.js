@@ -85,7 +85,12 @@ $(document).ready(function () {
                 { data: "issue_date", title: "Date" },
                 { data: "status", title: "Status" }
             ],
-            order: [[0, "desc"]]
+            order: [[0, "desc"]],
+            createdRow: function (row, data, dataIndex) {
+                if (data.status.includes('Cancelled') || data.status.includes('cancelled')) {
+                    $(row).addClass('table-danger');
+                }
+            }
         });
 
         // Row click handler for Issue Note History
@@ -129,6 +134,9 @@ $(document).ready(function () {
                     } else {
                         // Reset to new code if no history
                         getNewCode();
+                        $("#cancel_note").hide();
+                        $("#save_note").show();
+                        $("#note_status_badge").empty();
                     }
 
                     // Store items
@@ -194,6 +202,16 @@ $(document).ready(function () {
 
                     savedNoteId = note.id;
                     $("#print_note").show();
+
+                    if (note.issue_status !== 'cancelled') {
+                        $("#cancel_note").show();
+                        $("#save_note").hide(); // Cannot save/update an already issued note for now
+                        $("#note_status_badge").html('<span class="badge bg-success font-size-12">ISSUED</span>');
+                    } else {
+                        $("#cancel_note").hide();
+                        $("#save_note").hide();
+                        $("#note_status_badge").html('<span class="badge bg-danger font-size-12">CANCELLED</span>');
+                    }
 
                     // View Mode: Just show what was in THIS note
                     // We don't recalculate remaining etc here because this is a historic view
@@ -308,11 +326,23 @@ $(document).ready(function () {
         $("#issueHistoryContainer").show();
 
         history.forEach(function (h) {
-            var statusBadge = h.issue_status === 'issued' ? '<span class="badge bg-success">Issued</span>' : '<span class="badge bg-warning">Pending</span>';
+            var badgeClass = 'bg-warning';
+            var statusText = 'Pending';
+
+            if (h.issue_status === 'issued') {
+                badgeClass = 'bg-success';
+                statusText = 'Issued';
+            } else if (h.issue_status === 'cancelled') {
+                badgeClass = 'bg-danger';
+                statusText = 'Cancelled';
+            }
+
+            var statusBadge = `<span class="badge ${badgeClass}">${statusText}</span>`;
             var totalQty = h.total_qty || 0;
 
+            var rowClass = h.issue_status === 'cancelled' ? 'table-danger' : '';
             var row = `
-                <tr style="cursor: pointer;" class="view-history-note" data-id="${h.id}">
+                <tr style="cursor: pointer;" class="view-history-note ${rowClass}" data-id="${h.id}">
                     <td>${h.issue_date}</td>
                     <td>${h.issue_note_code}</td>
                     <td>${statusBadge}</td>
@@ -427,6 +457,58 @@ $(document).ready(function () {
         if (savedNoteId) {
             window.open("issue-note-print.php?id=" + savedNoteId, "_blank");
         }
+    });
+
+    // Cancel Issue Note
+    $("#cancel_note").click(function (e) {
+        e.preventDefault();
+        var id = savedNoteId;
+
+        if (!id) {
+            swal("Error!", "No Issue Note selected", "error");
+            return;
+        }
+
+        swal({
+            title: "Are you sure?",
+            text: "This will cancel the issue note and return items to inventory balance.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, cancel it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: "ajax/php/issue-note.php",
+                type: "POST",
+                data: {
+                    action: "cancel_note",
+                    note_id: id
+                },
+                dataType: "JSON",
+                success: function (result) {
+                    if (result.status === "success") {
+                        swal({
+                            title: "Cancelled!",
+                            text: result.message,
+                            type: "success",
+                            timer: 1500
+                        }, function () {
+                            location.reload();
+                        });
+
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        swal("Error!", result.message, "error");
+                    }
+                },
+                error: function () {
+                    swal("Error!", "Server error occurred", "error");
+                }
+            });
+        });
     });
 
     // Create New
