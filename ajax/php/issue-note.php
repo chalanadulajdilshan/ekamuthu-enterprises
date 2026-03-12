@@ -378,7 +378,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
 if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     $DOCUMENT_TRACKING = new DocumentTracking(1);
     $lastId = $DOCUMENT_TRACKING->issue_note_id ?? 0;
-    $newCode = 'IN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
+    // Return a simple incremental code without the "IN/8/0" style prefix
+    $newCode = ($lastId + 1);
 
     echo json_encode([
         "status" => "success",
