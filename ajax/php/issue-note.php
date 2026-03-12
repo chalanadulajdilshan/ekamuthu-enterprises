@@ -51,6 +51,37 @@ if (isset($_POST['create'])) {
         exit();
     }
 
+    // Validate selected department matches the invoice's item department(s)
+    $deptCheckSql = "SELECT DISTINCT COALESCE(department_id, 0) AS dept_id FROM equipment_rent_items WHERE rent_id = " . (int)$_POST['rent_invoice_id'];
+    $deptCheckRes = $db->readQuery($deptCheckSql);
+    $deptIds = [];
+    while ($row = mysqli_fetch_assoc($deptCheckRes)) {
+        $deptIds[] = (int)$row['dept_id'];
+    }
+
+    $uniqueDeptIds = array_unique($deptIds);
+    if (count($uniqueDeptIds) > 1) {
+        echo json_encode(["status" => "error", "message" => "Invoice contains items from multiple departments. Issue Note must match a single department."]);
+        exit();
+    }
+
+    $invoiceDeptId = $uniqueDeptIds[0] ?? 0;
+    if ($invoiceDeptId > 0 && (int)$departmentId !== $invoiceDeptId) {
+        // Fetch friendly department name for the message
+        $deptName = '-';
+        $deptNameQuery = "SELECT name FROM department_master WHERE id = " . (int)$invoiceDeptId . " LIMIT 1";
+        $deptNameRes = mysqli_fetch_assoc($db->readQuery($deptNameQuery));
+        if ($deptNameRes && !empty($deptNameRes['name'])) {
+            $deptName = $deptNameRes['name'];
+        }
+
+        echo json_encode([
+            "status" => "error", 
+            "message" => "Issue Note department must match the invoice department (" . $deptName . ")."
+        ]);
+        exit();
+    }
+
     // ... validation logic remains the same (it calculates total issued vs ordered) ...
 
     // Decode items first for validation
@@ -62,8 +93,8 @@ if (isset($_POST['create'])) {
         $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : 'NULL';
         $rentId = (int)$_POST['rent_invoice_id'];
         
-        // Get total ordered for this line item
-        $orderedQuery = "SELECT SUM(quantity) as ordered FROM equipment_rent_items 
+        // Get total ordered (billed) for this line item
+        $orderedQuery = "SELECT SUM(bill_qty) as ordered FROM equipment_rent_items 
                          WHERE rent_id = $rentId 
                          AND equipment_id = $eqId 
                          AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))";
@@ -129,11 +160,81 @@ if (isset($_POST['create'])) {
             $ITEM->create();
         }
 
-        // 4. Update Invoice Issuing Status
+        // 3.5 Update rent item qty & amount for no-sub-equipment items
         $rentId = (int)$_POST['rent_invoice_id'];
+        foreach ($items as $item) {
+            $eqId = (int)$item['equipment_id'];
+            $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : null;
+            $issuedQty = (float)$item['issued_quantity'];
+
+            // Only for no sub equipment items
+            if (empty($subEqId)) {
+                // Find the matching rent item
+                $rentItemQuery = "SELECT id, quantity, bill_qty, amount, deposit_amount, total_rent_amount, total_returned_qty, department_id 
+                                  FROM equipment_rent_items 
+                                  WHERE rent_id = $rentId 
+                                  AND equipment_id = $eqId 
+                                  AND sub_equipment_id IS NULL 
+                                  LIMIT 1";
+                $rentItemRes = mysqli_fetch_assoc($db->readQuery($rentItemQuery));
+
+                if ($rentItemRes && $issuedQty != (float)$rentItemRes['quantity']) {
+                    $billQty = (float)$rentItemRes['bill_qty'];
+                    $oldAmount = (float)$rentItemRes['amount'];
+                    $oldDeposit = (float)$rentItemRes['deposit_amount'];
+                    $oldTotalRent = (float)$rentItemRes['total_rent_amount'];
+                    $totalReturnedQty = (float)$rentItemRes['total_returned_qty'];
+
+                    // Calculate per unit values based on bill_qty
+                    $perUnitAmount = ($billQty > 0) ? ($oldAmount / $billQty) : 0;
+                    $perUnitDeposit = ($billQty > 0) ? ($oldDeposit / $billQty) : 0;
+                    $perUnitTotalRent = ($billQty > 0) ? ($oldTotalRent / $billQty) : 0;
+
+                    // Calculate cumulative issued for this rent item (all notes, non-cancelled)
+                    $issuedTotalQuery = "SELECT SUM(ini.issued_quantity) as issued 
+                                         FROM issue_note_items ini 
+                                         INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                                         WHERE n.rent_invoice_id = $rentId 
+                                         AND ini.equipment_id = $eqId 
+                                         AND ini.sub_equipment_id IS NULL 
+                                         AND n.issue_status != 'cancelled'";
+                    $issuedTotalRes = mysqli_fetch_assoc($db->readQuery($issuedTotalQuery));
+                    $totalIssuedAll = (float)($issuedTotalRes['issued'] ?? 0);
+
+                    // New values based on cumulative issued quantity
+                    $newAmount = round($perUnitAmount * $totalIssuedAll, 2);
+                    $newDeposit = round($perUnitDeposit * $totalIssuedAll, 2);
+                    $newTotalRent = round($perUnitTotalRent * $totalIssuedAll, 2);
+                    $newPendingQty = max(0, $totalIssuedAll - $totalReturnedQty);
+
+                    // Adjust rented_qty by the delta between previous stored qty and cumulative issued
+                    $previousQty = (float)$rentItemRes['quantity'];
+                    $deptId = (int)$rentItemRes['department_id'];
+                    $qtyDiff = $totalIssuedAll - $previousQty;
+                    if ($qtyDiff !== 0 && !empty($deptId)) {
+                        $restockSql = "UPDATE sub_equipment 
+                                       SET rented_qty = GREATEST(0, rented_qty + ($qtyDiff)) 
+                                       WHERE equipment_id = $eqId AND department_id = $deptId";
+                        $db->readQuery($restockSql);
+                    }
+
+                    $updateSql = "UPDATE equipment_rent_items 
+                                  SET quantity = $totalIssuedAll, 
+                                      amount = $newAmount, 
+                                      deposit_amount = $newDeposit, 
+                                      total_rent_amount = $newTotalRent,
+                                      pending_qty = $newPendingQty
+                                  WHERE id = " . (int)$rentItemRes['id'];
+                    $db->readQuery($updateSql);
+                }
+            }
+        }
+
+        // 4. Update Invoice Issuing Status
         
         // Calculate totals for the whole invoice
-        $totalOrderedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentId";
+        // Use billed quantities (bill_qty) to preserve original order totals
+        $totalOrderedSql = "SELECT SUM(bill_qty) as total FROM equipment_rent_items WHERE rent_id = $rentId";
         $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 
                            FROM issue_note_items ini 
                            INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
@@ -221,7 +322,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                 // Determine already issued qty
                 $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL');
                 $alreadyIssued = $issuedMap[$key] ?? 0;
-                $orderedQty = (float)$item['quantity'];
+                $orderedQty = (float)$item['bill_qty']; // Use billed quantity as ordered
                 $remainingQty = max(0, $orderedQty - $alreadyIssued);
 
                 // Calculate Return Date
@@ -300,8 +401,31 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_note') {
             }
             $NOTE->issue_status = 'cancelled';
             if ($NOTE->update()) {
-                // Recalculate Invoice Issuing Status
+                // Restore rent item qty to bill_qty for no-sub-equipment items
                 $rentId = (int)$NOTE->rent_invoice_id;
+                
+                // Get cancelled note's items
+                $cancelledItemsSql = "SELECT equipment_id, sub_equipment_id, issued_quantity 
+                                      FROM issue_note_items WHERE issue_note_id = " . (int)$note_id;
+                $cancelledItemsRes = $db->readQuery($cancelledItemsSql);
+                while ($cItem = mysqli_fetch_assoc($cancelledItemsRes)) {
+                    if (empty($cItem['sub_equipment_id'])) {
+                        $cEqId = (int)$cItem['equipment_id'];
+                        // Restore quantity and amount to bill_qty values
+                        $restoreSql = "UPDATE equipment_rent_items 
+                                       SET quantity = bill_qty, 
+                                           amount = CASE WHEN bill_qty > 0 THEN ROUND((amount / GREATEST(quantity, 1)) * bill_qty, 2) ELSE amount END,
+                                           deposit_amount = CASE WHEN bill_qty > 0 THEN ROUND((deposit_amount / GREATEST(quantity, 1)) * bill_qty, 2) ELSE deposit_amount END,
+                                           total_rent_amount = CASE WHEN bill_qty > 0 THEN ROUND((total_rent_amount / GREATEST(quantity, 1)) * bill_qty, 2) ELSE total_rent_amount END,
+                                           pending_qty = bill_qty - COALESCE(total_returned_qty, 0)
+                                       WHERE rent_id = $rentId 
+                                       AND equipment_id = $cEqId 
+                                       AND sub_equipment_id IS NULL";
+                        $db->readQuery($restoreSql);
+                    }
+                }
+
+                // Recalculate Invoice Issuing Status
                 
                 $totalOrderedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentId";
                 $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 

@@ -275,10 +275,6 @@ class EquipmentRent
             $where .= " AND (er.bill_number LIKE '%$search%' OR cm.name LIKE '%$search%' OR cm.code LIKE '%$search%' OR cm.nic LIKE '%$search%')";
         }
 
-        if (!empty($request['exclude_issued'])) {
-            $where .= " AND er.issue_status != 2";
-        }
-
         if (!empty($request['exclude_returned'])) {
             $where .= " AND er.status != 'returned'";
         }
@@ -286,7 +282,7 @@ class EquipmentRent
         // Base FROM/JOIN for reuse
         $fromJoin = "FROM equipment_rent er LEFT JOIN customer_master cm ON er.customer_id = cm.id";
 
-        // pending_only / returned_only / company_outstanding_only filter handling
+        // pending_only / returned_only / company_outstanding_only / exclude_issued filter handling
         $havingClauses = [];
         if (!empty($request['pending_only'])) {
             $havingClauses[] = "outstanding_items > 0";
@@ -298,14 +294,22 @@ class EquipmentRent
             $havingClauses[] = "company_outstanding_total > 0";
         }
 
+        if (!empty($request['exclude_issued'])) {
+            $havingClauses[] = "COALESCE(billed_total,0) > COALESCE(issued_total,0)";
+        }
+
         $pendingOnlyHaving = "";
         if (!empty($havingClauses)) {
             $pendingOnlyHaving = "HAVING " . implode(" AND ", $havingClauses);
         }
 
-        // Filtered records count (respect pending_only)
+        // Filtered records count (respect pending_only and exclude_issued via remaining_qty)
         $filteredSql = "SELECT COUNT(*) as filtered FROM (
                             SELECT er.id,
+                                   (SELECT SUM(bill_qty) FROM equipment_rent_items eri WHERE eri.rent_id = er.id) AS billed_total,
+                                   (SELECT SUM(ini.issued_quantity) FROM issue_note_items ini 
+                                        INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                                        WHERE n.rent_invoice_id = er.id AND n.issue_status != 'cancelled') AS issued_total,
                                    (SELECT COUNT(*) FROM equipment_rent_items eri
                                        WHERE eri.rent_id = er.id AND (eri.status = 'rented' OR (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id),0)) > 0)
                                    ) AS outstanding_items,
@@ -321,12 +325,16 @@ class EquipmentRent
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
-        // Data query with outstanding counts
+        // Data query with outstanding counts and issued/billed totals
         $sql = "SELECT er.*, cm.name as customer_name, cm.code as customer_code,
                        (SELECT COUNT(*) FROM equipment_rent_items eri WHERE eri.rent_id = er.id) AS total_items,
                        (SELECT COUNT(*) FROM equipment_rent_items eri
                           WHERE eri.rent_id = er.id AND (eri.status = 'rented' OR (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id),0)) > 0)
                        ) AS outstanding_items,
+                       (SELECT SUM(bill_qty) FROM equipment_rent_items eri WHERE eri.rent_id = er.id) AS billed_total,
+                       (SELECT SUM(ini.issued_quantity) FROM issue_note_items ini 
+                            INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                            WHERE n.rent_invoice_id = er.id AND n.issue_status != 'cancelled') AS issued_total,
                        (SELECT COALESCE(SUM(err.company_outstanding), 0)
                             FROM equipment_rent_returns err
                             INNER JOIN equipment_rent_items eri ON err.rent_item_id = eri.id

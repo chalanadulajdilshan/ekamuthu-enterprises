@@ -8,6 +8,7 @@ class EquipmentRentItem
     public $sub_equipment_id;
     public $rental_date;
     public $quantity;
+    public $bill_qty;
     public $total_returned_qty;
     public $pending_qty;
     public $rent_type;
@@ -35,6 +36,7 @@ class EquipmentRentItem
                 $this->sub_equipment_id = $result['sub_equipment_id'];
                 $this->rental_date = $result['rental_date'];
                 $this->quantity = $result['quantity'];
+                $this->bill_qty = $result['bill_qty'] ?? $result['quantity'];
                 $this->total_returned_qty = $result['total_returned_qty'] ?? 0;
                 $this->pending_qty = $result['pending_qty'] ?? $result['quantity'];
                 $this->rent_type = $result['rent_type'];
@@ -62,9 +64,9 @@ class EquipmentRentItem
         $now = date('Y-m-d H:i:s');
 
         $query = "INSERT INTO `equipment_rent_items` (
-            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `rent_type`, `duration`, `amount`, `total_rent_amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`, `created_at`
+            `rent_id`, `equipment_id`, `sub_equipment_id`, `rental_date`, `quantity`, `bill_qty`, `rent_type`, `duration`, `amount`, `total_rent_amount`, `status`, `remark`, `deposit_amount`, `total_returned_qty`, `pending_qty`, `department_id`, `created_at`
         ) VALUES (
-            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->total_rent_amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue, '$now'
+            '$this->rent_id', '$this->equipment_id', $subEquipmentValue, '$this->rental_date', '$this->quantity', '$this->quantity', '$this->rent_type', '$this->duration', '$this->amount', '$this->total_rent_amount', '$this->status', '$this->remark', '$this->deposit_amount', '0', '$this->quantity', $deptValue, '$now'
         )";
 
         $db = Database::getInstance();

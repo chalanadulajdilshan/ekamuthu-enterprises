@@ -122,6 +122,13 @@ ALTER TABLE `customer_master`
 ADD COLUMN `is_blacklisted` TINYINT(1) DEFAULT 0,
 ADD COLUMN `blacklist_reason` TEXT DEFAULT NULL;
 
+-- Add bill_qty column to store original billed quantity (before issue note adjustments)
+ALTER TABLE `equipment_rent_items` 
+ADD COLUMN `bill_qty` INT(11) NOT NULL DEFAULT 0 AFTER `quantity`;
+
+-- Initialize bill_qty with current quantity for existing data
+UPDATE `equipment_rent_items` SET `bill_qty` = `quantity` WHERE `bill_qty` = 0;
+
 -- Deposit Payment Tracking
 CREATE TABLE IF NOT EXISTS `deposit_payments` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,

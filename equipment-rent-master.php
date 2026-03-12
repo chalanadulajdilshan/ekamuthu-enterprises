@@ -478,6 +478,7 @@ $bill_number = $lastId + 1;
                                                         <th>Department</th>
                                                         <th>Type</th>
                                                         <th class="duration-col">Duration</th>
+                                                        <th>Bill Qty</th>
                                                         <th>Qty</th>
                                                         <th>Returned</th>
                                                         <th>Amount</th>

@@ -330,6 +330,9 @@ jQuery(document).ready(function () {
           "</span>" +
           "</td>" +
           "<td>" +
+          parseFloat(item.bill_qty || item.quantity || 0).toFixed(0) +
+          "</td>" +
+          "<td>" +
           parseFloat(item.quantity).toFixed(0) +
           "</td>" +
           "<td>" +
@@ -621,6 +624,7 @@ jQuery(document).ready(function () {
       rent_type: $("#item_rent_type").val(),
       duration: $("#item_duration").val(),
       quantity: $("#item_qty").val(),
+      bill_qty: $("#item_qty").val(),
       returned_qty: $("#item_returned_qty").val() || 0,
       // Store raw numeric amount (avoid formatted strings like 20,000.00)
       amount: parseAmount($("#item_amount").val()),
@@ -1261,6 +1265,7 @@ jQuery(document).ready(function () {
               rent_type: item.rent_type,
               duration: item.duration,
               quantity: item.quantity,
+              bill_qty: item.bill_qty || item.quantity,
               // use aggregated values from returns table
               total_returned_qty: item.total_returned_qty || 0,
               pending_qty:

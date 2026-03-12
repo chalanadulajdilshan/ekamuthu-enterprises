@@ -174,8 +174,8 @@ if (!empty($customerMobile)) {
                                 <th>කේතය</th>
                                 <th>වර්ගය</th>
                                 <th>ආපසු දින</th>
-                                <th class="text-center">ඇණවුම්</th>
-                                <th class="text-center">නිකුත්</th>
+                                <th class="text-center">ඇණවුම් (Bill Qty)</th>
+                                <th class="text-center">නිකුත් (Issued Qty)</th>
                                 <th>Remarks</th>
                             </tr>
                         </thead>
@@ -204,7 +204,7 @@ if (!empty($customerMobile)) {
                                     </td>
                                     <td class="text-center"><?php echo $returnDate; ?></td>
                                     <td class="text-center"><?php echo intval($item['ordered_quantity'] ?? 0); ?></td>
-                                    <td></td>
+                                    <td class="text-center"><?php echo intval($item['issued_quantity'] ?? 0); ?></td>
                                     <td><?php echo htmlspecialchars($item['remarks'] ?? '-'); ?></td>
                                 </tr>
                             <?php endforeach; ?>

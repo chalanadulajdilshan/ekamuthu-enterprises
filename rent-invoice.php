@@ -36,6 +36,23 @@ $paymentRemarks = $INVOICE_REMARK->getActiveGroups();
 // Get rent items
 $rent_items = $EQUIPMENT_RENT->getItems();
 
+// DB instance for queries
+$db = Database::getInstance();
+
+// Issued quantities per equipment/sub-equipment for this rent
+$issuedMap = [];
+$issuedQuery = "SELECT ini.equipment_id, ini.sub_equipment_id, SUM(ini.issued_quantity) AS total_issued
+                FROM issue_note_items ini
+                INNER JOIN issue_notes n ON ini.issue_note_id = n.id
+                WHERE n.rent_invoice_id = " . (int)$rent_id . "
+                AND n.issue_status != 'cancelled'
+                GROUP BY ini.equipment_id, ini.sub_equipment_id";
+$issuedResult = $db->readQuery($issuedQuery);
+while ($row = mysqli_fetch_assoc($issuedResult)) {
+    $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL');
+    $issuedMap[$key] = (float)($row['total_issued'] ?? 0);
+}
+
 // Determine rent label based on rent types (daily vs monthly vs mixed)
 $rent_types = array_unique(array_map(function ($ri) {
     return $ri['rent_type'] ?? '';
@@ -570,7 +587,8 @@ if (!empty($customerMobile)) {
                                 <th>Code</th>
                                 <th>Type</th>
                                 <th>Duration</th>
-                                <th class="text-center">Qty</th>
+                                <th class="text-center">Bill Qty</th>
+                                <th class="text-center">Issued Qty</th>
                                 <th class="text-end">Amount</th>
                             </tr>
                         </thead>
@@ -597,7 +615,13 @@ if (!empty($customerMobile)) {
                                         echo ($item['rent_type'] === 'month') ? ' Months' : ' Days';
                                         ?>
                                     </td>
-                                    <td class="text-center"><?php echo intval($item['quantity'] ?? 1); ?></td>
+                                    <?php
+                                        $billQty = isset($item['bill_qty']) ? (float)$item['bill_qty'] : (float)($item['quantity'] ?? 0);
+                                        $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ?? 'NULL');
+                                        $issuedQty = isset($issuedMap[$key]) ? (float)$issuedMap[$key] : 0;
+                                    ?>
+                                    <td class="text-center"><?php echo intval($billQty); ?></td>
+                                    <td class="text-center"><?php echo intval($issuedQty); ?></td>
                                     <td class="text-end"><?php echo number_format($item['amount'], 2); ?></td>
                                 </tr>
                             <?php endforeach; ?>
