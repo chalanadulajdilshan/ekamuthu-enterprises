@@ -60,14 +60,29 @@ class CustomerMaster
     {
         $db = Database::getInstance();
         $is_company = $this->is_company ?? 0;
-        
+        // Escape string inputs to prevent SQL syntax errors (e.g. apostrophes in addresses)
+        $code = $db->escapeString($this->code ?? '');
+        $name = $db->escapeString($this->name ?? '');
+        $address = $db->escapeString($this->address ?? '');
+        $mobile_number = $db->escapeString($this->mobile_number ?? '');
+        $mobile_number_2 = $db->escapeString($this->mobile_number_2 ?? '');
+        $old_outstanding = is_numeric($this->old_outstanding) ? $this->old_outstanding : 0;
+        $remark = $db->escapeString($this->remark ?? '');
+        $nic = $db->escapeString($this->nic ?? '');
+        $utility_bill_no = $db->escapeString($this->utility_bill_no ?? '');
+        $workplace_address = $db->escapeString($this->workplace_address ?? '');
+        $guarantor_name = $db->escapeString($this->guarantor_name ?? '');
+        $guarantor_nic = $db->escapeString($this->guarantor_nic ?? '');
+        $guarantor_address = $db->escapeString($this->guarantor_address ?? '');
+        $company_document = $db->escapeString($this->company_document ?? '');
+
         // First insert without images to get the customer ID
         $query = "INSERT INTO `customer_master` (
                     `code`, `name`, `address`, `mobile_number`, `mobile_number_2`, `old_outstanding`, `remark`, `nic`, `utility_bill_no`,
                     `workplace_address`, `guarantor_name`, `guarantor_nic`, `guarantor_address`, `is_company`, `company_document`
                 ) VALUES (
-                    '{$this->code}', '{$this->name}', '{$this->address}', '{$this->mobile_number}', '{$this->mobile_number_2}', '{$this->old_outstanding}', '{$this->remark}', '{$this->nic}', '{$this->utility_bill_no}',
-                    '{$this->workplace_address}', '{$this->guarantor_name}', '{$this->guarantor_nic}', '{$this->guarantor_address}', '$is_company', '{$this->company_document}'
+                    '{$code}', '{$name}', '{$address}', '{$mobile_number}', '{$mobile_number_2}', '{$old_outstanding}', '{$remark}', '{$nic}', '{$utility_bill_no}',
+                    '{$workplace_address}', '{$guarantor_name}', '{$guarantor_nic}', '{$guarantor_address}', '$is_company', '{$company_document}'
                 )";
         $result = $db->readQuery($query);
 
@@ -183,15 +198,20 @@ class CustomerMaster
     public function createInvoiceCustomer()
     {
         $mobile_number_2 = $this->mobile_number_2 ? $this->mobile_number_2 : '0';
+        $db = Database::getInstance();
+        $code = $db->escapeString($this->code ?? '');
+        $name = $db->escapeString($this->name ?? '');
+        $address = $db->escapeString($this->address ?? '');
+        $mobile_number = $db->escapeString($this->mobile_number ?? '');
+        $mobile_number_2 = $db->escapeString($mobile_number_2);
 
         $query = "INSERT INTO `customer_master` (
                     `code`, `name`, `address`, `mobile_number`, `mobile_number_2`, `old_outstanding`, `remark`
                 ) VALUES (
-                    '{$this->code}', '{$this->name}', '{$this->address}', '{$this->mobile_number}', '{$mobile_number_2}', '0', '0'
+                    '{$code}', '{$name}', '{$address}', '{$mobile_number}', '{$mobile_number_2}', '0', '0'
                 )";
 
 
-        $db = Database::getInstance();
         $result = $db->readQuery($query);
 
         if ($result) {
@@ -207,24 +227,40 @@ class CustomerMaster
         $db = Database::getInstance();
         $is_company = $this->is_company ?? 0;
         $company_name = $this->company_name ?? ''; // Default to empty string if not set
+        // Escape string inputs to prevent SQL syntax errors
+        $code = $db->escapeString($this->code ?? '');
+        $name = $db->escapeString($this->name ?? '');
+        $address = $db->escapeString($this->address ?? '');
+        $mobile_number = $db->escapeString($this->mobile_number ?? '');
+        $mobile_number_2 = $db->escapeString($this->mobile_number_2 ?? '');
+        $old_outstanding = is_numeric($this->old_outstanding) ? $this->old_outstanding : 0;
+        $remark = $db->escapeString($this->remark ?? '');
+        $nic = $db->escapeString($this->nic ?? '');
+        $utility_bill_no = $db->escapeString($this->utility_bill_no ?? '');
+        $workplace_address = $db->escapeString($this->workplace_address ?? '');
+        $guarantor_name = $db->escapeString($this->guarantor_name ?? '');
+        $guarantor_nic = $db->escapeString($this->guarantor_nic ?? '');
+        $guarantor_address = $db->escapeString($this->guarantor_address ?? '');
+        $company_document = $db->escapeString($this->company_document ?? '');
+        $company_name = $db->escapeString($company_name);
         
         $query = "UPDATE `customer_master` SET 
-                    `code` = '{$this->code}', 
-                    `name` = '{$this->name}', 
-                    `address` = '{$this->address}', 
-                    `mobile_number` = '{$this->mobile_number}', 
-                    `mobile_number_2` = '{$this->mobile_number_2}', 
-                    `old_outstanding` = '{$this->old_outstanding}', 
-                    `remark` = '{$this->remark}', 
-                    `nic` = '{$this->nic}',
-                    `utility_bill_no` = '{$this->utility_bill_no}',
-                    `workplace_address` = '{$this->workplace_address}',
-                    `guarantor_name` = '{$this->guarantor_name}',
-                    `guarantor_nic` = '{$this->guarantor_nic}',
-                    `guarantor_address` = '{$this->guarantor_address}',
+                    `code` = '{$code}', 
+                    `name` = '{$name}', 
+                    `address` = '{$address}', 
+                    `mobile_number` = '{$mobile_number}', 
+                    `mobile_number_2` = '{$mobile_number_2}', 
+                    `old_outstanding` = '{$old_outstanding}', 
+                    `remark` = '{$remark}', 
+                    `nic` = '{$nic}',
+                    `utility_bill_no` = '{$utility_bill_no}',
+                    `workplace_address` = '{$workplace_address}',
+                    `guarantor_name` = '{$guarantor_name}',
+                    `guarantor_nic` = '{$guarantor_nic}',
+                    `guarantor_address` = '{$guarantor_address}',
                     `is_company` = '$is_company',
                     `company_name` = '{$company_name}',
-                    `company_document` = '{$this->company_document}'
+                    `company_document` = '{$company_document}'
                 WHERE `id` = '{$this->id}'";
 
         $result = $db->readQuery($query);
