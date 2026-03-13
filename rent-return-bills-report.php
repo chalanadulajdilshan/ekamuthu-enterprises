@@ -146,6 +146,13 @@ include 'auth.php';
 
 <body data-layout="horizontal" data-topbar="colored" class="someBlock">
 
+    <!-- Page Preloader -->
+    <div id="page-preloader" class="preloader full-preloader">
+        <div class="preloader-container">
+            <div class="preloader-animation"></div>
+        </div>
+    </div>
+
     <!-- Begin page -->
     <div id="layout-wrapper">
         <?php include 'navigation.php'; ?>

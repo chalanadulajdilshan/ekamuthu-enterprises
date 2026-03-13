@@ -249,7 +249,8 @@ $(document).ready(function () {
                 // We don't manually clear the table here because DataTables handles state
                 // but let's clear it just in case
                 reportTable.clear().draw();
-                // Custom loading overlay if needed or use the built-in processing
+                // Show page preloader for clearer feedback
+                $("#page-preloader").show();
             },
             success: function (response) {
                 console.log("Server response:", response);
@@ -278,6 +279,10 @@ $(document).ready(function () {
                     response: xhr.responseText,
                 });
                 alert("Error loading data. Please check console for details.");
+            },
+            complete: function () {
+                // Hide page preloader once request finishes
+                $("#page-preloader").hide();
             }
         });
     }
