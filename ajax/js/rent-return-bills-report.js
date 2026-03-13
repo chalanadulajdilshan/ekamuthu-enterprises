@@ -86,6 +86,7 @@ $(document).ready(function () {
                 }
             },
             { data: 'profit_balance', className: 'text-end fw-bold' },
+            { data: 'payment_type', render: function (data) { return data || '-'; } },
             { data: 'remarks' }
         ],
         order: [[3, 'desc']], // Sort by date by default
@@ -535,6 +536,7 @@ $(document).ready(function () {
                 <th style="width: 5%; text-align: right;">තැන්පතුව</th>
                 <th style="width: 5%; text-align: right;">ලාභය</th>
                 <th style="width: 6%; text-align: right;">අතිරේක</th>
+                <th style="width: 6%; text-align: right;">ගෙවීම් විධානය</th>
               </tr>
           </thead>
           <tbody>`;
@@ -558,6 +560,7 @@ $(document).ready(function () {
                   <td class="text-right">${formatNumber(item.deposit)}</td>
                   <td class="text-right">${formatNumber(item.amount)}</td>
                   <td class="text-right">${formatNumber(item.extra_amount)}</td>
+                  <td class="text-right">${item.payment_type || '-'}</td>
               </tr>`;
         });
 

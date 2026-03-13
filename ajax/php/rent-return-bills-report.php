@@ -57,6 +57,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 CAST(cm.mobile_number AS CHAR) as customer_tel,
                 CAST(cm.address AS CHAR) as customer_address,
                 CAST(cm.nic AS CHAR) as customer_nic,
+                pt.name as payment_type,
                 e.item_name,
                 se.code as sub_item_code,
                 eri.amount as item_amount,
@@ -70,6 +71,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             LEFT JOIN `equipment_rent_items` eri ON er.id = eri.rent_id
             LEFT JOIN `equipment` e ON eri.equipment_id = e.id
             LEFT JOIN `sub_equipment` se ON eri.sub_equipment_id = se.id
+            LEFT JOIN `payment_type` pt ON er.payment_type_id = pt.id
             WHERE $rentWhere
             ORDER BY er.id DESC
         ";
@@ -94,6 +96,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                     'deposit' => $row['deposit'],
                     'transport_cost' => $row['transport_cost'],
                     'remarks' => $row['remarks'],
+                    'payment_type' => $row['payment_type'] ?? '- ',
                     'items' => [],
                     'total_qty' => 0,
                     'total_amount' => 0
@@ -164,6 +167,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                 CAST(cm.mobile_number AS CHAR) as customer_tel,
                 CAST(cm.address AS CHAR) as customer_address,
                 CAST(cm.nic AS CHAR) as customer_nic,
+                pt.name as payment_type,
                 e.item_name,
                 se.code as sub_item_code,
                 eri.amount as base_item_amount,
@@ -180,6 +184,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             LEFT JOIN `customer_master` cm ON er.customer_id = cm.id
             LEFT JOIN `equipment` e ON eri.equipment_id = e.id
             LEFT JOIN `sub_equipment` se ON eri.sub_equipment_id = se.id
+            LEFT JOIN `payment_type` pt ON er.payment_type_id = pt.id
             INNER JOIN (
                 SELECT status as rent_status, id FROM `equipment_rent`
             ) er_status ON er.id = er_status.id
@@ -221,6 +226,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
                     'transport_cost' => 0,
                     'remarks' => $row['remarks'],
                     'after_9am' => intval($row['after_9am_extra_day']),
+                    'payment_type' => $row['payment_type'] ?? '- ',
                     'items' => []
                 ];
             }
@@ -312,6 +318,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             'quantity' => $billTotalQty,
             'deposit' => $bill['deposit'],
             'profit_balance' => ($bill['rent_status'] === 'returned' && $bill['bill_type'] === 'Return') ? number_format($bill['deposit'] - ($billTotalAmount + $billTotalExtraAmount), 2) : '-',
+            'payment_type' => $bill['payment_type'] ?? '- ',
             // Send raw numbers to avoid comma-induced truncation in JS
             'amount' => round($billTotalAmount, 2),
             'extra_amount_list' => implode(', ', array_map(function($v) { return number_format($v, 2); }, $displayExtraAmounts)),

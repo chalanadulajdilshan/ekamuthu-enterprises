@@ -290,6 +290,7 @@ include 'auth.php';
                                                 <th class="text-end">Profit</th>
                                                 <th class="text-end">Extra Amount</th>
                                                 <th class="text-end">Refund / Cash In</th>
+                                                <th>Payment Type</th>
                                                 <th>Remarks</th>
                                             </tr>
                                         </thead>
@@ -304,6 +305,7 @@ include 'auth.php';
                                                 <td id="totalAmount" class="text-end fw-bold">0.00</td>
                                                 <td id="totalExtraAmount" class="text-end fw-bold">0.00</td>
                                                 <td id="totalProfit" class="text-end fw-bold">0.00</td>
+                                                <td></td>
                                                 <td></td>
                                             </tr>
                                         </tfoot>
