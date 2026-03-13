@@ -199,9 +199,12 @@ $(document).ready(function () {
                         return {
                             equipment_id: item.equipment_id,
                             sub_equipment_id: item.sub_equipment_id,
+                            department_id: item.department_id,
+                            department_name: item.department_name,
                             equipment_name: item.equipment_name,
                             sub_equipment_code: item.sub_equipment_code,
                             rent_type: item.rent_type,
+                            return_date: item.return_date,
                             ordered_quantity: ordered,
                             already_issued: alreadyIssued,
                             remaining_quantity: remaining,
@@ -270,6 +273,8 @@ $(document).ready(function () {
                         return {
                             equipment_id: item.equipment_id,
                             sub_equipment_id: item.sub_equipment_id,
+                            department_id: item.department_id,
+                            department_name: item.department_name,
                             equipment_name: item.equipment_name,
                             sub_equipment_code: item.sub_equipment_code,
                             rent_type: item.rent_type,
@@ -322,6 +327,10 @@ $(document).ready(function () {
             var row = `
                 <tr class="${bgClass}">
                     <td>${index + 1}</td>
+                    <td>
+                        <span class="badge bg-soft-info text-info font-size-12">${item.department_name || '-'}</span>
+                        <input type="hidden" class="department_id" value="${item.department_id || ''}">
+                    </td>
                     <td>${itemName}
                         <input type="hidden" class="equipment_id" value="${item.equipment_id}">
                         <input type="hidden" class="sub_equipment_id" value="${item.sub_equipment_id || ''}">

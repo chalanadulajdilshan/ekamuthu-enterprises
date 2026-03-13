@@ -6,6 +6,7 @@ class IssueNoteItem
     public $issue_note_id;
     public $equipment_id;
     public $sub_equipment_id;
+    public $department_id;
     public $ordered_quantity;
     public $issued_quantity;
     public $rent_type;
@@ -26,6 +27,7 @@ class IssueNoteItem
                 $this->issue_note_id = $result['issue_note_id'];
                 $this->equipment_id = $result['equipment_id'];
                 $this->sub_equipment_id = $result['sub_equipment_id'];
+                $this->department_id = $result['department_id'];
                 $this->ordered_quantity = $result['ordered_quantity'];
                 $this->issued_quantity = $result['issued_quantity'];
                 $this->rent_type = $result['rent_type'];
@@ -41,11 +43,12 @@ class IssueNoteItem
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_note_items` (
-            `issue_note_id`, `equipment_id`, `sub_equipment_id`, `ordered_quantity`, `issued_quantity`, `rent_type`, `duration`, `remarks`
+            `issue_note_id`, `equipment_id`, `sub_equipment_id`, `department_id`, `ordered_quantity`, `issued_quantity`, `rent_type`, `duration`, `remarks`
         ) VALUES (
             '" . (int) $this->issue_note_id . "',
             '" . (int) $this->equipment_id . "',
             " . ($this->sub_equipment_id ? (int) $this->sub_equipment_id : "NULL") . ",
+            " . ($this->department_id ? (int) $this->department_id : "NULL") . ",
             '" . (int) $this->ordered_quantity . "',
             '" . (int) $this->issued_quantity . "',
             '" . $db->escapeString($this->rent_type) . "',
@@ -73,10 +76,12 @@ class IssueNoteItem
     {
         $query = "SELECT ini.*, 
                   e.code as equipment_code, e.item_name as equipment_name,
-                  se.code as sub_equipment_code
+                  se.code as sub_equipment_code,
+                  dm.name as department_name
                   FROM `issue_note_items` ini
                   LEFT JOIN `equipment` e ON ini.equipment_id = e.id
                   LEFT JOIN `sub_equipment` se ON ini.sub_equipment_id = se.id
+                  LEFT JOIN `department_master` dm ON ini.department_id = dm.id
                   WHERE ini.issue_note_id = " . (int) $issue_note_id . "
                   ORDER BY ini.id ASC";
         

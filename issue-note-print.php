@@ -170,6 +170,7 @@ if (!empty($customerMobile)) {
                         <thead class="table-light">
                             <tr>
                                 <th>No.</th>
+                                <th>Department</th>
                                 <th>උපකරණ නම</th>
                                 <th>කේතය</th>
                                 <th>වර්ගය</th>
@@ -193,6 +194,7 @@ if (!empty($customerMobile)) {
                             ?>
                                 <tr>
                                     <td><?php echo str_pad($row_num, 2, '0', STR_PAD_LEFT); ?></td>
+                                    <td><span style="font-size:11px;"><?php echo htmlspecialchars($item['department_name'] ?? '-'); ?></span></td>
                                     <td><?php echo htmlspecialchars($item['equipment_name'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($item['sub_equipment_code'] ?? '-'); ?></td>
                                     <td>
@@ -220,12 +222,13 @@ if (!empty($customerMobile)) {
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
                                 </tr>
                             <?php endfor; ?>
                         </tbody>
                         <tfoot style="font-size:13px; font-weight:bold; background-color: #f8f9fa;">
                             <tr>
-                                <td colspan="5" style="text-align:right;">Total:</td>
+                                <td colspan="6" style="text-align:right;">Total:</td>
                                 <td style="text-align:center;">
                                     <?php 
                                     echo array_sum(array_column($note_items, 'ordered_quantity')); 

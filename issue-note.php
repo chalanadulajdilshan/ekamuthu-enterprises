@@ -147,7 +147,8 @@ $issue_note_code = ($lastId + 1);
                                                     <table class="table table-bordered table-striped" id="issueItemsTable">
                                                         <thead class="table-light">
                                                             <tr>
-                                                                <th style="width: 50px;">#</th>
+                                                                    <th style="width: 50px;">#</th>
+                                                                <th>Department</th>
                                                                 <th>Item Name</th>
                                                                 <th>Rent Type</th>
                                                                 <th>Return Date</th>
@@ -170,7 +171,7 @@ $issue_note_code = ($lastId + 1);
                                                         </tbody>
                                                         <tfoot class="table-light" id="issueItemsFooter" style="display: none;">
                                                             <tr class="fw-bold">
-                                                                <td colspan="4" class="text-end">Total:</td>
+                                                                <td colspan="5" class="text-end">Total:</td>
                                                                 <td class="text-center" id="total_ordered">0</td>
                                                                 <td></td>
                                                                 <td></td>

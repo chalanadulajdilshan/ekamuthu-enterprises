@@ -45,12 +45,6 @@ if (isset($_POST['create'])) {
         $existingNote = new IssueNote($note_id);
         $departmentId = $existingNote->department_id;
     }
-
-    if (empty($departmentId) || $departmentId === '0') {
-        echo json_encode(["status" => "error", "message" => "Department is required"]);
-        exit();
-    }
-
     // Decode items first for validation
     $items = json_decode($_POST['items'] ?? '[]', true);
 
@@ -161,6 +155,7 @@ if (isset($_POST['create'])) {
             $ITEM->issue_note_id = $note_id;
             $ITEM->equipment_id = $item['equipment_id'];
             $ITEM->sub_equipment_id = $item['sub_equipment_id'] ?? null;
+            $ITEM->department_id = $item['department_id'] ?? null;
             $ITEM->ordered_quantity = $item['ordered_quantity'];
             $ITEM->issued_quantity = $item['issued_quantity'];
             $ITEM->rent_type = $item['rent_type'];
@@ -312,6 +307,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                 $orderedQty = (float)$item['bill_qty']; // Use billed quantity as ordered
                 $remainingQty = max(0, $orderedQty - $alreadyIssued);
 
+                // Fetch department info for the item
+                $itemDeptName = '-';
+                if (!empty($item['department_id'])) {
+                    $dQuery = "SELECT name FROM department_master WHERE id = " . (int)$item['department_id'];
+                    $dRes = mysqli_fetch_assoc($db->readQuery($dQuery));
+                    $itemDeptName = $dRes['name'] ?? '-';
+                }
+
                 // Calculate Return Date
                 $rentalDate = $item['rental_date'];
                 $duration = (float)$item['duration'];
@@ -323,6 +326,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                 $formattedItems[] = [
                     'equipment_id' => $item['equipment_id'],
                     'sub_equipment_id' => $item['sub_equipment_id'],
+                    'department_id' => $item['department_id'],
+                    'department_name' => $itemDeptName,
                     'equipment_name' => $item['equipment_name'],
                     'sub_equipment_code' => $item['sub_equipment_code'],
                     'quantity' => $orderedQty,          // Total Billed Qty
