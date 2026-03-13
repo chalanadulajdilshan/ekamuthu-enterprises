@@ -489,11 +489,15 @@ if (!empty($customerMobile)) {
 
         .invoice-meta {
             margin-top: 10px !important;
-            padding: 4px 10px;
+            padding: 6px 12px;
             min-width: 230px;
             display: inline-block;
             border: none;
             background: transparent;
+        }
+
+        .invoice-meta p {
+            font-size: 20px !important;
         }
 
         .summary-table td {
@@ -580,7 +584,7 @@ if (!empty($customerMobile)) {
 
                     <div class="col-md-6 text-sm-start text-md-end">
                         <div class="invoice-meta">
-                            <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></p>
+                            <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <strong><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></strong></p>
                             <p class="mb-1" style="font-size:14px;"><strong>Issued Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
                             <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
                                 <p class="mb-1" style="font-size:14px;"><strong>Rented Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
