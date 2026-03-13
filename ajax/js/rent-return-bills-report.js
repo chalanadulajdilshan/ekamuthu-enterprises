@@ -181,6 +181,7 @@ $(document).ready(function () {
         const fromDate = $("#fromDate").val();
         const toDate = $("#toDate").val();
         const billNo = $("#billNo").val().trim();
+        const paymentType = $("#paymentType").val();
 
         // Validation: require either date range or bill number
         if ((!fromDate || !toDate) && billNo === "") {
@@ -196,6 +197,7 @@ $(document).ready(function () {
         $("#reportForm")[0].reset();
         $("#billType").val("all");
         $("#rentType").val("all");
+        $("#paymentType").val("all");
         $("#reportInfoSection").hide();
         reportTable.clear().draw();
         $("#totalAmount").text("0.00");
@@ -221,6 +223,7 @@ $(document).ready(function () {
         const billType = $("#billType").val();
         const rentType = $("#rentType").val();
         const billNo = $("#billNo").val().trim();
+        const paymentType = $("#paymentType").val();
 
         console.log("Loading Report Data for:", { fromDate, toDate, billType, rentType, billNo });
 
@@ -237,6 +240,7 @@ $(document).ready(function () {
             bill_type: billType,
             rent_type: rentType,
             bill_no: billNo,
+            payment_type: paymentType,
             search_items_only: $('#searchItemsOnly').is(':checked')
         };
 
@@ -256,6 +260,11 @@ $(document).ready(function () {
                 console.log("Server response:", response);
                 if (response && response.status === "success") {
                     renderReportData(response.data, response.summary);
+
+                    // Populate payment types dropdown once (from summary if provided)
+                    if (response.summary && response.summary.payment_types) {
+                        populatePaymentTypes(response.summary.payment_types, paymentType);
+                    }
 
                     // Show report info section and update summary display
                     $("#reportInfoSection").show();
@@ -305,6 +314,22 @@ $(document).ready(function () {
         $('#totalExtraAmount').text(summary.total_extra_amount);
         $('#totalProfit').text(summary.total_profit);
         $('#totalDeposit').text(summary.total_deposit);
+    }
+
+    // Populate payment type select options
+    function populatePaymentTypes(paymentTypes, selected) {
+        const $select = $("#paymentType");
+        const current = $select.val();
+        const chosen = selected || current || 'all';
+        $select.empty();
+        $select.append('<option value="all">All Payment Types</option>');
+        paymentTypes.forEach(function (pt) {
+            const value = pt && pt.value ? pt.value : pt;
+            if (!value) return;
+            const label = pt && pt.label ? pt.label : value;
+            $select.append(`<option value="${value}">${label}</option>`);
+        });
+        $select.val(chosen);
     }
 
 
@@ -376,6 +401,7 @@ $(document).ready(function () {
                 bill_type: billType,
                 rent_type: rentType,
                 bill_no: billNo,
+                payment_type: paymentType,
                 search_items_only: $('#searchItemsOnly').is(':checked')
             },
             success: function (response) {

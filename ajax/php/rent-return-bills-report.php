@@ -10,6 +10,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     $to_date = $_POST['to_date'] ?? null;
     $bill_type = $_POST['bill_type'] ?? 'all';
     $rent_type = $_POST['rent_type'] ?? 'all';
+    $payment_type = $_POST['payment_type'] ?? 'all';
     $bill_no = trim($_POST['bill_no'] ?? '');
     $search_items_only = isset($_POST['search_items_only']) && filter_var($_POST['search_items_only'], FILTER_VALIDATE_BOOLEAN);
 
@@ -20,7 +21,15 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
 
     $db = Database::getInstance();
     $bill_no_filter = $bill_no !== '' ? $db->escapeString($bill_no) : '';
+    $payment_type_filter = $payment_type !== 'all' ? $db->escapeString($payment_type) : '';
     $bills = [];
+
+    // Fetch payment type list for dropdown population
+    $paymentTypesResult = $db->readQuery("SELECT name FROM payment_type WHERE is_active = 1 ORDER BY name");
+    $paymentTypes = [];
+    while ($row = mysqli_fetch_assoc($paymentTypesResult)) {
+        $paymentTypes[] = $row['name'];
+    }
 
     // --- 1. Process Rent Bills ---
     if ($bill_type == 'all' || $bill_type == 'rent') {
@@ -37,6 +46,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         }
         if ($rent_type !== 'all') {
             $rentConditions[] = "eri.rent_type = '$rent_type'";
+        }
+        if ($payment_type_filter !== '') {
+            $rentConditions[] = "pt.name = '$payment_type_filter'";
         }
         if (empty($rentConditions)) {
             $rentConditions[] = '1=1';
@@ -144,6 +156,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         }
         if ($rent_type !== 'all') {
             $returnConditions[] = "eri.rent_type = '$rent_type'";
+        }
+        if ($payment_type_filter !== '') {
+            $returnConditions[] = "pt.name = '$payment_type_filter'";
         }
         if (empty($returnConditions)) {
             $returnConditions[] = '1=1';
@@ -268,7 +283,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         'total_return_bills' => 0,
         'date_range' => ($bill_no !== '' ? ($from_date && $to_date ? "$from_date to $to_date (" . ($search_items_only ? "Item" : "Bill No") . ": $bill_no)" : ($search_items_only ? "Item" : "Bill No") . ": $bill_no") : "$from_date to $to_date"),
         'search_bill_no' => $bill_no,
-        'version' => '1.2'
+        'version' => '1.2',
+        'payment_types' => $paymentTypes
     ];
 
     foreach ($bills as $bill) {
@@ -353,7 +369,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
             'total_rent_bills' => $summary['total_rent_bills'],
             'total_return_bills' => $summary['total_return_bills'],
             'date_range' => $summary['date_range'],
-            'version' => $summary['version']
+            'version' => $summary['version'],
+            'payment_types' => $summary['payment_types']
         ]
     ]);
     exit();

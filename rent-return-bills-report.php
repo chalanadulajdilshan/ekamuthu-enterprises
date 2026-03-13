@@ -233,6 +233,12 @@ include 'auth.php';
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
+                                                <label for="paymentType" class="form-label fw-semibold text-muted mb-2">Payment Type</label>
+                                                <select class="form-select" id="paymentType" name="paymentType">
+                                                    <option value="all">All Payment Types</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
                                                 <div class="d-flex justify-content-between align-items-end mb-2">
                                                     <label for="billNo" id="billNoLabel" class="form-label fw-semibold text-muted mb-0">Search Bill No</label>
                                                     <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
