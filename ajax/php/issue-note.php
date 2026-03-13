@@ -230,30 +230,8 @@ if (isset($_POST['create'])) {
             }
         }
 
-        // 4. Update Invoice Issuing Status
-        
-        // Calculate totals for the whole invoice
-        // Use billed quantities (bill_qty) to preserve original order totals
-        $totalOrderedSql = "SELECT SUM(bill_qty) as total FROM equipment_rent_items WHERE rent_id = $rentId";
-        $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 
-                           FROM issue_note_items ini 
-                           INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
-                           WHERE n.rent_invoice_id = $rentId
-                           AND n.issue_status != 'cancelled'";
-                           
-        $totOrd = (float)mysqli_fetch_assoc($db->readQuery($totalOrderedSql))['total'];
-        $totIss = (float)mysqli_fetch_assoc($db->readQuery($totalIssuedSql))['total'];
-        
-        $newDocStatus = 0; // Not Issued
-        if ($totIss > 0) {
-            if ($totIss >= $totOrd) {
-                $newDocStatus = 2; // Fully Issued
-            } else {
-                $newDocStatus = 1; // Partially Issued
-            }
-        }
-        
-        $db->readQuery("UPDATE equipment_rent SET issue_status = $newDocStatus WHERE id = $rentId");
+        // 4. Update Invoice Issuing Status & Sync Stats
+        IssueNote::syncRentInvoiceStats($rentId);
 
         // 5. Audit & Tracking
         (new DocumentTracking(null))->incrementDocumentId('issue_note');
@@ -402,52 +380,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'cancel_note') {
             }
             $NOTE->issue_status = 'cancelled';
             if ($NOTE->update()) {
-                // Restore rent item qty to bill_qty for no-sub-equipment items
-                $rentId = (int)$NOTE->rent_invoice_id;
-                
-                // Get cancelled note's items
-                $cancelledItemsSql = "SELECT equipment_id, sub_equipment_id, issued_quantity 
-                                      FROM issue_note_items WHERE issue_note_id = " . (int)$note_id;
-                $cancelledItemsRes = $db->readQuery($cancelledItemsSql);
-                while ($cItem = mysqli_fetch_assoc($cancelledItemsRes)) {
-                    if (empty($cItem['sub_equipment_id'])) {
-                        $cEqId = (int)$cItem['equipment_id'];
-                        // Restore quantity and amount to bill_qty values
-                        $restoreSql = "UPDATE equipment_rent_items 
-                                       SET quantity = bill_qty, 
-                                           amount = CASE WHEN bill_qty > 0 THEN ROUND((amount / GREATEST(quantity, 1)) * bill_qty, 2) ELSE amount END,
-                                           deposit_amount = CASE WHEN bill_qty > 0 THEN ROUND((deposit_amount / GREATEST(quantity, 1)) * bill_qty, 2) ELSE deposit_amount END,
-                                           total_rent_amount = CASE WHEN bill_qty > 0 THEN ROUND((total_rent_amount / GREATEST(quantity, 1)) * bill_qty, 2) ELSE total_rent_amount END,
-                                           pending_qty = bill_qty - COALESCE(total_returned_qty, 0)
-                                       WHERE rent_id = $rentId 
-                                       AND equipment_id = $cEqId 
-                                       AND sub_equipment_id IS NULL";
-                        $db->readQuery($restoreSql);
-                    }
-                }
-
-                // Recalculate Invoice Issuing Status
-                
-                $totalOrderedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentId";
-                $totalIssuedSql = "SELECT SUM(ini.issued_quantity) as total 
-                                   FROM issue_note_items ini 
-                                   INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
-                                   WHERE n.rent_invoice_id = $rentId
-                                   AND n.issue_status != 'cancelled'";
-                                   
-                $totOrd = (float)mysqli_fetch_assoc($db->readQuery($totalOrderedSql))['total'];
-                $totIss = (float)mysqli_fetch_assoc($db->readQuery($totalIssuedSql))['total'];
-                
-                $newDocStatus = 0; // Not Issued
-                if ($totIss > 0) {
-                    if ($totIss >= $totOrd) {
-                        $newDocStatus = 2; // Fully Issued
-                    } else {
-                        $newDocStatus = 1; // Partially Issued
-                    }
-                }
-                
-                $db->readQuery("UPDATE equipment_rent SET issue_status = $newDocStatus WHERE id = $rentId");
+                // Recalculate Invoice Issuing Status & Sync Stats
+                IssueNote::syncRentInvoiceStats($NOTE->rent_invoice_id);
 
                 // Audit Log
                 $AUDIT_LOG = new AuditLog(null);
@@ -511,6 +445,38 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_note_details') {
         echo json_encode(["status" => "error", "message" => "Issue Note ID required"]);
     }
     exit;
+}
+
+// Delete Issue Note
+if (isset($_POST['action']) && $_POST['action'] === 'delete_note') {
+    $note_id = $_POST['note_id'] ?? 0;
+    
+    if ($note_id) {
+        $NOTE = new IssueNote($note_id);
+        if ($NOTE->id) {
+            $code = $NOTE->issue_note_code;
+            if ($NOTE->delete()) {
+                // Audit Log
+                $AUDIT_LOG = new AuditLog(null);
+                $AUDIT_LOG->ref_id = $note_id;
+                $AUDIT_LOG->ref_code = $code;
+                $AUDIT_LOG->action = 'DELETE';
+                $AUDIT_LOG->description = 'DELETED ISSUE NOTE #' . $code;
+                $AUDIT_LOG->user_id = $_SESSION['id'] ?? 0;
+                $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+                $AUDIT_LOG->create();
+
+                echo json_encode(["status" => "success", "message" => "Issue Note deleted permanently"]);
+            } else {
+                echo json_encode(["status" => "error", "message" => "Failed to delete Issue Note"]);
+            }
+        } else {
+            echo json_encode(["status" => "error", "message" => "Issue Note not found"]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Issue Note ID required"]);
+    }
+    exit();
 }
 
 // Fetch Issue Notes for DataTable (History)

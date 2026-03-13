@@ -83,7 +83,16 @@ $(document).ready(function () {
                 { data: "rent_invoice_ref", title: "Ref Invoice" },
                 { data: "customer_name", title: "Customer" },
                 { data: "issue_date", title: "Date" },
-                { data: "status", title: "Status" }
+                { data: "status", title: "Status" },
+                {
+                    data: "id",
+                    title: "Action",
+                    render: function (data, type, row) {
+                        return `<button class="btn btn-sm btn-danger delete-note" data-id="${data}" title="Delete Permanently">
+                                    <i class="uil uil-trash-alt"></i>
+                                </button>`;
+                    }
+                }
             ],
             order: [[0, "desc"]],
             createdRow: function (row, data, dataIndex) {
@@ -93,14 +102,56 @@ $(document).ready(function () {
             }
         });
 
-        // Row click handler for Issue Note History
-        $("#issueNoteHistoryTable tbody").on("click", "tr", function () {
-            var data = $("#issueNoteHistoryTable").DataTable().row(this).data();
+        // Row click handler for Issue Note History (Load Details) - exclude action buttons
+        $("#issueNoteHistoryTable tbody").on("click", "td:not(:last-child)", function () {
+            var data = $("#issueNoteHistoryTable").DataTable().row($(this).parents('tr')).data();
             if (data) {
                 var noteId = data.id;
                 $("#IssueNoteHistoryModal").modal("hide");
                 loadIssueNoteDetails(noteId);
             }
+        });
+
+        // Delete button handler
+        $(document).on("click", ".delete-note", function (e) {
+            e.stopPropagation();
+            var noteId = $(this).data("id");
+
+            swal({
+                title: "Are you sure?",
+                text: "Do you really want to DELETE this Issue Note permanently? This action cannot be undone and will reverse all inventory updates.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#f46a6a",
+                confirmButtonText: "Yes, Delete it!",
+                closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    url: "ajax/php/issue-note.php",
+                    type: "POST",
+                    data: {
+                        action: "delete_note",
+                        note_id: noteId
+                    },
+                    dataType: "JSON",
+                    success: function (result) {
+                        if (result.status === "success") {
+                            swal({
+                                title: "Deleted!",
+                                text: result.message,
+                                type: "success"
+                            }, function () {
+                                location.reload();
+                            });
+                        } else {
+                            swal("Error!", result.message, "error");
+                        }
+                    },
+                    error: function () {
+                        swal("Error!", "Failed to delete issue note", "error");
+                    }
+                });
+            });
         });
     });
 

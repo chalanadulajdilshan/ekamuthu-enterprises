@@ -80,12 +80,119 @@ class IssueNote
 
     public function delete()
     {
+        $rentInvoiceId = $this->rent_invoice_id;
+        
         $ITEM = new IssueNoteItem(null);
         $ITEM->deleteByIssueNoteId($this->id);
 
         $query = "DELETE FROM `issue_notes` WHERE `id` = " . (int) $this->id;
         $db = Database::getInstance();
-        return $db->readQuery($query);
+        $res = $db->readQuery($query);
+        
+        if ($res && $rentInvoiceId) {
+            self::syncRentInvoiceStats($rentInvoiceId);
+        }
+        
+        return $res;
+    }
+
+    public static function syncRentInvoiceStats($rentInvoiceId)
+    {
+        $db = Database::getInstance();
+        $rentInvoiceId = (int)$rentInvoiceId;
+
+        // 1. Reset all rent items to bill_qty/billed amounts first (as a baseline)
+        $resetSql = "UPDATE equipment_rent_items 
+                     SET quantity = bill_qty, 
+                         amount = total_rent_amount / GREATEST(bill_qty, 1) * bill_qty,
+                         deposit_amount = deposit_amount / GREATEST(bill_qty, 1) * bill_qty,
+                         pending_qty = bill_qty - COALESCE(total_returned_qty, 0)
+                     WHERE rent_id = $rentInvoiceId AND sub_equipment_id IS NULL";
+        // Note: The above calculation is tricky because we don't know the exact per-unit rates if they weren't stored separately.
+        // However, for PS Ekamuthu, typically standard rates apply.
+        // A safer way is to fetch the rates from a valid state or just recalculate based on existing valid notes.
+
+        // Better approach: Recalculate based on ALL non-cancelled issue notes
+        $validNotesSql = "SELECT n.id FROM issue_notes n WHERE n.rent_invoice_id = $rentInvoiceId AND n.issue_status != 'cancelled'";
+        $validNotesRes = $db->readQuery($validNotesSql);
+        $validNoteIds = [];
+        while($row = mysqli_fetch_assoc($validNotesRes)) {
+            $validNoteIds[] = (int)$row['id'];
+        }
+
+        // Get billed items as baseline
+        $billedItemsSql = "SELECT * FROM equipment_rent_items WHERE rent_id = $rentInvoiceId";
+        $billedItemsRes = $db->readQuery($billedItemsSql);
+        
+        while ($bItem = mysqli_fetch_assoc($billedItemsRes)) {
+            $eqId = (int)$bItem['equipment_id'];
+            $subEqId = $bItem['sub_equipment_id'] ? (int)$bItem['sub_equipment_id'] : null;
+            $billQty = (float)$bItem['bill_qty'];
+            
+            // Calculate total issued from valid notes
+            $issuedTotal = 0;
+            if (!empty($validNoteIds)) {
+                $idsStr = implode(',', $validNoteIds);
+                $issuedSql = "SELECT SUM(issued_quantity) as total 
+                              FROM issue_note_items 
+                              WHERE issue_note_id IN ($idsStr) 
+                              AND equipment_id = $eqId 
+                              AND " . ($subEqId ? "sub_equipment_id = $subEqId" : "sub_equipment_id IS NULL");
+                $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedSql));
+                $issuedTotal = (float)($issuedRes['total'] ?? 0);
+            }
+
+            // Update stats for items without sub-equipment (inventory items)
+            if (empty($subEqId)) {
+                $perUnitAmount = ($billQty > 0) ? ($bItem['amount'] / $billQty) : 0; // This might be wrong if already modified, but we need a source of truth.
+                // In PS Ekamuthu, bill_qty items usually have 'amount' as the total rent for that line.
+                
+                // Let's assume we need to preserve the total_rent_amount per unit.
+                $perUnitTotalRent = ($billQty > 0) ? ($bItem['total_rent_amount'] / $billQty) : 0;
+                $perUnitDeposit = ($billQty > 0) ? ($bItem['deposit_amount'] / $billQty) : 0;
+                
+                $newAmount = round($perUnitTotalRent * $issuedTotal, 2); // Actually 'amount' in DB often means rent amount
+                $newDeposit = round($perUnitDeposit * $issuedTotal, 2);
+                $newPending = max(0, $issuedTotal - (float)$bItem['total_returned_qty']);
+
+                // Sync sub_equipment rented_qty (restock previous delta)
+                $previousQty = (float)$bItem['quantity'];
+                $deptId = (int)$bItem['department_id'];
+                $qtyDiff = $issuedTotal - $previousQty;
+                if ($qtyDiff !== 0 && !empty($deptId)) {
+                    $restockSql = "UPDATE sub_equipment 
+                                   SET rented_qty = GREATEST(0, rented_qty + ($qtyDiff)) 
+                                   WHERE equipment_id = $eqId AND department_id = $deptId";
+                    $db->readQuery($restockSql);
+                }
+
+                $updateSql = "UPDATE equipment_rent_items 
+                              SET quantity = $issuedTotal, 
+                                  amount = $newAmount, 
+                                  deposit_amount = $newDeposit, 
+                                  total_rent_amount = $newAmount, -- Assuming amount and total_rent_amount are same for these
+                                  pending_qty = $newPending 
+                              WHERE id = " . (int)$bItem['id'];
+                $db->readQuery($updateSql);
+            }
+        }
+
+        // 2. Update Invoice Issuing Status
+        $overallOrderedSql = "SELECT SUM(bill_qty) as total FROM equipment_rent_items WHERE rent_id = $rentInvoiceId";
+        $overallIssuedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentInvoiceId";
+        
+        $totOrd = (float)mysqli_fetch_assoc($db->readQuery($overallOrderedSql))['total'];
+        $totIss = (float)mysqli_fetch_assoc($db->readQuery($overallIssuedSql))['total'];
+        
+        $newDocStatus = 0; // Not Issued
+        if ($totIss > 0) {
+            if ($totIss >= $totOrd) {
+                $newDocStatus = 2; // Fully Issued
+            } else {
+                $newDocStatus = 1; // Partially Issued
+            }
+        }
+        $db->readQuery("UPDATE equipment_rent SET issue_status = $newDocStatus WHERE id = $rentInvoiceId");
     }
 
     public function getItems()

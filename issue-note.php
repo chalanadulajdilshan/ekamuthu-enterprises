@@ -261,6 +261,7 @@ $issue_note_code = ($lastId + 1);
                                         <th>Customer</th>
                                         <th>Date</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                             </table>
