@@ -71,22 +71,22 @@ if (isset($_POST['create'])) {
         exit();
     }
 
-    $itemsDeptId = $uniqueSelectedDeptIds[0] ?? 0;
-    if ($itemsDeptId > 0 && (int)$departmentId !== $itemsDeptId) {
-        // Fetch friendly department name for the message
-        $deptName = '-';
-        $deptNameQuery = "SELECT name FROM department_master WHERE id = " . (int)$itemsDeptId . " LIMIT 1";
-        $deptNameRes = mysqli_fetch_assoc($db->readQuery($deptNameQuery));
-        if ($deptNameRes && !empty($deptNameRes['name'])) {
-            $deptName = $deptNameRes['name'];
-        }
+    // $itemsDeptId = $uniqueSelectedDeptIds[0] ?? 0;
+    // if ($itemsDeptId > 0 && (int)$departmentId !== $itemsDeptId) {
+    //     // Fetch friendly department name for the message
+    //     $deptName = '-';
+    //     $deptNameQuery = "SELECT name FROM department_master WHERE id = " . (int)$itemsDeptId . " LIMIT 1";
+    //     $deptNameRes = mysqli_fetch_assoc($db->readQuery($deptNameQuery));
+    //     if ($deptNameRes && !empty($deptNameRes['name'])) {
+    //         $deptName = $deptNameRes['name'];
+    //     }
 
-        echo json_encode([
-            "status" => "error", 
-            "message" => "Issue Note department must match the selected items' department (" . $deptName . ")."
-        ]);
-        exit();
-    }
+    //     echo json_encode([
+    //         "status" => "error", 
+    //         "message" => "Issue Note department must match the selected items' department (" . $deptName . ")."
+    //     ]);
+    //     exit();
+    // }
 
     // ... validation logic remains the same (it calculates total issued vs ordered) ...
 
@@ -194,6 +194,8 @@ if (isset($_POST['create'])) {
                     $perUnitDeposit = ($billQty > 0) ? ($oldDeposit / $billQty) : 0;
                     $perUnitTotalRent = ($billQty > 0) ? ($oldTotalRent / $billQty) : 0;
 
+                    $itemDeptId = !empty($rentItemRes['department_id']) ? (int)$rentItemRes['department_id'] : null;
+
                     // Calculate cumulative issued for this rent item (all notes, non-cancelled)
                     $issuedTotalQuery = "SELECT SUM(ini.issued_quantity) as issued 
                                          FROM issue_note_items ini 
@@ -201,7 +203,8 @@ if (isset($_POST['create'])) {
                                          WHERE n.rent_invoice_id = $rentId 
                                          AND ini.equipment_id = $eqId 
                                          AND ini.sub_equipment_id IS NULL 
-                                         AND n.issue_status != 'cancelled'";
+                                         AND n.issue_status != 'cancelled'
+                                         AND " . ($itemDeptId ? "ini.department_id = $itemDeptId" : "ini.department_id IS NULL");
                     $issuedTotalRes = mysqli_fetch_assoc($db->readQuery($issuedTotalQuery));
                     $totalIssuedAll = (float)($issuedTotalRes['issued'] ?? 0);
 

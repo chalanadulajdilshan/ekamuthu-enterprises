@@ -91,11 +91,11 @@ $issue_note_code = ($lastId + 1);
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Issue Date - නිකුත් කරන දිනය</label>
                                                 <input type="text" class="form-control date-picker" id="issue_date" value="<?php echo date('Y-m-d'); ?>">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label class="form-label">Select Rent Invoice - ඉන්වොයිසිය තෝරන්න</label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="selected_invoice_display" placeholder="Select a Rent Invoice..." readonly>
@@ -106,7 +106,7 @@ $issue_note_code = ($lastId + 1);
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-3" style="display: none;">
                                                 <label class="form-label">Department</label>
                                                 <select class="form-select" id="department_id">
                                                     <option value="">Select Department...</option>
@@ -118,7 +118,7 @@ $issue_note_code = ($lastId + 1);
                                                     ?>
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Status</label>
                                                 <select class="form-select" id="issue_status">
                                                     <option value="issued" selected>Issued</option>

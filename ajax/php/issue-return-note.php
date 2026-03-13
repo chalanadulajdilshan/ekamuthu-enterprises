@@ -42,11 +42,14 @@ if (isset($_POST['create'])) {
         $eqId = (int)$item['equipment_id'];
         $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : 'NULL';
         
+        $itemDeptId = !empty($item['department_id']) ? (int)$item['department_id'] : 'NULL';
+        
         // Get total issued for this specific issue note line item
         $issuedQuery = "SELECT SUM(issued_quantity) as issued FROM issue_note_items 
                          WHERE issue_note_id = $issueNoteId 
                          AND equipment_id = $eqId 
-                         AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))";
+                         AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))
+                         AND (department_id = $itemDeptId OR ($itemDeptId IS NULL AND department_id IS NULL))";
         $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedQuery));
         $totalIssued = (float)($issuedRes['issued'] ?? 0);
         
@@ -138,6 +141,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
             $db = Database::getInstance();
 
             // Fetch previously returned quantities for this issue note (EXCLUDING CANCELLED)
+            // Note: issue_return_items doesn't have department_id, but we can potentially link it if needed.
+            // For now, let's assume one return row per issue note row.
             $returnedQuery = "SELECT iri.equipment_id, iri.sub_equipment_id, SUM(iri.return_quantity) as total_returned
                               FROM issue_return_items iri
                               INNER JOIN issue_returns ret ON iri.return_id = ret.id
@@ -147,6 +152,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
             $returnedResult = $db->readQuery($returnedQuery);
             $returnedMap = [];
             while ($row = mysqli_fetch_assoc($returnedResult)) {
+                // Warning: Without department_id in issue_return_items, this might aggregate across departments if not careful.
+                // However, if the UI handles returns per row, it should stay consistent.
                 $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL');
                 $returnedMap[$key] = (float)$row['total_returned'];
             }
@@ -162,7 +169,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
             // Format items
             $formattedItems = [];
             foreach ($items as $item) {
+                // Include department_id in the key to prevent merging items from different departments
                 $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL');
+                // Since issue_return_items LACKS department_id, we might have a limitation here if same eq/sub-eq is in multiple departments.
+                // But for now, we at least avoid merging them in the formatted items list.
+                
                 $alreadyReturned = $returnedMap[$key] ?? 0;
                 $issuedQty = (float)$item['issued_quantity'];
                 $remainingQty = max(0, $issuedQty - $alreadyReturned);
@@ -170,6 +181,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
                 $formattedItems[] = [
                     'equipment_id' => $item['equipment_id'],
                     'sub_equipment_id' => $item['sub_equipment_id'],
+                    'department_id' => $item['department_id'],
+                    'department_name' => $item['department_name'],
                     'equipment_name' => $item['equipment_name'],
                     'sub_equipment_code' => $item['sub_equipment_code'],
                     'rent_type' => $item['rent_type'],

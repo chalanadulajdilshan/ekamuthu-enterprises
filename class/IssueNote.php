@@ -128,6 +128,7 @@ class IssueNote
             $eqId = (int)$bItem['equipment_id'];
             $subEqId = $bItem['sub_equipment_id'] ? (int)$bItem['sub_equipment_id'] : null;
             $billQty = (float)$bItem['bill_qty'];
+            $deptId = !empty($bItem['department_id']) ? (int)$bItem['department_id'] : null;
             
             // Calculate total issued from valid notes
             $issuedTotal = 0;
@@ -137,7 +138,8 @@ class IssueNote
                               FROM issue_note_items 
                               WHERE issue_note_id IN ($idsStr) 
                               AND equipment_id = $eqId 
-                              AND " . ($subEqId ? "sub_equipment_id = $subEqId" : "sub_equipment_id IS NULL");
+                              AND " . ($subEqId ? "sub_equipment_id = $subEqId" : "sub_equipment_id IS NULL") . "
+                              AND " . ($deptId ? "department_id = $deptId" : "department_id IS NULL");
                 $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedSql));
                 $issuedTotal = (float)($issuedRes['total'] ?? 0);
             }
