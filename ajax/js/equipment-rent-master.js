@@ -3626,7 +3626,9 @@ jQuery(document).ready(function () {
       },
       function (inputVal) {
         if (inputVal === false) return;
-        var amount = parseFloat(inputVal);
+        // Remove thousand separators before parsing to avoid truncation (e.g., "5,960.00" -> 5960.00)
+        var cleanedInput = String(inputVal).replace(/,/g, "");
+        var amount = parseFloat(cleanedInput);
         if (isNaN(amount) || amount <= 0) {
           swal.showInputError("Please enter a valid amount greater than 0.");
           return false;
