@@ -228,6 +228,12 @@ include 'auth.php';
                                 <div class="d-flex justify-content-between"><span>ඇස්තමේන්තු කළ හිඟ මුදල</span><span id="billModalProjectedTotal">0.00</span></div>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <div class="d-flex justify-content-between fw-bold"><span>සම්පූර්ණ හිඟ මුදල</span><span id="billModalFullOutstanding">0.00</span></div>
+                                <small class="text-muted">බිල ආරම්භක දිනය සිට අද දක්වා</small>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row g-3">

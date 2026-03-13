@@ -382,6 +382,7 @@ function fillBillDetailsModal(data) {
     currentBillData = data;
     currentBillData.customer_id = data.customer_id || 0;
     var fmt = function (val) { return formatAmount(parseAmount(val)); };
+    currentBillData.full_outstanding = null;
 
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
@@ -458,6 +459,10 @@ function fillBillDetailsModal(data) {
     $('#billModalTotalRent').text(fmt(totalRent));
     $('#billModalTotalPaid').text(fmt(data.total_paid));
     $('#billModalBalance').text(fmt(data.balance));
+    // Full outstanding (bill start to today) = base rent + damage - total paid
+    var fullOutstanding = Math.max(0, baseRent + totalDamage - parseAmount(data.total_paid || 0));
+    currentBillData.full_outstanding = fullOutstanding;
+    $('#billModalFullOutstanding').text(fmt(fullOutstanding));
 
     // Recorded outstanding table
     var recordedBody = $('#billModalRecorded tbody');
@@ -729,6 +734,10 @@ function recalculateModalTotals() {
     $('#billModalBalance').text(fmt(balance));
     $('#billModalRecordedTotal').text(fmt(recordedOutstanding));
     $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
+    // Update full outstanding using original start-to-today concept: base rent + damage - totalPaid
+    var fullOutstanding = Math.max(0, totalRent - totalPaid);
+    currentBillData.full_outstanding = fullOutstanding;
+    $('#billModalFullOutstanding').text(fmt(fullOutstanding));
 }
 
 function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
@@ -888,6 +897,7 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
     $('#billModalBalance').text(fmt(balance));
     $('#billModalRecordedTotal').text(fmt(recordedOutstanding));
     $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
+    // Keep full outstanding anchored to full-period (rental date -> today). Do not override here.
 }
 
 function printBillDetails() {
@@ -953,6 +963,9 @@ function generatePrintWindow(refNumber) {
     var totalPaid = $('#billModalTotalPaid').text().trim();
     // Use original balance from data, not recalculated modal value
     var balance = currentBillData && currentBillData.balance ? formatAmount(parseAmount(currentBillData.balance)) : $('#billModalBalance').text().trim();
+    var fullOutstanding = currentBillData && currentBillData.full_outstanding != null
+        ? formatAmount(currentBillData.full_outstanding)
+        : $('#billModalFullOutstanding').text().trim();
 
     // Invoicing period from page filters (fallback to rental date if empty)
     var fromDate = $('#from_date').val() || rentalDate;
@@ -1046,6 +1059,7 @@ function generatePrintWindow(refNumber) {
                 <div class="totals-box">
                     <div class="row-item"><span>Paid</span><span>${totalPaid}</span></div>
                     <div class="row-item fw-bold"><span>Balance</span><span>${balance}</span></div>
+                    <div class="row-item"><span>Full Outstanding</span><span>${fullOutstanding}</span></div>
                 </div>
             </div>
 
