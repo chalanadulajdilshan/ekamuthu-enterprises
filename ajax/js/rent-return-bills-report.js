@@ -356,6 +356,7 @@ $(document).ready(function () {
         const billType = $("#billType").val();
         const rentType = $("#rentType").val();
         const billNo = $("#billNo").val().trim();
+        const paymentType = $("#paymentType").val();
 
         if ((!fromDate || !toDate) && billNo === "") {
             alert("Please select a date range or enter a Bill No before exporting");
