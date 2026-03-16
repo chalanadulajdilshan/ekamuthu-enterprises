@@ -58,7 +58,7 @@ if (!$pageCategory->id) {
                             <div class="card">
                                 <div class="card-header d-flex flex-column align-items-start">
                                     <h5 class="card-title mb-0"><?php echo $subCategoryTitle; ?></h5>
-                                    <small class="text-muted" style="font-size: 0.75rem;"><?php echo $translations[$subCategoryTitle] ?? ''; ?></small>
+                                    <small class="text-secondary fw-bold" style="font-size: 0.9rem;"><?php echo $translations[$subCategoryTitle] ?? ''; ?></small>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -72,7 +72,7 @@ if (!$pageCategory->id) {
                                                 <?php endif; ?>
                                                 <div class="d-flex flex-column align-items-start">
                                                     <span class="fw-bold"><?php echo $page['page_name']; ?></span>
-                                                    <small class="text-muted" style="font-size: 0.75rem; line-height: 1;"><?php echo $translations[$page['page_name']] ?? ''; ?></small>
+                                                    <small class="text-secondary fw-bold" style="font-size: 14px; line-height: 1.2;"><?php echo $translations[$page['page_name']] ?? ''; ?></small>
                                                 </div>
                                             </a>
                                         </div>
