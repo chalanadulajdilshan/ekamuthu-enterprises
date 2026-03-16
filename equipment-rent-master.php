@@ -459,11 +459,16 @@ $bill_number = $lastId + 1;
                                                     class="form-control date-picker-date">
                                             </div>
 
-                                            <!-- Add Button -->
+                                            <!-- Add/Update Button -->
                                             <div class="col-md-2">
-                                                <button type="button" class="btn btn-success w-100" id="addItemBtn">
-                                                    <i class="uil uil-plus"></i> Add
-                                                </button>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-success w-100" id="addItemBtn">
+                                                        <i class="uil uil-plus"></i> Add
+                                                    </button>
+                                                    <button type="button" class="btn btn-secondary w-100" id="cancelEditBtn" style="display: none;">
+                                                        <i class="uil uil-times"></i> Cancel
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 

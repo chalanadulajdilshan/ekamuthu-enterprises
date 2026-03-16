@@ -11,6 +11,7 @@ jQuery(document).ready(function () {
   var manualAmountEditEnabled = false;
   var isEditingExistingRent = false;
   var rentalStartDateUserOverride = false;
+  var editingItemIndex = null;
 
   // Calculate amount and return date
   function calculateRentDetails() {
@@ -260,6 +261,10 @@ jQuery(document).ready(function () {
           item.status !== "cancelled";
         if (!item.id || canRemoveSavedItem) {
           actionBtns +=
+            '<button class="btn btn-sm btn-warning edit-item-btn me-1" data-index="' +
+            index +
+            '" title="Edit Item"><i class="uil uil-edit"></i></button>';
+          actionBtns +=
             '<button class="btn btn-sm btn-danger remove-item-btn" data-index="' +
             index +
             '" title="Remove"><i class="uil uil-trash"></i></button>';
@@ -479,11 +484,110 @@ jQuery(document).ready(function () {
           },
         );
       });
+
+    // Bind edit item button event
+    $(".edit-item-btn")
+      .off("click")
+      .on("click", function () {
+        var index = $(this).data("index");
+        editItem(index);
+      });
+  }
+
+  // Edit item function
+  function editItem(index) {
+    var item = rentItems[index];
+    editingItemIndex = index;
+
+    $("#item_equipment_id").val(item.equipment_id);
+    $("#item_equipment_display").val(item.equipment_display);
+    $("#item_sub_equipment_id").val(item.sub_equipment_id);
+    $("#item_sub_equipment_display").val(item.sub_equipment_display);
+    $("#item_rent_type").val(item.rent_type);
+    $("#item_duration").val(item.duration);
+    $("#item_qty").val(item.quantity);
+    $("#item_amount").val(formatAmount(item.amount));
+    $("#item_return_date").val(item.return_date);
+
+    // Handle department
+    if (item.equipment_id) {
+      loadDepartments(item.equipment_id, item.sub_equipment_id, item.department_id);
+    }
+
+    // Handle No Sub-Items logic UI
+    if (item.no_sub_items == 1) {
+      $("#item_qty").prop("readonly", false);
+      $("#item_sub_equipment_display").prop("disabled", true).attr("placeholder", "Not Required");
+      $("#btn-select-sub-equipment").prop("disabled", true);
+      $("#item_equipment_id").data("no_sub_items", 1);
+    } else {
+      $("#item_qty").prop("readonly", true);
+      $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select sub equipment");
+      $("#btn-select-sub-equipment").prop("disabled", false);
+      $("#item_equipment_id").data("no_sub_items", 0);
+    }
+
+    // Set rates for calculations
+    currentEquipmentId = item.equipment_id;
+    currentIsFixedRate = item.is_fixed_rate == 1;
+
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: { action: "get_equipment_info", equipment_id: item.equipment_id },
+      dataType: "JSON",
+      success: function (res) {
+        if (res.status === "success") {
+          currentRentOneDay = parseFloat(res.equipment.rent_one_day) || 0;
+          currentRentOneMonth = parseFloat(res.equipment.rent_one_month) || 0;
+          currentDepositOneDay = parseFloat(res.equipment.deposit_one_day) || 0;
+        }
+      }
+    });
+
+    // Update button UI
+    $("#addItemBtn").html('<i class="uil uil-check"></i> Update').removeClass("btn-success").addClass("btn-warning");
+    $("#cancelEditBtn").show();
+
+    // Scroll to top of add item card
+    $([document.documentElement, document.body]).animate({
+      scrollTop: $("#item_equipment_display").offset().top - 100
+    }, 500);
+  }
+
+  // Cancel Edit
+  $("#cancelEditBtn").click(function () {
+    resetItemFields();
+  });
+
+  function resetItemFields() {
+    editingItemIndex = null;
+    $("#item_equipment_id").val("");
+    $("#item_equipment_display").val("");
+    $("#item_sub_equipment_id").val("");
+    $("#item_sub_equipment_display").val("");
+    $("#item_duration").val("");
+    $("#item_qty").val(1);
+    $("#item_amount").val("");
+    $("#item_return_date").val("");
+    $("#item_rent_type").val("day");
+    $("#item_department_id").val("").prop("disabled", true).html('<option value="">- Select -</option>');
+    
+    $("#addItemBtn").html('<i class="uil uil-plus"></i> Add').removeClass("btn-warning").addClass("btn-success");
+    $("#cancelEditBtn").hide();
+    
+    // Reset UI states
+    $("#item_qty").prop("readonly", true);
+    $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select equipment");
+    $("#btn-select-sub-equipment").prop("disabled", false);
   }
 
   // Check if sub-equipment already added
-  function isSubEquipmentAlreadyAdded(subEquipmentId) {
-    return rentItems.some(function (item) {
+  function isSubEquipmentAlreadyAdded(subEquipmentId, ignoreIndex = null) {
+    return rentItems.some(function (item, index) {
+      if (ignoreIndex !== null && index === ignoreIndex) {
+        return false;
+      }
       return (
         item.sub_equipment_id == subEquipmentId && item.status === "rented"
       );
@@ -522,7 +626,7 @@ jQuery(document).ready(function () {
       });
       return;
     }
-    if (!noSubItems && isSubEquipmentAlreadyAdded(subEquipmentId)) {
+    if (!noSubItems && isSubEquipmentAlreadyAdded(subEquipmentId, editingItemIndex)) {
       swal({
         title: "Error!",
         text: "This sub equipment is already added to the list",
@@ -613,37 +717,75 @@ jQuery(document).ready(function () {
       return;
     }
 
-    rentItems.push({
-      id: null,
-      equipment_id: equipmentId,
-      equipment_display: equipmentDisplay,
-      sub_equipment_id: subEquipmentId,
-      sub_equipment_display: subEquipmentDisplay,
-      rental_date: rentalDate,
-      return_date: returnDate,
-      rent_type: $("#item_rent_type").val(),
-      duration: $("#item_duration").val(),
-      quantity: $("#item_qty").val(),
-      bill_qty: $("#item_qty").val(),
-      returned_qty: $("#item_returned_qty").val() || 0,
-      // Store raw numeric amount (avoid formatted strings like 20,000.00)
-      amount: parseAmount($("#item_amount").val()),
-      // Store equipment deposit value for calculation
-      deposit_one_day: currentDepositOneDay,
-      is_fixed_rate: currentIsFixedRate ? 1 : 0,
-      department_id: $("#item_department_id").val() || null,
-      department_name:
-        $("#item_department_id option:selected").text().split(" (Avail")[0] ||
-        "",
-      status: "rented",
-      remark: "",
-      no_sub_items: noSubItems ? 1 : 0,
-    });
+    if (editingItemIndex !== null) {
+      // Update existing item
+      var item = rentItems[editingItemIndex];
+      
+      // Before updating, subtract old deposit from totalCalculatedDeposit
+      totalCalculatedDeposit -= parseFloat(item.deposit_one_day || 0) * parseFloat(item.quantity || 1);
 
-    // Update calculated deposit
-    totalCalculatedDeposit +=
-      parseFloat(currentDepositOneDay || 0) *
-      parseFloat($("#item_qty").val() || 1);
+      item.equipment_id = equipmentId;
+      item.equipment_display = equipmentDisplay;
+      item.sub_equipment_id = subEquipmentId;
+      item.sub_equipment_display = subEquipmentDisplay;
+      item.rental_date = rentalDate;
+      item.return_date = returnDate;
+      item.rent_type = $("#item_rent_type").val();
+      item.duration = $("#item_duration").val();
+      item.quantity = $("#item_qty").val();
+      item.bill_qty = $("#item_qty").val();
+      item.amount = parseAmount($("#item_amount").val());
+      item.deposit_one_day = currentDepositOneDay;
+      item.is_fixed_rate = currentIsFixedRate ? 1 : 0;
+      item.department_id = $("#item_department_id").val() || null;
+      item.department_name = $("#item_department_id option:selected").text().split(" (Avail")[0] || "";
+      item.no_sub_items = noSubItems ? 1 : 0;
+      
+      // Recalculate pending quantity for UI consistency before saving
+      var returnedTotal = parseFloat(item.total_returned_qty || 0);
+      item.pending_qty = Math.max(0, parseFloat(item.quantity) - returnedTotal);
+
+      // Add new deposit to totalCalculatedDeposit
+      totalCalculatedDeposit += parseFloat(currentDepositOneDay || 0) * parseFloat($("#item_qty").val() || 1);
+      
+      editingItemIndex = null;
+      $("#addItemBtn").html('<i class="uil uil-plus"></i> Add').removeClass("btn-warning").addClass("btn-success");
+      $("#cancelEditBtn").hide();
+    } else {
+      // Add new item
+      rentItems.push({
+        id: null,
+        equipment_id: equipmentId,
+        equipment_display: equipmentDisplay,
+        sub_equipment_id: subEquipmentId,
+        sub_equipment_display: subEquipmentDisplay,
+        rental_date: rentalDate,
+        return_date: returnDate,
+        rent_type: $("#item_rent_type").val(),
+        duration: $("#item_duration").val(),
+        quantity: $("#item_qty").val(),
+        bill_qty: $("#item_qty").val(),
+        returned_qty: $("#item_returned_qty").val() || 0,
+        // Store raw numeric amount (avoid formatted strings like 20,000.00)
+        amount: parseAmount($("#item_amount").val()),
+        // Store equipment deposit value for calculation
+        deposit_one_day: currentDepositOneDay,
+        is_fixed_rate: currentIsFixedRate ? 1 : 0,
+        department_id: $("#item_department_id").val() || null,
+        department_name:
+          $("#item_department_id option:selected").text().split(" (Avail")[0] ||
+          "",
+        status: "rented",
+        remark: "",
+        no_sub_items: noSubItems ? 1 : 0,
+        pending_qty: parseFloat($("#item_qty").val())
+      });
+
+      // Update calculated deposit
+      totalCalculatedDeposit +=
+        parseFloat(currentDepositOneDay || 0) *
+        parseFloat($("#item_qty").val() || 1);
+    }
     $("#calculated_deposit_display").text(formatAmount(totalCalculatedDeposit));
     if (!isEditingExistingRent) {
       $("#custom_deposit").val(formatAmount(totalCalculatedDeposit));
@@ -1097,6 +1239,7 @@ jQuery(document).ready(function () {
         if (result.status === "success") {
           isEditingExistingRent = true;
           rentalStartDateUserOverride = false;
+          resetItemFields();
           var rent = result.rent;
           $("#rent_id").val(rent.id);
           $("#code").val(rent.bill_number);
@@ -2309,6 +2452,7 @@ jQuery(document).ready(function () {
     e.preventDefault();
     isEditingExistingRent = false;
     rentalStartDateUserOverride = false;
+    resetItemFields();
     $("#form-data")[0].reset();
     $("#rent_id").val("");
     $("#customer_id").val("");

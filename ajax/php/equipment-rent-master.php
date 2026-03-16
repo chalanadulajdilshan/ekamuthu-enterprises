@@ -129,6 +129,11 @@ if (isset($_POST['create'])) {
             $RENT_ITEM->status = 'rented';
             $RENT_ITEM->department_id = $item['department_id'] ?? null;
             $RENT_ITEM->remark = $item['remark'] ?? '';
+            
+            // Explicitly set tracking quantities
+            $RENT_ITEM->bill_qty = $RENT_ITEM->quantity;
+            $RENT_ITEM->pending_qty = $RENT_ITEM->quantity;
+            
             $RENT_ITEM->create();
         }
 
@@ -266,6 +271,11 @@ if (isset($_POST['update'])) {
             $RENT_ITEM->status = $status;
             $RENT_ITEM->department_id = $item['department_id'] ?? null;
             $RENT_ITEM->remark = $item['remark'] ?? '';
+            
+            // Update tracking quantities
+            $RENT_ITEM->bill_qty = $item['bill_qty'] ?? $RENT_ITEM->quantity;
+            $RENT_ITEM->pending_qty = max(0, $RENT_ITEM->quantity - ($RENT_ITEM->total_returned_qty ?? 0));
+            
             $RENT_ITEM->update();
         } else {
             // Create new item
@@ -378,7 +388,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                             FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 
                             ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_used_days,
-                       (SELECT COALESCE(SUM(err.return_qty), 0) FROM equipment_rent_returns err WHERE err.rent_item_id = ri.id) AS total_returned_qty
+                       (SELECT COALESCE(SUM(err.return_qty), 0) FROM equipment_rent_returns err WHERE err.rent_item_id = ri.id) AS total_returned_qty,
+                       (ri.quantity - (SELECT COALESCE(SUM(err.return_qty), 0) FROM equipment_rent_returns err WHERE err.rent_item_id = ri.id)) AS pending_qty
                        FROM equipment_rent_items ri 
                        LEFT JOIN equipment e ON ri.equipment_id = e.id
                        LEFT JOIN sub_equipment se ON ri.sub_equipment_id = se.id
