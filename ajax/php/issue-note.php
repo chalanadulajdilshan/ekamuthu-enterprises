@@ -48,45 +48,8 @@ if (isset($_POST['create'])) {
     // Decode items first for validation
     $items = json_decode($_POST['items'] ?? '[]', true);
 
-    // Validate selected department matches the department(s) of items being issued
-    $selectedDeptIds = [];
-    $rentId = (int)$_POST['rent_invoice_id'];
-
-    foreach ($items as $item) {
-        $eqId = (int)$item['equipment_id'];
-        $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : 'NULL';
-
-        $deptCheckSql = "SELECT COALESCE(department_id, 0) AS dept_id FROM equipment_rent_items 
-                         WHERE rent_id = $rentId 
-                         AND equipment_id = $eqId 
-                         AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))
-                         LIMIT 1";
-        $deptCheckRes = mysqli_fetch_assoc($db->readQuery($deptCheckSql));
-        $selectedDeptIds[] = isset($deptCheckRes['dept_id']) ? (int)$deptCheckRes['dept_id'] : 0;
-    }
-
-    $uniqueSelectedDeptIds = array_unique($selectedDeptIds);
-    if (count($uniqueSelectedDeptIds) > 1) {
-        echo json_encode(["status" => "error", "message" => "Selected items belong to multiple departments. Issue Note must match a single department."]);
-        exit();
-    }
-
-    // $itemsDeptId = $uniqueSelectedDeptIds[0] ?? 0;
-    // if ($itemsDeptId > 0 && (int)$departmentId !== $itemsDeptId) {
-    //     // Fetch friendly department name for the message
-    //     $deptName = '-';
-    //     $deptNameQuery = "SELECT name FROM department_master WHERE id = " . (int)$itemsDeptId . " LIMIT 1";
-    //     $deptNameRes = mysqli_fetch_assoc($db->readQuery($deptNameQuery));
-    //     if ($deptNameRes && !empty($deptNameRes['name'])) {
-    //         $deptName = $deptNameRes['name'];
-    //     }
-
-    //     echo json_encode([
-    //         "status" => "error", 
-    //         "message" => "Issue Note department must match the selected items' department (" . $deptName . ")."
-    //     ]);
-    //     exit();
-    // }
+    // Note: Previously validated that all items belonged to a single department.
+    // Business rule updated to allow issuing items across multiple departments in one note.
 
     // ... validation logic remains the same (it calculates total issued vs ordered) ...
 
