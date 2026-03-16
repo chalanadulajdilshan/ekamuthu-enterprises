@@ -8,7 +8,6 @@ class IssueReturnNote
     public $return_date;
     public $remarks;
     public $department_id;
-    public $return_status;
     public $created_at;
     public $updated_at;
 
@@ -26,7 +25,6 @@ class IssueReturnNote
                 $this->return_date = $result['return_date'];
                 $this->remarks = $result['remarks'];
                 $this->department_id = $result['department_id'];
-                $this->return_status = $result['return_status'];
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
             }
@@ -37,14 +35,12 @@ class IssueReturnNote
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_returns` (
-            `return_code`, `issue_note_id`, `return_date`, `remarks`, `department_id`, `return_status`
+            `return_code`, `issue_note_id`, `return_date`, `remarks`
         ) VALUES (
             '" . $db->escapeString($this->return_code) . "',
             '" . (int) $this->issue_note_id . "',
             '" . $db->escapeString($this->return_date) . "',
-            '" . $db->escapeString($this->remarks) . "',
-            " . ($this->department_id ? (int)$this->department_id : "NULL") . ",
-            '" . $db->escapeString($this->return_status ? $this->return_status : 'returned') . "'
+            '" . $db->escapeString($this->remarks) . "'
         )";
 
         $result = $db->readQuery($query);
@@ -61,9 +57,7 @@ class IssueReturnNote
         $db = Database::getInstance();
         $query = "UPDATE `issue_returns` SET
             `return_date` = '" . $db->escapeString($this->return_date) . "',
-            `remarks` = '" . $db->escapeString($this->remarks) . "',
-            `department_id` = " . ($this->department_id ? (int)$this->department_id : "NULL") . ",
-            `return_status` = '" . $db->escapeString($this->return_status) . "'
+            `remarks` = '" . $db->escapeString($this->remarks) . "'
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
@@ -119,7 +113,7 @@ class IssueReturnNote
                 "department" => $row['department_name'] ?? '-',
                 "return_date" => $row['return_date'],
                 "remarks" => $row['remarks'],
-                "status" => $row['return_status'],
+                "status" => 'returned',
                 "created_at" => $row['created_at']
             ];
 
