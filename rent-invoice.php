@@ -787,15 +787,19 @@ if (!empty($customerMobile)) {
                                 <td class="summary-label">Total Paid by Customer:</td>
                                 <td class="summary-value"><?php echo number_format($total_customer_paid, 2); ?></td>
                             </tr>
+                            <?php
+                            $balanceLabel = $refund_balance > 0 ? 'Company Pay:' : 'Customer Pay:';
+                            $balanceAmount = number_format(abs($refund_balance), 2);
+                            ?>
                             <tr>
-                                <td class="summary-label">Customer Pay:</td>
+                                <td class="summary-label"><?php echo $balanceLabel; ?></td>
                                 <td class="summary-value">
                                     <div class="d-flex flex-column align-items-end">
-                                        <span class="fw-semibold"><?php echo number_format($refund_balance, 2); ?></span>
+                                        <span class="fw-semibold"><?php echo $balanceAmount; ?></span>
                                         <?php if ($refund_balance < 0): ?>
                                             <span class="badge bg-success mt-1 align-self-end">Customer Pay</span>
                                         <?php elseif ($refund_balance > 0): ?>
-                                            
+                                            <span class="badge bg-primary mt-1 align-self-end">Company Pay</span>
                                         <?php endif; ?>
                                     </div>
                                 </td>
