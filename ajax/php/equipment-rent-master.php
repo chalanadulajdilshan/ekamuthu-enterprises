@@ -866,14 +866,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         foreach ($itemCalculations as &$entry) {
             $calc = $entry['calculation'];
             $itemRental = floatval($calc['rental_amount'] ?? 0);
-            $rawCharge = $itemRental
-                       + floatval($calc['extra_day_amount'] ?? 0)
-                       + floatval($calc['damage_amount'] ?? 0)
-                       + floatval($calc['penalty_amount'] ?? 0);
+            $rawCharge = round(
+                $itemRental
+                + floatval($calc['extra_day_amount'] ?? 0)
+                + floatval($calc['damage_amount'] ?? 0)
+                + floatval($calc['penalty_amount'] ?? 0),
+                2
+            );
             $entry['raw_charge'] = $rawCharge;
-            $entry['original_rental'] = $itemRental;
+            $entry['original_rental'] = round($itemRental, 2);
             $totalRawCharges += $rawCharge;
-            $totalOriginalRental += $itemRental;
+            $totalOriginalRental += $entry['original_rental'];
 
             // Accumulate component totals
             $totals['rental_amount'] += $itemRental;
@@ -900,10 +903,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
                     $rentalOverridePerItem[$itemId] = round($rentalOverride / max(1, count($itemCalculations)), 2);
                 }
                 // Recalculate this item's raw charge with the overridden rental
-                $entry['raw_charge'] = $rentalOverridePerItem[$itemId]
+                $entry['raw_charge'] = round(
+                    $rentalOverridePerItem[$itemId]
                     + floatval($entry['calculation']['extra_day_amount'] ?? 0)
                     + floatval($entry['calculation']['damage_amount'] ?? 0)
-                    + floatval($entry['calculation']['penalty_amount'] ?? 0);
+                    + floatval($entry['calculation']['penalty_amount'] ?? 0),
+                    2
+                );
             }
             unset($entry);
 
@@ -917,26 +923,26 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         // Allocate extra charge proportionally to each item's raw charge
         $totals['extra_charge_amount'] = round($extraChargeTotal, 2);
         $totals['repair_cost'] = round($repairCost, 2);
-        $totalRawChargesWithExtra = $totalRawCharges + $extraChargeTotal;
+        $totalRawChargesWithExtra = round($totalRawCharges + $extraChargeTotal, 2);
         $totals['total_rent_amount'] = $totalRawChargesWithExtra;
         foreach ($itemCalculations as &$entry) {
             $itemShare = $totalRawCharges > 0
                 ? ($entry['raw_charge'] / $totalRawCharges) * $extraChargeTotal
                 : 0;
             $entry['extra_charge_share'] = $itemShare;
-            $entry['raw_charge_with_extra'] = $entry['raw_charge'] + $itemShare;
+            $entry['raw_charge_with_extra'] = round($entry['raw_charge'] + $itemShare, 2);
         }
         unset($entry);
 
         // Apply customer deposit ONCE to get correct net settlement
         // Repair cost is a deduction (company pays customer), so subtract it
-        $totals['settle_amount'] = ($totalRawChargesWithExtra - $totals['repair_cost']) - $remainingDeposit;
+        $totals['settle_amount'] = round(($totalRawChargesWithExtra - $totals['repair_cost']) - $remainingDeposit, 2);
         if ($totals['settle_amount'] < 0) {
-            $totals['refund_amount'] = abs($totals['settle_amount']);
+            $totals['refund_amount'] = round(abs($totals['settle_amount']), 2);
             $totals['additional_payment'] = 0;
         } else {
             $totals['refund_amount'] = 0;
-            $totals['additional_payment'] = $totals['settle_amount'];
+            $totals['additional_payment'] = round($totals['settle_amount'], 2);
         }
 
         // If preview only, just return the totals
@@ -975,8 +981,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $item = $entry['item'];
             $pendingQty = $entry['pendingQty'];
             $calculation = $entry['calculation'];
-            $rawCharge = $entry['raw_charge_with_extra'] ?? ($entry['raw_charge'] + ($entry['extra_charge_share'] ?? 0));
-            $itemTotalRent = round($rawCharge, 2);
+            $rawCharge = round($entry['raw_charge_with_extra'] ?? ($entry['raw_charge'] + ($entry['extra_charge_share'] ?? 0)), 2);
+            $itemTotalRent = $rawCharge;
 
             // Distribute repair cost proportionally based on raw charge
             $repairShare = ($totalRawChargesWithExtra > 0)

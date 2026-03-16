@@ -114,8 +114,7 @@ $EQUIPMENT = new Equipment(NULL);
                                                     <th>Serial Number</th>
                                                     <th>Size</th>
                                                     <th>Value</th>
-
-
+                                                    <th>Deposit</th>
                                                     <th>Quantity</th>
                                                 </tr>
                                             </thead>

@@ -489,6 +489,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
             "serial_number" => $row['serial_number'],
             "size" => $row['size'],
             "value" => $row['value'],
+            "deposit_one_day" => $row['deposit_one_day'],
             "quantity" => $itemQuantity,
             "rent_one_day" => $row['rent_one_day'],
             "rent_one_month" => $row['rent_one_month'],

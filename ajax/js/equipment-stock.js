@@ -94,6 +94,17 @@ jQuery(document).ready(function () {
       },
 
       {
+        data: "deposit_one_day",
+        title: "Deposit",
+        render: function (data) {
+          return parseFloat(data || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        },
+      },
+
+      {
         data: "quantity",
         title: "Quantity",
         render: function (data) {
@@ -233,7 +244,7 @@ jQuery(document).ready(function () {
     html += "<table>";
     html += "<thead><tr>";
     html +=
-      '<th>Code</th><th>Item Name</th><th>Category</th><th>Department</th><th>Serial No</th><th>Size</th><th class="text-end">Value</th><th class="text-end">Qty</th>';
+      '<th>Code</th><th>Item Name</th><th>Category</th><th>Department</th><th>Serial No</th><th>Size</th><th class="text-end">Value</th><th class="text-end">Deposit</th><th class="text-end">Qty</th>';
     html += "</tr></thead><tbody>";
 
     if (data.length > 0) {
@@ -267,6 +278,13 @@ jQuery(document).ready(function () {
         html +=
           '<td class="text-end">' +
           parseFloat(item.value || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }) +
+          "</td>";
+        html +=
+          '<td class="text-end">' +
+          parseFloat(item.deposit_one_day || 0).toLocaleString("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }) +
@@ -365,7 +383,7 @@ jQuery(document).ready(function () {
       });
 
       html += '<tfoot><tr style="background:#f9f9f9; font-weight:bold;">';
-      html += '<td colspan="7" class="text-end">Total Quantity</td>';
+      html += '<td colspan="8" class="text-end">Total Quantity</td>';
       html += '<td class="text-end">' + totalQty.toLocaleString("en-US") + "</td>";
       html += "</tr></tfoot>";
     } else {
