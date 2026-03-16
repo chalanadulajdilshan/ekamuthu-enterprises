@@ -500,6 +500,31 @@ if (!empty($customerMobile)) {
             font-size: 20px !important;
         }
 
+        /* Make Bill No clearly readable on printout */
+        .invoice-meta .bill-number {
+            font-size: 22px !important;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* Emphasize other meta values to same scale */
+        .invoice-meta .meta-value {
+            font-size: 18px !important;
+            font-weight: 700;
+        }
+
+        /* Enlarge labels to match value scale */
+        .invoice-meta .meta-label {
+            font-size: 16px !important;
+            font-weight: 700;
+        }
+
+        .invoice-meta .status-badge {
+            font-size: 13px !important;
+            padding: 3px 7px !important;
+            font-weight: 700;
+        }
+
         .summary-table td {
             padding: 1px 6px !important;
             border: none !important;
@@ -584,20 +609,23 @@ if (!empty($customerMobile)) {
 
                     <div class="col-md-6 text-sm-start text-md-end">
                         <div class="invoice-meta">
-                            <p class="mb-1" style="font-size:14px;"><strong>Bill No:</strong> <strong><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></strong></p>
-                            <p class="mb-1" style="font-size:14px;"><strong>Issued Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                            <p class="mb-1" style="font-size:14px;" aria-label="Bill Number">
+                                <strong class="meta-label">Bill No:</strong>
+                                <strong class="bill-number"><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></strong>
+                            </p>
+                            <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Issued Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></span></p>
                             <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong>Rented Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
+                                <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Rented Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></span></p>
                             <?php endif; ?>
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong>Received Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></p>
+                                <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Received Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></span></p>
                             <?php endif; ?>
                             <p class="mb-1" style="font-size:14px;">
-                                <strong>Status:</strong> 
+                                <strong class="meta-label">Status:</strong> 
                                 <?php if ($EQUIPMENT_RENT->status === 'rented'): ?>
-                                    <span class="badge bg-warning">Rented</span>
+                                    <span class="badge bg-warning status-badge">Rented</span>
                                 <?php else: ?>
-                                    <span class="badge bg-success">Returned</span>
+                                    <span class="badge bg-success status-badge">Returned</span>
                                 <?php endif; ?>
                             </p>
                         </div>
