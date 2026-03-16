@@ -288,6 +288,14 @@ $homeViewMode = $COMPANY_PROFILE_DETAILS->home_view_mode ?? 'both';
                                         $PAGE_CATEGORY = new PageCategory(NULL);
                                         $USER_PERMISSION = new UserPermission();
                                         $user_id = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+                                        $translations = [
+                                            'Dashboard' => 'පාලක පුවරුව',
+                                            'Master File' => 'ප්‍රධාන ගොනු',
+                                            'Data Capture' => 'දත්ත ඇතුලත් කිරීම',
+                                            'Stores' => 'ගබඩාව',
+                                            'Reports' => 'වාර්තාවන්',
+                                            'Administrator' => 'පරිපාලක'
+                                        ];
                                         foreach ($PAGE_CATEGORY->getActiveCategory() as $category):
                                             $hasCategoryAccess = false;
                                             $firstPage = null;
@@ -331,7 +339,11 @@ $homeViewMode = $COMPANY_PROFILE_DETAILS->home_view_mode ?? 'both';
                                         ?>
                                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                                             <a href="<?php echo strtolower(str_replace(' ', '-', $category['name'])) . '-tab.php?category_id=' . $category['id']; ?>" class="btn btn-outline-primary btn-lg w-100 d-flex align-items-center justify-content-start gp-tile-btn">
-                                                <i class="<?php echo $category['icon']; ?> me-3 gp-tile-icon"></i> <?php echo $category['name']; ?>
+                                                <i class="<?php echo $category['icon']; ?> me-3 gp-tile-icon"></i> 
+                                                <div class="d-flex flex-column align-items-start">
+                                                    <span class="fw-bold"><?php echo $category['name']; ?></span>
+                                                    <small class="text-muted" style="font-size: 0.75rem; line-height: 1;"><?php echo $translations[$category['name']] ?? ''; ?></small>
+                                                </div>
                                             </a>
                                         </div>
                                         <?php

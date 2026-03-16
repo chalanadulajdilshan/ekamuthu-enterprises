@@ -66,6 +66,11 @@ $themeColor = !empty($COMPANY_PROFILE->theme) ? $COMPANY_PROFILE->theme : '#3b5d
         box-shadow: 0 6px 14px rgba(var(--bs-primary-rgb), 0.12);
     }
 
+    .gp-tile-btn:hover .text-muted,
+    .gp-tile-btn:focus .text-muted {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
     .gp-tile-icon {
         font-size: 1.6rem;
         line-height: 1;
