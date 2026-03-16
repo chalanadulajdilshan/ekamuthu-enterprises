@@ -87,6 +87,7 @@ $(document).ready(function () {
                 { data: "return_code", title: "Return Note No" },
                 { data: "issue_note_ref", title: "Issue Note Ref" },
                 { data: "customer_name", title: "Customer" },
+                { data: "department", title: "Department" },
                 { data: "return_date", title: "Date" },
                 { data: "remarks", title: "Remarks" },
                 {
@@ -144,7 +145,7 @@ $(document).ready(function () {
                     $("#selected_issue_display").val(ret.issue_note_code);
                     $("#return_note_code").val(ret.return_code);
                     $("#return_date").val(ret.return_date);
-                    $("#department_id").val(ret.department_id);
+                    $("#department_id").val(ret.department_id).attr("disabled", !!ret.department_id);
                     $("#remarks").val(ret.remarks);
 
                     // Show selected issue note status
@@ -167,6 +168,8 @@ $(document).ready(function () {
                             remaining_quantity: 0, // Not relevant
                             return_quantity: parseFloat(item.return_quantity) || 0,
                             remarks: item.remarks || "",
+                            department_id: item.department_id,
+                            department_name: item.department_name,
                             is_view_mode: true
                         };
                     });
@@ -212,6 +215,11 @@ $(document).ready(function () {
                     $("#customer_name").val(note.customer_name);
                     $("#customer_phone").val(note.customer_phone);
                     $("#selected_issue_display").val(note.issue_note_code + " - " + note.issue_date);
+                    if (note.department_id) {
+                        $("#department_id").val(note.department_id).attr("disabled", true);
+                    } else {
+                        $("#department_id").val("").attr("disabled", false);
+                    }
 
                     if (note.issue_status === 'cancelled') {
                         $("#selected_issue_status_badge").html('<span class="badge bg-danger font-size-10">CANCELLED ISSUE</span>');
@@ -243,7 +251,9 @@ $(document).ready(function () {
                             already_returned: parseFloat(item.already_returned) || 0,
                             remaining_quantity: parseFloat(item.remaining_quantity) || 0,
                             return_quantity: parseFloat(item.remaining_quantity) || 0, // Default to returning all
-                            remarks: ""
+                            remarks: "",
+                            department_id: item.department_id,
+                            department_name: item.department_name
                         };
                     });
 
@@ -290,6 +300,7 @@ $(document).ready(function () {
                 <tr class="${bgClass}">
                     <td>${index + 1}</td>
                     <td>${itemName}</td>
+                    <td>${item.department_name || '-'}</td>
                     <td class="text-center bg-light">${item.issued_quantity}</td>
                     <td class="text-center bg-light">${item.already_returned}</td>
                     <td class="text-center bg-light text-primary fw-bold">${item.remaining_quantity}</td>

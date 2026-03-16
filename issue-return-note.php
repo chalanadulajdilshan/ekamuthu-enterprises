@@ -3,11 +3,11 @@
 include 'class/include.php';
 include 'auth.php';
 
-// Get new Return Note Code from Document Tracking
-$DOCUMENT_TRACKING = new DocumentTracking(1);
-$lastId = $DOCUMENT_TRACKING->issue_return_id ?? 0;
-// RN/1/01
-$return_note_code = ($lastId + 1);
+// Get new Return Note Code from latest saved value (manual or auto)
+$db = Database::getInstance();
+$maxRes = mysqli_fetch_assoc($db->readQuery("SELECT MAX(return_code + 0) AS max_code FROM issue_returns"));
+$lastCode = $maxRes['max_code'] ?? 0;
+$return_note_code = ((int)$lastCode) + 1;
 
 ?>
 <head>
@@ -84,7 +84,7 @@ $return_note_code = ($lastId + 1);
                                     <div class="p-4">
                                     <form id="return_note_form">
                                         <div class="row mb-4">
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label class="form-label">Return Note Code - පත්‍රිකා අංකය</label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="return_note_code" value="<?php echo $return_note_code ?>">
@@ -94,7 +94,7 @@ $return_note_code = ($lastId + 1);
                                                 <label class="form-label">Return Date - ආපසු ලැබුණු දිනය</label>
                                                 <input type="text" class="form-control date-picker" id="return_date" value="<?php echo date('Y-m-d'); ?>">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-5">
                                                 <label class="form-label">Select Issue Note - නිකුත් කිරීමේ පත්‍රිකාව <span id="selected_issue_status_badge" class="ms-2"></span></label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="selected_issue_display" placeholder="Select an Issue Note..." readonly>
@@ -104,7 +104,7 @@ $return_note_code = ($lastId + 1);
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-2 d-none">
                                                 <label class="form-label">Department</label>
                                                 <select class="form-select" id="department_id">
                                                     <option value="">Select Department...</option>
@@ -140,6 +140,7 @@ $return_note_code = ($lastId + 1);
                                                             <tr>
                                                                 <th style="width: 50px;">#</th>
                                                                 <th>Item Name</th>
+                                                                <th>Department</th>
                                                                 <th style="width: 120px;">Issued Qty</th>
                                                                 <th style="width: 120px;">Prev Returned</th>
                                                                 <th style="width: 120px;">Remaining</th>
@@ -158,7 +159,7 @@ $return_note_code = ($lastId + 1);
                                                         </tbody>
                                                         <tfoot class="table-light" id="returnItemsFooter" style="display: none;">
                                                             <tr class="fw-bold">
-                                                                <td colspan="2" class="text-end">Total:</td>
+                                                                <td colspan="3" class="text-end">Total:</td>
                                                                 <td class="text-center" id="total_issued">0</td>
                                                                 <td class="text-center" id="total_prev_returned">0</td>
                                                                 <td class="text-center" id="total_remaining">0</td>

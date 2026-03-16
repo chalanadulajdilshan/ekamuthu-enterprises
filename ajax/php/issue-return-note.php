@@ -16,21 +16,8 @@ if (isset($_POST['create'])) {
     $existing = mysqli_fetch_assoc($db->readQuery($codeCheck));
 
     if ($existing && !isset($_POST['return_id'])) {
-        // Check if existing note is cancelled
-        if ($existing['return_status'] === 'cancelled') {
-            echo json_encode(["status" => "error", "message" => "This Return Note code belongs to a CANCELLED record and cannot be reused or updated."]);
-            exit();
-        }
         echo json_encode(["status" => "duplicate", "message" => "Return Note code already exists"]);
         exit();
-    }
-
-    if ($return_id) {
-        $check = new IssueReturnNote($return_id);
-        if ($check->return_status === 'cancelled') {
-            echo json_encode(["status" => "error", "message" => "This Return Note is CANCELLED and cannot be updated."]);
-            exit();
-        }
     }
 
     $items = json_decode($_POST['items'] ?? '[]', true);
@@ -60,7 +47,8 @@ if (isset($_POST['create'])) {
                           WHERE r.issue_note_id = $issueNoteId 
                           AND iri.equipment_id = $eqId 
                           AND (iri.sub_equipment_id = $subEqId OR ($subEqId IS NULL AND iri.sub_equipment_id IS NULL))
-                          AND r.return_status != 'cancelled'";
+                          AND (iri.department_id = $itemDeptId OR ($itemDeptId IS NULL AND iri.department_id IS NULL))
+                          ";
         $returnedRes = mysqli_fetch_assoc($db->readQuery($returnedQuery));
         $totalReturnedSoFar = (float)($returnedRes['returned'] ?? 0);
         
@@ -90,7 +78,6 @@ if (isset($_POST['create'])) {
         $RETURN->return_date = $_POST['return_date'];
         $RETURN->department_id = $_POST['department_id'] ?? null;
         $RETURN->remarks = $_POST['remarks'] ?? '';
-        $RETURN->return_status = 'returned';
         $return_id = $RETURN->create();
     }
 
@@ -105,6 +92,7 @@ if (isset($_POST['create'])) {
                 $ITEM->issued_quantity = $item['issued_quantity'];
                 $ITEM->return_quantity = $item['return_quantity'];
                 $ITEM->remarks = $item['remarks'] ?? '';
+                $ITEM->department_id = $item['department_id'] ?? null;
                 $ITEM->create();
             }
         }
@@ -143,18 +131,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
             // Fetch previously returned quantities for this issue note (EXCLUDING CANCELLED)
             // Note: issue_return_items doesn't have department_id, but we can potentially link it if needed.
             // For now, let's assume one return row per issue note row.
-            $returnedQuery = "SELECT iri.equipment_id, iri.sub_equipment_id, SUM(iri.return_quantity) as total_returned
+            $returnedQuery = "SELECT iri.equipment_id, iri.sub_equipment_id, iri.department_id, SUM(iri.return_quantity) as total_returned
                               FROM issue_return_items iri
                               INNER JOIN issue_returns ret ON iri.return_id = ret.id
                               WHERE ret.issue_note_id = " . (int)$note_id . "
-                              AND ret.return_status != 'cancelled'
-                              GROUP BY iri.equipment_id, iri.sub_equipment_id";
+                              GROUP BY iri.equipment_id, iri.sub_equipment_id, iri.department_id";
             $returnedResult = $db->readQuery($returnedQuery);
             $returnedMap = [];
             while ($row = mysqli_fetch_assoc($returnedResult)) {
                 // Warning: Without department_id in issue_return_items, this might aggregate across departments if not careful.
                 // However, if the UI handles returns per row, it should stay consistent.
-                $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL');
+                $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL') . '_' . ($row['department_id'] ?? 'NULL');
                 $returnedMap[$key] = (float)$row['total_returned'];
             }
 
@@ -170,7 +157,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
             $formattedItems = [];
             foreach ($items as $item) {
                 // Include department_id in the key to prevent merging items from different departments
-                $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL');
+                $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL') . '_' . ($item['department_id'] ? $item['department_id'] : 'NULL');
                 // Since issue_return_items LACKS department_id, we might have a limitation here if same eq/sub-eq is in multiple departments.
                 // But for now, we at least avoid merging them in the formatted items list.
                 
@@ -202,7 +189,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
                     "customer_name" => $CUSTOMER->name,
                     "customer_phone" => $CUSTOMER->mobile_number,
                     "issue_date" => $NOTE->issue_date,
-                    "issue_status" => $NOTE->issue_status
+                    "issue_status" => $NOTE->issue_status,
+                    "department_id" => $NOTE->department_id
                 ],
                 "items" => $formattedItems,
                 "history" => $history
@@ -218,11 +206,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
 
 // Get new code
 if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
-    $DOCUMENT_TRACKING = new DocumentTracking(1);
-    $lastId = $DOCUMENT_TRACKING->issue_return_id ?? 0;
-    $newCode = 'RN/' . ($_SESSION['id'] ?? '0') . '/0' . ($lastId + 1);
+    $db = Database::getInstance();
+    $maxRes = mysqli_fetch_assoc($db->readQuery("SELECT MAX(return_code + 0) AS max_code FROM issue_returns"));
+    $lastCode = $maxRes['max_code'] ?? 0;
+    $newCode = ((int)$lastCode) + 1;
 
-echo json_encode([
+    echo json_encode([
         "status" => "success",
         "code" => $newCode
     ]);
@@ -252,7 +241,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_return_note_details') {
                 "department_id" => $RETURN->department_id,
                 "return_date" => $RETURN->return_date,
                 "remarks" => $RETURN->remarks,
-                "status" => $RETURN->return_status,
+                "status" => 'returned',
                 "issue_note_status" => $ISSUE_NOTE->issue_status
             ],
             "items" => $items
@@ -274,31 +263,24 @@ if (isset($_POST['filter'])) {
 // Cancel Issue Return Note
 if (isset($_POST['cancel_return'])) {
     $note_id = $_POST['return_id'] ?? 0;
-    $db = Database::getInstance();
 
     if ($note_id) {
         $RETURN = new IssueReturnNote($note_id);
         if ($RETURN->id) {
-            if ($RETURN->return_status === 'cancelled') {
-                echo json_encode(["status" => "error", "message" => "This Return Note is already cancelled"]);
-                exit();
-            }
-            $RETURN->return_status = 'cancelled';
-            if ($RETURN->update()) {
-                // Audit Log
-                $AUDIT_LOG = new AuditLog(null);
-                $AUDIT_LOG->ref_id = $RETURN->id;
-                $AUDIT_LOG->ref_code = $RETURN->return_code;
-                $AUDIT_LOG->action = 'CANCEL';
-                $AUDIT_LOG->description = 'CANCEL ISSUE RETURN NOTE #' . $RETURN->return_code;
-                $AUDIT_LOG->user_id = $_SESSION['id'] ?? 0;
-                $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
-                $AUDIT_LOG->create();
+            // Delete items and note (hard delete since status column missing)
+            $RETURN->delete();
 
-                echo json_encode(["status" => "success", "message" => "Return Note cancelled successfully"]);
-            } else {
-                echo json_encode(["status" => "error", "message" => "Failed to update return status"]);
-            }
+            // Audit Log
+            $AUDIT_LOG = new AuditLog(null);
+            $AUDIT_LOG->ref_id = $note_id;
+            $AUDIT_LOG->ref_code = $RETURN->return_code;
+            $AUDIT_LOG->action = 'CANCEL';
+            $AUDIT_LOG->description = 'DELETE ISSUE RETURN NOTE #' . $RETURN->return_code;
+            $AUDIT_LOG->user_id = $_SESSION['id'] ?? 0;
+            $AUDIT_LOG->created_at = date("Y-m-d H:i:s");
+            $AUDIT_LOG->create();
+
+            echo json_encode(["status" => "success", "message" => "Return Note cancelled (deleted) successfully"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Return Note not found"]);
         }
