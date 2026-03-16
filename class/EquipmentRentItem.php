@@ -113,6 +113,8 @@ class EquipmentRentItem
             `sub_equipment_id` = $subEquipmentValue,
             `rental_date` = '$this->rental_date', 
             `quantity` = '$this->quantity',
+            `bill_qty` = '$this->bill_qty',
+            `pending_qty` = '$this->pending_qty',
             `rent_type` = '$this->rent_type',
             `duration` = '$this->duration',
             `amount` = '$this->amount',

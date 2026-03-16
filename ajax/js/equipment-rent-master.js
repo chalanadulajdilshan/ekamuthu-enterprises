@@ -583,8 +583,11 @@ jQuery(document).ready(function () {
   }
 
   // Check if sub-equipment already added
-  function isSubEquipmentAlreadyAdded(subEquipmentId) {
-    return rentItems.some(function (item) {
+  function isSubEquipmentAlreadyAdded(subEquipmentId, ignoreIndex = null) {
+    return rentItems.some(function (item, index) {
+      if (ignoreIndex !== null && index === ignoreIndex) {
+        return false;
+      }
       return (
         item.sub_equipment_id == subEquipmentId && item.status === "rented"
       );
@@ -623,7 +626,7 @@ jQuery(document).ready(function () {
       });
       return;
     }
-    if (!noSubItems && isSubEquipmentAlreadyAdded(subEquipmentId)) {
+    if (!noSubItems && isSubEquipmentAlreadyAdded(subEquipmentId, editingItemIndex)) {
       swal({
         title: "Error!",
         text: "This sub equipment is already added to the list",
@@ -737,6 +740,10 @@ jQuery(document).ready(function () {
       item.department_id = $("#item_department_id").val() || null;
       item.department_name = $("#item_department_id option:selected").text().split(" (Avail")[0] || "";
       item.no_sub_items = noSubItems ? 1 : 0;
+      
+      // Recalculate pending quantity for UI consistency before saving
+      var returnedTotal = parseFloat(item.total_returned_qty || 0);
+      item.pending_qty = Math.max(0, parseFloat(item.quantity) - returnedTotal);
 
       // Add new deposit to totalCalculatedDeposit
       totalCalculatedDeposit += parseFloat(currentDepositOneDay || 0) * parseFloat($("#item_qty").val() || 1);
@@ -771,6 +778,7 @@ jQuery(document).ready(function () {
         status: "rented",
         remark: "",
         no_sub_items: noSubItems ? 1 : 0,
+        pending_qty: parseFloat($("#item_qty").val())
       });
 
       // Update calculated deposit
