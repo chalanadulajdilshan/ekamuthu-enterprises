@@ -1030,6 +1030,9 @@ function generatePrintWindow(refNumber) {
     // Render custom print layout (exclude recorded/payments/deposits/returns)
     var printContent = `
         <div class="print-wrapper">
+            <div class="text-center">
+                <img src="assets/images/header.png" alt="Company Header" class="print-header-img">
+            </div>
             <div class="text-center mb-3 print-title">INVOICE - Hiring Charges</div>
             <div class="meta grid">
                 <div class="meta-block">
@@ -1088,6 +1091,7 @@ function generatePrintWindow(refNumber) {
                 @page { margin: 6mm 8mm 8mm 8mm; }
                 body { padding: 0; font-size: 13px; color: #111; }
                 .print-wrapper { padding: 6px; }
+                .print-header-img { width: 100%; max-width: 820px; height: 120px; object-fit: contain; margin-bottom: 6px; }
                 .print-title { font-size: 20px; font-weight: 700; }
                 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 10px; }
                 .meta-block { border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px 10px; background: #fafafa; font-size: 13px; }
