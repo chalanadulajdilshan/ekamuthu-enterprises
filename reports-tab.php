@@ -41,6 +41,7 @@ if (!$pageCategory->id) {
                     $USER_PERMISSION = new UserPermission();
                     $user_id = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
                     $PAGES = new Pages(null);
+                    $translations = Translations::getSinhalaMapping();
                     foreach ($DEFAULT_DATA->pagesSubCategory() as $key => $subCategoryTitle):
                         $subPages = $PAGES->getPagesBySubCategory($key);
                         $visiblePages = [];
@@ -55,8 +56,9 @@ if (!$pageCategory->id) {
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title"><?php echo $subCategoryTitle; ?></h5>
+                                <div class="card-header d-flex flex-column align-items-start">
+                                    <h5 class="card-title mb-0"><?php echo $subCategoryTitle; ?></h5>
+                                    <small class="text-muted" style="font-size: 0.75rem;"><?php echo $translations[$subCategoryTitle] ?? ''; ?></small>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -68,7 +70,10 @@ if (!$pageCategory->id) {
                                                 <?php else: ?>
                                                     <i class="uil uil-file me-3 gp-tile-icon"></i>
                                                 <?php endif; ?>
-                                                <?php echo $page['page_name']; ?>
+                                                <div class="d-flex flex-column align-items-start">
+                                                    <span class="fw-bold"><?php echo $page['page_name']; ?></span>
+                                                    <small class="text-muted" style="font-size: 0.75rem; line-height: 1;"><?php echo $translations[$page['page_name']] ?? ''; ?></small>
+                                                </div>
                                             </a>
                                         </div>
                                         <?php endforeach; ?>

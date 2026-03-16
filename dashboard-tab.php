@@ -49,6 +49,7 @@ if (!$pageCategory->id) {
                                         $user_id = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
                                         $PAGES = new Pages(null);
                                         $categoryPages = $PAGES->getPagesByCategory($category_id);
+                                        $translations = Translations::getSinhalaMapping();
                                         foreach ($categoryPages as $page) {
                                             $permissions = $USER_PERMISSION->hasPermission($user_id, $page['id']);
                                             if (in_array(true, $permissions, true)) {
@@ -60,7 +61,10 @@ if (!$pageCategory->id) {
                                                 <?php else: ?>
                                                     <i class="uil uil-file me-3 gp-tile-icon"></i>
                                                 <?php endif; ?>
-                                                <?php echo $page['page_name']; ?>
+                                                <div class="d-flex flex-column align-items-start">
+                                                    <span class="fw-bold"><?php echo $page['page_name']; ?></span>
+                                                    <small class="text-muted" style="font-size: 0.75rem; line-height: 1;"><?php echo $translations[$page['page_name']] ?? ''; ?></small>
+                                                </div>
                                             </a>
                                         </div>
                                         <?php

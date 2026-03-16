@@ -288,14 +288,7 @@ $homeViewMode = $COMPANY_PROFILE_DETAILS->home_view_mode ?? 'both';
                                         $PAGE_CATEGORY = new PageCategory(NULL);
                                         $USER_PERMISSION = new UserPermission();
                                         $user_id = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
-                                        $translations = [
-                                            'Dashboard' => 'පාලක පුවරුව',
-                                            'Master File' => 'ප්‍රධාන ගොනු',
-                                            'Data Capture' => 'දත්ත ඇතුලත් කිරීම',
-                                            'Stores' => 'ගබඩාව',
-                                            'Reports' => 'වාර්තාවන්',
-                                            'Administrator' => 'පරිපාලක'
-                                        ];
+                                        $translations = Translations::getSinhalaMapping();
                                         foreach ($PAGE_CATEGORY->getActiveCategory() as $category):
                                             $hasCategoryAccess = false;
                                             $firstPage = null;

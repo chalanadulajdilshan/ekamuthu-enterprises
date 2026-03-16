@@ -90,6 +90,7 @@ include_once(dirname(__FILE__) . '/TermsCondition.php');
 include_once(dirname(__FILE__) . '/DepositPayment.php');
 include_once(dirname(__FILE__) . '/Gatepass.php');
 include_once(dirname(__FILE__) . '/GatepassItem.php');
+include_once(dirname(__FILE__) . '/Translations.php');
 
 
 // Initialize session if not already started
