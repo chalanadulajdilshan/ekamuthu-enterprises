@@ -956,9 +956,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
         // Handle company_refund_paid for partial refund scenarios
         $totalCompanyRefundPaid = isset($_POST['company_refund_paid']) ? floatval($_POST['company_refund_paid']) : 0;
         $totalRefundAmount = $totals['refund_amount'];
-        // If no partial refund specified but there is a refund, assume full refund paid
-        if ($totalRefundAmount > 0 && $totalCompanyRefundPaid <= 0) {
-            $totalCompanyRefundPaid = $totalRefundAmount;
+        $isPartialRefund = isset($_POST['partial_refund']) ? intval($_POST['partial_refund']) === 1 : false;
+        if ($totalRefundAmount > 0) {
+            if ($isPartialRefund) {
+                // Allow zero/empty to mean nothing paid yet; clamp within range
+                $totalCompanyRefundPaid = max(0, min($totalRefundAmount, $totalCompanyRefundPaid));
+            } else {
+                // When not partial, default to full refund if nothing specified
+                if ($totalCompanyRefundPaid <= 0) {
+                    $totalCompanyRefundPaid = $totalRefundAmount;
+                } else {
+                    $totalCompanyRefundPaid = min($totalRefundAmount, $totalCompanyRefundPaid);
+                }
+            }
         }
 
         foreach ($itemCalculations as $entry) {

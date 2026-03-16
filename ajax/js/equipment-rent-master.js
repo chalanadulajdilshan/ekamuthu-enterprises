@@ -2640,7 +2640,7 @@ jQuery(document).ready(function () {
             'max="' +
             refundAmount.toFixed(2) +
             '" value="' +
-            formatCurrency(refundAmount) +
+            refundAmount.toFixed(2) +
             '">';
           previewHtml +=
             '<div class="mt-1"><strong>Company Outstanding - සමාගම් හිඟ: </strong>';
@@ -2804,17 +2804,17 @@ jQuery(document).ready(function () {
         customer_paid: parseFloat($("#return_all_customer_paid").val()) || 0,
         company_refund_paid:
           parseFloat($("#return_all_company_refund_paid").val()) || 0,
+        partial_refund: $("#return_all_partial_refund").is(":checked") ? 1 : 0,
         return_remark: $("#return_all_remark").val() || "",
       },
-      dataType: "JSON",
+      dataType: "json",
       success: function (result) {
         if (result.status === "success") {
           $("#returnAllModal").modal("hide");
 
           // Build settlement summary if backend sent calculation
           var calc = result.calculation || {};
-          var settlementText =
-            result.message || "All items marked as returned.";
+          var settlementText = result.message || "All items marked as returned.";
           var summaryLines = [];
           if (
             calc &&
