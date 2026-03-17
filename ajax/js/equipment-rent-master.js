@@ -2557,6 +2557,14 @@ jQuery(document).ready(function () {
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
+  // Also open native picker when clicking or focusing the date input
+  $("#return_all_date").on("focus click", function () {
+    // Some browsers support showPicker (Chromium). If available, call it.
+    if (this.showPicker) {
+      this.showPicker();
+    }
+  });
+
   // Ensure return_all_date remains editable when modal is shown
   $("#returnAllModal").on("shown.bs.modal", function () {
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
