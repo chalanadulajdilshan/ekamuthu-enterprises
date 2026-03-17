@@ -247,6 +247,7 @@ jQuery(document).ready(function () {
     const epf_no = $(this).data("epf_no");
     const finger_print_no = $(this).data("finger_print_no");
     const department_id = $(this).data("department_id");
+    const employee_category_id = $(this).data("employee_category_id");
 
     $("#id").val($(this).data("id"));
     $("#code").val($(this).data("code"));
@@ -261,6 +262,7 @@ jQuery(document).ready(function () {
     $("#epf_no").val($(this).data("epf_no"));
     $("#finger_print_no").val($(this).data("finger_print_no"));
     $("#department_id").val($(this).data("department_id"));
+    $("#employee_category_id").val($(this).data("employee_category_id"));
     $("#epf_available").val(epf_available == 1 ? "available" : "not_available");
 
     $("#create").hide();

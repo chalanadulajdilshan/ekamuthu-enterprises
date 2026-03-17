@@ -22,6 +22,7 @@ if (isset($_POST['create'])) {
     $EMPLOYEE->epf_no = ($_POST['epf_available'] === 'available') ? $_POST['epf_no'] : '';
     $EMPLOYEE->finger_print_no = $_POST['finger_print_no'];
     $EMPLOYEE->department_id = $_POST['department_id'];
+    $EMPLOYEE->employee_category_id = $_POST['employee_category_id'];
 
     // Attempt to create the Employee
     $res = $EMPLOYEE->create();
@@ -60,6 +61,7 @@ if (isset($_POST['update'])) {
     $EMPLOYEE->epf_no = ($_POST['epf_available'] === 'available') ? $_POST['epf_no'] : '';
     $EMPLOYEE->finger_print_no = $_POST['finger_print_no'];
     $EMPLOYEE->department_id = $_POST['department_id'];
+    $EMPLOYEE->employee_category_id = $_POST['employee_category_id'];
 
     // Attempt to update the Employee
     $result = $EMPLOYEE->update();

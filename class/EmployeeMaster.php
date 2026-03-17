@@ -17,6 +17,7 @@ class EmployeeMaster
     public $epf_no;
     public $finger_print_no;
     public $department_id;
+    public $employee_category_id;
 
     public function __construct($id = null)
     {
@@ -40,6 +41,7 @@ class EmployeeMaster
                 $this->epf_no = $result['epf_no'];
                 $this->finger_print_no = $result['finger_print_no'];
                 $this->department_id = $result['department_id'];
+                $this->employee_category_id = $result['employee_category_id'];
             }
         }
     }
@@ -47,9 +49,9 @@ class EmployeeMaster
     public function create()
     {
         $query = "INSERT INTO `employee_master` (
-            `code`, `name`, `full_name`, `gender`, `birthday`, `nic_no`, `mobile_1`, `mobile_2`, `email`, `epf_available`, `epf_no`, `finger_print_no`,`department_id`
+            `code`, `name`, `full_name`, `gender`, `birthday`, `nic_no`, `mobile_1`, `mobile_2`, `email`, `epf_available`, `epf_no`, `finger_print_no`,`department_id`,`employee_category_id`
         ) VALUES (
-            '$this->code', '$this->name', '$this->full_name', '$this->gender', '$this->birthday', '$this->nic_no', '$this->mobile_1', '$this->mobile_2', '$this->email', '$this->epf_available', '$this->epf_no', '$this->finger_print_no', '$this->department_id'
+            '$this->code', '$this->name', '$this->full_name', '$this->gender', '$this->birthday', '$this->nic_no', '$this->mobile_1', '$this->mobile_2', '$this->email', '$this->epf_available', '$this->epf_no', '$this->finger_print_no', '$this->department_id', '$this->employee_category_id'
         )";
 
         $db = Database::getInstance();
@@ -77,7 +79,8 @@ class EmployeeMaster
             `epf_available` = '$this->epf_available',
             `epf_no` = '$this->epf_no',
             `finger_print_no` = '$this->finger_print_no', 
-            `department_id` = '$this->department_id'
+            `department_id` = '$this->department_id',
+            `employee_category_id` = '$this->employee_category_id'
             WHERE `id` = '$this->id'";
  
 
@@ -122,6 +125,12 @@ class EmployeeMaster
 
     public function fetchForDataTable($request)
     {
+        $db = Database::getInstance();
+
+        $where = "";
+        $search = isset($request['search']) ? $request['search'] : '';
+        $status = isset($request['status']) ? $request['status'] : '';
+
         // Search filter
         if (!empty($search)) {
             $where .= " AND (name LIKE '%$search%' OR code LIKE '%$search%')";
