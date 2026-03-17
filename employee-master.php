@@ -127,6 +127,21 @@ $employee_id = 'EM/0' . ($lastId + 1);
                                                 </div>
                                             </div>
 
+                                            <div class="col-md-2">
+                                                <label for="employee_category_id" class="form-label">Category</label>
+                                                <select id="employee_category_id" name="employee_category_id" class="form-select">
+                                                    <option value="">Select Category</option>
+                                                    <?php
+                                                    $EMPLOYEE_CATEGORY_MASTER = new EmployeeCategoryMaster(NULL);
+                                                    foreach ($EMPLOYEE_CATEGORY_MASTER->getActiveEmployeeCategory() as $emp_category) {
+                                                        ?>
+                                                        <option value="<?php echo $emp_category['id']; ?>">
+                                                            <?php echo $emp_category['name']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+
                                             <div style="display: none;">
                                                 <div class="col-md-2">
                                                     <label for="full_name" class="form-label">Full Name</label>
@@ -289,7 +304,8 @@ $employee_id = 'EM/0' . ($lastId + 1);
                                             data-epf_available="<?php echo htmlspecialchars($employee['epf_available']); ?>"
                                             data-epf_no="<?php echo htmlspecialchars($employee['epf_no']); ?>"
                                             data-finger_print_no="<?php echo htmlspecialchars($employee['finger_print_no']); ?>"
-                                            data-department_id="<?php echo htmlspecialchars($employee['department_id']); ?>">
+                                            data-department_id="<?php echo htmlspecialchars($employee['department_id']); ?>"
+                                            data-employee_category_id="<?php echo htmlspecialchars($employee['employee_category_id']); ?>">
 
                                             <td><?php echo $key; ?></td>
                                             <td><?php echo htmlspecialchars($employee['code']); ?></td>

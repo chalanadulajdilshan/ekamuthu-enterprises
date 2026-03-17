@@ -39,6 +39,7 @@ include_once(dirname(__FILE__) . '/StockAdjustmentType.php');
 include_once(dirname(__FILE__) . '/InvoiceRemark.php');
 include_once(dirname(__FILE__) . '/Bank.php');
 include_once(dirname(__FILE__) . '/EmployeeMaster.php');
+include_once(dirname(__FILE__) . '/EmployeeCategoryMaster.php');
 include_once(dirname(__FILE__) . '/ArnMaster.php');
 include_once(dirname(__FILE__) . '/ArnItem.php');
 include_once(dirname(__FILE__) . '/DocumentTracking.php');
