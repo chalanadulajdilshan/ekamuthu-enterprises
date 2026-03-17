@@ -2526,6 +2526,11 @@ jQuery(document).ready(function () {
     var rentId = $("#rent_id").val();
     if (!rentId) return;
 
+    // Ensure no jQuery datepicker is bound so browser picker is used
+    if ($.fn.datepicker && $("#return_all_date").hasClass("hasDatepicker")) {
+      $("#return_all_date").datepicker("destroy").removeClass("hasDatepicker");
+    }
+
     // Initialize return all modal with current date/time
     var now = new Date();
     var yyyy = now.getFullYear();
