@@ -13,6 +13,12 @@ function formatNumber(num) {
     });
 }
 
+// Translation helper
+function t(text) {
+    if (!text) return '';
+    return sinhalaTranslations[text] || text;
+}
+
 $(document).ready(function () {
     // Check for URL parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -53,7 +59,11 @@ $(document).ready(function () {
             {
                 data: 'bill_type', render: function (data) {
                     let badgeClass = data === 'Return' ? 'badge-return' : 'badge-rent';
-                    return `<span class="bill-type-badge ${badgeClass}">${data}</span>`;
+                    let sinhala = t(data);
+                    return `<div class="d-flex flex-column">
+                                <span class="bill-type-badge ${badgeClass} mb-1">${data}</span>
+                                <small class="gp-sinhala-term" style="font-size: 11px;">${sinhala}</small>
+                            </div>`;
                 }
             },
             { data: 'bill_no' },
@@ -86,7 +96,17 @@ $(document).ready(function () {
                 }
             },
             { data: 'profit_balance', className: 'text-end fw-bold' },
-            { data: 'payment_type', render: function (data) { return data || '-'; } },
+            { 
+                data: 'payment_type', 
+                render: function (data) { 
+                    if (!data) return '-';
+                    let sinhala = t(data);
+                    return `<div class="d-flex flex-column">
+                                <span>${data}</span>
+                                <small class="gp-sinhala-term" style="font-size: 11px;">${sinhala}</small>
+                            </div>`;
+                } 
+            },
             { data: 'remarks' }
         ],
         order: [[3, 'desc']], // Sort by date by default
@@ -124,11 +144,11 @@ $(document).ready(function () {
                 <table class="table table-sm table-bordered mb-0 bg-white">
                     <thead class="table-light">
                         <tr>
-                            <th>Item Name</th>
-                            <th class="text-end">Daily Rent</th>
-                            <th class="text-end">Day Count</th>
-                            <th class="text-end">Qty</th>
-                            <th class="text-end">Profit</th>
+                            <th>Item Name<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Item Name')}</small></th>
+                            <th class="text-end">Daily Rent<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Daily Rent')}</small></th>
+                            <th class="text-end">Day Count<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Day Count')}</small></th>
+                            <th class="text-end">Qty<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Qty')}</small></th>
+                            <th class="text-end">Profit<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Profit')}</small></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -154,10 +174,12 @@ $(document).ready(function () {
     $("#searchItemsOnly").on("change", function () {
         if ($(this).is(":checked")) {
             $("#billNoLabel").text("Search Item");
+            $("#billNoSinhala").text(t("Item Master") || "භාණ්ඩය");
             $("#billNo").attr("placeholder", "Enter item name or code");
             $("#billNoIcon").html('<i class="mdi mdi-wrench text-primary"></i>');
         } else {
             $("#billNoLabel").text("Search Bill No");
+            $("#billNoSinhala").text(t("Search Bill No"));
             $("#billNo").attr("placeholder", "Enter bill number");
             $("#billNoIcon").html('<i class="mdi mdi-receipt text-primary"></i>');
         }

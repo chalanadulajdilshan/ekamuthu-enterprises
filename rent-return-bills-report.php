@@ -1,6 +1,7 @@
 <?php
 include 'class/include.php';
 include 'auth.php';
+$translations = Translations::getSinhalaMapping();
 ?>
 
 <!DOCTYPE html>
@@ -164,7 +165,7 @@ include 'auth.php';
                     <div class="row">
                         <div class="col-12">
                             <div class="page-title-box d-flex align-items-center justify-content-between">
-                                <h4 class="mb-0">Rent & Return Bills Report</h4>
+                                <h4 class="mb-0">Rent & Return Bills Report<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Rent & Return Bills Report'] ?? ''; ?></small></h4>
                             </div>
                         </div>
                     </div>
@@ -203,47 +204,57 @@ include 'auth.php';
                                         <!-- Date Filter Section -->
                                         <div class="row g-3 align-items-end mb-4">
                                             <div class="col-md-3">
-                                                <label for="fromDate" class="form-label fw-semibold text-muted mb-2">From Date</label>
+                                                <label for="fromDate" class="form-label fw-semibold text-muted mb-0">From Date</label>
+                                                <small class="gp-sinhala-term d-block mb-1" style="font-size: 12px;"><?php echo $translations['From Date'] ?? ''; ?></small>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control date-picker" id="fromDate" name="fromDate" placeholder="Select start date">
                                                     <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
-                                                <label for="toDate" class="form-label fw-semibold text-muted mb-2">To Date</label>
+                                                <label for="toDate" class="form-label fw-semibold text-muted mb-0">To Date</label>
+                                                <small class="gp-sinhala-term d-block mb-1" style="font-size: 12px;"><?php echo $translations['To Date'] ?? ''; ?></small>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control date-picker" id="toDate" name="toDate" placeholder="Select end date">
                                                     <span class="input-group-text bg-light"><i class="mdi mdi-calendar text-primary"></i></span>
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
-                                                <label for="billType" class="form-label fw-semibold text-muted mb-2">Bill Type</label>
+                                                <label for="billType" class="form-label fw-semibold text-muted mb-0">Bill Type</label>
+                                                <small class="gp-sinhala-term d-block mb-1" style="font-size: 12px;"><?php echo $translations['Bill Type'] ?? ''; ?></small>
                                                 <select class="form-select" id="billType" name="billType">
-                                                    <option value="all">All Bills</option>
-                                                    <option value="rent">Rent Bills Only</option>
-                                                    <option value="return">Return Bills Only</option>
+                                                    <option value="all">All Bills (<?php echo $translations['All Bills'] ?? ''; ?>)</option>
+                                                    <option value="rent">Rent Bills Only (<?php echo $translations['Rent Bills Only'] ?? ''; ?>)</option>
+                                                    <option value="return">Return Bills Only (<?php echo $translations['Return Bills Only'] ?? ''; ?>)</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
-                                                <label for="rentType" class="form-label fw-semibold text-muted mb-2">Rent Type</label>
+                                                <label for="rentType" class="form-label fw-semibold text-muted mb-0">Rent Type</label>
+                                                <small class="gp-sinhala-term d-block mb-1" style="font-size: 12px;"><?php echo $translations['Rent Type'] ?? ''; ?></small>
                                                 <select class="form-select" id="rentType" name="rentType">
-                                                    <option value="all">All Rent Types</option>
-                                                    <option value="day">Daily Rent</option>
-                                                    <option value="month">Monthly Rent</option>
+                                                    <option value="all">All Rent Types (<?php echo $translations['All Rent Types'] ?? ''; ?>)</option>
+                                                    <option value="day">Daily Rent (<?php echo $translations['Daily Rent'] ?? ''; ?>)</option>
+                                                    <option value="month">Monthly Rent (<?php echo $translations['Monthly Rent'] ?? ''; ?>)</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
-                                                <label for="paymentType" class="form-label fw-semibold text-muted mb-2">Payment Type</label>
+                                                <label for="paymentType" class="form-label fw-semibold text-muted mb-0">Payment Type</label>
+                                                <small class="gp-sinhala-term d-block mb-1" style="font-size: 12px;"><?php echo $translations['Payment Type'] ?? ''; ?></small>
                                                 <select class="form-select" id="paymentType" name="paymentType">
-                                                    <option value="all">All Payment Types</option>
+                                                    <option value="all">All Payment Types (<?php echo $translations['All Payment Types'] ?? ''; ?>)</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
-                                                <div class="d-flex justify-content-between align-items-end mb-2">
-                                                    <label for="billNo" id="billNoLabel" class="form-label fw-semibold text-muted mb-0">Search Bill No</label>
-                                                    <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
-                                                        <input class="form-check-input" type="checkbox" id="searchItemsOnly" name="searchItemsOnly" style="cursor: pointer; transform: scale(0.9);">
-                                                        <label class="form-check-label text-muted" for="searchItemsOnly" style="font-size: 0.85rem; cursor: pointer; user-select: none;">Search Items Only</label>
+                                                <div class="d-flex flex-column mb-1">
+                                                    <div class="d-flex justify-content-between align-items-center mb-0">
+                                                        <label for="billNo" id="billNoLabel" class="form-label fw-semibold text-muted mb-0">Search Bill No</label>
+                                                        <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
+                                                            <input class="form-check-input" type="checkbox" id="searchItemsOnly" name="searchItemsOnly" style="cursor: pointer; transform: scale(0.9);">
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <small id="billNoSinhala" class="gp-sinhala-term" style="font-size: 11px;"><?php echo $translations['Search Bill No'] ?? ''; ?></small>
+                                                        <label class="form-check-label text-muted" for="searchItemsOnly" style="font-size: 0.7rem; cursor: pointer; user-select: none;">Search Items Only</label>
                                                     </div>
                                                 </div>
                                                 <div class="input-group">
@@ -257,18 +268,18 @@ include 'auth.php';
                                             <div class="col-12 d-flex justify-content-between">
                                                 <div class="d-flex gap-2">
                                                     <button type="button" class="btn btn-primary btn-sm px-4" id="searchBtn">
-                                                        <i class="mdi mdi-magnify me-1"></i> Search
+                                                        <i class="mdi mdi-magnify me-1"></i> Search <br><small class="gp-sinhala-term" style="font-size: 10px;"><?php echo $translations['Search'] ?? ''; ?></small>
                                                     </button>
                                                     <button type="button" class="btn btn-secondary btn-sm px-4" id="resetBtn">
-                                                        <i class="mdi mdi-refresh me-1"></i> Reset
+                                                        <i class="mdi mdi-refresh me-1"></i> Reset <br><small class="gp-sinhala-term" style="font-size: 10px;"><?php echo $translations['Reset'] ?? ''; ?></small>
                                                     </button>
                                                 </div>
                                                 <div class="d-flex gap-2">
                                                     <button type="button" class="btn btn-outline-primary btn-sm px-3" id="setToday">
-                                                        <i class="mdi mdi-calendar-today me-1"></i> Today
+                                                        <i class="mdi mdi-calendar-today me-1"></i> Today <br><small class="gp-sinhala-term" style="font-size: 10px;"><?php echo $translations['Today'] ?? ''; ?></small>
                                                     </button>
                                                     <button type="button" class="btn btn-warning btn-sm px-3" id="exportToPdf">
-                                                        <i class="fas fa-file-pdf me-1"></i> Export PDF
+                                                        <i class="fas fa-file-pdf me-1"></i> Export PDF <br><small class="gp-sinhala-term" style="font-size: 10px;"><?php echo $translations['Export PDF'] ?? ''; ?></small>
                                                     </button>
                                                 </div>
                                             </div>
@@ -288,23 +299,23 @@ include 'auth.php';
                                         <thead>
                                             <tr>
                                                 <th style="width: 30px;"></th>
-                                                <th>Bill Type</th>
-                                                <th>Bill No</th>
-                                                <th>Date</th>
-                                                <th>Customer</th>
-                                                <th>Tel</th>
-                                                <th>Address</th>
-                                                <th>NIC</th>
-                                                <th>Day Count</th>
-                                                <th>Rent Date</th>
-                                                <th>Return Date</th>
-                                                <th class="text-end">Qty</th>
-                                                <th class="text-end">Deposit</th>
-                                                <th class="text-end">Profit</th>
-                                                <th class="text-end">Extra Amount</th>
-                                                <th class="text-end">Refund / Cash In</th>
-                                                <th>Payment Type</th>
-                                                <th>Remarks</th>
+                                                <th>Bill Type<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Bill Type'] ?? ''; ?></small></th>
+                                                <th>Bill No<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Bill No'] ?? ''; ?></small></th>
+                                                <th>Date<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Date'] ?? ''; ?></small></th>
+                                                <th>Customer<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Customer'] ?? ''; ?></small></th>
+                                                <th>Tel<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Tel'] ?? ''; ?></small></th>
+                                                <th>Address<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Address'] ?? ''; ?></small></th>
+                                                <th>NIC<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['NIC'] ?? ''; ?></small></th>
+                                                <th>Day Count<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Day Count'] ?? ''; ?></small></th>
+                                                <th>Rent Date<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Rent Date'] ?? ''; ?></small></th>
+                                                <th>Return Date<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Return Date'] ?? ''; ?></small></th>
+                                                <th class="text-end">Qty<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Qty'] ?? ''; ?></small></th>
+                                                <th class="text-end">Deposit<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Deposit'] ?? ''; ?></small></th>
+                                                <th class="text-end">Profit<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Profit'] ?? ''; ?></small></th>
+                                                <th class="text-end">Extra Amount<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Extra Amount'] ?? ''; ?></small></th>
+                                                <th class="text-end">Refund / Cash In<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Refund / Cash In'] ?? ''; ?></small></th>
+                                                <th>Payment Type<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Payment Type'] ?? ''; ?></small></th>
+                                                <th>Remarks<br><small class="gp-sinhala-term" style="font-size: 12px;"><?php echo $translations['Remarks'] ?? ''; ?></small></th>
                                             </tr>
                                         </thead>
                                         <tbody id="reportTableBody">
@@ -312,7 +323,7 @@ include 'auth.php';
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <td colspan="11" class="text-end fw-bold">Totals</td>
+                                                <td colspan="11" class="text-end fw-bold">Totals <br><small class="gp-sinhala-term d-inline" style="font-size: 12px;"><?php echo $translations['Totals'] ?? ''; ?></small></td>
                                                 <td id="totalQty" class="text-end fw-bold">0</td>
                                                 <td id="totalDeposit" class="text-end fw-bold">0.00</td>
                                                 <td id="totalAmount" class="text-end fw-bold">0.00</td>
@@ -345,6 +356,9 @@ include 'auth.php';
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
     <!-- Custom JS for Rent & Return Bills Report -->
+    <script>
+        const sinhalaTranslations = <?php echo json_encode($translations); ?>;
+    </script>
     <script src="ajax/js/rent-return-bills-report.js"></script>
 
 
