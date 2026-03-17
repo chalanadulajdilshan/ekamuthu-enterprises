@@ -174,11 +174,10 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
                                                     </select>
                                                 </div>
 
-                                                <!-- Department -->
-                                                <div class="col-md-2" id="department_container">
-                                                    <label for="department" class="form-label">Department <span
-                                                            class="text-danger">*</span></label>
-                                                    <select id="department" name="department" class="form-select" required>
+                                                <!-- Department (hidden) -->
+                                                <div class="col-md-2 d-none" id="department_container">
+                                                    <label for="department" class="form-label">Department</label>
+                                                    <select id="department" name="department" class="form-select">
                                                         <option value="">- Select Department -</option>
                                                         <?php
                                                         $DEPARTMENT = new DepartmentMaster(NULL);
@@ -406,7 +405,7 @@ $equipment_id = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
     <!-- Equipment Modal -->
     <?php include 'department-stock-model.php'; ?>
     
-    <script src="ajax/js/equipment-master.js"></script>
+    <script src="ajax/js/equipment-master.js?v=2"></script>
     <script src="ajax/js/department-stock.js"></script>
 
     <!-- Page Preloader Script -->
