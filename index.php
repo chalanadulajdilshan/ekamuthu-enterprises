@@ -335,7 +335,7 @@ $homeViewMode = $COMPANY_PROFILE_DETAILS->home_view_mode ?? 'both';
                                                 <i class="<?php echo $category['icon']; ?> me-3 gp-tile-icon"></i> 
                                                 <div class="d-flex flex-column align-items-start">
                                                     <span class="fw-bold"><?php echo $category['name']; ?></span>
-                                                    <small class="text-secondary fw-bold" style="font-size: 14px; line-height: 1.3;"><?php echo $translations[$category['name']] ?? ''; ?></small>
+                                                    <small class="text-secondary gp-sinhala-term"><?php echo $translations[$category['name']] ?? ''; ?></small>
                                                 </div>
                                             </a>
                                         </div>

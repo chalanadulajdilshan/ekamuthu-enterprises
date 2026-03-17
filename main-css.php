@@ -67,8 +67,19 @@ $themeColor = !empty($COMPANY_PROFILE->theme) ? $COMPANY_PROFILE->theme : '#3b5d
     }
 
     .gp-tile-btn:hover .text-muted,
-    .gp-tile-btn:focus .text-muted {
-        color: rgba(255, 255, 255, 0.8) !important;
+    .gp-tile-btn:focus .text-muted,
+    .gp-tile-btn:hover .text-secondary,
+    .gp-tile-btn:focus .text-secondary,
+    .gp-tile-btn:hover .gp-sinhala-term,
+    .gp-tile-btn:focus .gp-sinhala-term {
+        color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .gp-sinhala-term {
+        font-size: 24px;
+        font-weight: bold;
+        line-height: 1.2;
+        display: block;
     }
 
     .gp-tile-icon {

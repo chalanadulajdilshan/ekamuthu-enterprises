@@ -72,7 +72,7 @@ if (!$pageCategory->id) {
                                                 <?php endif; ?>
                                                 <div class="d-flex flex-column align-items-start">
                                                     <span class="fw-bold"><?php echo $page['page_name']; ?></span>
-                                                    <small class="text-secondary fw-bold" style="font-size: 14px; line-height: 1.2;"><?php echo $translations[$page['page_name']] ?? ''; ?></small>
+                                                    <small class="text-secondary gp-sinhala-term"><?php echo $translations[$page['page_name']] ?? ''; ?></small>
                                                 </div>
                                             </a>
                                         </div>
