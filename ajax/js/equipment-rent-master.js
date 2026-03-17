@@ -499,15 +499,33 @@ jQuery(document).ready(function () {
     var item = rentItems[index];
     editingItemIndex = index;
 
+    // Remove trailing .00 from duration
+    var displayDuration = parseFloat(item.duration) || 0;
+
+    // Auto-calculate return date if missing (e.g. from database)
+    var returnDateToDisplay = item.return_date;
+    if (!returnDateToDisplay && item.rental_date && displayDuration > 0) {
+      var rDate = new Date(item.rental_date);
+      if (item.rent_type === "day") {
+        rDate.setDate(rDate.getDate() + (item.is_fixed_rate == 1 ? 1 : displayDuration));
+      } else {
+        rDate.setMonth(rDate.getMonth() + (item.is_fixed_rate == 1 ? 1 : displayDuration));
+      }
+      var yyyy = rDate.getFullYear();
+      var mm = String(rDate.getMonth() + 1).padStart(2, "0");
+      var dd = String(rDate.getDate()).padStart(2, "0");
+      returnDateToDisplay = yyyy + "-" + mm + "-" + dd;
+    }
+
     $("#item_equipment_id").val(item.equipment_id);
     $("#item_equipment_display").val(item.equipment_display);
     $("#item_sub_equipment_id").val(item.sub_equipment_id);
     $("#item_sub_equipment_display").val(item.sub_equipment_display);
     $("#item_rent_type").val(item.rent_type);
-    $("#item_duration").val(item.duration);
+    $("#item_duration").val(displayDuration);
     $("#item_qty").val(item.quantity);
     $("#item_amount").val(formatAmount(item.amount));
-    $("#item_return_date").val(item.return_date);
+    $("#item_return_date").val(returnDateToDisplay);
 
     // Handle department
     if (item.equipment_id) {
