@@ -2548,56 +2548,17 @@ jQuery(document).ready(function () {
     // Show the modal
     $("#returnAllModal").modal("show");
 
-    // Initialize/reinitialize date picker for return_all_date with editable configuration
-    if ($.fn.datepicker) {
-      $("#return_all_date")
-        .datepicker("destroy")
-        .datepicker({
-          dateFormat: "yy-mm-dd",
-          changeMonth: true,
-          changeYear: true,
-          autoclose: true,
-          todayHighlight: true,
-          onClose: function () {
-            // Ensure field remains editable after closing datepicker
-            $(this).prop("readonly", false).removeAttr("readonly");
-          },
-        });
-      // Ensure field remains editable after datepicker init
-      $("#return_all_date").prop("readonly", false).removeAttr("readonly");
-    }
-
-    // Force remove readonly after modal is fully shown
-    setTimeout(function () {
-      $("#return_all_date").prop("readonly", false).removeAttr("readonly");
-    }, 100);
+    // Ensure field remains editable
+    $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
   // Ensure return_all_date remains editable when modal is shown
   $("#returnAllModal").on("shown.bs.modal", function () {
-    // Re-init datepicker every time modal opens to recover after other modals (e.g., deposit)
-    if ($.fn.datepicker) {
-      $("#return_all_date")
-        .datepicker("destroy")
-        .datepicker({
-          dateFormat: "yy-mm-dd",
-          changeMonth: true,
-          changeYear: true,
-          autoclose: true,
-          todayHighlight: true,
-          onClose: function () {
-            $(this).prop("readonly", false).removeAttr("readonly");
-          },
-        });
-    }
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
   // Clean up datepicker when modal is hidden so it can be reattached cleanly next open
   $("#returnAllModal").on("hidden.bs.modal", function () {
-    if ($.fn.datepicker) {
-      $("#return_all_date").datepicker("destroy");
-    }
     $("#return_all_date").prop("readonly", false).removeAttr("readonly");
   });
 
