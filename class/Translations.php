@@ -5,7 +5,7 @@ class Translations
     {
         return [
             // Categories
-            'Dashboard' => 'පාලක පුවරුව',
+            'Dashboard' => 'පාලක පුවරුව', 
             'Master File' => 'ප්‍රධාන ගොනු',
             'Data Capture' => 'දත්ත ඇතුලත් කිරීම',
             'Stores' => 'ගබඩාව',
@@ -18,6 +18,7 @@ class Translations
             'Settle Outstanding' => 'හිඟ මුදල් පියවීම',
             'Terms Condition Master' => 'කොන්දේසි සහ එකඟතා',
             'Supplier Master' => 'සැපයුම්කරු',
+            'Suppplier Master' => 'සැපයුම්කරු',
             'Customer Master' => 'පාරිභෝගිකයා',
             'Department Master' => 'දෙපාර්තමේන්තුව',
             'Bank Master' => 'බැංකුව',
@@ -34,9 +35,16 @@ class Translations
             'Sales Invoice' => 'විකුණුම් ඉන්වොයිසිය',
             'Return Items' => 'භාණ්ඩ ආපසු එවීමේ සටහන',
             'Quotation' => 'මිල ගණන්',
+            'Quotations' => 'මිල ගණන්',
             'Gate Pass' => 'ගේට්ටු අවසරපත',
             'Issue Note' => 'නිකුත් කිරීමේ සටහන',
-            'Issue Return Note' => 'නිකුත් කළ භාණ්ඩ ආපසු ලැබීමේ සටහන',
+            'Issue Return Note ' => 'නිකුත් කළ භාණ්ඩ ආපසු ලැබීමේ සටහන',
+            'Equipment Rent' => 'උපකරණ කුලියට දීම',
+            'Equipment QT' => 'උපකරණ මිල ගණන්',
+            'Outstanding Payment' => 'හිඟ මුදල් ගෙවීම්',
+            'Supplier Payment' => 'සැපයුම්කරුගේ ගෙවීම්',
+            'Expense' => 'වියදම්',
+            'Job Card' => 'ජොබ් කාඩ්',
             'Price Controller' => 'මිල පාලනය',
             'Sales Return' => 'විකුණුම් ආපසු',
             'Stock Transfer' => 'තොග මාරු කිරීම',
@@ -58,9 +66,12 @@ class Translations
             // Administrator
             'Manage Users' => 'පරිශීලක කළමනාකරණය',
             'Manage User Permission' => 'පරිශීලක අවසර කළමනාකරණය',
+            'User Permission' => 'පරිශීලක අවසර කළමනාකරණය',
             'Manage User Type' => 'පරිශීලක වර්ග කළමනාකරණය',
+            'Manage User types' => 'පරිශීලක වර්ග කළමනාකරණය',
             'Special Permission' => 'විශේෂ අවසර',
             'Navigation' => 'සැරිසරණ පුවරුව',
+            'Pages' => 'පිටු කළමනාකරණය',
             'Company Profile' => 'ආයතනික තොරතුරු',
 
             // Report Sub-Categories
@@ -72,6 +83,8 @@ class Translations
 
             // Missing Reports/Pages
             'Equipments Rent Frequency Report' => 'උපකරණ කුලියට දීමේ වාර ගණන පිළිබඳ වාර්තාව',
+            'Equipment Rent Frequency Report' => 'උපකරණ කුලියට දීමේ වාර ගණන පිළිබඳ වාර්තාව',
+            'Current Outstanding Bill' => 'වත්මන් හිඟ මුදල් බිල්පත',
             'Equipment Status Report' => 'උපකරණවල තත්ත්වය පිළිබඳ වාර්තාව',
             'Sub Equipment Report' => 'උප උපකරණ පිළිබඳ වාර්තාව',
             'Item Income Report' => 'භාණ්ඩ ආදායම් වාර්තාව',
@@ -83,7 +96,19 @@ class Translations
             'Equipment Rent Outstanding Report' => 'උපකරණ කුලී හිඟ මුදල් වාර්තාව',
             'Supplier Outstanding Report' => 'සැපයුම්කරුගේ හිඟ මුදල් වාර්තාව',
             'Old Outstanding Report' => 'පැරණි හිඟ මුදල් වාර්තාව',
-            'Equipment Stock' => 'උපකරණ තොගය',
+            'CashBook' => 'මුදල් පොත',
+            'PD Check' => 'පශ්චාත් දිනික චෙක්පත්',
+            'Old Outstanding Settlement' => 'පැරණි හිඟ මුදල් පියවීම',
+            'Outstand Settlement' => 'හිඟ මුදල් පියවීම',
+            'Sales Summary' => 'විකුණුම් සාරාංශය',
+            'Equipment Sales Report' => 'උපකරණ විකුණුම් වාර්තාව',
+            'Rent & Return Bills Report' => 'කුලී සහ ආපසු ලබා ගැනීම් වාර්තාව',
+            'Blacklisted Customers' => 'අසාදු ලේඛනගත පාරිභෝගිකයින්',
+            'Repair Job Report' => 'අලුත්වැඩියා කටයුතු පිළිබඳ වාර්තාව',
+            'Transport Charges Report' => 'ප්‍රවාහන ගාස්තු වාර්තාව',
+            'Repair Summery Report' => 'අලුත්වැඩියා සාරාංශ වාර්තාව',
+            'Scaffolding Report' => 'ස්කැෆෝල්ඩින් වාර්තාව',
+            'Live Equipment' => 'උපකරණ තොගය',
             'Live Stock' => 'වත්මන් තොගය',
             'Audit Report' => 'විගණන වාර්තාව',
         ];
