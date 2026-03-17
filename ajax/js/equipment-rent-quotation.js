@@ -222,7 +222,11 @@ jQuery(document).ready(function () {
             $("#item_sub_equipment_id").val(0);
             $("#item_sub_equipment_display").val("N/A");
         }
-        if (!subEquipmentId) {
+
+        // Refresh after no-sub-equipment defaults are applied
+        subEquipmentId = $("#item_sub_equipment_id").val();
+
+        if (!noSubItems && !subEquipmentId) {
             swal({
                 title: "Error!",
                 text: "Please select a sub equipment (unit code)",

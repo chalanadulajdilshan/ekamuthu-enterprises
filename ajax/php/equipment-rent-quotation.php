@@ -46,10 +46,12 @@ if (isset($_POST['create'])) {
     if ($quotation_id) {
         // Create quotation items
         foreach ($items as $item) {
+            // Preserve 0 for no-sub-equipment items to satisfy NOT NULL constraint
+            $sub_equipment_id = isset($item['sub_equipment_id']) && $item['sub_equipment_id'] !== '' ? $item['sub_equipment_id'] : 0;
             $QUOTATION_ITEM = new EquipmentRentQuotationItem(NULL);
             $QUOTATION_ITEM->quotation_id = $quotation_id;
             $QUOTATION_ITEM->equipment_id = $item['equipment_id'];
-            $QUOTATION_ITEM->sub_equipment_id = $item['sub_equipment_id'];
+            $QUOTATION_ITEM->sub_equipment_id = $sub_equipment_id;
             $QUOTATION_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $QUOTATION_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $QUOTATION_ITEM->quantity = $item['quantity'] ?? 1;
@@ -125,14 +127,15 @@ if (isset($_POST['update'])) {
 
     // Validate and update/create items
     foreach ($items as $item) {
-        $subEquipmentId = $item['sub_equipment_id'];
+        // Preserve 0 for no-sub-equipment items to satisfy NOT NULL constraint
+        $sub_equipment_id = isset($item['sub_equipment_id']) && $item['sub_equipment_id'] !== '' ? $item['sub_equipment_id'] : 0;
         $itemId = $item['id'] ?? null;
 
         if ($itemId) {
             // Update existing item
             $QUOTATION_ITEM = new EquipmentRentQuotationItem($itemId);
             $QUOTATION_ITEM->equipment_id = $item['equipment_id'];
-            $QUOTATION_ITEM->sub_equipment_id = $subEquipmentId;
+            $QUOTATION_ITEM->sub_equipment_id = $sub_equipment_id;
             $QUOTATION_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $QUOTATION_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $QUOTATION_ITEM->quantity = $item['quantity'] ?? 1;
@@ -148,7 +151,7 @@ if (isset($_POST['update'])) {
             $QUOTATION_ITEM = new EquipmentRentQuotationItem(NULL);
             $QUOTATION_ITEM->quotation_id = $_POST['quotation_id'];
             $QUOTATION_ITEM->equipment_id = $item['equipment_id'];
-            $QUOTATION_ITEM->sub_equipment_id = $subEquipmentId;
+            $QUOTATION_ITEM->sub_equipment_id = $sub_equipment_id;
             $QUOTATION_ITEM->rental_date = $item['rental_date'] ?? $_POST['rental_date'];
             $QUOTATION_ITEM->return_date = !empty($item['return_date']) ? $item['return_date'] : null;
             $QUOTATION_ITEM->quantity = $item['quantity'] ?? 1;

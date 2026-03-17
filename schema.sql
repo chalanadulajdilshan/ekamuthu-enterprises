@@ -46,6 +46,15 @@ CREATE TABLE `equipment_rent_quotation_items` (
 
 ALTER TABLE `document_tracking` ADD COLUMN `equipment_rent_quotation_id` int(11) DEFAULT 0;
 
+-- Add missing columns to equipment_rent_quotation and items tables
+ALTER TABLE `equipment_rent_quotation` 
+ADD COLUMN IF NOT EXISTS `customer_name` VARCHAR(255) DEFAULT NULL AFTER `customer_id`,
+ADD COLUMN IF NOT EXISTS `transport_cost` DECIMAL(10,2) DEFAULT 0.00 AFTER `remark`,
+ADD COLUMN IF NOT EXISTS `deposit_total` DECIMAL(10,2) DEFAULT 0.00 AFTER `transport_cost`;
+
+ALTER TABLE `equipment_rent_quotation_items`
+ADD COLUMN IF NOT EXISTS `unit_price` DECIMAL(10,2) DEFAULT 0.00 AFTER `duration`;
+
 -- Repair Job Management Tables
 CREATE TABLE `repair_jobs` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
