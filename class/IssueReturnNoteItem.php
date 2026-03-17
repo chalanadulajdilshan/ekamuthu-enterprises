@@ -8,6 +8,7 @@ class IssueReturnNoteItem
     public $sub_equipment_id;
     public $issued_quantity;
     public $return_quantity;
+    public $damage_quantity;
     public $remarks;
     public $department_id;
     public $created_at;
@@ -27,6 +28,7 @@ class IssueReturnNoteItem
                 $this->sub_equipment_id = $result['sub_equipment_id'];
                 $this->issued_quantity = $result['issued_quantity'];
                 $this->return_quantity = $result['return_quantity'];
+                $this->damage_quantity = $result['damage_quantity'];
                 $this->remarks = $result['remarks'];
                 $this->department_id = $result['department_id'];
                 $this->created_at = $result['created_at'];
@@ -39,13 +41,14 @@ class IssueReturnNoteItem
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_return_items` (
-            `return_id`, `equipment_id`, `sub_equipment_id`, `issued_quantity`, `return_quantity`, `remarks`, `department_id`
+            `return_id`, `equipment_id`, `sub_equipment_id`, `issued_quantity`, `return_quantity`, `damage_quantity`, `remarks`, `department_id`
         ) VALUES (
             '" . (int) $this->return_id . "',
             '" . (int) $this->equipment_id . "',
             " . ($this->sub_equipment_id ? (int) $this->sub_equipment_id : "NULL") . ",
             '" . (int) $this->issued_quantity . "',
             '" . (int) $this->return_quantity . "',
+            '" . (int) $this->damage_quantity . "',
             '" . $db->escapeString($this->remarks) . "',
             " . ($this->department_id ? (int)$this->department_id : "NULL") . "
         )";

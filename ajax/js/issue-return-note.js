@@ -167,6 +167,7 @@ $(document).ready(function () {
                             already_returned: 0, // Not relevant in view mode
                             remaining_quantity: 0, // Not relevant
                             return_quantity: parseFloat(item.return_quantity) || 0,
+                            damage_quantity: parseFloat(item.damage_quantity) || 0,
                             remarks: item.remarks || "",
                             department_id: item.department_id,
                             department_name: item.department_name,
@@ -251,6 +252,7 @@ $(document).ready(function () {
                             already_returned: parseFloat(item.already_returned) || 0,
                             remaining_quantity: parseFloat(item.remaining_quantity) || 0,
                             return_quantity: parseFloat(item.remaining_quantity) || 0, // Default to returning all
+                            damage_quantity: parseFloat(item.damage_quantity) || 0,
                             remarks: "",
                             department_id: item.department_id,
                             department_name: item.department_name
@@ -309,6 +311,10 @@ $(document).ready(function () {
                                data-index="${index}" value="${item.return_quantity}" min="0" max="${item.remaining_quantity}" ${inputDisabled}>
                     </td>
                     <td>
+                        <input type="number" class="form-control form-control-sm text-center damage-qty" 
+                               data-index="${index}" value="${item.damage_quantity || 0}" min="0" max="${item.remaining_quantity}" ${inputDisabled}>
+                    </td>
+                    <td>
                         <input type="text" class="form-control form-control-sm item-remark" 
                                data-index="${index}" value="${item.remarks || ''}" placeholder="Remark" ${inputDisabled}>
                     </td>
@@ -331,35 +337,57 @@ $(document).ready(function () {
         var totalPrevReturned = 0;
         var totalRemaining = 0;
         var totalReturnNow = 0;
+        var totalDamageNow = 0;
 
         returnItems.forEach(function (item) {
             totalIssued += parseFloat(item.issued_quantity) || 0;
             totalPrevReturned += parseFloat(item.already_returned) || 0;
             totalRemaining += parseFloat(item.remaining_quantity) || 0;
             totalReturnNow += parseFloat(item.return_quantity) || 0;
+            totalDamageNow += parseFloat(item.damage_quantity) || 0;
         });
 
         $("#total_issued").text(totalIssued);
         $("#total_prev_returned").text(totalPrevReturned);
         $("#total_remaining").text(totalRemaining);
         $("#total_return_now").text(totalReturnNow);
+        $("#total_damage_now").text(totalDamageNow);
     }
 
     // Update Return Quantity
+    function clampReturnAndDamage(index) {
+        var max = returnItems[index].remaining_quantity;
+        var retVal = parseFloat(returnItems[index].return_quantity) || 0;
+        var dmgVal = parseFloat(returnItems[index].damage_quantity) || 0;
+        if (retVal < 0) retVal = 0;
+        if (dmgVal < 0) dmgVal = 0;
+
+        if ((retVal + dmgVal) > max) {
+            swal("Warning", "Return + Damage cannot exceed remaining balance (" + max + ")", "warning");
+            // Prioritize keeping existing ratio: clamp both proportionally
+            var scale = max / (retVal + dmgVal);
+            retVal = parseFloat((retVal * scale).toFixed(2));
+            dmgVal = Math.max(0, max - retVal);
+        }
+        returnItems[index].return_quantity = retVal;
+        returnItems[index].damage_quantity = dmgVal;
+        // Reflect to inputs
+        var row = $(".return-qty[data-index='" + index + "']").closest("tr");
+        row.find(".return-qty").val(retVal);
+        row.find(".damage-qty").val(dmgVal);
+        calculateTotals();
+    }
+
     $(document).on("change keyup", ".return-qty", function () {
         var index = $(this).data("index");
-        var val = parseFloat($(this).val()) || 0;
-        var max = returnItems[index].remaining_quantity;
+        returnItems[index].return_quantity = parseFloat($(this).val()) || 0;
+        clampReturnAndDamage(index);
+    });
 
-        if (val < 0) val = 0;
-        if (val > max) {
-            swal("Warning", "Return quantity cannot exceed remaining balance (" + max + ")", "warning");
-            val = max;
-            $(this).val(val);
-        }
-
-        returnItems[index].return_quantity = val;
-        calculateTotals();
+    $(document).on("change keyup", ".damage-qty", function () {
+        var index = $(this).data("index");
+        returnItems[index].damage_quantity = parseFloat($(this).val()) || 0;
+        clampReturnAndDamage(index);
     });
 
     // Update Item Remark
@@ -384,9 +412,9 @@ $(document).ready(function () {
             return;
         }
 
-        var totalReturning = returnItems.reduce((acc, item) => acc + item.return_quantity, 0);
+        var totalReturning = returnItems.reduce((acc, item) => acc + (parseFloat(item.return_quantity) || 0) + (parseFloat(item.damage_quantity) || 0), 0);
         if (totalReturning <= 0) {
-            swal("Error!", "Please enter at least one return quantity", "error");
+            swal("Error!", "Please enter at least one return or damage quantity", "error");
             return;
         }
 

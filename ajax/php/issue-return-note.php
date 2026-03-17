@@ -41,7 +41,7 @@ if (isset($_POST['create'])) {
         $totalIssued = (float)($issuedRes['issued'] ?? 0);
         
         // Get total returned so far for this issue note (EXCLUDING CANCELLED RETURNS)
-        $returnedQuery = "SELECT SUM(iri.return_quantity) as returned 
+        $returnedQuery = "SELECT SUM(iri.return_quantity + IFNULL(iri.damage_quantity,0)) as returned 
                           FROM issue_return_items iri
                           INNER JOIN issue_returns r ON iri.return_id = r.id
                           WHERE r.issue_note_id = $issueNoteId 
@@ -52,7 +52,7 @@ if (isset($_POST['create'])) {
         $returnedRes = mysqli_fetch_assoc($db->readQuery($returnedQuery));
         $totalReturnedSoFar = (float)($returnedRes['returned'] ?? 0);
         
-        $newReturn = (float)$item['return_quantity'];
+        $newReturn = (float)($item['return_quantity'] ?? 0) + (float)($item['damage_quantity'] ?? 0);
         
         if (($totalReturnedSoFar + $newReturn) > $totalIssued) {
             echo json_encode([
@@ -84,13 +84,16 @@ if (isset($_POST['create'])) {
     if ($return_id) {
         // 3. Create Items
         foreach ($items as $item) {
-            if ($item['return_quantity'] > 0) {
+            $retQty = (float)($item['return_quantity'] ?? 0);
+            $damQty = (float)($item['damage_quantity'] ?? 0);
+            if (($retQty + $damQty) > 0) {
                 $ITEM = new IssueReturnNoteItem(null);
                 $ITEM->return_id = $return_id;
                 $ITEM->equipment_id = $item['equipment_id'];
                 $ITEM->sub_equipment_id = $item['sub_equipment_id'] ?? null;
                 $ITEM->issued_quantity = $item['issued_quantity'];
-                $ITEM->return_quantity = $item['return_quantity'];
+                $ITEM->return_quantity = $retQty;
+                $ITEM->damage_quantity = $damQty;
                 $ITEM->remarks = $item['remarks'] ?? '';
                 $ITEM->department_id = $item['department_id'] ?? null;
                 $ITEM->create();
@@ -131,7 +134,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
             // Fetch previously returned quantities for this issue note (EXCLUDING CANCELLED)
             // Note: issue_return_items doesn't have department_id, but we can potentially link it if needed.
             // For now, let's assume one return row per issue note row.
-            $returnedQuery = "SELECT iri.equipment_id, iri.sub_equipment_id, iri.department_id, SUM(iri.return_quantity) as total_returned
+            $returnedQuery = "SELECT iri.equipment_id, iri.sub_equipment_id, iri.department_id, SUM(iri.return_quantity + IFNULL(iri.damage_quantity,0)) as total_returned
                               FROM issue_return_items iri
                               INNER JOIN issue_returns ret ON iri.return_id = ret.id
                               WHERE ret.issue_note_id = " . (int)$note_id . "
@@ -175,7 +178,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_details') {
                     'rent_type' => $item['rent_type'],
                     'issued_quantity' => $issuedQty,
                     'already_returned' => $alreadyReturned,
-                    'remaining_quantity' => $remainingQty
+                    'remaining_quantity' => $remainingQty,
+                    'damage_quantity' => 0,
+                    'remarks' => $item['remarks'] ?? ''
                 ];
             }
 

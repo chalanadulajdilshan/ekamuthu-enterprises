@@ -18,6 +18,26 @@ $return_note_code = ((int)$lastCode) + 1;
     <?php include 'main-css.php' ?>
 </head>
 
+<style>
+    /* Tighter, consistent sizing for return items table */
+    #returnItemsTable.return-table th,
+    #returnItemsTable.return-table td {
+        vertical-align: middle;
+    }
+
+    #returnItemsTable.return-table input[type="number"] {
+        max-width: 110px;
+    }
+
+    #returnItemsTable.return-table input[type="text"] {
+        min-width: 150px;
+    }
+
+    #returnItemsTable.return-table tfoot td {
+        font-weight: 700;
+    }
+</style>
+
 <body data-layout="horizontal" data-topbar="colored">
     <div id="page-preloader" class="preloader full-preloader">
         <div class="preloader-container">
@@ -135,7 +155,7 @@ $return_note_code = ((int)$lastCode) + 1;
                                             <div class="col-12">
                                                 <h5 class="font-size-16 mb-3">Items to Return</h5>
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered table-striped" id="returnItemsTable">
+                                                    <table class="table table-bordered table-striped return-table" id="returnItemsTable">
                                                         <thead class="table-light">
                                                             <tr>
                                                                 <th style="width: 50px;">#</th>
@@ -144,14 +164,15 @@ $return_note_code = ((int)$lastCode) + 1;
                                                                 <th style="width: 120px;">Issued Qty</th>
                                                                 <th style="width: 120px;">Prev Returned</th>
                                                                 <th style="width: 120px;">Remaining</th>
-                                                                <th style="width: 150px;">Return Now</th>
+                                                                <th style="width: 140px;">Return Now</th>
+                                                                <th style="width: 140px;">Damage Qty</th>
                                                                 <th>Remarks</th>
                                                                 <th style="width: 50px;">Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr id="empty_row">
-                                                                <td colspan="8" class="text-center py-4 text-muted">
+                                                                <td colspan="10" class="text-center py-4 text-muted">
                                                                     <i class="uil uil-box font-size-24 d-block mb-2"></i>
                                                                     Select an Issue Note to load items
                                                                 </td>
@@ -164,6 +185,7 @@ $return_note_code = ((int)$lastCode) + 1;
                                                                 <td class="text-center" id="total_prev_returned">0</td>
                                                                 <td class="text-center" id="total_remaining">0</td>
                                                                 <td class="text-center" id="total_return_now">0</td>
+                                                                <td class="text-center" id="total_damage_now">0</td>
                                                                 <td colspan="2"></td>
                                                             </tr>
                                                         </tfoot>
