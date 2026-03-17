@@ -62,7 +62,7 @@ $(document).ready(function () {
                     let sinhala = t(data);
                     return `<div class="d-flex flex-column">
                                 <span class="bill-type-badge ${badgeClass} mb-1">${data}</span>
-                                <small class="gp-sinhala-term" style="font-size: 11px;">${sinhala}</small>
+                                <small class="gp-sinhala-term" style="font-size: 16px;">${sinhala}</small>
                             </div>`;
                 }
             },
@@ -103,7 +103,7 @@ $(document).ready(function () {
                     let sinhala = t(data);
                     return `<div class="d-flex flex-column">
                                 <span>${data}</span>
-                                <small class="gp-sinhala-term" style="font-size: 11px;">${sinhala}</small>
+                                <small class="gp-sinhala-term" style="font-size: 16px;">${sinhala}</small>
                             </div>`;
                 } 
             },
@@ -144,11 +144,11 @@ $(document).ready(function () {
                 <table class="table table-sm table-bordered mb-0 bg-white">
                     <thead class="table-light">
                         <tr>
-                            <th>Item Name<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Item Name')}</small></th>
-                            <th class="text-end">Daily Rent<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Daily Rent')}</small></th>
-                            <th class="text-end">Day Count<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Day Count')}</small></th>
-                            <th class="text-end">Qty<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Qty')}</small></th>
-                            <th class="text-end">Profit<br><small class="gp-sinhala-term" style="font-size: 11px;">${t('Profit')}</small></th>
+                            <th>Item Name<br><small class="gp-sinhala-term" style="font-size: 16px;">${t('Item Name')}</small></th>
+                            <th class="text-end">Daily Rent<br><small class="gp-sinhala-term" style="font-size: 16px;">${t('Daily Rent')}</small></th>
+                            <th class="text-end">Day Count<br><small class="gp-sinhala-term" style="font-size: 16px;">${t('Day Count')}</small></th>
+                            <th class="text-end">Qty<br><small class="gp-sinhala-term" style="font-size: 16px;">${t('Qty')}</small></th>
+                            <th class="text-end">Profit<br><small class="gp-sinhala-term" style="font-size: 16px;">${t('Profit')}</small></th>
                         </tr>
                     </thead>
                     <tbody>
