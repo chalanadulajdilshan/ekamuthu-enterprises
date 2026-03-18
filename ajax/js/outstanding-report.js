@@ -930,7 +930,22 @@ function printBillDetails() {
     // Get reference number first, then proceed with print
     var fromDate = $('#from_date').val();
     var toDate = $('#to_date').val();
-    
+    var monthFilter = $('#month_filter').val();
+
+    // If only month filter is provided, derive a date range for that month using the bill's rental year
+    if ((!fromDate || !toDate) && monthFilter) {
+        var rentalDateStr = currentBillData.rental_date || '';
+        var rentalDateObj = rentalDateStr ? $.datepicker.parseDate('yy-mm-dd', rentalDateStr) : new Date();
+        var year = rentalDateObj.getFullYear();
+        var monthIdx = parseInt(monthFilter, 10) - 1; // JS months are 0-based
+        if (monthIdx >= 0 && monthIdx <= 11) {
+            var start = new Date(year, monthIdx, 1);
+            var end = new Date(year, monthIdx + 1, 0);
+            fromDate = $.datepicker.formatDate('yy-mm-dd', start);
+            toDate = $.datepicker.formatDate('yy-mm-dd', end);
+        }
+    }
+
     if (!fromDate || !toDate) {
         alert('Please select date range for report');
         return;
