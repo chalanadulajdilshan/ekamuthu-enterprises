@@ -264,7 +264,7 @@ function loadReport() {
                 return json.data || [];
             }
         },
-        "order": [[2, "desc"]],
+        "order": [[2, "asc"]],
         "columns": [
             {
                 "data": null,
