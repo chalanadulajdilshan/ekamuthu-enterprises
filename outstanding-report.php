@@ -167,6 +167,7 @@ include 'auth.php';
                                                     <th>තත්ත්වය</th>
                                                     <th class="text-end">කුලිය (මුළු)</th>
                                                     <th class="text-end">ආරම්භක තැන්පතුව</th>
+                                                    <th class="text-end">කුලිය + ආරම්භක තැන්පතුව</th>
                                                     <th class="text-end">ගෙවූ මුදල</th>
                                                     <th class="text-end">බැලන්ස් (අවැසි)</th>
                                                 </tr>
@@ -179,6 +180,7 @@ include 'auth.php';
                                                     <th colspan="6" class="text-end">මුළු එකතුව:</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
                                                     <th class="text-end" id="totalInitialDeposit">0.00</th>
+                                                    <th class="text-end" id="totalRentPlusInitial">0.00</th>
                                                     <th class="text-end" id="totalPaid">0.00</th>
                                                     <th class="text-end" id="totalBalance">0.00</th>
                                                 </tr>
