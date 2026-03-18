@@ -207,8 +207,6 @@ jQuery(document).ready(function () {
       $("#brand").val($(this).data("brand"));
       $("#model").val($(this).data("model"));
       $("#type").val($(this).data("type"));
-      $("#chassis_no").val($(this).data("chassis_no"));
-      $("#engine_no").val($(this).data("engine_no"));
       $("#start_meter").val($(this).data("start_meter"));
   
       $("#create").hide();

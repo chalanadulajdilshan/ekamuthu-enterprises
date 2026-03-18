@@ -142,22 +142,6 @@ $ref_no = 'VM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             </div>
 
                                             <div class="col-md-3">
-                                                <label for="chassis_no" class="form-label">Chassis No</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="chassis_no" name="chassis_no" type="text"
-                                                    placeholder="Enter Chassis No" class="form-control">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-3">
-                                                <label for="engine_no" class="form-label">Engine No</label>
-                                                <div class="input-group mb-3">
-                                                    <input id="engine_no" name="engine_no" type="text"
-                                                    placeholder="Enter Engine No" class="form-control">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-3">
                                                 <label for="start_meter" class="form-label">Start Meter</label>
                                                 <div class="input-group mb-3">
                                                     <input id="start_meter" name="start_meter" type="number" step="0.01"
@@ -225,8 +209,6 @@ $ref_no = 'VM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                             data-brand="<?php echo htmlspecialchars($vehicle['brand']); ?>"
                                             data-model="<?php echo htmlspecialchars($vehicle['model']); ?>"
                                             data-type="<?php echo htmlspecialchars($vehicle['type']); ?>"
-                                            data-chassis_no="<?php echo htmlspecialchars($vehicle['chassis_no']); ?>"
-                                            data-engine_no="<?php echo htmlspecialchars($vehicle['engine_no']); ?>"
                                             data-start_meter="<?php echo htmlspecialchars($vehicle['start_meter']); ?>"
                                     >
 

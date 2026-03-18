@@ -14,8 +14,8 @@ if (isset($_POST['create'])) {
     $VEHICLE->brand = $_POST['brand'];
     $VEHICLE->model = $_POST['model'];
     $VEHICLE->type = $_POST['type'];
-    $VEHICLE->chassis_no = $_POST['chassis_no'];
-    $VEHICLE->engine_no = $_POST['engine_no'];
+    $VEHICLE->chassis_no = isset($_POST['chassis_no']) ? $_POST['chassis_no'] : '';
+    $VEHICLE->engine_no = isset($_POST['engine_no']) ? $_POST['engine_no'] : '';
     $VEHICLE->start_meter = $_POST['start_meter'];
 
     // Attempt to create the Vehicle
@@ -47,8 +47,8 @@ if (isset($_POST['update'])) {
     $VEHICLE->brand = $_POST['brand'];
     $VEHICLE->model = $_POST['model'];
     $VEHICLE->type = $_POST['type'];
-    $VEHICLE->chassis_no = $_POST['chassis_no'];
-    $VEHICLE->engine_no = $_POST['engine_no'];
+    $VEHICLE->chassis_no = isset($_POST['chassis_no']) ? $_POST['chassis_no'] : '';
+    $VEHICLE->engine_no = isset($_POST['engine_no']) ? $_POST['engine_no'] : '';
     $VEHICLE->start_meter = $_POST['start_meter'];
 
     // Attempt to update the Vehicle
