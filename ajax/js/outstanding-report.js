@@ -290,7 +290,7 @@ function loadReport() {
                 "render": function (data) { return formatAmount(parseAmount(data)); }
             },
             {
-                "data": "rent_plus_initial",
+                "data": "initial_deposit_total",
                 "className": "text-end",
                 "render": function (data) { return formatAmount(parseAmount(data)); }
             },
@@ -319,7 +319,7 @@ function loadReport() {
             var api = this.api();
             // totals based on filtered data
             var totalRent = api.column(6, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalRentPlusInitial = api.column(7, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalInitialDep = api.column(7, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
             var totalPaid = api.column(8, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
             var totalBalance = api.column(9, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
 
@@ -331,13 +331,13 @@ function loadReport() {
             var api = this.api();
 
             var totalRent = api.column(6).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalRentPlusInitial = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalInitialDep = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
             var totalPaid = api.column(8).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
             var totalBalance = api.column(9).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
 
             // Update footer
             $(api.column(6).footer()).html(formatAmount(totalRent));
-            $(api.column(7).footer()).html(formatAmount(totalRentPlusInitial));
+            $(api.column(7).footer()).html(formatAmount(totalInitialDep));
             $(api.column(8).footer()).html(formatAmount(totalPaid));
             $(api.column(9).footer()).html(formatAmount(totalBalance));
         }
