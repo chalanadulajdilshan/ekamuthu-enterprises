@@ -33,7 +33,8 @@ jQuery(document).ready(function () {
 
         var returnDate = new Date(rentalDate);
         var rentRate = rentType === "day" ? currentRentOneDay : currentRentOneMonth;
-        var unitPrice = rentRate * duration;
+        // Unit price is the per-period rate (do NOT multiply by duration)
+        var unitPrice = rentRate;
 
         if (rentType === "day") {
             returnDate.setDate(returnDate.getDate() + duration);
@@ -43,12 +44,29 @@ jQuery(document).ready(function () {
             $("#duration_label").text("Months");
         }
 
-        var amountInput = $("#item_amount");
-        var amountVal = amountInput.val();
-        var amount = amountVal ? parseAmount(amountVal) : unitPrice * qty;
+        // Calculate amount based on unit price and quantity (duration affects only return date)
+        var calculatedAmount = unitPrice * qty;
 
+        // Update unit price always
         $("#item_unit_price").val(unitPrice.toFixed(2));
-        amountInput.val(amount.toFixed(2));
+
+        // Only update amount if not manually edited, or if quantity changed
+        var $amountInput = $("#item_amount");
+        var manualEdited = $amountInput.data("manual-edited");
+        var currentAmount = parseAmount($amountInput.val());
+        
+        // If amount was manually edited but quantity changed, recalculate
+        if (manualEdited) {
+            var oldQty = parseFloat($amountInput.data("last-qty") || 1);
+            if (oldQty !== qty) {
+                $amountInput.data("manual-edited", false).val(calculatedAmount.toFixed(2));
+            }
+        } else {
+            $amountInput.val(calculatedAmount.toFixed(2));
+        }
+        
+        // Store current quantity for next comparison
+        $amountInput.data("last-qty", qty);
 
         // Format return date YYYY-MM-DD
         var yyyy = returnDate.getFullYear();
@@ -92,15 +110,32 @@ jQuery(document).ready(function () {
         $("#item_duration").val(duration);
 
         var rentRate = rentType === "day" ? currentRentOneDay : currentRentOneMonth;
-        var unitPrice = rentRate * duration;
+        // Unit price is the per-period rate (do NOT multiply by duration)
+        var unitPrice = rentRate;
         var qty = parseFloat($("#item_qty").val()) || 1;
 
-        var amountInput = $("#item_amount");
-        var manualAmount = parseAmount(amountInput.val());
-        var amount = manualAmount ? manualAmount : unitPrice * qty;
+        // Calculate amount based on unit price and quantity (duration affects only return date)
+        var calculatedAmount = unitPrice * qty;
 
+        // Update unit price always
         $("#item_unit_price").val(unitPrice.toFixed(2));
-        amountInput.val(amount.toFixed(2));
+
+        // Only update amount if not manually edited, or if quantity changed
+        var $amountInput = $("#item_amount");
+        var manualEdited = $amountInput.data("manual-edited");
+        
+        // If amount was manually edited but quantity changed, recalculate
+        if (manualEdited) {
+            var oldQty = parseFloat($amountInput.data("last-qty") || 1);
+            if (oldQty !== qty) {
+                $amountInput.data("manual-edited", false).val(calculatedAmount.toFixed(2));
+            }
+        } else {
+            $amountInput.val(calculatedAmount.toFixed(2));
+        }
+        
+        // Store current quantity for next comparison
+        $amountInput.data("last-qty", qty);
     }
 
     // Update items table display
@@ -272,7 +307,7 @@ jQuery(document).ready(function () {
         $("#item_return_date").val("");
         $("#item_duration").val("");
         $("#item_qty").val(1);
-        $("#item_amount").val("");
+        $("#item_amount").val("").data("manual-edited", false);
     });
 
     // Calculate on input changes
@@ -283,6 +318,11 @@ jQuery(document).ready(function () {
     // Calculate when return date changes
     $("#item_return_date").on("change keyup", function () {
         calculateDurationFromDates();
+    });
+
+    // Track manual amount edits
+    $("#item_amount").on("input", function () {
+        $(this).data("manual-edited", true);
     });
 
     // Remove item from list
@@ -609,7 +649,7 @@ jQuery(document).ready(function () {
 
                     // Reset calculations
                     $("#item_duration").val("");
-                    $("#item_amount").val("");
+                    $("#item_amount").val("").data("manual-edited", false);
 
                     // Clear sub equipment when equipment changes
                     $("#item_sub_equipment_id").val("");
@@ -906,6 +946,7 @@ jQuery(document).ready(function () {
         $("#item_equipment_display").val("");
         $("#item_sub_equipment_id").val("");
         $("#item_sub_equipment_display").val("");
+        $("#item_amount").data("manual-edited", false);
         quotationItems = [];
         updateItemsTable();
         $("#create").show();
