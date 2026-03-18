@@ -30,7 +30,8 @@ $query = "SELECT err.*,
                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
                      * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
                      * err.return_qty)
-                 END AS calc_rental_amount
+                 END AS calc_rental_amount,
+                 GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) as rented_days_count
           FROM `equipment_rent_returns` err
           INNER JOIN `equipment_rent_items` eri ON err.rent_item_id = eri.id
           LEFT JOIN `equipment` e ON eri.equipment_id = e.id
@@ -149,6 +150,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <th>බිල් අංකය</th>
                 <th>කුලී දිනය</th>
                 <th>ආපසු දිනය</th>
+                <th class="text-right">දින</th>
                 <th>පාරිභෝගිකයා</th>
                 <th>අයිතමය</th>
                 <th class="text-right">ප්‍රමාණය</th>
@@ -166,6 +168,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     <td><?php echo $row['bill_number']; ?></td>
                     <td><?php echo $row['rental_date']; ?></td>
                     <td><?php echo $row['return_date']; ?></td>
+                    <td class="text-right"><?php echo $row['rented_days_count']; ?></td>
                     <td><?php echo $row['customer_name']; ?></td>
                     <td><?php echo $row['item_name']; ?></td>
                     <td class="text-right"><?php echo $row['return_qty']; ?></td>
@@ -177,7 +180,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </tr>
                 <?php endforeach; ?>
                 <tr style="font-weight: bold; background-color: #f0f0f0;">
-                    <td colspan="6" class="text-right">එකතුව (TOTAL):</td>
+                    <td colspan="7" class="text-right">එකතුව (TOTAL):</td>
                     <td class="text-right"><?php echo number_format($total_rental, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_extra_day, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_penalty, 2); ?></td>
@@ -185,7 +188,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     <td class="text-right text-danger"><?php echo number_format($total_damage, 2); ?></td>
                 </tr>
             <?php else: ?>
-                <tr><td colspan="11" style="text-align:center;">නොමැත (No records found).</td></tr>
+                <tr><td colspan="12" style="text-align:center;">නොමැත (No records found).</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
