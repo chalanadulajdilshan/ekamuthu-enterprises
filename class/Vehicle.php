@@ -18,7 +18,7 @@ class Vehicle
     public function __construct($id = null)
     {
         if ($id) {
-            $query = "SELECT `id`, `ref_no`, `vehicle_no`, `brand`, `model`, `type`, `chassis_no`, `engine_no`, `start_meter`, `created_at` FROM `vehicles` WHERE `id` = " . (int) $id;
+            $query = "SELECT `id`, `ref_no`, `vehicle_no`, `brand`, `model`, `type`, `start_meter`, `created_at` FROM `vehicles` WHERE `id` = " . (int) $id;
             $db = Database::getInstance();
             $result = mysqli_fetch_array($db->readQuery($query));
 
@@ -29,8 +29,6 @@ class Vehicle
                 $this->brand = $result['brand'];
                 $this->model = $result['model'];
                 $this->type = $result['type'];
-                $this->chassis_no = $result['chassis_no'];
-                $this->engine_no = $result['engine_no'];
                 $this->start_meter = $result['start_meter'];
                 $this->created_at = $result['created_at'];
             }
@@ -41,14 +39,12 @@ class Vehicle
     public function create()
     {
         $db = Database::getInstance();
-        $query = "INSERT INTO `vehicles` (`ref_no`, `vehicle_no`, `brand`, `model`, `type`, `chassis_no`, `engine_no`, `start_meter`, `created_at`) VALUES ('" .
+        $query = "INSERT INTO `vehicles` (`ref_no`, `vehicle_no`, `brand`, `model`, `type`, `start_meter`, `created_at`) VALUES ('" .
             mysqli_real_escape_string($db->DB_CON, $this->ref_no) . "', '" . 
             mysqli_real_escape_string($db->DB_CON, $this->vehicle_no) . "', '" . 
             mysqli_real_escape_string($db->DB_CON, $this->brand) . "', '" . 
             mysqli_real_escape_string($db->DB_CON, $this->model) . "', '" . 
             mysqli_real_escape_string($db->DB_CON, $this->type) . "', '" . 
-            mysqli_real_escape_string($db->DB_CON, $this->chassis_no) . "', '" . 
-            mysqli_real_escape_string($db->DB_CON, $this->engine_no) . "', '" . 
             mysqli_real_escape_string($db->DB_CON, $this->start_meter) . "', NOW())";
         
         $result = $db->readQuery($query);
@@ -70,8 +66,6 @@ class Vehicle
             `brand` = '" . mysqli_real_escape_string($db->DB_CON, $this->brand) . "',
             `model` = '" . mysqli_real_escape_string($db->DB_CON, $this->model) . "',
             `type` = '" . mysqli_real_escape_string($db->DB_CON, $this->type) . "',
-            `chassis_no` = '" . mysqli_real_escape_string($db->DB_CON, $this->chassis_no) . "',
-            `engine_no` = '" . mysqli_real_escape_string($db->DB_CON, $this->engine_no) . "',
             `start_meter` = '" . mysqli_real_escape_string($db->DB_CON, $this->start_meter) . "'
             WHERE `id` = '" . (int)$this->id . "'";
 

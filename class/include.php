@@ -93,6 +93,7 @@ include_once(dirname(__FILE__) . '/Gatepass.php');
 include_once(dirname(__FILE__) . '/GatepassItem.php');
 include_once(dirname(__FILE__) . '/Translations.php');
 include_once(dirname(__FILE__) . '/Vehicle.php');
+include_once(dirname(__FILE__) . '/VehicleRepair.php');
 
 
 // Initialize session if not already started
