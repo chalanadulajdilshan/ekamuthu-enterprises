@@ -104,8 +104,8 @@ include 'auth.php';
                             <div class="card">
                                 <div class="card-body">
                                     <h5 class="card-title mb-4">වාර්තාව පෙරහන් කරන්න</h5>
-                                    <div class="row mb-4">
-                                        <div class="col-md-4">
+                                    <div class="row mb-4 g-3">
+                                        <div class="col-md-3">
                                             <label class="form-label">පාරිභෝගිකයා</label>
                                             <div class="input-group">
                                                 <input id="customer_code" name="customer_code" type="text" placeholder="පාරිභෝගිකයා තෝරන්න (විකල්ප)" class="form-control" readonly>
@@ -118,7 +118,7 @@ include 'auth.php';
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">දිනයන් පරාසය</label>
                                             <div class="row g-2">
                                                 <div class="col-6">
@@ -129,7 +129,26 @@ include 'auth.php';
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
+                                        <div class="col-md-3">
+                                            <label class="form-label">මාසය (විකල්ප)</label>
+                                            <select id="month_filter" class="form-select">
+                                                <option value="">සියලු මාස</option>
+                                                <option value="1">ජනවාරි</option>
+                                                <option value="2">පෙබරවාරි</option>
+                                                <option value="3">මාර්තු</option>
+                                                <option value="4">අප්‍රේල්</option>
+                                                <option value="5">මැයි</option>
+                                                <option value="6">ජූනි</option>
+                                                <option value="7">ජූලි</option>
+                                                <option value="8">අගෝස්තු</option>
+                                                <option value="9">සැප්තැම්බර්</option>
+                                                <option value="10">ඔක්තෝබර්</option>
+                                                <option value="11">නොවැම්බර්</option>
+                                                <option value="12">දෙසැම්බර්</option>
+                                            </select>
+                                            <small class="text-muted">මාසයක් තෝරන විට දිනයන් පරාසය නොගනී.</small>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end flex-wrap gap-2">
                                             <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> වාර්තාව සකසන්න</button>
                                             <button id="printBtn" class="btn btn-success"><i class="uil uil-print"></i> මුද්‍රණය (විස්තර)</button>
                                             <button id="printSummaryBtn" class="btn btn-outline-success"><i class="uil uil-print"></i> මුද්‍රණය (සාරාංශය)</button>

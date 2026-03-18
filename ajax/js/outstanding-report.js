@@ -18,6 +18,21 @@ $(document).ready(function () {
         loadReport();
     });
 
+    // Month filter interactions: selecting a month clears date range; typing dates clears month
+    $('#month_filter').change(function () {
+        const val = $(this).val();
+        if (val) {
+            $('#from_date').val('');
+            $('#to_date').val('');
+        }
+        loadReport();
+    });
+    $('#from_date, #to_date').change(function () {
+        if ($('#from_date').val() || $('#to_date').val()) {
+            $('#month_filter').val('');
+        }
+    });
+
     // Print Report (detailed)
     $('#printBtn').click(function () {
         openPrintWindow(false);
@@ -217,6 +232,7 @@ function loadReport() {
     var customerId = $('#customer_id').val();
     var fromDate = $('#from_date').val();
     var toDate = $('#to_date').val();
+    var monthFilter = $('#month_filter').val();
 
     if ($.fn.DataTable.isDataTable('#reportTable')) {
         $('#reportTable').DataTable().destroy();
@@ -231,7 +247,8 @@ function loadReport() {
                 action: 'get_outstanding_report',
                 customer_id: customerId,
                 from_date: fromDate,
-                to_date: toDate
+                to_date: toDate,
+                month_filter: monthFilter
             },
             "dataSrc": function (json) {
                 // Update top summary cards if API provided totals
@@ -347,6 +364,7 @@ function openPrintWindow(isSummary) {
     var customerId = $('#customer_id').val();
     var fromDate = $('#from_date').val();
     var toDate = $('#to_date').val();
+    var monthFilter = $('#month_filter').val();
     var url = 'print-outstanding-report.php';
     var searchTerm = '';
 
@@ -363,6 +381,9 @@ function openPrintWindow(isSummary) {
     }
     if (toDate) {
         params.push('to_date=' + encodeURIComponent(toDate));
+    }
+    if (monthFilter) {
+        params.push('month_filter=' + encodeURIComponent(monthFilter));
     }
     if (searchTerm) {
         params.push('q=' + encodeURIComponent(searchTerm));

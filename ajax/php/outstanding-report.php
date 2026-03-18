@@ -173,10 +173,12 @@ if ($action === 'get_outstanding_report') {
     $customerId = isset($_POST['customer_id']) && !empty($_POST['customer_id']) ? (int)$_POST['customer_id'] : 0;
     $fromDateRaw = $_POST['from_date'] ?? '';
     $toDateRaw = $_POST['to_date'] ?? '';
+    $monthFilterRaw = $_POST['month_filter'] ?? '';
 
     $fromDate = null;
     $toDate = null;
 
+    $monthFilter = null;
     if (!empty($fromDateRaw)) {
         $fromDt = DateTime::createFromFormat('Y-m-d', $fromDateRaw);
         if ($fromDt) {
@@ -191,12 +193,24 @@ if ($action === 'get_outstanding_report') {
         }
     }
 
+    if ($monthFilterRaw !== '' && $monthFilterRaw !== null) {
+        $monthInt = (int)$monthFilterRaw;
+        if ($monthInt >= 1 && $monthInt <= 12) {
+            $monthFilter = $monthInt;
+            // Month filter takes precedence over date range
+            $fromDate = null;
+            $toDate = null;
+        }
+    }
+
     // Exclude cancelled bills from all outstanding calculations
     $where = "WHERE er.is_cancelled = 0 AND er.status <> 'cancelled'";
     if ($customerId > 0) {
         $where .= " AND er.customer_id = $customerId";
     }
-    if ($fromDate && $toDate) {
+    if ($monthFilter) {
+        $where .= " AND MONTH(er.rental_date) = $monthFilter";
+    } elseif ($fromDate && $toDate) {
         $where .= " AND DATE(er.rental_date) BETWEEN '$fromDate' AND '$toDate'";
     } elseif ($fromDate) {
         $where .= " AND DATE(er.rental_date) >= '$fromDate'";

@@ -9,6 +9,7 @@ $isSummary = isset($_GET['summary']) && $_GET['summary'] == '1';
 // Date range filters (align with UI)
 $fromDate = null;
 $toDate = null;
+$monthFilter = null;
 if (!empty($_GET['from_date'])) {
     $fromDt = DateTime::createFromFormat('Y-m-d', $_GET['from_date']);
     if ($fromDt) {
@@ -19,6 +20,16 @@ if (!empty($_GET['to_date'])) {
     $toDt = DateTime::createFromFormat('Y-m-d', $_GET['to_date']);
     if ($toDt) {
         $toDate = $toDt->format('Y-m-d');
+    }
+}
+
+if (isset($_GET['month_filter']) && $_GET['month_filter'] !== '') {
+    $monthInt = (int)$_GET['month_filter'];
+    if ($monthInt >= 1 && $monthInt <= 12) {
+        $monthFilter = $monthInt;
+        // Month filter takes precedence over date range
+        $fromDate = null;
+        $toDate = null;
     }
 }
 
@@ -33,7 +44,9 @@ if (!empty($searchTerm)) {
     $safeTerm = method_exists($db, 'getConnection') ? mysqli_real_escape_string($db->getConnection(), $searchTerm) : addslashes($searchTerm);
     $where .= " AND er.bill_number LIKE '%$safeTerm%'";
 }
-if ($fromDate && $toDate) {
+if ($monthFilter) {
+    $where .= " AND MONTH(er.rental_date) = $monthFilter";
+} elseif ($fromDate && $toDate) {
     $where .= " AND DATE(er.rental_date) BETWEEN '$fromDate' AND '$toDate'";
 } elseif ($fromDate) {
     $where .= " AND DATE(er.rental_date) >= '$fromDate'";
