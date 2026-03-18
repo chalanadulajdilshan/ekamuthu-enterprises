@@ -51,6 +51,7 @@ $(document).ready(function () {
                             empBody += `<tr>
                                 <td>${emp.name}</td>
                                 <td class="text-center">${emp.pending || 0}</td>
+                                <td class="text-center">${emp.checking || 0}</td>
                                 <td class="text-center">${emp.in_progress || 0}</td>
                                 <td class="text-center">${emp.completed || 0}</td>
                                 <td class="text-center">${emp.delivered || 0}</td>

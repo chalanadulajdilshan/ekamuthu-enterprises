@@ -65,10 +65,12 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_repair_job_report') {
             $employee_summary[$emp_id] = [
                 'name' => $emp_name,
                 'pending' => 0,
+                'checking' => 0,
                 'in_progress' => 0,
                 'completed' => 0,
                 'delivered' => 0,
                 'cannot_repair' => 0,
+                'cancelled' => 0,
                 'total' => 0
             ];
         }

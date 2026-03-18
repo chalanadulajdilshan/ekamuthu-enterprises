@@ -50,6 +50,72 @@ include 'auth.php';
             font-weight: bold;
             background-color: #f8f9fa;
         }
+
+        /* Responsive expanded row styling */
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            background-color: #556ee6;
+            border: none;
+            box-shadow: none;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th.dtr-control:before {
+            background-color: #f46a6a;
+        }
+
+        tr.child {
+            background-color: #fcfcfc !important;
+        }
+
+        ul.dtr-details {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            justify-content: flex-start !important;
+            gap: 0 !important;
+            padding: 10px !important;
+            list-style: none !important;
+            background-color: #f8f9fa !important;
+            border-radius: 5px !important;
+            border: 1px solid #eee !important;
+            overflow-x: auto !important;
+        }
+
+        ul.dtr-details > li {
+            flex: 0 0 auto !important;
+            border-bottom: none !important;
+            padding: 5px 15px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            border-right: 1px solid #dee2e6 !important;
+            min-width: 140px !important;
+            background: none !important;
+        }
+
+        ul.dtr-details > li:last-child {
+            border-right: none !important;
+        }
+
+        .dtr-title {
+            font-weight: 700 !important;
+            color: #74788d !important;
+            font-size: 10px !important;
+            text-transform: uppercase !important;
+            margin-bottom: 4px !important;
+            white-space: nowrap !important;
+            display: block !important;
+        }
+
+        .dtr-data {
+            color: #495057 !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            white-space: nowrap !important;
+            display: block !important;
+        }
     </style>
 
 <?php
@@ -254,15 +320,17 @@ if ($row = mysqli_fetch_assoc($result)) {
                                 <div class="card-body">
                                     <h4 class="card-title mb-4">Employee Productivity Summary - සේවක කාර්යක්ෂමතාවය</h4>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-centered table-nowrap mb-0" id="employeeSummaryTable">
+                                        <table class="table table-bordered table-centered mb-0" id="employeeSummaryTable" style="font-size: 13px;">
                                             <thead class="table-light">
                                                 <tr>
                                                     <th>Employee Name - නම</th>
                                                     <th class="text-center">Pending - පොරොත්තු</th>
+                                                    <th class="text-center">Checking - පරීක්ෂා කරමින්</th>
                                                     <th class="text-center">In Progress - ප්‍රගතියේ</th>
                                                     <th class="text-center">Completed - සම්පූර්ණයි</th>
                                                     <th class="text-center">Delivered - භාර දෙන ලදී</th>
                                                     <th class="text-center">Cannot Repair - අලුත්වැඩියා කළ නොහැක</th>
+                                                    <th class="text-center">Cancelled - අවලංගුයි</th>
                                                     <th class="text-center fw-bold">Total - මුළු</th>
                                                 </tr>
                                             </thead>
