@@ -276,8 +276,9 @@ $grandTotalRent = 0;
 $grandTotalPaid = 0;
 $grandTotalBalance = 0;
 
+// Oldest first for print view
 uasort($rentSummary, function ($a, $b) {
-    return strtotime($b['rental_date']) <=> strtotime($a['rental_date']);
+    return strtotime($a['rental_date']) <=> strtotime($b['rental_date']);
 });
 
 foreach ($rentSummary as $rentId => $summary) {
