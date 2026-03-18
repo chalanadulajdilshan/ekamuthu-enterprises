@@ -2,6 +2,12 @@ $(document).ready(function () {
   const $tbody = $('#reportTableBody');
   const $totalOutstanding = $('#totalCompanyOutstanding');
   const $filterCompanyOnly = $('#companyOnly');
+  const fmtAmount = (val) => {
+    const num = parseFloat(val);
+    return isNaN(num)
+      ? '0.00'
+      : new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+  };
 
   // defaults: current month
   const today = new Date();
@@ -125,13 +131,13 @@ $(document).ready(function () {
           <td>${row.received_date || ''}</td>
           <td class="text-end">${row.items || 0}</td>
           <td>${statusLabel}${badge}</td>
-          <td class="text-end text-danger">${companyOutstanding.toFixed(2)}</td>
+          <td class="text-end text-danger">${fmtAmount(companyOutstanding)}</td>
         </tr>`;
       $tbody.append(tr);
     });
 
     const total = totals.company_outstanding || 0;
-    $totalOutstanding.text(parseFloat(total).toFixed(2));
+    $totalOutstanding.text(fmtAmount(total));
   }
 
   // initial load
