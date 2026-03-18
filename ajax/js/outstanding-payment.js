@@ -88,8 +88,25 @@ $(document).ready(function () {
     }
   });
 
+  // Search by Bill Number
+  $("#searchBillBtn").click(function () {
+    const billNo = $("#search_bill_number").val().trim();
+    if (billNo) {
+      loadOutstandingItems(0, billNo);
+    } else {
+      Swal.fire("Warning", "Please enter a bill number to search", "warning");
+    }
+  });
+
+  $('#search_bill_number').keypress(function (e) {
+    if (e.which == 13) {
+      $("#searchBillBtn").click();
+      return false;
+    }
+  });
+
   // Load Outstanding Items
-  function loadOutstandingItems(customerId) {
+  function loadOutstandingItems(customerId, billNumber = '') {
     $("#outstandingTableBody").html(
       '<tr><td colspan="6" class="text-center">Loading...</td></tr>',
     );
@@ -102,9 +119,14 @@ $(document).ready(function () {
       data: {
         action: "get_outstanding_rents",
         customer_id: customerId,
+        bill_number: billNumber
       },
       success: function (response) {
         if (response.status === "success") {
+          if (response.customer) {
+              $("#customer_id").val(response.customer.id);
+              $("#customer_code").val(response.customer.code);
+          }
           renderTable(response.items);
           $("#totalOutstandingDisplay").text(
             formatCurrency(response.total_outstanding),

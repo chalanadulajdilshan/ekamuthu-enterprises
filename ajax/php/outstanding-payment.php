@@ -6,16 +6,31 @@ $action = $_POST['action'] ?? '';
 
 if ($action === 'get_outstanding_rents') {
     $customerId = isset($_POST['customer_id']) ? (int)$_POST['customer_id'] : 0;
+    $billNumber = isset($_POST['bill_number']) ? trim($_POST['bill_number']) : '';
     
-    if ($customerId <= 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid customer ID']);
+    if ($customerId <= 0 && empty($billNumber)) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid Request']);
         exit;
     }
 
     $db = Database::getInstance();
-    
-    // Query to get all rent returns with outstanding amount > 0
-    // We join with items and rent to get bill number, item name, etc.
+    $where = "err.outstanding_amount > 0";
+    $customerInfo = null;
+
+    if (!empty($billNumber)) {
+        $billQuery = "SELECT customer_id FROM `equipment_rent` WHERE bill_number = '" . mysqli_real_escape_string($db->DB_CON, $billNumber) . "'";
+        $billRes = $db->readQuery($billQuery);
+        if ($bRow = mysqli_fetch_assoc($billRes)) {
+            $customerId = $bRow['customer_id'];
+        } else {
+             echo json_encode(['status' => 'error', 'message' => 'Bill not found']);
+             exit;
+        }
+        $where .= " AND er.bill_number = '" . mysqli_real_escape_string($db->DB_CON, $billNumber) . "'";
+    } else {
+        $where .= " AND er.customer_id = $customerId";
+    }
+
     $query = "SELECT 
                 err.id as return_id,
                 err.return_date,
@@ -24,13 +39,15 @@ if ($action === 'get_outstanding_rents') {
                 e.item_name,
                 e.code as item_code,
                 er.bill_number,
-                er.id as rent_id
+                er.id as rent_id,
+                cm.code as customer_code,
+                cm.name as customer_name
               FROM `equipment_rent_returns` err
               INNER JOIN `equipment_rent_items` eri ON err.rent_item_id = eri.id
               INNER JOIN `equipment_rent` er ON eri.rent_id = er.id
               LEFT JOIN `equipment` e ON eri.equipment_id = e.id
-              WHERE er.customer_id = $customerId 
-              AND err.outstanding_amount > 0
+              LEFT JOIN `customer_master` cm ON er.customer_id = cm.id
+              WHERE $where
               ORDER BY err.return_date ASC";
 
     $result = $db->readQuery($query);
@@ -38,6 +55,12 @@ if ($action === 'get_outstanding_rents') {
     $totalOutstanding = 0;
 
     while ($row = mysqli_fetch_assoc($result)) {
+        if (!$customerInfo) {
+             $customerInfo = [
+                 'id' => $customerId,
+                 'code' => $row['customer_code'] . ' - ' . $row['customer_name']
+             ];
+        }
         $data[] = [
             'return_id' => $row['return_id'],
             'date' => $row['return_date'],
@@ -48,14 +71,25 @@ if ($action === 'get_outstanding_rents') {
         $totalOutstanding += floatval($row['outstanding_amount']);
     }
 
+    // Attempt to get customer info if no outstanding items found for the requested bill/customer
+    if (!$customerInfo && $customerId > 0) {
+        $q = "SELECT code, name FROM `customer_master` WHERE id = $customerId";
+        $r = $db->readQuery($q);
+        if ($row = mysqli_fetch_assoc($r)) {
+            $customerInfo = [
+                'id' => $customerId,
+                'code' => $row['code'] . ' - ' . $row['name']
+            ];
+        }
+    }
+
     echo json_encode([
         'status' => 'success',
         'items' => $data,
-        'total_outstanding' => $totalOutstanding
+        'total_outstanding' => $totalOutstanding,
+        'customer' => $customerInfo
     ]);
     exit;
-
-
 } elseif ($action === 'get_branches') {
     $bankId = isset($_POST['bank_id']) ? (int)$_POST['bank_id'] : 0;
     if ($bankId > 0) {

@@ -50,18 +50,28 @@ include 'auth.php';
                         <div class="col-lg-8">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title mb-4">Select Customer</h5>
+                                    <h5 class="card-title mb-4">Select Customer or Bill</h5>
                                     <div class="row mb-4">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Customer</label>
                                             <div class="input-group">
                                                 <input id="customer_code" name="customer_code" type="text" placeholder="Select Customer" class="form-control" readonly>
                                                 <input type="hidden" id="customer_id" name="customer_id">
                                                 <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#customerModal">
-                                                    <i class="uil uil-search me-1"></i> Search
+                                                    <i class="uil uil-search"></i>
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 text-end">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Bill Number</label>
+                                            <div class="input-group">
+                                                <input id="search_bill_number" name="search_bill_number" type="text" placeholder="Enter Bill No" class="form-control">
+                                                <button class="btn btn-info" type="button" id="searchBillBtn">
+                                                    <i class="uil uil-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 text-end mt-4">
                                             <button id="refreshBtn" class="btn btn-secondary"><i class="uil uil-refresh"></i> Refresh List</button>
                                         </div>
                                     </div>
@@ -208,7 +218,7 @@ include 'auth.php';
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
     
     <!-- Page Specific JS -->
-    <script src="ajax/js/outstanding-payment.js"></script>
+    <script src="ajax/js/outstanding-payment.js?v=<?php echo time(); ?>"></script>
 
 </body>
 </html>
