@@ -575,10 +575,6 @@ if ($customerId > 0 && empty($customerFilterName)) {
                     <span class="stat-value">රු. <?php echo number_format(array_reduce($data, function($c,$r){return $c + ($r['initial_deposit_total'] ?? 0);},0), 2); ?></span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">කුලිය + ආරම්භක තැන්පතුව</span>
-                    <span class="stat-value">රු. <?php echo number_format(array_reduce($data, function($c,$r){return $c + ($r['rent_plus_initial'] ?? 0);},0), 2); ?></span>
-                </div>
-                <div class="stat-item">
                     <span class="stat-label">ගෙවූ මුදල්</span>
                     <span class="stat-value text-success">රු. <?php echo number_format($grandTotalPaid, 2); ?></span>
                 </div>
@@ -600,7 +596,6 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <th>තත්ත්වය</th>
                         <th class="text-right">කුලිය</th>
                         <th class="text-right">ආරම්භක තැන්පතුව</th>
-                        <th class="text-right">කුලිය + ආරම්භක තැන්පතුව</th>
                         <th class="text-right">ගෙවූ මුදල</th>
                         <th class="text-right">බැලන්ස්</th>
                     </tr>
@@ -618,7 +613,6 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td><?php echo $row['status_label']; ?></td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['total_rent'], 2); ?>&nbsp;</td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['initial_deposit_total'], 2); ?>&nbsp;</td>
-                            <td class="text-right">&nbsp;<?php echo number_format($row['rent_plus_initial'], 2); ?>&nbsp;</td>
                             <td class="text-right text-success">&nbsp;<?php echo number_format($row['total_paid'], 2); ?>&nbsp;</td>
                             <td class="text-right text-danger"><strong><?php echo number_format($row['balance'], 2); ?></strong></td>
                         </tr>
@@ -734,7 +728,6 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td colspan="7" class="text-right"><strong>සමස්තය:</strong></td>
                             <td class="text-right"><strong><?php echo number_format($grandTotalRent, 2); ?></strong></td>
                             <td class="text-right"><strong><?php echo number_format(array_reduce($data, function($c,$r){return $c + ($r['initial_deposit_total'] ?? 0);},0), 2); ?></strong></td>
-                            <td class="text-right"><strong><?php echo number_format(array_reduce($data, function($c,$r){return $c + ($r['rent_plus_initial'] ?? 0);},0), 2); ?></strong></td>
                             <td class="text-right text-success"><strong><?php echo number_format($grandTotalPaid, 2); ?></strong></td>
                             <td class="text-right text-danger" style="font-size: 14px;"><strong><?php echo number_format($grandTotalBalance, 2); ?></strong></td>
                         </tr>
