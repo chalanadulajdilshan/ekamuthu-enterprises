@@ -478,6 +478,7 @@ function fillBillDetailsModal(data) {
     $('#billModalBaseRent').text(fmt(baseRent));
     $('#billModalDamage').text(fmt(totalDamage));
     $('#billModalTotalRent').text(fmt(totalRent));
+    $('#billModalInitialDeposit').text(fmt(data.initial_deposit_total || 0));
     $('#billModalTotalPaid').text(fmt(data.total_paid));
     $('#billModalBalance').text(fmt(data.balance));
     // Full outstanding (bill start to today) = base rent + damage - total paid
@@ -752,6 +753,7 @@ function recalculateModalTotals() {
     $('#billModalBaseRent').text(fmt(baseRent));
     $('#billModalDamage').text(fmt(totalDamage));
     $('#billModalTotalRent').text(fmt(totalRent));
+    $('#billModalInitialDeposit').text(fmt(currentBillData.initial_deposit_total || 0));
     $('#billModalBalance').text(fmt(balance));
     $('#billModalRecordedTotal').text(fmt(recordedOutstanding));
     $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
