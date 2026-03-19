@@ -147,6 +147,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     <table>
         <thead>
             <tr>
+                <th>#</th>
                 <th>බිල් අංකය</th>
                 <th>කුලී දිනය</th>
                 <th>ආපසු දිනය</th>
@@ -163,8 +164,9 @@ while ($row = mysqli_fetch_assoc($result)) {
         </thead>
         <tbody>
             <?php if (count($report_data) > 0): ?>
-                <?php foreach ($report_data as $row): ?>
+                <?php $n = 1; foreach ($report_data as $row): ?>
                 <tr>
+                    <td><?php echo $n++; ?></td>
                     <td><?php echo $row['bill_number']; ?></td>
                     <td><?php echo $row['rental_date']; ?></td>
                     <td><?php echo $row['return_date']; ?></td>
@@ -180,7 +182,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </tr>
                 <?php endforeach; ?>
                 <tr style="font-weight: bold; background-color: #f0f0f0;">
-                    <td colspan="7" class="text-right">එකතුව (TOTAL):</td>
+                    <td colspan="8" class="text-right">එකතුව (TOTAL):</td>
                     <td class="text-right"><?php echo number_format($total_rental, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_extra_day, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_penalty, 2); ?></td>
@@ -188,7 +190,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     <td class="text-right text-danger"><?php echo number_format($total_damage, 2); ?></td>
                 </tr>
             <?php else: ?>
-                <tr><td colspan="12" style="text-align:center;">නොමැත (No records found).</td></tr>
+                <tr><td colspan="13" style="text-align:center;">නොමැත (No records found).</td></tr>
             <?php endif; ?>
         </tbody>
     </table>

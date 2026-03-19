@@ -137,6 +137,7 @@ $total_items_count = $resTotalItems['total_qty'] ?? 0;
     <table>
         <thead>
             <tr>
+                <th>#</th>
                 <th>බිල් අංකය</th>
                 <th>දිනය</th>
                 <th>පාරිභෝගිකයා</th>
@@ -155,6 +156,7 @@ $total_items_count = $resTotalItems['total_qty'] ?? 0;
             $grand_revenue = 0;
             
             if (count($report_conversations) > 0): 
+                $n = 1;
             ?>
                 <?php foreach ($report_conversations as $row): 
                     $grand_deposit += $row['deposit_total'];
@@ -164,6 +166,7 @@ $total_items_count = $resTotalItems['total_qty'] ?? 0;
                     // additional, refund are calculated variables in the loop, we need to add them to $row array in the loop above first.
                 ?>
                 <tr>
+                    <td><?php echo $n++; ?></td>
                     <td><?php echo $row['bill_number']; ?></td>
                     <td><?php echo $row['rental_date']; ?></td>
                     <td><?php echo $row['customer_name']; ?></td>
@@ -174,13 +177,13 @@ $total_items_count = $resTotalItems['total_qty'] ?? 0;
                 </tr>
                 <?php endforeach; ?>
                 <tr style="font-weight: bold; background-color: #f0f0f0;">
-                    <td colspan="4" class="text-right">එකතුව (TOTAL):</td>
+                    <td colspan="5" class="text-right">එකතුව (TOTAL):</td>
                     <td class="text-right"><?php echo number_format($total_deposit, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_transport ?? 0, 2); ?></td>
                     <td class="text-right"><?php echo number_format($total_additional ?? 0, 2); ?></td>
                 </tr>
             <?php else: ?>
-                <tr><td colspan="7" style="text-align:center;">නොමැත (No records found).</td></tr>
+                <tr><td colspan="8" style="text-align:center;">නොමැත (No records found).</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
