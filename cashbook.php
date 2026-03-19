@@ -213,7 +213,7 @@ $ref_no = 'CB/' . str_pad(($lastId + 1), 5, '0', STR_PAD_LEFT);
                                                     echo '<tr><td colspan="7" class="text-center py-4">No data available for the selected date range</td></tr>';
                                                 } else {
                                                     foreach ($bankTransactions as $transaction) {
-                                                        $typeClass = $transaction['transaction_type'] == 'deposit' ? 'badge bg-danger' : 'badge bg-success';
+                                                        $typeClass = $transaction['transaction_type'] == 'deposit' ? 'badge bg-success' : 'badge bg-danger';
                                                         echo '<tr>';
                                                         echo '<td>' . date('d M Y, h:i A', strtotime($transaction['created_at'])) . '</td>';
                                                         echo '<td>' . $transaction['ref_no'] . '</td>';

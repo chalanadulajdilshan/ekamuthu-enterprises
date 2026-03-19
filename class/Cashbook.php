@@ -206,7 +206,59 @@ class Cashbook
         $resultIncome = mysqli_fetch_array($db->readQuery($queryDailyIncome));
         $totalDailyIncome = (float) $resultIncome['total'];
 
-        return $totalCashInvoices + $totalPaymentReceipts + $totalDailyIncome;
+        // Cash from equipment rent (Rent Income)
+        $whereRent = str_replace('si.invoice_date', 'er.rental_date', $where);
+        $queryRent = "SELECT COALESCE(SUM(total_rent_amount + transport_cost), 0) as total
+                      FROM `equipment_rent` er
+                      $whereRent AND er.is_cancelled = 0";
+        $resultRent = mysqli_fetch_array($db->readQuery($queryRent));
+        $totalRent = (float) $resultRent['total'];
+
+        // Deposit Payments
+        $whereDepositPayment = str_replace('si.invoice_date', 'dp.payment_date', $where);
+        $queryDepositPayments = "SELECT COALESCE(SUM(amount), 0) as total FROM `deposit_payments` dp $whereDepositPayment";
+        $resultDepositPayments = mysqli_fetch_array($db->readQuery($queryDepositPayments));
+        $totalDepositPayments = (float) $resultDepositPayments['total'];
+
+        // Rent Return - Customer Paid at return time (IN)
+        $whereReturnIn = str_replace('si.invoice_date', 'err.return_date', $where);
+        $queryReturnIn = "SELECT COALESCE(SUM(initial_customer_paid), 0) as total FROM `equipment_rent_returns` err $whereReturnIn";
+        $resultReturnIn = mysqli_fetch_array($db->readQuery($queryReturnIn));
+        $totalReturnIn = (float) $resultReturnIn['total'];
+
+        // Rent Return - Late Customer Outstanding Settlement (IN)
+        $whereReturnLateIn = str_replace('si.invoice_date', 'err.updated_at', $where);
+        $queryReturnLateIn = "SELECT COALESCE(SUM(err.customer_paid - err.initial_customer_paid), 0) as total
+                              FROM `equipment_rent_returns` err
+                              $whereReturnLateIn AND (err.customer_paid - err.initial_customer_paid) > 0";
+        $resultReturnLateIn = mysqli_fetch_array($db->readQuery($queryReturnLateIn));
+        $totalReturnLateIn = (float) $resultReturnLateIn['total'];
+
+        // Cash from transport details
+        $whereTransport = str_replace('si.invoice_date', 'td.transport_date', $where);
+        $queryTransport = "SELECT COALESCE(SUM(total_amount), 0) as total
+                           FROM `transport_details` td
+                           $whereTransport";
+        $resultTransport = mysqli_fetch_array($db->readQuery($queryTransport));
+        $totalTransport = (float) $resultTransport['total'];
+
+        // Cash from repair jobs
+        $whereRepair = str_replace('si.invoice_date', 'rj.created_at', $where);
+        $queryRepair = "SELECT COALESCE(SUM(total_cost), 0) as total
+                        FROM `repair_jobs` rj
+                        $whereRepair";
+        $resultRepair = mysqli_fetch_array($db->readQuery($queryRepair));
+        $totalRepair = (float) $resultRepair['total'];
+
+        return $totalCashInvoices
+            + $totalPaymentReceipts
+            + $totalDailyIncome
+            + $totalRent
+            + $totalDepositPayments
+            + $totalReturnIn
+            + $totalReturnLateIn
+            + $totalTransport
+            + $totalRepair;
     }
 
     // Get total cash OUT from various sources
@@ -276,7 +328,19 @@ class Cashbook
         $resultWithdrawals = mysqli_fetch_array($db->readQuery($queryWithdrawals));
         $totalWithdrawals = (float) $resultWithdrawals['total'];
 
-        return $totalExpenses + $totalSupplierPayments + $totalArn + $totalSalesReturn + $totalDeposits + $totalWithdrawals;
+        // Rent Return - Company Refunded (OUT) - Initial
+        $whereReturnOut = str_replace('e.expense_date', 'err.return_date', $where);
+        $queryReturnOut = "SELECT COALESCE(SUM(initial_company_refund_paid), 0) as total FROM `equipment_rent_returns` err $whereReturnOut";
+        $resultReturnOut = mysqli_fetch_array($db->readQuery($queryReturnOut));
+        $totalReturnOut = (float) $resultReturnOut['total'];
+
+        // Rent Return - Company Refunded (OUT) - Late
+        $whereReturnLateOut = str_replace('e.expense_date', 'err.updated_at', $where);
+        $queryReturnLateOut = "SELECT COALESCE(SUM(company_refund_paid - initial_company_refund_paid), 0) as total FROM `equipment_rent_returns` err $whereReturnLateOut AND (company_refund_paid - initial_company_refund_paid) > 0";
+        $resultReturnLateOut = mysqli_fetch_array($db->readQuery($queryReturnLateOut));
+        $totalReturnLateOut = (float) $resultReturnLateOut['total'];
+
+        return $totalExpenses + $totalSupplierPayments + $totalArn + $totalSalesReturn + $totalDeposits + $totalWithdrawals + $totalReturnOut + $totalReturnLateOut;
     }
 
     // Get balance in hand
@@ -426,6 +490,184 @@ class Cashbook
                 'doc' => $row['doc'],
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Rent Income removed: equipment rent income should be recorded on return (see rent return entries below)
+        $whereRent = str_replace('invoice_date', 'rental_date', $where);
+
+        // Deposit Payments
+        $whereDepositPayment = str_replace('invoice_date', 'dp.payment_date', $where);
+        $query = "SELECT dp.payment_date as date, CONCAT('DEP-', dp.rent_id) as doc, dp.amount, COALESCE(NULLIF(dp.remark, ''), 'Rent Deposit') as description
+                  FROM deposit_payments dp
+                  $whereDepositPayment AND dp.amount > 0
+                  ORDER BY dp.payment_date ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Rent Transport Cost
+        $query = "SELECT er.rental_date as date, er.bill_number as doc, er.transport_cost as amount, 'Rent Transport Income' as description, pt.name as payment_type
+                  FROM equipment_rent er
+                  LEFT JOIN payment_type pt ON er.payment_type_id = pt.id
+                  $whereRent AND er.is_cancelled = 0 AND er.transport_cost > 0
+                  ORDER BY er.rental_date ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => $row['payment_type'] ?? 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Transport Details Income
+        $whereTransport = str_replace('invoice_date', 'transport_date', $where);
+        $query = "SELECT transport_date as date, CONCAT('TRN-', rent_id) as doc, total_amount as amount, 'Additional Transport Income' as description
+                  FROM transport_details
+                  $whereTransport AND total_amount > 0
+                  ORDER BY transport_date ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Repair Income
+        $whereRepair = str_replace('invoice_date', 'created_at', $where);
+        $query = "SELECT created_at as date, job_code as doc, total_cost as amount, 'Repair Income' as description
+                  FROM repair_jobs
+                  $whereRepair AND total_cost > 0
+                  ORDER BY created_at ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d H:i:s', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Rent Return Customer Paid (IN)
+        $whereReturnIn = str_replace('invoice_date', 'err.return_date', $where);
+        $query = "SELECT err.return_date as date, CONCAT('RTN-', err.id) as doc, err.initial_customer_paid as amount, 'Rent Return Customer Payment' as description
+                  FROM equipment_rent_returns err
+                  $whereReturnIn AND err.initial_customer_paid > 0
+                  ORDER BY err.return_date ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Rent Return Late Customer Outstanding Settlement (IN)
+        $whereReturnLateIn = str_replace('invoice_date', 'err.updated_at', $where);
+        $query = "SELECT err.updated_at as date, CONCAT('RTN-', err.id) as doc, (err.customer_paid - err.initial_customer_paid) as amount, 'Rent Return Outstanding Settlement' as description
+                  FROM equipment_rent_returns err
+                  $whereReturnLateIn AND (err.customer_paid - err.initial_customer_paid) > 0
+                  ORDER BY err.updated_at ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d H:i:s', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Rent Return Company Refund Paid (OUT)
+        $query = "SELECT err.return_date as date, CONCAT('RTN-', err.id) as doc, err.initial_company_refund_paid as amount, 'Company Outstanding Settlement' as description
+                  FROM equipment_rent_returns err
+                  $whereReturnIn AND err.initial_company_refund_paid > 0
+                  ORDER BY err.return_date ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance -= (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'OUT',
+                'description' => 'Company Refund',
+                'doc' => $row['doc'],
+                'debit' => '0.00',
+                'credit' => number_format($row['amount'], 2),
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => $row['date']
+            ];
+        }
+
+        // Rent Return Late Company Refund Paid (OUT)
+        $whereReturnLateOut = str_replace('invoice_date', 'err.updated_at', $where);
+        $query = "SELECT err.updated_at as date, CONCAT('RTN-', err.id) as doc, (err.company_refund_paid - err.initial_company_refund_paid) as amount, 'Late Company Outstanding Settlement' as description
+                  FROM equipment_rent_returns err
+                  $whereReturnLateOut AND (err.company_refund_paid - err.initial_company_refund_paid) > 0
+                  ORDER BY err.updated_at ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance -= (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d H:i:s', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'OUT',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => '0.00',
+                'credit' => number_format($row['amount'], 2),
                 'balance' => number_format($runningBalance, 2),
                 'sort_date' => $row['date']
             ];

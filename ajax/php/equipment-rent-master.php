@@ -460,7 +460,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                        (SELECT err.after_9am_extra_day FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 
                             ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_after_9am_flag,
-                       (SELECT GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, err.return_date) / 86400))
+                       (SELECT (DATEDIFF(err.return_date, ri.rental_date) + 1)
                             FROM equipment_rent_returns err 
                             WHERE err.rent_item_id = ri.id 
                             ORDER BY err.return_date DESC, err.id DESC LIMIT 1) AS latest_used_days,
@@ -487,7 +487,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                                 THEN err.rental_override
                                 ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                                     THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
-                                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                                    ELSE ((DATEDIFF(err.return_date, eri.rental_date) + 1)
                                         * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                         * err.return_qty)
                                 END
@@ -528,10 +528,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Calculate accrued charges for non-returned (pending) items based on today
         $today = date('Y-m-d');
         $accruedQuery = "SELECT COALESCE(SUM(
-            CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                 THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
                      * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
-                ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, ri.rental_date, '$today') / 86400))
+                ELSE (DATEDIFF('$today', ri.rental_date) + 1)
                      * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
                      * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
             END
@@ -1166,18 +1165,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             if ($totalAdditionalPayment > 0 && $itemAdditional > 0) {
                 $paidShare = ($itemAdditional / $totalAdditionalPayment) * $totalCustomerPaid;
                 $RETURN->customer_paid = round($paidShare, 2);
+                $RETURN->initial_customer_paid = round($paidShare, 2);
                 $RETURN->outstanding_amount = round(max(0, $itemAdditional - $paidShare), 2);
             } else {
                 $RETURN->customer_paid = 0;
+                $RETURN->initial_customer_paid = 0;
                 $RETURN->outstanding_amount = 0;
             }
             // Distribute company refund paid proportionally across items
             if ($totalRefundAmount > 0 && $itemRefund > 0) {
                 $refundPaidShare = ($itemRefund / $totalRefundAmount) * $totalCompanyRefundPaid;
                 $RETURN->company_refund_paid = round($refundPaidShare, 2);
+                $RETURN->initial_company_refund_paid = round($refundPaidShare, 2);
                 $RETURN->company_outstanding = round(max(0, $itemRefund - $refundPaidShare), 2);
             } else {
                 $RETURN->company_refund_paid = 0;
+                $RETURN->initial_company_refund_paid = 0;
                 $RETURN->company_outstanding = 0;
             }
             $RETURN->remark = !empty($returnRemark)
