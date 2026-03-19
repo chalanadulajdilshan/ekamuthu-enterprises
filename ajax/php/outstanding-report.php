@@ -297,10 +297,10 @@ if ($action === 'get_outstanding_report') {
                         cm.mobile_number_2 as customer_mobile_2,
                         pt.name as payment_type_name,
                         er.status as rent_status,
-                        (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
-                        GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, '$today') / 86400)) AS used_days,
-                        (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
-                    FROM equipment_rent_items eri
+                    (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
+                    (DATEDIFF('$today', eri.rental_date) + 1) AS used_days,
+                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
+                FROM equipment_rent_items eri
                     INNER JOIN equipment_rent er ON eri.rent_id = er.id
                     LEFT JOIN customer_master cm ON er.customer_id = cm.id
                     LEFT JOIN payment_type pt ON er.payment_type_id = pt.id

@@ -22,8 +22,10 @@ class EquipmentRentReturn
     public $refund_amount;
     public $additional_payment;
     public $customer_paid;
+    public $initial_customer_paid;
     public $outstanding_amount;
     public $company_refund_paid;
+    public $initial_company_refund_paid;
     public $company_outstanding;
     public $remark;
     public $created_by;
@@ -58,8 +60,10 @@ class EquipmentRentReturn
                 $this->refund_amount = $result['refund_amount'];
                 $this->additional_payment = $result['additional_payment'];
                 $this->customer_paid = $result['customer_paid'] ?? 0;
+                $this->initial_customer_paid = $result['initial_customer_paid'] ?? 0;
                 $this->outstanding_amount = $result['outstanding_amount'] ?? 0;
                 $this->company_refund_paid = $result['company_refund_paid'] ?? 0;
+                $this->initial_company_refund_paid = $result['initial_company_refund_paid'] ?? 0;
                 $this->company_outstanding = $result['company_outstanding'] ?? 0;
                 $this->remark = $result['remark'];
                 $this->created_by = $result['created_by'];
@@ -80,8 +84,8 @@ class EquipmentRentReturn
             `damage_refunded`, `damage_refund_date`, `damage_refund_time`,
             `after_9am_extra_day`, `extra_day_amount`, `penalty_percentage`, `penalty_amount`,
             `extra_charge_amount`, `repair_cost`, `rental_override`,
-            `settle_amount`, `refund_amount`, `additional_payment`, `customer_paid`, `outstanding_amount`,
-            `company_refund_paid`, `company_outstanding`,
+            `settle_amount`, `refund_amount`, `additional_payment`, `customer_paid`, `initial_customer_paid`, `outstanding_amount`,
+            `company_refund_paid`, `initial_company_refund_paid`, `company_outstanding`,
             `remark`, `created_by`, `created_at`
         ) VALUES (
             '$this->rent_item_id', '$this->return_date', " .
@@ -94,8 +98,8 @@ class EquipmentRentReturn
             '" . floatval($this->extra_charge_amount ?? 0) . "', '" . floatval($this->repair_cost ?? 0) . "',
             $rentalOverrideSql,
             '$this->settle_amount', '$this->refund_amount', 
-            '$this->additional_payment', '$this->customer_paid', '$this->outstanding_amount',
-            '" . floatval($this->company_refund_paid ?? 0) . "', '" . floatval($this->company_outstanding ?? 0) . "',
+            '$this->additional_payment', '$this->customer_paid', '" . floatval($this->initial_customer_paid ?? 0) . "', '$this->outstanding_amount',
+            '" . floatval($this->company_refund_paid ?? 0) . "', '" . floatval($this->initial_company_refund_paid ?? 0) . "', '" . floatval($this->company_outstanding ?? 0) . "',
             '$this->remark', " . 
             (isset($_SESSION['id']) ? "'{$_SESSION['id']}'" : "NULL") . ",
             '$now'
@@ -147,8 +151,10 @@ class EquipmentRentReturn
             `refund_amount` = '$this->refund_amount',
             `additional_payment` = '$this->additional_payment',
             `customer_paid` = '$this->customer_paid',
+            `initial_customer_paid` = '" . floatval($this->initial_customer_paid ?? 0) . "',
             `outstanding_amount` = '$this->outstanding_amount',
             `company_refund_paid` = '" . floatval($this->company_refund_paid ?? 0) . "',
+            `initial_company_refund_paid` = '" . floatval($this->initial_company_refund_paid ?? 0) . "',
             `company_outstanding` = '" . floatval($this->company_outstanding ?? 0) . "',
             `remark` = '$this->remark',
             `updated_at` = '$now'
@@ -505,7 +511,7 @@ class EquipmentRentReturn
         $return_date = $return_date ?: date('Y-m-d');
         $rental_dt = strtotime($rental_date);
         $return_dt = strtotime($return_date);
-        $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400));
+        $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400) + 1);
         
         // Check if return is late (used_days > duration_days)
         $is_late = $used_days > $duration_days;
@@ -553,7 +559,7 @@ class EquipmentRentReturn
                                 THEN err2.rental_override
                                 ELSE CASE WHEN COALESCE(e2.is_fixed_rate, 0) = 1
                                     THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
-                                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri2.rental_date, err2.return_date) / 86400))
+                                    ELSE ((DATEDIFF(err2.return_date, eri2.rental_date) + 1)
                                         * (COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
                                         * err2.return_qty)
                                 END
@@ -655,7 +661,7 @@ class EquipmentRentReturn
                            THEN err.rental_override
                            ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
-                             ELSE GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
+                             ELSE (DATEDIFF(err.return_date, eri.rental_date) + 1)
                                * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                * err.return_qty
                            END
