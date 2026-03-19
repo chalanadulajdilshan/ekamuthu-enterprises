@@ -23,7 +23,7 @@ if (isset($_POST['create'])) {
 
         $DAILY_INCOME->amount = $_POST['amount'];
         $DAILY_INCOME->ref_no = isset($_POST['ref_no']) ? $_POST['ref_no'] : '';
-        $DAILY_INCOME->date = date('Y-m-d');
+        $DAILY_INCOME->date = isset($_POST['date']) && !empty($_POST['date']) ? $_POST['date'] : date('Y-m-d');
         $DAILY_INCOME->remark = isset($_POST['remark']) ? $_POST['remark'] : '';
 
         $res = $DAILY_INCOME->create();
@@ -71,8 +71,8 @@ if (isset($_POST['update'])) {
             exit();
         }
 
-        // Retain existing date for update
-        $DAILY_INCOME->date = $DAILY_INCOME->date ? $DAILY_INCOME->date : date('Y-m-d');
+        // Retain existing date for update if not posted
+        $DAILY_INCOME->date = isset($_POST['date']) && !empty($_POST['date']) ? $_POST['date'] : ($DAILY_INCOME->date ? $DAILY_INCOME->date : date('Y-m-d'));
         $DAILY_INCOME->amount = $_POST['amount'];
         $DAILY_INCOME->ref_no = isset($_POST['ref_no']) ? $_POST['ref_no'] : '';
         $DAILY_INCOME->remark = isset($_POST['remark']) ? $_POST['remark'] : '';

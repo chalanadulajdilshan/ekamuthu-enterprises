@@ -2,6 +2,10 @@
 <?php
 include 'class/include.php';
 include './auth.php';
+
+$DAILY_INCOME = new DailyIncome(NULL);
+$lastId = $DAILY_INCOME->getLastID();
+$ref_no = "INC-" . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
 ?>
 
 <html lang="en">
@@ -89,11 +93,11 @@ include './auth.php';
                                             <div class="col-md-3">
                                                 <label class="form-label" for="ref_no">Ref No <span class="text-danger">*</span></label>
                                                 <div class="input-group mb-3">
-                                                    <input type="text" class="form-control" id="ref_no" name="ref_no" placeholder="Enter Ref No">
+                                                    <input type="text" class="form-control" id="ref_no" name="ref_no" value="<?php echo $ref_no; ?>" readonly>
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label class="form-label" for="amount">Amount <span class="text-danger">*</span></label>
                                                 <div class="input-group mb-3">
                                                     <input type="number" step="0.01" class="form-control" id="amount"
@@ -101,7 +105,15 @@ include './auth.php';
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
+                                                <label class="form-label" for="date">Date <span class="text-danger">*</span></label>
+                                                <div class="input-group mb-3">
+                                                    <input type="text" class="form-control date-picker" id="date" name="date" value="<?php echo date('Y-m-d'); ?>"> 
+                                                    <span class="input-group-text"><i class="mdi mdi-calendar"></i></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-4">
                                                 <label for="remark" class="form-label">Remark</label>
                                                 <div class="input-group mb-3">
                                                     <input type="text" class="form-control" id="remark" name="remark"

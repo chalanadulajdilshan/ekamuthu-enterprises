@@ -4,7 +4,15 @@ jQuery(document).ready(function () {
         event.preventDefault();
 
         // Validation
-        if (!$("#ref_no").val() || $("#ref_no").val().length === 0) {
+        if (!$("#date").val() || $("#date").val().length === 0) {
+            swal({
+                title: "Error!",
+                text: "Please select a Date",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } else if (!$("#ref_no").val() || $("#ref_no").val().length === 0) {
             swal({
                 title: "Error!",
                 text: "Please enter a Ref No",
@@ -72,7 +80,15 @@ jQuery(document).ready(function () {
         event.preventDefault();
 
         // Validation
-        if (!$("#ref_no").val() || $("#ref_no").val().length === 0) {
+        if (!$("#date").val() || $("#date").val().length === 0) {
+            swal({
+                title: "Error!",
+                text: "Please select a Date",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } else if (!$("#ref_no").val() || $("#ref_no").val().length === 0) {
             swal({
                 title: "Error!",
                 text: "Please enter a Ref No",
@@ -260,6 +276,7 @@ jQuery(document).ready(function () {
 
         // Populate form with record data
         $("#id").val(row.data("id"));
+        $("#date").val(row.data("date"));
         $("#ref_no").val(row.data("ref_no"));
         $("#amount").val(row.data("amount"));
         $("#remark").val(row.data("remark"));
