@@ -511,7 +511,8 @@ class EquipmentRentReturn
         $return_date = $return_date ?: date('Y-m-d');
         $rental_dt = strtotime($rental_date);
         $return_dt = strtotime($return_date);
-        $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400) + 1);
+        // Match UI preview logic: charge based on the number of full days elapsed, with a minimum of one day
+        $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400));
         
         // Check if return is late (used_days > duration_days)
         $is_late = $used_days > $duration_days;
