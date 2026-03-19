@@ -147,9 +147,30 @@ if ($projectedResult) {
     }
 }
 
+// Add day rent calculation by fetching items
 $rentIds = array_keys($rentSummary);
 if (!empty($rentIds)) {
     $rentIdList = implode(',', array_map('intval', $rentIds));
+
+    // Get Day Rent from items amount
+    $itemsSql = "SELECT rent_id, amount, rent_type FROM equipment_rent_items WHERE rent_id IN ($rentIdList)";
+    $itemsResult = $db->readQuery($itemsSql);
+    if ($itemsResult) {
+        while ($iRow = mysqli_fetch_assoc($itemsResult)) {
+            $rentId = (int)$iRow['rent_id'];
+            if (!isset($rentSummary[$rentId])) continue;
+            
+            if (!isset($rentSummary[$rentId]['day_rent_total'])) {
+                $rentSummary[$rentId]['day_rent_total'] = 0;
+            }
+            
+            if (($iRow['rent_type'] ?? 'day') === 'day') {
+                $rentSummary[$rentId]['day_rent_total'] += floatval($iRow['amount'] ?? 0);
+            } else if (($iRow['rent_type'] ?? '') === 'month') {
+                $rentSummary[$rentId]['day_rent_total'] += floatval($iRow['amount'] ?? 0) / 30;
+            }
+        }
+    }
 
     // Recorded outstanding breakdown per return
     $detailsSql = "SELECT 
@@ -272,6 +293,7 @@ if (!empty($rentIds)) {
 
 // Build printable dataset
 $data = [];
+$grandTotalDayRent = 0; // NEW
 $grandTotalRent = 0;
 $grandTotalPaid = 0;
 $grandTotalBalance = 0;
@@ -286,6 +308,7 @@ foreach ($rentSummary as $rentId => $summary) {
     $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
     $recordedPaid = $summary['recorded_paid'] ?? 0;
     $damageTotal = $summary['damage_total'] ?? 0;
+    $dayRentTotal = $summary['day_rent_total'] ?? 0; // NEW
 
     // Days outstanding from rental date to the report date (inclusive, midnight-safe)
     $rentalDt = new DateTime($summary['rental_date']);
@@ -342,6 +365,7 @@ foreach ($rentSummary as $rentId => $summary) {
         'payment_type_name' => $summary['payment_type_name'] ?? 'N/A',
         'customer_name' => $summary['customer_name'],
         'status_label' => $statusLabel,
+        'day_rent' => $dayRentTotal, // NEW
         'total_rent' => $totalRent,
         'rent_plus_initial' => $rentPlusInitial,
         'total_paid' => $totalPaid,
@@ -356,6 +380,7 @@ foreach ($rentSummary as $rentId => $summary) {
         'deposit_total_raw' => $depositTotal
     ];
 
+    $grandTotalDayRent += $dayRentTotal; // NEW
     $grandTotalRent += $totalRent;
     $grandTotalPaid += $totalPaid;
     $grandTotalBalance += $balance;
@@ -594,6 +619,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <th>බැරී දින</th>
                         <th>ගෙවීමේ වර්ගය</th>
                         <th>තත්ත්වය</th>
+                        <th class="text-right">දින කුලිය</th>
                         <th class="text-right">කුලිය</th>
                         <th class="text-right">ආරම්භක තැන්පතුව</th>
                         <th class="text-right">ගෙවූ මුදල</th>
@@ -611,6 +637,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                             <td><?php echo $row['outstanding_days']; ?> දින</td>
                             <td><span style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 11px;">&nbsp;<?php echo $row['payment_type_name']; ?>&nbsp;</span></td>
                             <td><?php echo $row['status_label']; ?></td>
+                            <td class="text-right">&nbsp;<?php echo number_format($row['day_rent'], 2); ?>&nbsp;</td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['total_rent'], 2); ?>&nbsp;</td>
                             <td class="text-right">&nbsp;<?php echo number_format($row['initial_deposit_total'], 2); ?>&nbsp;</td>
                             <td class="text-right text-success">&nbsp;<?php echo number_format($row['total_paid'], 2); ?>&nbsp;</td>
@@ -619,7 +646,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
 
                         <?php if (!$isSummary): ?>
                         <tr>
-                            <td colspan="9" style="padding:0 10px 15px 10px;">
+                            <td colspan="10" style="padding:0 10px 15px 10px;">
                                 <div style="display:flex; gap:20px;">
                                     <div style="flex:1; border:1px solid #dee2e6; border-radius:6px; padding:10px;">
                                         <h4 style="margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">ලියාපදිංචි Outstanding</h4>
@@ -726,6 +753,7 @@ if ($customerId > 0 && empty($customerFilterName)) {
                         <?php endforeach; ?>
                         <tr style="background-color: #e9ecef;">
                             <td colspan="7" class="text-right"><strong>සමස්තය:</strong></td>
+                            <td class="text-right"><strong><?php echo number_format($grandTotalDayRent, 2); ?></strong></td>
                             <td class="text-right"><strong><?php echo number_format($grandTotalRent, 2); ?></strong></td>
                             <td class="text-right"><strong><?php echo number_format(array_reduce($data, function($c,$r){return $c + ($r['initial_deposit_total'] ?? 0);},0), 2); ?></strong></td>
                             <td class="text-right text-success"><strong><?php echo number_format($grandTotalPaid, 2); ?></strong></td>

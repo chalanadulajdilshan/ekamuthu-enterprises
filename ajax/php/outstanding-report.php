@@ -584,6 +584,7 @@ if ($action === 'get_outstanding_report') {
 
     // Build response payload
     $data = [];
+    $grandTotalDayRent = 0;
     $grandTotalRent = 0;
     $grandTotalRentPlusInitial = 0;
     $grandTotalPaid = 0;
@@ -624,9 +625,19 @@ if ($action === 'get_outstanding_report') {
 
         // Sum damage amounts from items
         $totalDamageAmount = 0;
+        $dayRentTotal = 0; // NEW: calculate day rent total
         if (!empty($summary['items'])) {
             foreach ($summary['items'] as $item) {
                 $totalDamageAmount += floatval($item['damage_amount'] ?? 0);
+                
+                // If it's a daily rent item, add its amount to the day rent total
+                // In equipment_rent_items, 'amount' is usually the daily/monthly rate for the qty
+                if (($item['rent_type'] ?? 'day') === 'day') {
+                    $dayRentTotal += floatval($item['amount'] ?? 0);
+                } else if (($item['rent_type'] ?? '') === 'month') {
+                    // Approximate daily rent for monthly items (or just use amount/30?)
+                    $dayRentTotal += floatval($item['amount'] ?? 0) / 30;
+                }
             }
         }
 
@@ -664,6 +675,8 @@ if ($action === 'get_outstanding_report') {
             'customer_mobile' => $summary['customer_mobile'] ?? '',
             'customer_mobile_2' => $summary['customer_mobile_2'] ?? '',
             'status_label' => $statusLabel,
+            'day_rent' => number_format($dayRentTotal, 2),
+            'day_rent_raw' => $dayRentTotal,
             'total_rent' => number_format($totalRent, 2),
             'rent_plus_initial' => number_format($rentPlusInitial, 2),
             'total_paid' => number_format($totalPaid, 2),
@@ -685,6 +698,7 @@ if ($action === 'get_outstanding_report') {
         ];
 
         $grandTotalRent += $totalRent;
+        $grandTotalDayRent += $dayRentTotal; // NEW
         $grandTotalRentPlusInitial += $rentPlusInitial;
         $grandTotalPaid += $totalPaid;
         $grandTotalBalance += $balance;
@@ -693,6 +707,7 @@ if ($action === 'get_outstanding_report') {
     echo json_encode([
         'status' => 'success',
         'data' => $data,
+        'grand_total_day_rent' => number_format($grandTotalDayRent ?? 0, 2),
         'grand_total_rent' => number_format($grandTotalRent, 2),
         'grand_total_rent_plus_initial' => number_format($grandTotalRentPlusInitial, 2),
         'grand_total_paid' => number_format($grandTotalPaid, 2),

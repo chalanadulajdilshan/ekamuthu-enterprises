@@ -129,7 +129,7 @@ include 'auth.php';
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label class="form-label">මාසය (විකල්ප)</label>
                                             <select id="month_filter" class="form-select">
                                                 <option value="">සියලු මාස</option>
@@ -148,7 +148,7 @@ include 'auth.php';
                                             </select>
                                             <small class="text-muted">මාසයක් තෝරන විට දිනයන් පරාසය නොගනී.</small>
                                         </div>
-                                        <div class="col-md-3 d-flex align-items-end flex-wrap gap-2">
+                                        <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
                                             <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> වාර්තාව සකසන්න</button>
                                             <button id="printBtn" class="btn btn-success"><i class="uil uil-print"></i> මුද්‍රණය (විස්තර)</button>
                                             <button id="printSummaryBtn" class="btn btn-outline-success"><i class="uil uil-print"></i> මුද්‍රණය (සාරාංශය)</button>
@@ -165,6 +165,7 @@ include 'auth.php';
                                                     <th>ගෙවීමේ වර්ගය</th>
                                                     <th>පාරිභෝගිකයා</th>
                                                     <th>තත්ත්වය</th>
+                                                    <th class="text-end">දින කුලිය</th>
                                                     <th class="text-end">කුලිය (මුළු)</th>
                                                     <th class="text-end">ආරම්භක තැන්පතුව</th>
                                                     <th class="text-end">ගෙවූ මුදල</th>
@@ -177,6 +178,7 @@ include 'auth.php';
                                             <tfoot>
                                                 <tr>
                                                     <th colspan="6" class="text-end">මුළු එකතුව:</th>
+                                                    <th class="text-end" id="totalDayRent">0.00</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
                                                     <th class="text-end" id="totalInitialDeposit">0.00</th>
                                                     <th class="text-end" id="totalPaid">0.00</th>

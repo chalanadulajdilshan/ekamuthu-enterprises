@@ -120,6 +120,15 @@ class IssueNote
             $validNoteIds[] = (int)$row['id'];
         }
 
+        // Pre-calc total issued qty across all valid notes (used for status calculation)
+        $overallIssued = 0;
+        if (!empty($validNoteIds)) {
+            $idsStr = implode(',', $validNoteIds);
+            $overallIssuedSql = "SELECT COALESCE(SUM(issued_quantity), 0) AS total FROM issue_note_items WHERE issue_note_id IN ($idsStr)";
+            $overallIssuedRow = mysqli_fetch_assoc($db->readQuery($overallIssuedSql));
+            $overallIssued = (float)($overallIssuedRow['total'] ?? 0);
+        }
+
         // Get billed items as baseline
         $billedItemsSql = "SELECT * FROM equipment_rent_items WHERE rent_id = $rentInvoiceId";
         $billedItemsRes = $db->readQuery($billedItemsSql);
@@ -144,17 +153,13 @@ class IssueNote
                 $issuedTotal = (float)($issuedRes['total'] ?? 0);
             }
 
+            // If nothing was issued for this line, keep existing billed values (avoid resetting to 0)
+            if ($issuedTotal <= 0) {
+                continue;
+            }
+
             // Update stats for items without sub-equipment (inventory items)
             if (empty($subEqId)) {
-                $perUnitAmount = ($billQty > 0) ? ($bItem['amount'] / $billQty) : 0; // This might be wrong if already modified, but we need a source of truth.
-                // In PS Ekamuthu, bill_qty items usually have 'amount' as the total rent for that line.
-                
-                // Let's assume we need to preserve the total_rent_amount per unit.
-                $perUnitTotalRent = ($billQty > 0) ? ($bItem['total_rent_amount'] / $billQty) : 0;
-                $perUnitDeposit = ($billQty > 0) ? ($bItem['deposit_amount'] / $billQty) : 0;
-                
-                $newAmount = round($perUnitTotalRent * $issuedTotal, 2); // Actually 'amount' in DB often means rent amount
-                $newDeposit = round($perUnitDeposit * $issuedTotal, 2);
                 $newPending = max(0, $issuedTotal - (float)$bItem['total_returned_qty']);
 
                 // Sync sub_equipment rented_qty (restock previous delta)
@@ -168,11 +173,9 @@ class IssueNote
                     $db->readQuery($restockSql);
                 }
 
+                // Preserve billed amounts/deposits; only sync issued quantities & pending qty
                 $updateSql = "UPDATE equipment_rent_items 
                               SET quantity = $issuedTotal, 
-                                  amount = $newAmount, 
-                                  deposit_amount = $newDeposit, 
-                                  total_rent_amount = $newAmount, -- Assuming amount and total_rent_amount are same for these
                                   pending_qty = $newPending 
                               WHERE id = " . (int)$bItem['id'];
                 $db->readQuery($updateSql);
@@ -181,10 +184,10 @@ class IssueNote
 
         // 2. Update Invoice Issuing Status
         $overallOrderedSql = "SELECT SUM(bill_qty) as total FROM equipment_rent_items WHERE rent_id = $rentInvoiceId";
-        $overallIssuedSql = "SELECT SUM(quantity) as total FROM equipment_rent_items WHERE rent_id = $rentInvoiceId";
-        
         $totOrd = (float)mysqli_fetch_assoc($db->readQuery($overallOrderedSql))['total'];
-        $totIss = (float)mysqli_fetch_assoc($db->readQuery($overallIssuedSql))['total'];
+
+        // Use actual issued quantities from issue_note_items (not the recalculated item quantity) to avoid false zeros
+        $totIss = $overallIssued;
         
         $newDocStatus = 0; // Not Issued
         if ($totIss > 0) {
