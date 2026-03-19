@@ -139,6 +139,34 @@ class TransportDetail
         return ($result['max_id'] ?? 0) + 1;
     }
 
+    public static function getByDateRange($from, $to, $employee_id = null)
+    {
+        $db = Database::getInstance();
+        $query = "SELECT td.*, 
+                         em.name AS employee_name, em.code AS employee_code,
+                         v.vehicle_no, v.brand AS vehicle_brand, v.model AS vehicle_model,
+                         r.bill_number
+                  FROM `transport_details` td
+                  LEFT JOIN `employee_master` em ON td.employee_id = em.id
+                  LEFT JOIN `vehicles` v ON td.vehicle_id = v.id
+                  LEFT JOIN `equipment_rent` r ON td.rent_id = r.id
+                  WHERE DATE(td.transport_date) BETWEEN '" . $db->DB_CON->real_escape_string($from) . "' AND '" . $db->DB_CON->real_escape_string($to) . "'";
+
+        if ($employee_id) {
+            $query .= " AND td.employee_id = " . (int) $employee_id;
+        }
+
+        $query .= " ORDER BY td.transport_date ASC, td.id ASC";
+        $result = $db->readQuery($query);
+        $data = [];
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $data[] = $row;
+            }
+        }
+        return $data;
+    }
+
     public static function formatId($id)
     {
         return 'TRN-' . str_pad($id, 4, '0', STR_PAD_LEFT);
