@@ -87,13 +87,36 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     
     // Outstanding tracking
     $customer_paid = floatval($_POST['customer_paid'] ?? 0);
+    $company_refund_paid_input = $_POST['company_refund_paid'] ?? null;
+    $company_refund_paid = ($company_refund_paid_input === null || $company_refund_paid_input === '')
+        ? null
+        : floatval($company_refund_paid_input);
     $additional_payment = floatval($calculation['additional_payment']);
+    $refund_amount = floatval($calculation['refund_amount']);
+    
     if ($additional_payment > 0) {
         $RETURN->customer_paid = $customer_paid;
+        $RETURN->initial_customer_paid = $customer_paid;
         $RETURN->outstanding_amount = max(0, $additional_payment - $customer_paid);
     } else {
         $RETURN->customer_paid = 0;
+        $RETURN->initial_customer_paid = 0;
         $RETURN->outstanding_amount = 0;
+    }
+
+    if ($refund_amount > 0) {
+        // Default company refund paid to full refund amount when not provided, and clamp within range
+        $company_refund_paid = ($company_refund_paid === null)
+            ? $refund_amount
+            : max(0, min($refund_amount, $company_refund_paid));
+
+        $RETURN->company_refund_paid = $company_refund_paid;
+        $RETURN->initial_company_refund_paid = $company_refund_paid;
+        $RETURN->company_outstanding = max(0, $refund_amount - $company_refund_paid);
+    } else {
+        $RETURN->company_refund_paid = 0;
+        $RETURN->initial_company_refund_paid = 0;
+        $RETURN->company_outstanding = 0;
     }
     
     $return_id = $RETURN->create();

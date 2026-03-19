@@ -417,10 +417,11 @@ function fillBillDetailsModal(data) {
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
     
-    // Set default calculation dates: start date = rental date, end date = today
+    // Set default calculation dates: start date = rental date, end date = page filter to-date (fallback to today)
     var currentDate = new Date();
     const fmtToday = $.datepicker.formatDate('yy-mm-dd', currentDate);
-    $('#billModalCalcDate').val(fmtToday);
+    var pageToDate = $('#to_date').val() || fmtToday;
+    $('#billModalCalcDate').val(pageToDate);
     
     // Set start date to rental date if available
     var startDateValue = '';
@@ -431,9 +432,9 @@ function fillBillDetailsModal(data) {
         $('#billModalCalcStartDate').val('');
     }
     
-    // Trigger initial calculation with default date range
+    // Trigger initial calculation with default date range (page to-date or today)
     setTimeout(function() {
-        recalculateOutstandingToDateRange(startDateValue, fmtToday);
+        recalculateOutstandingToDateRange(startDateValue, pageToDate);
     }, 100);
 
     // Show day count from rental date to today (inclusive)
@@ -464,8 +465,9 @@ function fillBillDetailsModal(data) {
         ? '<span class="badge bg-success">Returned</span>'
         : '<span class="badge bg-warning text-dark">Not Returned</span>');
 
-    // Today date label (e.g., 2026/05/03 දිනට ගෙවිය යුතු මුදල)
-    var labelDate = new Date();
+    // Date label uses page to-date (or today if empty) to match table calculations
+    var labelDate = pageToDate ? $.datepicker.parseDate('yy-mm-dd', pageToDate) : new Date();
+    if (!labelDate) { labelDate = new Date(); }
     var yyyy = labelDate.getFullYear();
     var mm = String(labelDate.getMonth() + 1).padStart(2, '0');
     var dd = String(labelDate.getDate()).padStart(2, '0');
@@ -853,57 +855,29 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
         });
     }
 
-    // Filter recorded outstanding and payments within date range
-    var recordedOutstanding = 0;
-    var recordedPaid = 0;
-    
-    if (data.recorded_details && data.recorded_details.length) {
-        data.recorded_details.forEach(function (detail) {
-            var returnDate = new Date(detail.return_date);
-            if (!isNaN(returnDate.getTime())) {
-                // Include if return date is within the range
-                var isInRange = returnDate <= calcEndDate;
-                if (calcStartDate && !isNaN(calcStartDate.getTime())) {
-                    isInRange = isInRange && returnDate >= calcStartDate;
-                }
-                if (isInRange) {
-                    recordedOutstanding += parseFloat(detail.outstanding_amount || 0);
-                    recordedPaid += parseFloat(detail.customer_paid || 0);
-                }
-            }
-        });
-    }
+    // Use backend-aligned totals (no date filtering) for recorded outstanding and payments
+    var recordedOutstanding = parseFloat(data.recorded_outstanding_raw || 0);
+    var recordedPaid = parseFloat(data.recorded_paid || 0);
 
-    // Filter payments within date range
+    // Payments (all)
     var totalPayments = 0;
     if (data.payments && data.payments.length) {
         data.payments.forEach(function (payment) {
-            var paymentDate = new Date(payment.entry_date);
-            if (!isNaN(paymentDate.getTime())) {
-                var isInRange = paymentDate <= calcEndDate;
-                if (calcStartDate && !isNaN(calcStartDate.getTime())) {
-                    isInRange = isInRange && paymentDate >= calcStartDate;
-                }
-                if (isInRange) {
-                    totalPayments += parseFloat(payment.amount || 0);
-                }
-            }
+            totalPayments += parseFloat(payment.amount || 0);
         });
     }
 
-    // Filter deposits within date range
-    var totalDeposits = 0;
+    // Deposits (all) – only non-initial deposits count as payments
+    var totalDeposits = 0; // all deposits
+    var nonInitialDeposits = 0; // deposits except those marked "initial deposit"
     if (data.deposits && data.deposits.length) {
         data.deposits.forEach(function (deposit) {
-            var depositDate = new Date(deposit.payment_date);
-            if (!isNaN(depositDate.getTime())) {
-                var isInRange = depositDate <= calcEndDate;
-                if (calcStartDate && !isNaN(calcStartDate.getTime())) {
-                    isInRange = isInRange && depositDate >= calcStartDate;
-                }
-                if (isInRange) {
-                    totalDeposits += parseFloat(deposit.amount || 0);
-                }
+            var depAmt = parseFloat(deposit.amount || 0);
+            totalDeposits += depAmt;
+
+            var remark = (deposit.remark || '').toLowerCase().trim();
+            if (remark !== 'initial deposit') {
+                nonInitialDeposits += depAmt;
             }
         });
     }
@@ -919,7 +893,7 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
     // Calculate totals
     var baseRent = recordedOutstanding + projectedOutstanding;
     var totalCharges = baseRent + totalDamage;
-    var totalPaid = recordedPaid + totalDeposits + totalPayments;
+    var totalPaid = recordedPaid + nonInitialDeposits + totalPayments; // align with backend (exclude initial deposit)
     var balance = Math.max(0, totalCharges - totalPaid);
 
     // Update display with breakdown
@@ -930,7 +904,9 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
     $('#billModalBalance').text(fmt(balance));
     $('#billModalRecordedTotal').text(fmt(recordedOutstanding));
     $('#billModalProjectedTotal').text(fmt(projectedOutstanding));
-    // Keep full outstanding anchored to full-period (rental date -> today). Do not override here.
+    $('#billModalInitialDeposit').text(fmt(Math.max(0, totalDeposits - nonInitialDeposits)));
+    // Update full outstanding to match the current recalculated balance
+    $('#billModalFullOutstanding').text(fmt(balance));
 }
 
 function printBillDetails() {
