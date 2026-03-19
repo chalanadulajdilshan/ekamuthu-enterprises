@@ -528,6 +528,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         // Calculate accrued charges for non-returned (pending) items based on today
         $today = date('Y-m-d');
         $accruedQuery = "SELECT COALESCE(SUM(
+            CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                 THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
                      * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
                 ELSE (DATEDIFF('$today', ri.rental_date) + 1)
