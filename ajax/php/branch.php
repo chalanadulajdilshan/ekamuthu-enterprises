@@ -15,6 +15,7 @@ if (isset($_POST['create'])) {
     $BRANCH->address = $_POST['address'];
     $BRANCH->phone_number = $_POST['phoneNumber'];
     $BRANCH->city = $_POST['city'];
+    $BRANCH->account_number = trim($_POST['accountNumber']);
     $BRANCH->active_status = isset($_POST['activeStatus']) ? 1 : 0; // Handle checkbox for active status
     $BRANCH->remark = $_POST['remark'];
 
@@ -48,6 +49,7 @@ if (isset($_POST['update'])) {
     $BRANCH->address = $_POST['address'];
     $BRANCH->phone_number = $_POST['phoneNumber'];
     $BRANCH->city = $_POST['city'];
+    $BRANCH->account_number = trim($_POST['accountNumber']);
     $BRANCH->active_status = isset($_POST['activeStatus']) ? 1 : 0;
     $BRANCH->remark = $_POST['remark'];
 

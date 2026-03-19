@@ -9,6 +9,7 @@ class Branch
     public $address;
     public $phone_number;
     public $city;
+    public $account_number;
     public $remark;
 
     public $active_status;
@@ -32,6 +33,7 @@ class Branch
                 $this->address = $result['address'];
                 $this->phone_number = $result['phone_number'];
                 $this->city = $result['city'];
+                $this->account_number = $result['account_number'];
                 $this->created_at = $result['created_at'];
                 $this->remark = $result['remark'];
                 $this->active_status = $result['active_status'];
@@ -44,9 +46,9 @@ class Branch
     // Create a new branch record in the database
     public function create()
     {
-        $query = "INSERT INTO `branches` (`bank_id`, `name`, `code`, `address`, `phone_number`, `city`, active_status,remark,`created_at`) 
+        $query = "INSERT INTO `branches` (`bank_id`, `name`, `code`, `address`, `phone_number`, `city`, `account_number`, active_status,remark,`created_at`) 
                   VALUES ('" . $this->bank_id . "', '" . $this->name . "', '" . $this->code . "', '" .
-            $this->address . "', '" . $this->phone_number . "', '" . $this->city . "', '" . $this->active_status . "', '" . $this->remark . "', NOW())";
+            $this->address . "', '" . $this->phone_number . "', '" . $this->city . "', '" . $this->account_number . "', '" . $this->active_status . "', '" . $this->remark . "', NOW())";
         $db = Database::getInstance();
         $result = $db->readQuery($query);
 
@@ -67,6 +69,7 @@ class Branch
         `address` = '" . $this->address . "',
         `phone_number` = '" . $this->phone_number . "', 
         `active_status` = '" . $this->active_status . "', 
+        `account_number` = '" . $this->account_number . "', 
         `city` = '" . $this->city .
             "' WHERE `id` = '" . $this->id . "'";
 
@@ -123,7 +126,7 @@ class Branch
     // Get all branches for a specific bank
     public function getByBankId($bank_id)
     {
-        $query = "SELECT `id`, `bank_id`, `name`, `code`, `address`, `phone_number`, `city`, `created_at` 
+        $query = "SELECT `id`, `bank_id`, `name`, `code`, `address`, `phone_number`, `city`, `account_number`, `created_at` 
                   FROM `branches` WHERE `bank_id` = '" . (int) $bank_id . "' ORDER BY `name` ASC";
         $db = Database::getInstance();
         $result = $db->readQuery($query);
@@ -151,6 +154,7 @@ class Branch
             $this->address = $row['address'];
             $this->phone_number = $row['phone_number'];
             $this->city = $row['city'];
+            $this->account_number = $row['account_number'];
             $this->remark = $row['remark'];
             $this->active_status = $row['active_status'];
             $this->created_at = $row['created_at'];

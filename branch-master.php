@@ -154,6 +154,15 @@ include 'auth.php';
                                                 </div>
                                             </div>
 
+                                            <!-- Account Number -->
+                                            <div class="col-md-3">
+                                                <label for="accountNumber" class="form-label">Account Number</label>
+                                                <div class="input-group mb-3">
+                                                    <input id="accountNumber" name="accountNumber" type="text"
+                                                        class="form-control" placeholder="Enter Account Number">
+                                                </div>
+                                            </div>
+
                                             <!-- City -->
                                             <div class="col-md-3">
                                                 <label for="city" class="form-label">City</label>
@@ -164,7 +173,7 @@ include 'auth.php';
                                             </div>
 
                                             <!-- Active Status -->
-                                            <div class="col-md-1 d-flex justify-content-center align-items-center">
+                                            <div class="col-md-2 d-flex justify-content-center align-items-center">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="checkbox" id="activeStatus"
                                                         name="activeStatus">
@@ -225,7 +234,7 @@ include 'auth.php';
                                         <th>#id</th>
                                         <th>Bank</th>
                                         <th>Branch</th>
-                                        <th>Address</th>
+                                        <th>Account Number</th>
                                         <th>Phone Number</th>
                                         <th>City</th>
                                         <th>Status</th>
@@ -245,6 +254,7 @@ include 'auth.php';
                                             data-bankid="<?php echo $branch['bank_id']; ?>"
                                             data-code="<?php echo htmlspecialchars($branch['code']); ?>"
                                             data-name="<?php echo htmlspecialchars($branch['name']); ?>"
+                                            data-accountnumber="<?php echo htmlspecialchars($branch['account_number']); ?>"
                                             data-address="<?php echo htmlspecialchars($branch['address']); ?>"
                                             data-phone="<?php echo htmlspecialchars($branch['phone_number']); ?>"
                                             data-city="<?php echo htmlspecialchars($branch['city']); ?>"
@@ -254,7 +264,7 @@ include 'auth.php';
                                             <td><?php echo htmlspecialchars($BANK->code . ' - ' . $BANK->name); ?></td>
                                             <td><?php echo htmlspecialchars($branch['code'] . ' - ' . $branch['name']); ?>
                                             </td>
-                                            <td><?php echo htmlspecialchars($branch['address']); ?></td>
+                                            <td><?php echo htmlspecialchars($branch['account_number']); ?></td>
                                             <td><?php echo htmlspecialchars($branch['phone_number']); ?></td>
                                             <td><?php echo htmlspecialchars($branch['city']); ?></td>
                                             <td>

@@ -226,6 +226,7 @@ jQuery(document).ready(function () {
         $('#bankId').val($(this).data('bankid'));
         $('#code').val($(this).data('code'));
         $('#name').val($(this).data('name'));
+        $('#accountNumber').val($(this).data('accountnumber'));
         $('#address').val($(this).data('address'));
         $('#phoneNumber').val($(this).data('phone'));
         $('#city').val($(this).data('city'));
