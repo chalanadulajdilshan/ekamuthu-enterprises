@@ -4,10 +4,10 @@ jQuery(document).ready(function () {
         event.preventDefault();
 
         // Validation
-        if (!$("#date").val() || $("#date").val().length === 0) {
+        if (!$("#ref_no").val() || $("#ref_no").val().length === 0) {
             swal({
                 title: "Error!",
-                text: "Please select a date",
+                text: "Please enter a Ref No",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -72,10 +72,10 @@ jQuery(document).ready(function () {
         event.preventDefault();
 
         // Validation
-        if (!$("#date").val() || $("#date").val().length === 0) {
+        if (!$("#ref_no").val() || $("#ref_no").val().length === 0) {
             swal({
                 title: "Error!",
-                text: "Please select a date",
+                text: "Please enter a Ref No",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,
@@ -205,10 +205,12 @@ jQuery(document).ready(function () {
                         result.records.forEach(function (record, index) {
                             var row = '<tr class="select-income-record" data-id="' + record.id + '" ' +
                                 'data-date="' + record.date + '" ' +
+                                'data-ref_no="' + (record.ref_no || '') + '" ' +
                                 'data-amount="' + record.amount + '" ' +
                                 'data-remark="' + (record.remark || '') + '">' +
                                 '<td>' + (index + 1) + '</td>' +
                                 '<td>' + record.date + '</td>' +
+                                '<td>' + (record.ref_no || '-') + '</td>' +
                                 '<td>' + parseFloat(record.amount).toFixed(2) + '</td>' +
                                 '<td>' + (record.remark || '-') + '</td>' +
                                 '<td>' +
@@ -258,7 +260,7 @@ jQuery(document).ready(function () {
 
         // Populate form with record data
         $("#id").val(row.data("id"));
-        $("#date").val(row.data("date"));
+        $("#ref_no").val(row.data("ref_no"));
         $("#amount").val(row.data("amount"));
         $("#remark").val(row.data("remark"));
 

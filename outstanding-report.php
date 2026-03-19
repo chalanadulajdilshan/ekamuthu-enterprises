@@ -234,6 +234,7 @@ include 'auth.php';
                             <div class="border rounded p-3 h-100 bg-light">
                                 <div class="d-flex justify-content-between"><span>කුලිය</span><span id="billModalBaseRent">0.00</span></div>
                                 <div class="d-flex justify-content-between"><span>හානි</span><span id="billModalDamage">0.00</span></div>
+                                <div class="d-flex justify-content-between"><span>දින කුලිය</span><span id="billModalDayRent">0.00</span></div>
                                 <div class="d-flex justify-content-between fw-bold"><span>මුළු කුලිය</span><span id="billModalTotalRent">0.00</span></div>
                                 <div class="d-flex justify-content-between"><span>ආරම්භක තැන්පතුව</span><span id="billModalInitialDeposit">0.00</span></div>
                                 <div class="d-flex justify-content-between"><span>ගෙවූ මුදල</span><span id="billModalTotalPaid">0.00</span></div>

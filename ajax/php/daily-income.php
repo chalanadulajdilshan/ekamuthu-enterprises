@@ -11,7 +11,7 @@ ini_set('display_errors', 1);
 if (isset($_POST['create'])) {
     try {
         // Validate required fields
-        if (empty($_POST['date']) || empty($_POST['amount'])) {
+        if (empty($_POST['amount'])) {
             echo json_encode([
                 "status" => 'error',
                 "message" => 'Missing required fields'
@@ -21,8 +21,9 @@ if (isset($_POST['create'])) {
 
         $DAILY_INCOME = new DailyIncome(NULL);
 
-        $DAILY_INCOME->date = $_POST['date'];
         $DAILY_INCOME->amount = $_POST['amount'];
+        $DAILY_INCOME->ref_no = isset($_POST['ref_no']) ? $_POST['ref_no'] : '';
+        $DAILY_INCOME->date = date('Y-m-d');
         $DAILY_INCOME->remark = isset($_POST['remark']) ? $_POST['remark'] : '';
 
         $res = $DAILY_INCOME->create();
@@ -52,7 +53,7 @@ if (isset($_POST['create'])) {
 if (isset($_POST['update'])) {
     try {
         // Validate required fields
-        if (empty($_POST['id']) || empty($_POST['date']) || empty($_POST['amount'])) {
+        if (empty($_POST['id']) || empty($_POST['amount'])) {
             echo json_encode([
                 "status" => 'error',
                 "message" => 'Missing required fields for update'
@@ -70,8 +71,10 @@ if (isset($_POST['update'])) {
             exit();
         }
 
-        $DAILY_INCOME->date = $_POST['date'];
+        // Retain existing date for update
+        $DAILY_INCOME->date = $DAILY_INCOME->date ? $DAILY_INCOME->date : date('Y-m-d');
         $DAILY_INCOME->amount = $_POST['amount'];
+        $DAILY_INCOME->ref_no = isset($_POST['ref_no']) ? $_POST['ref_no'] : '';
         $DAILY_INCOME->remark = isset($_POST['remark']) ? $_POST['remark'] : '';
 
         $result = $DAILY_INCOME->update();

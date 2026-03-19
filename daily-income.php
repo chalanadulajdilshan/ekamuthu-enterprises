@@ -87,10 +87,9 @@ include './auth.php';
                                     <form id="form-data" autocomplete="off">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <label class="form-label" for="date">Date <span class="text-danger">*</span></label>
-                                                <div class="input-group" id="datepicker2">
-                                                    <input type="text" class="form-control date-picker" id="date" name="date"> 
-                                                    <span class="input-group-text"><i class="mdi mdi-calendar"></i></span>
+                                                <label class="form-label" for="ref_no">Ref No <span class="text-danger">*</span></label>
+                                                <div class="input-group mb-3">
+                                                    <input type="text" class="form-control" id="ref_no" name="ref_no" placeholder="Enter Ref No">
                                                 </div>
                                             </div>
 
@@ -164,6 +163,7 @@ include './auth.php';
                                                 <tr>
                                                     <th>#</th>
                                                     <th>Date</th>
+                                                    <th>Ref No</th>
                                                     <th>Amount</th>
                                                     <th>Remark</th>
                                                     <th>Action</th>
@@ -171,7 +171,7 @@ include './auth.php';
                                             </thead>
                                             <tbody id="incomeTableBody">
                                                 <tr id="noRecordsRow">
-                                                    <td colspan="5" class="text-center text-muted">
+                                                    <td colspan="6" class="text-center text-muted">
                                                         No records found. Use the filter to search.
                                                     </td>
                                                 </tr>
@@ -209,11 +209,8 @@ include './auth.php';
                 dateFormat: 'yy-mm-dd'
             });
 
-            // Set today's date as default value for main date field
-            var today = $.datepicker.formatDate('yy-mm-dd', new Date());
-            $("#date").val(today);
-
             // Set default dates for filter fields
+            var today = $.datepicker.formatDate('yy-mm-dd', new Date());
             var thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             var thirtyDaysAgoFormatted = $.datepicker.formatDate('yy-mm-dd', thirtyDaysAgo);

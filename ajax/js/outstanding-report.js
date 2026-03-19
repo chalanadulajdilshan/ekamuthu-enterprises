@@ -412,6 +412,7 @@ function fillBillDetailsModal(data) {
     currentBillData.customer_id = data.customer_id || 0;
     var fmt = function (val) { return formatAmount(parseAmount(val)); };
     currentBillData.full_outstanding = null;
+    currentBillData.day_rent = parseAmount(data.day_rent || 0);
 
     $('#billModalInvoice').text(data.bill_number || '-');
     $('#billModalDate').text(data.rental_date || '-');
@@ -483,6 +484,7 @@ function fillBillDetailsModal(data) {
     var totalRent = parseAmount(data.total_rent);
     var baseRent = totalRent - totalDamage;
 
+    $('#billModalDayRent').text(fmt(currentBillData.day_rent || 0));
     $('#billModalBaseRent').text(fmt(baseRent));
     $('#billModalDamage').text(fmt(totalDamage));
     $('#billModalTotalRent').text(fmt(totalRent));

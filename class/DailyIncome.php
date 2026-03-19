@@ -6,6 +6,7 @@ class DailyIncome
     public $amount;
     public $date;
     public $remark;
+    public $ref_no;
 
     public function __construct($id = null)
     {
@@ -19,6 +20,7 @@ class DailyIncome
                 $this->amount = $result['amount'];
                 $this->date = $result['date'];
                 $this->remark = $result['remark'];
+                $this->ref_no = $result['ref_no'];
             }
         }
     }
@@ -27,13 +29,14 @@ class DailyIncome
     {
         // Escape values to prevent SQL injection
         $amount = (float) $this->amount;
-        $date = mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->date);
+        $date = empty($this->date) ? date('Y-m-d') : mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->date);
         $remark = mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->remark);
+        $ref_no = mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->ref_no);
 
         $query = "INSERT INTO `daily_income` (
-            `amount`, `date`, `remark`
+            `amount`, `date`, `remark`, `ref_no`
         ) VALUES (
-            '$amount', '$date', '$remark'
+            '$amount', '$date', '$remark', '$ref_no'
         )";
 
         $db = Database::getInstance();
@@ -50,14 +53,16 @@ class DailyIncome
     public function update()
     {
         $amount = (float) $this->amount;
-        $date = mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->date);
+        $date = empty($this->date) ? date('Y-m-d') : mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->date);
         $remark = mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->remark);
+        $ref_no = mysqli_real_escape_string((Database::getInstance())->DB_CON, $this->ref_no);
         $id = (int) $this->id;
 
         $query = "UPDATE `daily_income` SET 
             `amount` = '$amount', 
             `date` = '$date',
-            `remark` = '$remark'
+            `remark` = '$remark',
+            `ref_no` = '$ref_no'
             WHERE `id` = '$id'";
 
         $db = Database::getInstance();

@@ -625,19 +625,13 @@ if ($action === 'get_outstanding_report') {
 
         // Sum damage amounts from items
         $totalDamageAmount = 0;
-        $dayRentTotal = 0; // NEW: calculate day rent total
+        $dayRentTotal = 0; // total rental rate as shown in detail view
         if (!empty($summary['items'])) {
             foreach ($summary['items'] as $item) {
                 $totalDamageAmount += floatval($item['damage_amount'] ?? 0);
-                
-                // If it's a daily rent item, add its amount to the day rent total
-                // In equipment_rent_items, 'amount' is usually the daily/monthly rate for the qty
-                if (($item['rent_type'] ?? 'day') === 'day') {
-                    $dayRentTotal += floatval($item['amount'] ?? 0);
-                } else if (($item['rent_type'] ?? '') === 'month') {
-                    // Approximate daily rent for monthly items (or just use amount/30?)
-                    $dayRentTotal += floatval($item['amount'] ?? 0) / 30;
-                }
+
+                // Align with detail view: use the raw item amount regardless of rent type
+                $dayRentTotal += floatval($item['amount'] ?? 0);
             }
         }
 
