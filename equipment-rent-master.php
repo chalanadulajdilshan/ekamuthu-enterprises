@@ -539,8 +539,11 @@ $bill_number = $lastId + 1;
                                                                         <input type="text"
                                                                             class="form-control form-control-sm text-end"
                                                                             id="transport_cost" name="transport_cost"
-                                                                            placeholder="0.00"
+                                                                            placeholder="0.00" readonly
                                                                             style="max-width: 120px; display: inline-block;">
+                                                                        <button type="button" class="btn btn-sm btn-outline-info ms-1" id="btn-transport-details" data-bs-toggle="modal" data-bs-target="#TransportDetailsModal" title="Manage Transport Details">
+                                                                            <i class="uil uil-truck"></i>
+                                                                        </button>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -671,6 +674,116 @@ $bill_number = $lastId + 1;
                             </thead>
                             <tbody id="depositPaymentsTableBody">
                                 <tr><td colspan="5" class="text-center text-muted py-3">No deposit payments recorded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transport Details Modal -->
+    <div id="TransportDetailsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="TransportDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-soft-info">
+                    <h5 class="modal-title" id="TransportDetailsModalLabel"><i class="uil uil-truck me-1"></i>Transport Details - ප්‍රවාහන විස්තර</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Total Display -->
+                    <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold"><i class="uil uil-money-bill-stack me-1"></i>Total Transport Cost - මුළු ප්‍රවාහන වියදම:</span>
+                        <span class="fs-5 fw-bold" id="transport_modal_total">0.00</span>
+                    </div>
+
+                    <!-- Add New Transport Detail Form -->
+                    <div class="card border shadow-sm mb-3">
+                        <div class="card-header bg-soft-success py-2">
+                            <h6 class="mb-0 text-success"><i class="uil uil-plus-circle me-1"></i>Add New Transport - නව ප්‍රවාහනයක් එකතු කරන්න</h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row align-items-end mb-2">
+                                <div class="col-md-2">
+                                    <label for="transport_detail_id_display" class="form-label">Transport ID</label>
+                                    <input type="text" class="form-control bg-light" id="transport_detail_id_display" value="Auto" readonly>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="transport_date" class="form-label">Date <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control date-picker" id="transport_date" value="<?php echo date('Y-m-d'); ?>" autocomplete="off">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="transport_employee_id" class="form-label">Employee - සේවකයා</label>
+                                    <select class="form-select" id="transport_employee_id">
+                                        <option value="">-- Select Employee --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="transport_vehicle_id" class="form-label">Vehicle - වාහනය</label>
+                                    <select class="form-select" id="transport_vehicle_id">
+                                        <option value="">-- Select Vehicle --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row align-items-end mb-2">
+                                <div class="col-md-3">
+                                    <label for="transport_start_location" class="form-label">Start Location - ආරම්භක ස්ථානය</label>
+                                    <input type="text" class="form-control" id="transport_start_location" placeholder="Start location">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="transport_end_location" class="form-label">End Location - අවසාන ස්ථානය</label>
+                                    <input type="text" class="form-control" id="transport_end_location" placeholder="End location">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="transport_deliver_amount" class="form-label">Deliver Amount</label>
+                                    <input type="text" class="form-control" id="transport_deliver_amount" placeholder="0.00">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="transport_pickup_amount" class="form-label">Pickup Amount</label>
+                                    <input type="text" class="form-control" id="transport_pickup_amount" placeholder="0.00">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">D + P Total</label>
+                                    <input type="text" class="form-control bg-light fw-bold" id="transport_dp_total" value="0.00" readonly>
+                                </div>
+                            </div>
+                            <div class="row align-items-end">
+                                <div class="col-md-8">
+                                    <label for="transport_remark" class="form-label">Remark - සටහන</label>
+                                    <input type="text" class="form-control" id="transport_remark" placeholder="Optional remark">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-success w-100" id="btn-save-transport-detail">
+                                        <i class="uil uil-plus me-1"></i>Add Transport
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transport Details History Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="transportDetailsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Employee</th>
+                                    <th>Vehicle</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Deliver</th>
+                                    <th>Pickup</th>
+                                    <th>Total</th>
+                                    <th>Remark</th>
+                                    <th style="width:70px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transportDetailsTableBody">
+                                <tr><td colspan="11" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>
                             </tbody>
                         </table>
                     </div>

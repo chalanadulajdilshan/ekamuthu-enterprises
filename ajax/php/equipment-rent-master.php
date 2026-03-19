@@ -168,7 +168,34 @@ if (isset($_POST['create'])) {
             $DP->create();
         }
 
-        echo json_encode(["status" => "success", "rent_id" => $rent_id, "bill_number" => $bill_number]);
+        // Save transport details
+        $transportDetails = json_decode($_POST['transport_details'] ?? '[]', true);
+        if (!empty($transportDetails)) {
+            foreach ($transportDetails as $td) {
+                $TD = new TransportDetail(NULL);
+                $TD->rent_id = $rent_id;
+                $TD->transport_date = $td['transport_date'];
+                $TD->employee_id = $td['employee_id'];
+                $TD->vehicle_id = $td['vehicle_id'];
+                $TD->start_location = $td['start_location'];
+                $TD->end_location = $td['end_location'];
+                $TD->deliver_amount = $td['deliver_amount'] ?? 0;
+                $TD->pickup_amount = $td['pickup_amount'] ?? 0;
+                $TD->remark = $td['remark'] ?? '';
+                $TD->create();
+            }
+        }
+
+        // Return next transport code
+        $TD_DUMMY = new TransportDetail(null);
+        $nextCode = $TD_DUMMY->formatId($TD_DUMMY->getNextId());
+
+        echo json_encode([
+            "status" => "success", 
+            "rent_id" => $rent_id, 
+            "bill_number" => $bill_number,
+            "next_code" => $nextCode
+        ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to create rent record"]);
     }
@@ -335,6 +362,55 @@ if (isset($_POST['update'])) {
 
     $res = $EQUIPMENT_RENT->update();
     $EQUIPMENT_RENT->updateTotalItems();
+
+    // Sync transport details
+    $transportDetails = json_decode($_POST['transport_details'] ?? '[]', true);
+    
+    // Get existing transport details for this rent
+    $existingTDs = TransportDetail::getByRentId($_POST['rent_id']);
+    $existingTDIds = array_column((array)$existingTDs, 'id');
+    
+    // Keep track of IDs passed from frontend
+    $incomingTDIds = [];
+    
+    if (!empty($transportDetails)) {
+        foreach ($transportDetails as $td) {
+            if (!empty($td['id']) && is_numeric($td['id'])) {
+                // Update existing
+                $incomingTDIds[] = $td['id'];
+                $TD = new TransportDetail($td['id']);
+                $TD->transport_date = $td['transport_date'];
+                $TD->employee_id = $td['employee_id'];
+                $TD->vehicle_id = $td['vehicle_id'];
+                $TD->start_location = $td['start_location'];
+                $TD->end_location = $td['end_location'];
+                $TD->deliver_amount = $td['deliver_amount'] ?? 0;
+                $TD->pickup_amount = $td['pickup_amount'] ?? 0;
+                $TD->remark = $td['remark'] ?? '';
+                $TD->update();
+            } else {
+                // Create new
+                $TD = new TransportDetail(NULL);
+                $TD->rent_id = $_POST['rent_id'];
+                $TD->transport_date = $td['transport_date'];
+                $TD->employee_id = $td['employee_id'];
+                $TD->vehicle_id = $td['vehicle_id'];
+                $TD->start_location = $td['start_location'];
+                $TD->end_location = $td['end_location'];
+                $TD->deliver_amount = $td['deliver_amount'] ?? 0;
+                $TD->pickup_amount = $td['pickup_amount'] ?? 0;
+                $TD->remark = $td['remark'] ?? '';
+                $TD->create();
+            }
+        }
+    }
+    
+    // Delete any existing IDs not present in the incoming list
+    $tdsToDelete = array_diff($existingTDIds, $incomingTDIds);
+    foreach ($tdsToDelete as $tdId) {
+        $TD = new TransportDetail($tdId);
+        $TD->delete();
+    }
 
     // Audit log
     $AUDIT_LOG = new AuditLog(NULL);
@@ -544,7 +620,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
             ],
             "items" => $items,
             "return_remarks" => $returnRemarks,
-            "deposit_payments" => DepositPayment::getByRentId($rent_id)
+            "deposit_payments" => DepositPayment::getByRentId($rent_id),
+            "transport_details" => TransportDetail::getByRentId($rent_id),
+            "transport_total" => TransportDetail::getTotalByRentId($rent_id)
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
@@ -562,6 +640,60 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     echo json_encode([
         "status" => "success",
         "code" => $newCode
+    ]);
+    exit;
+}
+
+// Get next transport ID
+if (isset($_POST['action']) && $_POST['action'] === 'get_next_transport_id') {
+    $TD = new TransportDetail(null);
+    $next = $TD->getNextId();
+    echo json_encode([
+        "status" => "success",
+        "next_code" => $TD->formatId($next)
+    ]);
+    exit;
+}
+
+// Get transport details for a rent
+if (isset($_POST['action']) && $_POST['action'] === 'get_transport_details') {
+    $rent_id = $_POST['rent_id'] ?? 0;
+    if ($rent_id) {
+        echo json_encode([
+            "status" => "success",
+            "transport_details" => TransportDetail::getByRentId($rent_id),
+            "transport_total" => TransportDetail::getTotalByRentId($rent_id)
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Rent ID required"]);
+    }
+    exit;
+}
+
+// Get data for transport dropdowns
+if (isset($_POST['action']) && $_POST['action'] === 'get_transport_dropdown_data') {
+    $db = Database::getInstance();
+    $employees = [];
+    $vehicles = [];
+
+    $employeeResult = $db->readQuery("SELECT `id`, `name`, `code` FROM `employee_master`");
+    if ($employeeResult) {
+        while ($row = mysqli_fetch_assoc($employeeResult)) {
+            $employees[] = $row;
+        }
+    }
+
+    $vehicleResult = $db->readQuery("SELECT `id`, `vehicle_no` FROM `vehicles`");
+    if ($vehicleResult) {
+        while ($row = mysqli_fetch_assoc($vehicleResult)) {
+            $vehicles[] = $row;
+        }
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "employees" => $employees,
+        "vehicles" => $vehicles
     ]);
     exit;
 }

@@ -1,11 +1,14 @@
 jQuery(document).ready(function () {
   // Store rental items in memory
   var rentItems = [];
+  var rentTransportDetails = []; // Array to hold transport details
   var currentRentOneDay = 0;
   var currentRentOneMonth = 0;
   var currentDepositOneDay = 0;
   var currentAllowManualAmount = false;
   var totalCalculatedDeposit = 0;
+  var totalCustomerPaid = 0;
+  var rowItemsCounter = 0;
   var currentEquipmentId = null;
   var currentIsFixedRate = false;
   var manualAmountEditEnabled = false;
@@ -1303,6 +1306,9 @@ jQuery(document).ready(function () {
           $("#custom_deposit").val(formatAmount(rent.deposit_total || 0));
           // Show manage deposits button for existing rents
           $("#btn-manage-deposits").show();
+          // Load transport details directly from loaded rent (we updated get_rent_details to include it, or we fetch it)
+          rentTransportDetails = result.transport_details || []; // Populate rentTransportDetails
+          loadTransportDetails(rent.id);
           // Render deposit payments if present
           if (result.deposit_payments) {
             renderDepositPayments(
@@ -1397,7 +1403,7 @@ jQuery(document).ready(function () {
           if (isCancelled || isReturned) {
             canEditFinancials = false;
           }
-          $("#transport_cost, #custom_deposit").prop(
+          $("#custom_deposit").prop(
             "readonly",
             !canEditFinancials,
           );
@@ -2295,6 +2301,7 @@ jQuery(document).ready(function () {
     var formData = new FormData($("#form-data")[0]);
     formData.append("create", true);
     formData.append("items", JSON.stringify(rentItems));
+    formData.append("transport_details", JSON.stringify(rentTransportDetails));
     // Received date is system-controlled; do not send manual value
     formData.delete("received_date");
     formData.append("transport_cost", parseAmount($("#transport_cost").val()) || 0);
@@ -2406,6 +2413,7 @@ jQuery(document).ready(function () {
     var formData = new FormData($("#form-data")[0]);
     formData.append("update", true);
     formData.append("items", JSON.stringify(rentItems));
+    formData.append("transport_details", JSON.stringify(rentTransportDetails));
     // Received date is system-controlled; do not send manual value
     formData.delete("received_date");
     formData.append("transport_cost", parseAmount($("#transport_cost").val()) || 0);
@@ -2471,6 +2479,7 @@ jQuery(document).ready(function () {
     isEditingExistingRent = false;
     rentalStartDateUserOverride = false;
     resetItemFields();
+    rentTransportDetails = [];
     $("#form-data")[0].reset();
     $("#rent_id").val("");
     $("#customer_id").val("");
@@ -2485,8 +2494,13 @@ jQuery(document).ready(function () {
     $("#item_sub_equipment_display").val("");
     $("#transport_cost").val("");
     $("#custom_deposit").val("");
-    $("#transport_cost, #custom_deposit").prop("readonly", false); // allow manual input for new rent
+    $("#transport_cost").prop("readonly", true); // transport cost is always computed from transport details
+    $("#custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#btn-manage-deposits").hide();
+    $("#transportDetailsTableBody").html(
+      '<tr><td colspan="11" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>',
+    );
+    $("#transport_modal_total").text("0.00");
     $("#depositPaymentsTableBody").html(
       '<tr><td colspan="5" class="text-center text-muted py-3">No deposit payments recorded yet.</td></tr>',
     );
@@ -3836,6 +3850,218 @@ jQuery(document).ready(function () {
       },
     );
   });
+
+  // =============================================
+  // TRANSPORT DETAILS FUNCTIONALITY
+  // =============================================
+
+  var transportDropdownLoaded = false;
+
+  // Load transport dropdown data (employees + vehicles)
+  function loadTransportDropdownData() {
+    if (transportDropdownLoaded) return;
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: { action: "get_transport_dropdown_data" },
+      dataType: "JSON",
+      success: function (result) {
+        if (result.status === "success") {
+          var $emp = $("#transport_employee_id");
+          $emp.find("option:not(:first)").remove();
+          (result.employees || []).forEach(function (e) {
+            $emp.append(
+              '<option value="' + e.id + '">' + (e.code ? e.code + ' - ' : '') + e.name + '</option>'
+            );
+          });
+
+          var $veh = $("#transport_vehicle_id");
+          $veh.find("option:not(:first)").remove();
+          (result.vehicles || []).forEach(function (v) {
+            $veh.append(
+              '<option value="' + v.id + '">' + v.vehicle_no + (v.brand ? ' (' + v.brand + (v.model ? ' ' + v.model : '') + ')' : '') + '</option>'
+            );
+          });
+
+          transportDropdownLoaded = true;
+        }
+      }
+    });
+  }
+
+  // When Transport Details modal opens, load dropdown data and transport details
+  $("#TransportDetailsModal").on("shown.bs.modal", function () {
+    loadTransportDropdownData();
+    loadNextTransportId();
+    var rentId = $("#rent_id").val();
+    if (rentId) {
+      loadTransportDetails(rentId);
+    }
+  });
+
+  // Fetch and display next transport ID
+  function loadNextTransportId() {
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: { action: "get_next_transport_id" },
+      dataType: "JSON",
+      success: function (result) {
+        if (result.status === "success") {
+          $("#transport_detail_id_display").val(result.next_code);
+        }
+      }
+    });
+  }
+
+  // Live D+P total calculation
+  $("#transport_deliver_amount, #transport_pickup_amount").on("input", function () {
+    var deliver = parseAmount($("#transport_deliver_amount").val()) || 0;
+    var pickup = parseAmount($("#transport_pickup_amount").val()) || 0;
+    $("#transport_dp_total").val(formatAmount(deliver + pickup));
+  });
+
+  // Save transport detail locally
+  $("#btn-save-transport-detail").on("click", function () {
+    var deliver = parseAmount($("#transport_deliver_amount").val()) || 0;
+    var pickup = parseAmount($("#transport_pickup_amount").val()) || 0;
+
+    if (deliver <= 0 && pickup <= 0) {
+      swal({
+        title: "Error!",
+        text: "Please enter a deliver or pickup amount.",
+        type: "error",
+        timer: 2500,
+        showConfirmButton: false
+      });
+      return;
+    }
+
+    var empSelect = $("#transport_employee_id")[0];
+    var empName = empSelect.options[empSelect.selectedIndex].text;
+    var vehSelect = $("#transport_vehicle_id")[0];
+    var vehName = vehSelect.options[vehSelect.selectedIndex].text;
+
+    var td = {
+      id: null,
+      transport_date: $("#transport_date").val(),
+      employee_id: $("#transport_employee_id").val(),
+      employee_name: $("#transport_employee_id").val() ? empName.replace(/^[^-]+ - /, '') : '',
+      employee_code: $("#transport_employee_id").val() ? empName.split(' - ')[0] : '',
+      vehicle_id: $("#transport_vehicle_id").val(),
+      vehicle_no: $("#transport_vehicle_id").val() ? vehName.split(' (')[0] : '',
+      start_location: $("#transport_start_location").val(),
+      end_location: $("#transport_end_location").val(),
+      deliver_amount: deliver,
+      pickup_amount: pickup,
+      remark: $("#transport_remark").val()
+    };
+
+    rentTransportDetails.push(td);
+    renderTransportDetailsArray();
+
+    // Clear form
+    $("#transport_deliver_amount").val("");
+    $("#transport_pickup_amount").val("");
+    $("#transport_dp_total").val("0.00");
+    $("#transport_start_location").val("");
+    $("#transport_end_location").val("");
+    $("#transport_remark").val("");
+    $("#transport_employee_id").val("");
+    $("#transport_vehicle_id").val("");
+    
+    // Auto-update next generic code if we want it, but 'New' or next count is fine.
+    var currentDisplay = $("#transport_detail_id_display").val();
+    if (currentDisplay && currentDisplay.startsWith("TRN-")) {
+       var num = parseInt(currentDisplay.split("-")[1], 10);
+       $("#transport_detail_id_display").val("TRN-" + String(num + 1).padStart(4, "0"));
+    }
+  });
+
+  // Delete transport detail locally
+  $(document).on("click", ".delete-transport-detail-btn", function () {
+    var index = $(this).data("index");
+    swal(
+      {
+        title: "Delete Transport?",
+        text: "This will remove this transport detail from the current list.",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete!",
+        cancelButtonText: "Cancel"
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          rentTransportDetails.splice(index, 1);
+          renderTransportDetailsArray();
+        }
+      }
+    );
+  });
+
+  // Load transport details for a rent
+  function loadTransportDetails(rentId) {
+    $.ajax({
+      url: "ajax/php/equipment-rent-master.php",
+      type: "POST",
+      data: { action: "get_transport_details", rent_id: rentId },
+      dataType: "JSON",
+      success: function (result) {
+        if (result.status === "success") {
+          rentTransportDetails = result.transport_details || [];
+          renderTransportDetailsArray();
+        }
+      }
+    });
+  }
+
+  // Render transport details table
+  function renderTransportDetailsArray() {
+    var $tbody = $("#transportDetailsTableBody");
+    $tbody.empty();
+    
+    var total = 0;
+    
+    if (rentTransportDetails.length === 0) {
+      $tbody.html(
+        '<tr><td colspan="11" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>'
+      );
+      $("#transport_modal_total").text("0.00");
+      $("#transport_cost").val("0.00");
+      return;
+    }
+
+    rentTransportDetails.forEach(function (td, idx) {
+      var empDisplay = td.employee_name
+        ? (td.employee_code ? td.employee_code + ' - ' : '') + td.employee_name
+        : '-';
+      var vehDisplay = td.vehicle_no
+        ? td.vehicle_no + (td.vehicle_brand ? ' (' + td.vehicle_brand + ')' : '')
+        : '-';
+      var deliver = parseFloat(td.deliver_amount || 0);
+      var pickup = parseFloat(td.pickup_amount || 0);
+      var rowTotal = deliver + pickup;
+      total += rowTotal;
+
+      var html = '<tr>' +
+        '<td>' + (td.id ? 'TRN-' + String(td.id).padStart(4, '0') : '[ Pending ]') + '</td>' +
+        '<td>' + (td.transport_date || '-') + '</td>' +
+        '<td>' + empDisplay + '</td>' +
+        '<td>' + vehDisplay + '</td>' +
+        '<td>' + (td.start_location || '-') + '</td>' +
+        '<td>' + (td.end_location || '-') + '</td>' +
+        '<td class="text-end">' + formatAmount(deliver) + '</td>' +
+        '<td class="text-end">' + formatAmount(pickup) + '</td>' +
+        '<td class="text-end fw-bold">' + formatAmount(rowTotal) + '</td>' +
+        '<td>' + (td.remark || '-') + '</td>' +
+        '<td><button type="button" class="btn btn-sm btn-outline-danger delete-transport-detail-btn" data-index="' + idx + '" title="Delete"><i class="uil uil-trash-alt"></i></button></td>' +
+        '</tr>';
+      $tbody.append(html);
+    });
+
+    $("#transport_modal_total").text(formatAmount(total));
+    $("#transport_cost").val(formatAmount(total));
+  }
 
   // Check for rent_id in URL on load
   const urlParams = new URLSearchParams(window.location.search);
