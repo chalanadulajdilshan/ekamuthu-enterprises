@@ -160,6 +160,7 @@ include 'auth.php';
                                             <thead>
                                                 <tr>
                                                     <th style="width:40px;"></th>
+                                                    <th style="width:60px;">පින්තූරය</th>
                                                     <th>ඉන්වොයිස් අංකය</th>
                                                     <th>දිනය</th>
                                                     <th>ගෙවීමේ වර්ගය</th>
@@ -177,7 +178,7 @@ include 'auth.php';
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th colspan="6" class="text-end">මුළු එකතුව:</th>
+                                                    <th colspan="7" class="text-end">මුළු එකතුව:</th>
                                                     <th class="text-end" id="totalDayRent">0.00</th>
                                                     <th class="text-end" id="totalRent">0.00</th>
                                                     <th class="text-end" id="totalInitialDeposit">0.00</th>
@@ -213,7 +214,20 @@ include 'auth.php';
                         <div class="col-md-3"><strong>දිනය:</strong> <span id="billModalDate">-</span> <small class="text-muted" id="billModalDayCount"></small></div>
                         <div class="col-md-3"><strong>ගෙවීමේ වර්ගය:</strong> <span id="billModalPayment">-</span></div>
                         <div class="col-md-3"><strong>තත්ත්වය:</strong> <span id="billModalStatus">-</span></div>
-                        <div class="col-md-6"><span id="billModalCustomer">-</span></div>
+                        <div class="col-md-4"><span id="billModalCustomer">-</span></div>
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center gap-3">
+                                <div id="billModalCustomerPhoto" class="text-center">
+                                    <!-- Customer Photo -->
+                                </div>
+                                <div id="billModalNicFront" class="text-center">
+                                    <!-- NIC Front -->
+                                </div>
+                                <div id="billModalNicBack" class="text-center">
+                                    <!-- NIC Back -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex flex-wrap gap-3 mb-3 print-hide">

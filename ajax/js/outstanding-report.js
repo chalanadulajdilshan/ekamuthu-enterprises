@@ -272,6 +272,17 @@ function loadReport() {
                 "className": "text-center",
                 "defaultContent": '<button class="btn btn-sm btn-link row-toggle" title="View details"><i class="uil uil-plus"></i></button>'
             },
+            {
+                "data": "customer_photo",
+                "orderable": false,
+                "className": "text-center",
+                "render": function (data) {
+                    if (data) {
+                        return '<img src="' + data + '" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;" onerror="this.src=\'assets/images/users/user-dummy-img.jpg\';">';
+                    }
+                    return '<img src="assets/images/users/user-dummy-img.jpg" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;">';
+                }
+            },
             { "data": "bill_number" },
             { "data": "rental_date" },
             { "data": "payment_type_name" },
@@ -323,11 +334,11 @@ function loadReport() {
         "drawCallback": function () {
             var api = this.api();
             // totals based on filtered data
-            var totalDayRent = api.column(6, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalRent = api.column(7, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalInitialDep = api.column(8, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalPaid = api.column(9, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalBalance = api.column(10, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalDayRent = api.column(7, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalRent = api.column(8, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalInitialDep = api.column(9, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalPaid = api.column(10, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalBalance = api.column(11, { search: 'applied' }).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
 
             $('#cardTotalRent').text('Rs. ' + formatAmount(totalRent));
             $('#cardTotalPaid').text('Rs. ' + formatAmount(totalPaid));
@@ -336,18 +347,18 @@ function loadReport() {
         "footerCallback": function (row, data, start, end, display) {
             var api = this.api();
 
-            var totalDayRent = api.column(6).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalRent = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalInitialDep = api.column(8).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalPaid = api.column(9).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
-            var totalBalance = api.column(10).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalDayRent = api.column(7).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalRent = api.column(8).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalInitialDep = api.column(9).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalPaid = api.column(10).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
+            var totalBalance = api.column(11).data().reduce(function (a, b) { return parseAmount(a) + parseAmount(b); }, 0);
 
             // Update footer
-            $(api.column(6).footer()).html(formatAmount(totalDayRent));
-            $(api.column(7).footer()).html(formatAmount(totalRent));
-            $(api.column(8).footer()).html(formatAmount(totalInitialDep));
-            $(api.column(9).footer()).html(formatAmount(totalPaid));
-            $(api.column(10).footer()).html(formatAmount(totalBalance));
+            $(api.column(7).footer()).html(formatAmount(totalDayRent));
+            $(api.column(8).footer()).html(formatAmount(totalRent));
+            $(api.column(9).footer()).html(formatAmount(totalInitialDep));
+            $(api.column(10).footer()).html(formatAmount(totalPaid));
+            $(api.column(11).footer()).html(formatAmount(totalBalance));
         }
     });
 
@@ -460,6 +471,38 @@ function fillBillDetailsModal(data) {
     customerBlock += '<div><strong>සමාගම:</strong> ' + ((data.is_company && data.company_name) ? data.company_name : '-') + '</div>';
 
     $('#billModalCustomer').html(customerBlock);
+
+    // Render Images
+    var imgStyle = 'width: 100px; height: 100px; object-fit: cover; cursor: pointer; border: 1px solid #ddd; border-radius: 4px;';
+    var nicStyle = 'width: 150px; height: 100px; object-fit: cover; cursor: pointer; border: 1px solid #ddd; border-radius: 4px;';
+    
+    var photoHtml = '<div><small class="text-muted d-block mb-1">පාරිභෝගිකයා</small>';
+    if (data.customer_photo) {
+        photoHtml += `<img src="${data.customer_photo}" style="${imgStyle}" onclick="window.open('${data.customer_photo}', '_blank')" onerror="this.src='assets/images/users/user-dummy-img.jpg'">`;
+    } else {
+        photoHtml += `<img src="assets/images/users/user-dummy-img.jpg" style="${imgStyle}">`;
+    }
+    photoHtml += '</div>';
+    $('#billModalCustomerPhoto').html(photoHtml);
+
+    var nicFrontHtml = '<div><small class="text-muted d-block mb-1">NIC (ඉදිරිපස)</small>';
+    if (data.nic_image_1) {
+        nicFrontHtml += `<img src="${data.nic_image_1}" style="${nicStyle}" onclick="window.open('${data.nic_image_1}', '_blank')" onerror="this.remove()">`;
+    } else {
+        nicFrontHtml += '<div class="text-muted border rounded d-flex align-items-center justify-content-center" style="'+nicStyle+'">No Image</div>';
+    }
+    nicFrontHtml += '</div>';
+    $('#billModalNicFront').html(nicFrontHtml);
+
+    var nicBackHtml = '<div><small class="text-muted d-block mb-1">NIC (පසුපස)</small>';
+    if (data.nic_image_2) {
+        nicBackHtml += `<img src="${data.nic_image_2}" style="${nicStyle}" onclick="window.open('${data.nic_image_2}', '_blank')" onerror="this.remove()">`;
+    } else {
+        nicBackHtml += '<div class="text-muted border rounded d-flex align-items-center justify-content-center" style="'+nicStyle+'">No Image</div>';
+    }
+    nicBackHtml += '</div>';
+    $('#billModalNicBack').html(nicBackHtml);
+
     $('#billModalPayment').text(data.payment_type_name || '-');
     $('#billModalStatus').html(data.status_label === 'Returned'
         ? '<span class="badge bg-success">Returned</span>'
