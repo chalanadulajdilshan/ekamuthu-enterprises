@@ -1,0 +1,35 @@
+[20-Mar-2026 14:41:27 Asia/Colombo] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'initial_customer_paid' in 'field list' in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php:65
+Stack trace:
+#0 C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php(65): mysqli_query(Object(mysqli), 'INSERT INTO `eq...')
+#1 C:\xampp\htdocs\ekamuthu-enterprises\class\EquipmentRentReturn.php(109): Database->readQuery('INSERT INTO `eq...')
+#2 C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\equipment-rent-return.php(122): EquipmentRentReturn->create()
+#3 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php on line 65
+[20-Mar-2026 14:41:31 Asia/Colombo] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'initial_customer_paid' in 'field list' in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php:65
+Stack trace:
+#0 C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php(65): mysqli_query(Object(mysqli), 'INSERT INTO `eq...')
+#1 C:\xampp\htdocs\ekamuthu-enterprises\class\EquipmentRentReturn.php(109): Database->readQuery('INSERT INTO `eq...')
+#2 C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\equipment-rent-return.php(122): EquipmentRentReturn->create()
+#3 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php on line 65
+[20-Mar-2026 14:41:37 Asia/Colombo] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'initial_customer_paid' in 'field list' in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php:65
+Stack trace:
+#0 C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php(65): mysqli_query(Object(mysqli), 'INSERT INTO `eq...')
+#1 C:\xampp\htdocs\ekamuthu-enterprises\class\EquipmentRentReturn.php(109): Database->readQuery('INSERT INTO `eq...')
+#2 C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\equipment-rent-return.php(122): EquipmentRentReturn->create()
+#3 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php on line 65
+[20-Mar-2026 14:41:46 Asia/Colombo] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'initial_customer_paid' in 'field list' in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php:65
+Stack trace:
+#0 C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php(65): mysqli_query(Object(mysqli), 'INSERT INTO `eq...')
+#1 C:\xampp\htdocs\ekamuthu-enterprises\class\EquipmentRentReturn.php(109): Database->readQuery('INSERT INTO `eq...')
+#2 C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\equipment-rent-return.php(122): EquipmentRentReturn->create()
+#3 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php on line 65
+[20-Mar-2026 14:41:52 Asia/Colombo] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'initial_customer_paid' in 'field list' in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php:65
+Stack trace:
+#0 C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php(65): mysqli_query(Object(mysqli), 'INSERT INTO `eq...')
+#1 C:\xampp\htdocs\ekamuthu-enterprises\class\EquipmentRentReturn.php(109): Database->readQuery('INSERT INTO `eq...')
+#2 C:\xampp\htdocs\ekamuthu-enterprises\ajax\php\equipment-rent-return.php(122): EquipmentRentReturn->create()
+#3 {main}
+  thrown in C:\xampp\htdocs\ekamuthu-enterprises\class\Database.php on line 65

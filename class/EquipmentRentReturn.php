@@ -662,7 +662,7 @@ class EquipmentRentReturn
                            THEN err.rental_override
                            ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
-                             ELSE (DATEDIFF(err.return_date, eri.rental_date) + 1)
+                             ELSE GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                * err.return_qty
                            END
