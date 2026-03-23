@@ -551,30 +551,22 @@ if (!empty($customerMobile)) {
             margin-left: auto;
         }
 
-        .summary-table td.summary-value {
-            text-align: right;
-        }
-
-        /* Invoice watermark */
-        .invoice-watermark {
-            position: absolute;
-            top: 225px;
-            left: 55%;
-            transform: translate(-50%, -50%) rotate(-1deg);
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #dc3545 !important;
-            opacity: .5;
-            z-index: 9999 !important;
-            pointer-events: none;
-            white-space: nowrap;
+        /* Status Bar (according to sketch) */
+        .status-bar {
+            width: 100%;
+            text-align: center;
+            padding: 5px 0;
+            margin: 10px 0 20px 0;
+            font-size: 28px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 10px;
-            border: 8px solid #dc3545 !important;
-            padding: 10px 10px;
-            border-radius: 15px;
-            display: block !important;
-            visibility: visible !important;
+            letter-spacing: 5px;
+        }
+        .status-rented {
+            color: #000000ff; /* Black */
+        }
+        .status-returned {
+            color: #198754; /* Green */
         }
 
         #invoice-content {
@@ -583,13 +575,6 @@ if (!empty($customerMobile)) {
             min-height: 800px;
         }
 
-        @media print {
-            .invoice-watermark {
-                opacity: 0.25 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-        }
     </style>
 
 </head>
@@ -623,38 +608,74 @@ if (!empty($customerMobile)) {
                 
                 <!-- Header Banner -->
                 <div class="row mb-2">
-                    <div class="col-12 text-center position-relative">
+                    <div class="col-12 text-center">
                         <img src="assets/images/rent-header.png" alt="P.S Ekamuthu Enterprises" class="rent-header-img">
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6 text-sm-start text-md-start">
-                        <div style="font-size:15px; line-height:1.6;">
-                            <p class="mb-1"><strong>Name :</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></p>
-                            <p class="mb-1"><strong>Address :</strong> <?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>Tel:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>WP No:</strong> <?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>NIC:</strong> <?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '.................................'; ?></p>
-                            <p class="mb-1"><strong>Work Site Address:</strong> <?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '.................................'; ?></p>
-                            <?php if (!empty($CUSTOMER_MASTER->guarantor_address)): ?>
-                                <p class="mb-1"><strong>Guarantor Address:</strong> <?php echo htmlspecialchars($CUSTOMER_MASTER->guarantor_address); ?></p>
+                <!-- Status Bar -->
+                <div class="status-bar <?php echo ($EQUIPMENT_RENT->status === 'returned' ? 'status-returned' : 'status-rented'); ?>">
+                    <?php echo htmlspecialchars(ucfirst($EQUIPMENT_RENT->status)); ?>
+                </div>
+
+                <!-- Info Grid -->
+                <!-- Row 1: Name and Bill No -->
+                <div class="row align-items-center mb-1">
+                    <div class="col-7">
+                        <div style="font-size:15px;">
+                            <strong>Name : </strong><?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?>
+                        </div>
+                    </div>
+                    <div class="col-5 text-end">
+                        <div style="font-size: 15px;">
+                            <span style="font-size: 18px;"><strong>Bill No:</strong> <span style="font-size: 24px; font-weight: 800;"><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Address and Issued Date -->
+                <div class="row align-items-start mb-1">
+                    <div class="col-7">
+                        <div style="font-size:15px;">
+                            <strong>Address : </strong><?php echo !empty($CUSTOMER_MASTER->address) ? htmlspecialchars($CUSTOMER_MASTER->address) : '..................................................'; ?>
+                        </div>
+                    </div>
+                    <div class="col-5 text-end">
+                        <div style="font-size:15px;">
+                            <strong>Issued Date: </strong><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Tel and Rented Date -->
+                <div class="row align-items-start mb-1">
+                    <div class="col-7">
+                        <div style="font-size:15px;">
+                            <strong>Tel: </strong><?php echo !empty($CUSTOMER_MASTER->mobile_number) ? formatPhone($CUSTOMER_MASTER->mobile_number) : '..................................................'; ?>
+                        </div>
+                    </div>
+                    <div class="col-5 text-end">
+                        <div style="font-size:15px;">
+                            <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
+                                <strong>Rented Date: </strong><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?>
                             <?php endif; ?>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-md-6 text-sm-start text-md-end">
-                        <div class="invoice-meta">
-                            <p class="mb-1" style="font-size:14px;" aria-label="Bill Number">
-                                <strong class="meta-label">Bill No:</strong>
-                                <strong class="bill-number"><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></strong>
-                            </p>
-                            <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Issued Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></span></p>
-                            <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Rented Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></span></p>
-                            <?php endif; ?>
+                <!-- Remaining Left-Side Info -->
+                <div class="row mb-4">
+                    <div class="col-7">
+                        <div style="font-size:15px; line-height:2.0;">
+                            <strong>WP No: </strong><?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '..................................................'; ?><br>
+                            <strong>NIC: </strong><?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '..................................................'; ?><br>
+                            <strong>Work Site Address: </strong><?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '..................................................'; ?>
+                        </div>
+                    </div>
+                    <div class="col-5 text-end">
+                        <div style="font-size:15px; line-height:2.0;">
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
-                                <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Received Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></span></p>
+                                <strong>Received Date: </strong><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -927,11 +948,6 @@ if (!empty($customerMobile)) {
                 </div>
 
             </div>
-            <?php if (isset($EQUIPMENT_RENT->status)): ?>
-                <div class="invoice-watermark">
-                    <?php echo htmlspecialchars($EQUIPMENT_RENT->status); ?>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
 </div>

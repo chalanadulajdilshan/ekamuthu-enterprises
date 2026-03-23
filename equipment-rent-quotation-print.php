@@ -344,10 +344,10 @@ $termsConditions = $TC->getActive();
                     <td><strong>Deposit</strong></td>
                     <td class="text-right"><?php echo number_format($manualDeposit, 2); ?></td>
                 </tr>
-                <tr class="total-row">
+                <!-- <tr class="total-row">
                     <td><strong>Grand Total</strong></td>
                     <td class="text-right"><strong><?php echo number_format($grandTotal, 2); ?></strong></td>
-                </tr>
+                </tr> -->
             </tbody>
         </table>
 
