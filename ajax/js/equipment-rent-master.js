@@ -689,14 +689,23 @@ jQuery(document).ready(function () {
     }
 
     // Validate requested quantity against selected department availability
-    if (qty > availableQty) {
+    var effectiveAvailableQty = availableQty;
+    if (editingItemIndex !== null) {
+      var editedItem = rentItems[editingItemIndex];
+      // Only augment availability if the item is saved and department is unchanged
+      if (editedItem.id && editedItem.department_id == deptId) {
+        effectiveAvailableQty += parseFloat(editedItem.original_qty) || parseFloat(editedItem.quantity) || 0;
+      }
+    }
+
+    if (qty > effectiveAvailableQty) {
       swal({
         title: "Quantity Exceeds Availability",
         text:
           "You requested " +
           qty +
           " but only " +
-          availableQty +
+          effectiveAvailableQty +
           " available in this department.",
         type: "error",
         timer: 2500,
@@ -1432,6 +1441,7 @@ jQuery(document).ready(function () {
               rent_type: item.rent_type,
               duration: item.duration,
               quantity: item.quantity,
+              original_qty: item.quantity,
               bill_qty: item.bill_qty || item.quantity,
               // use aggregated values from returns table
               total_returned_qty: item.total_returned_qty || 0,
