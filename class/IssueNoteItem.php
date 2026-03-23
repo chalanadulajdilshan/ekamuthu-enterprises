@@ -4,6 +4,7 @@ class IssueNoteItem
 {
     public $id;
     public $issue_note_id;
+    public $rent_item_id;
     public $equipment_id;
     public $sub_equipment_id;
     public $department_id;
@@ -25,6 +26,7 @@ class IssueNoteItem
             if ($result) {
                 $this->id = $result['id'];
                 $this->issue_note_id = $result['issue_note_id'];
+                $this->rent_item_id = $result['rent_item_id'];
                 $this->equipment_id = $result['equipment_id'];
                 $this->sub_equipment_id = $result['sub_equipment_id'];
                 $this->department_id = $result['department_id'];
@@ -43,9 +45,10 @@ class IssueNoteItem
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_note_items` (
-            `issue_note_id`, `equipment_id`, `sub_equipment_id`, `department_id`, `ordered_quantity`, `issued_quantity`, `rent_type`, `duration`, `remarks`
+            `issue_note_id`, `rent_item_id`, `equipment_id`, `sub_equipment_id`, `department_id`, `ordered_quantity`, `issued_quantity`, `rent_type`, `duration`, `remarks`
         ) VALUES (
             '" . (int) $this->issue_note_id . "',
+            " . ($this->rent_item_id ? (int) $this->rent_item_id : "NULL") . ",
             '" . (int) $this->equipment_id . "',
             " . ($this->sub_equipment_id ? (int) $this->sub_equipment_id : "NULL") . ",
             " . ($this->department_id ? (int) $this->department_id : "NULL") . ",

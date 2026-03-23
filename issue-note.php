@@ -277,7 +277,7 @@ $issue_note_code = ($lastId + 1);
 
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <?php include 'main-js.php' ?>
-    <script src="ajax/js/issue-note.js"></script>
+    <script src="ajax/js/issue-note.js?v=<?= time() ?>"></script>
 
     <script>
         $(window).on('load', function() {

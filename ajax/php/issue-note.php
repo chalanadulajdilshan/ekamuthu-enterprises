@@ -58,23 +58,36 @@ if (isset($_POST['create'])) {
         $eqId = (int)$item['equipment_id'];
         $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : 'NULL';
         $rentId = (int)$_POST['rent_invoice_id'];
+        $rentItemId = !empty($item['rent_item_id']) ? (int)$item['rent_item_id'] : 0;
         
         // Get total ordered (billed) for this line item
-        $orderedQuery = "SELECT SUM(bill_qty) as ordered FROM equipment_rent_items 
-                         WHERE rent_id = $rentId 
-                         AND equipment_id = $eqId 
-                         AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))";
+        if ($rentItemId) {
+            $orderedQuery = "SELECT bill_qty as ordered FROM equipment_rent_items WHERE id = $rentItemId";
+        } else {
+            $orderedQuery = "SELECT SUM(bill_qty) as ordered FROM equipment_rent_items 
+                             WHERE rent_id = $rentId 
+                             AND equipment_id = $eqId 
+                             AND (sub_equipment_id = $subEqId OR ($subEqId IS NULL AND sub_equipment_id IS NULL))";
+        }
         $orderedRes = mysqli_fetch_assoc($db->readQuery($orderedQuery));
         $totalOrdered = (float)($orderedRes['ordered'] ?? 0);
         
         // Get total issued so far (excluding current being created)
-        $issuedQuery = "SELECT SUM(ini.issued_quantity) as issued 
-                        FROM issue_note_items ini
-                        INNER JOIN issue_notes n ON ini.issue_note_id = n.id
-                        WHERE n.rent_invoice_id = $rentId 
-                        AND ini.equipment_id = $eqId 
-                        AND (ini.sub_equipment_id = $subEqId OR ($subEqId IS NULL AND ini.sub_equipment_id IS NULL))
-                        AND n.issue_status != 'cancelled'";
+        if ($rentItemId) {
+            $issuedQuery = "SELECT SUM(ini.issued_quantity) as issued 
+                            FROM issue_note_items ini
+                            INNER JOIN issue_notes n ON ini.issue_note_id = n.id
+                            WHERE ini.rent_item_id = $rentItemId 
+                            AND n.issue_status != 'cancelled'";
+        } else {
+            $issuedQuery = "SELECT SUM(ini.issued_quantity) as issued 
+                            FROM issue_note_items ini
+                            INNER JOIN issue_notes n ON ini.issue_note_id = n.id
+                            WHERE n.rent_invoice_id = $rentId 
+                            AND ini.equipment_id = $eqId 
+                            AND (ini.sub_equipment_id = $subEqId OR ($subEqId IS NULL AND ini.sub_equipment_id IS NULL))
+                            AND n.issue_status != 'cancelled'";
+        }
         $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedQuery));
         $totalIssuedSoFar = (float)($issuedRes['issued'] ?? 0);
         
@@ -116,6 +129,7 @@ if (isset($_POST['create'])) {
         foreach ($items as $item) {
             $ITEM = new IssueNoteItem(null);
             $ITEM->issue_note_id = $note_id;
+            $ITEM->rent_item_id = !empty($item['rent_item_id']) ? $item['rent_item_id'] : null;
             $ITEM->equipment_id = $item['equipment_id'];
             $ITEM->sub_equipment_id = $item['sub_equipment_id'] ?? null;
             $ITEM->department_id = $item['department_id'] ?? null;
@@ -133,16 +147,24 @@ if (isset($_POST['create'])) {
             $eqId = (int)$item['equipment_id'];
             $subEqId = !empty($item['sub_equipment_id']) ? (int)$item['sub_equipment_id'] : null;
             $issuedQty = (float)$item['issued_quantity'];
+            $rentItemId = !empty($item['rent_item_id']) ? (int)$item['rent_item_id'] : 0;
 
             // Only for no sub equipment items
             if (empty($subEqId)) {
                 // Find the matching rent item
-                $rentItemQuery = "SELECT id, quantity, bill_qty, amount, deposit_amount, total_rent_amount, total_returned_qty, department_id 
-                                  FROM equipment_rent_items 
-                                  WHERE rent_id = $rentId 
-                                  AND equipment_id = $eqId 
-                                  AND sub_equipment_id IS NULL 
-                                  LIMIT 1";
+                if ($rentItemId) {
+                    $rentItemQuery = "SELECT id, quantity, bill_qty, amount, deposit_amount, total_rent_amount, total_returned_qty, department_id 
+                                      FROM equipment_rent_items 
+                                      WHERE id = $rentItemId 
+                                      LIMIT 1";
+                } else {
+                    $rentItemQuery = "SELECT id, quantity, bill_qty, amount, deposit_amount, total_rent_amount, total_returned_qty, department_id 
+                                      FROM equipment_rent_items 
+                                      WHERE rent_id = $rentId 
+                                      AND equipment_id = $eqId 
+                                      AND sub_equipment_id IS NULL 
+                                      LIMIT 1";
+                }
                 $rentItemRes = mysqli_fetch_assoc($db->readQuery($rentItemQuery));
 
                 if ($rentItemRes && $issuedQty != (float)$rentItemRes['quantity']) {
@@ -160,14 +182,22 @@ if (isset($_POST['create'])) {
                     $itemDeptId = !empty($rentItemRes['department_id']) ? (int)$rentItemRes['department_id'] : null;
 
                     // Calculate cumulative issued for this rent item (all notes, non-cancelled)
-                    $issuedTotalQuery = "SELECT SUM(ini.issued_quantity) as issued 
-                                         FROM issue_note_items ini 
-                                         INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
-                                         WHERE n.rent_invoice_id = $rentId 
-                                         AND ini.equipment_id = $eqId 
-                                         AND ini.sub_equipment_id IS NULL 
-                                         AND n.issue_status != 'cancelled'
-                                         AND " . ($itemDeptId ? "ini.department_id = $itemDeptId" : "ini.department_id IS NULL");
+                    if ($rentItemId) {
+                        $issuedTotalQuery = "SELECT SUM(ini.issued_quantity) as issued 
+                                             FROM issue_note_items ini 
+                                             INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                                             WHERE ini.rent_item_id = $rentItemId 
+                                             AND n.issue_status != 'cancelled'";
+                    } else {
+                        $issuedTotalQuery = "SELECT SUM(ini.issued_quantity) as issued 
+                                             FROM issue_note_items ini 
+                                             INNER JOIN issue_notes n ON ini.issue_note_id = n.id 
+                                             WHERE n.rent_invoice_id = $rentId 
+                                             AND ini.equipment_id = $eqId 
+                                             AND ini.sub_equipment_id IS NULL 
+                                             AND n.issue_status != 'cancelled'
+                                             AND " . ($itemDeptId ? "ini.department_id = $itemDeptId" : "ini.department_id IS NULL");
+                    }
                     $issuedTotalRes = mysqli_fetch_assoc($db->readQuery($issuedTotalQuery));
                     $totalIssuedAll = (float)($issuedTotalRes['issued'] ?? 0);
 
@@ -235,16 +265,20 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
             
             // Fetch previously issued quantities for this invoice
             $db = Database::getInstance();
-            $issuedQuery = "SELECT ini.equipment_id, ini.sub_equipment_id, SUM(ini.issued_quantity) as total_issued
+            $issuedQuery = "SELECT ini.rent_item_id, ini.equipment_id, ini.sub_equipment_id, SUM(ini.issued_quantity) as total_issued
                             FROM issue_note_items ini
                             INNER JOIN issue_notes note ON ini.issue_note_id = note.id
                             WHERE note.rent_invoice_id = " . (int)$invoice_id . "
                             AND note.issue_status != 'cancelled'
-                            GROUP BY ini.equipment_id, ini.sub_equipment_id";
+                            GROUP BY ini.rent_item_id, ini.equipment_id, ini.sub_equipment_id";
             $issuedResult = $db->readQuery($issuedQuery);
             $issuedMap = [];
             while ($row = mysqli_fetch_assoc($issuedResult)) {
-                $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL');
+                if (!empty($row['rent_item_id'])) {
+                    $key = 'rent_item_' . $row['rent_item_id'];
+                } else {
+                    $key = $row['equipment_id'] . '_' . ($row['sub_equipment_id'] ?? 'NULL');
+                }
                 $issuedMap[$key] = (float)$row['total_issued'];
             }
 
@@ -268,7 +302,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
             $formattedItems = [];
             foreach ($items as $item) {
                 // Determine already issued qty
-                $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL');
+                if (!empty($item['id'])) {
+                    $key = 'rent_item_' . $item['id'];
+                } else {
+                    $key = $item['equipment_id'] . '_' . ($item['sub_equipment_id'] ? $item['sub_equipment_id'] : 'NULL');
+                }
                 $alreadyIssued = $issuedMap[$key] ?? 0;
                 $orderedQty = (float)$item['bill_qty']; // Use billed quantity as ordered
                 $remainingQty = max(0, $orderedQty - $alreadyIssued);
@@ -290,6 +328,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_invoice_details') {
                 $calculatedReturnDate = date('Y-m-d', strtotime($rentalDate . " + $duration $unit"));
 
                 $formattedItems[] = [
+                    'rent_item_id' => $item['id'],
                     'equipment_id' => $item['equipment_id'],
                     'sub_equipment_id' => $item['sub_equipment_id'],
                     'department_id' => $item['department_id'],

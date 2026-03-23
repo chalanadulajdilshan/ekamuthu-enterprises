@@ -141,14 +141,14 @@ class IssueNote
             
             // Calculate total issued from valid notes
             $issuedTotal = 0;
+            $rentItemId = (int)$bItem['id'];
             if (!empty($validNoteIds)) {
                 $idsStr = implode(',', $validNoteIds);
+                $fallbackCond = "equipment_id = $eqId AND " . ($subEqId ? "sub_equipment_id = $subEqId" : "sub_equipment_id IS NULL") . " AND " . ($deptId ? "department_id = $deptId" : "department_id IS NULL");
                 $issuedSql = "SELECT SUM(issued_quantity) as total 
                               FROM issue_note_items 
                               WHERE issue_note_id IN ($idsStr) 
-                              AND equipment_id = $eqId 
-                              AND " . ($subEqId ? "sub_equipment_id = $subEqId" : "sub_equipment_id IS NULL") . "
-                              AND " . ($deptId ? "department_id = $deptId" : "department_id IS NULL");
+                              AND (rent_item_id = $rentItemId OR (rent_item_id IS NULL AND $fallbackCond))";
                 $issuedRes = mysqli_fetch_assoc($db->readQuery($issuedSql));
                 $issuedTotal = (float)($issuedRes['total'] ?? 0);
             }

@@ -197,6 +197,7 @@ $(document).ready(function () {
                         var remaining = parseFloat(item.remaining_quantity) || 0;
 
                         return {
+                            rent_item_id: item.rent_item_id,
                             equipment_id: item.equipment_id,
                             sub_equipment_id: item.sub_equipment_id,
                             department_id: item.department_id,
@@ -271,6 +272,7 @@ $(document).ready(function () {
                     // We don't recalculate remaining etc here because this is a historic view
                     issueItems = result.items.map(function (item) {
                         return {
+                            rent_item_id: item.rent_item_id,
                             equipment_id: item.equipment_id,
                             sub_equipment_id: item.sub_equipment_id,
                             department_id: item.department_id,
