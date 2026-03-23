@@ -271,7 +271,7 @@ jQuery(document).ready(function () {
             });
             return;
         }
-        if (isSubEquipmentAlreadyAdded(subEquipmentId)) {
+        if (!noSubItems && isSubEquipmentAlreadyAdded(subEquipmentId)) {
             swal({
                 title: "Error!",
                 text: "This sub equipment is already added to the list",
