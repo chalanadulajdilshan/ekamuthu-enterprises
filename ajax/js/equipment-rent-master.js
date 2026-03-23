@@ -1512,8 +1512,8 @@ jQuery(document).ready(function () {
 
           var isRented = ["rented", "rent", "active"].includes(statusText);
           var hasItems = rentItems.length > 0;
-          // Show cancel-return if bill has items and is not cancelled (regardless of status text)
-          var shouldShowCancelReturn = hasItems && !isCancelled;
+          // Show cancel-return if bill has returned items and is not cancelled
+          var shouldShowCancelReturn = hasAnyReturnedQty && !isCancelled;
           if (!isRented) {
             $("#update").hide();
             $("#return-all").hide();
@@ -1528,7 +1528,6 @@ jQuery(document).ready(function () {
             $("#gatepass").show();
           }
 
-          // Show cancel return for any non-cancelled bill that has items, even if status is 'returned'
           $("#cancel-return").toggle(shouldShowCancelReturn);
         }
       },
