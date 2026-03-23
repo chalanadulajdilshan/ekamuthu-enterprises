@@ -278,9 +278,9 @@ function loadReport() {
                 "className": "text-center",
                 "render": function (data) {
                     if (data) {
-                        return '<img src="' + data + '" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;" onerror="this.src=\'assets/images/users/user-dummy-img.jpg\';">';
+                        return '<img src="' + data + '" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;" onerror="this.src=\'assets/images/users/avatar-1.jpg\';">';
                     }
-                    return '<img src="assets/images/users/user-dummy-img.jpg" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;">';
+                    return '<img src="assets/images/users/avatar-1.jpg" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;">';
                 }
             },
             { "data": "bill_number" },
@@ -478,27 +478,27 @@ function fillBillDetailsModal(data) {
     
     var photoHtml = '<div><small class="text-muted d-block mb-1">පාරිභෝගිකයා</small>';
     if (data.customer_photo) {
-        photoHtml += `<img src="${data.customer_photo}" style="${imgStyle}" onclick="window.open('${data.customer_photo}', '_blank')" onerror="this.src='assets/images/users/user-dummy-img.jpg'">`;
+        photoHtml += `<img src="${data.customer_photo}" style="${imgStyle}" onclick="window.open('${data.customer_photo}', '_blank')" onerror="this.src='assets/images/users/avatar-1.jpg'">`;
     } else {
-        photoHtml += `<img src="assets/images/users/user-dummy-img.jpg" style="${imgStyle}">`;
+        photoHtml += `<img src="assets/images/users/avatar-1.jpg" style="${imgStyle}">`;
     }
     photoHtml += '</div>';
     $('#billModalCustomerPhoto').html(photoHtml);
 
     var nicFrontHtml = '<div><small class="text-muted d-block mb-1">NIC (ඉදිරිපස)</small>';
     if (data.nic_image_1) {
-        nicFrontHtml += `<img src="${data.nic_image_1}" style="${nicStyle}" onclick="window.open('${data.nic_image_1}', '_blank')" onerror="this.remove()">`;
+        nicFrontHtml += `<img src="${data.nic_image_1}" style="${nicStyle}" onclick="window.open('${data.nic_image_1}', '_blank')" onerror="this.src='assets/images/mock-nic.png'">`;
     } else {
-        nicFrontHtml += '<div class="text-muted border rounded d-flex align-items-center justify-content-center" style="'+nicStyle+'">No Image</div>';
+        nicFrontHtml += `<img src="assets/images/mock-nic.png" style="${nicStyle}">`;
     }
     nicFrontHtml += '</div>';
     $('#billModalNicFront').html(nicFrontHtml);
 
     var nicBackHtml = '<div><small class="text-muted d-block mb-1">NIC (පසුපස)</small>';
     if (data.nic_image_2) {
-        nicBackHtml += `<img src="${data.nic_image_2}" style="${nicStyle}" onclick="window.open('${data.nic_image_2}', '_blank')" onerror="this.remove()">`;
+        nicBackHtml += `<img src="${data.nic_image_2}" style="${nicStyle}" onclick="window.open('${data.nic_image_2}', '_blank')" onerror="this.src='assets/images/mock-nic.png'">`;
     } else {
-        nicBackHtml += '<div class="text-muted border rounded d-flex align-items-center justify-content-center" style="'+nicStyle+'">No Image</div>';
+        nicBackHtml += `<img src="assets/images/mock-nic.png" style="${nicStyle}">`;
     }
     nicBackHtml += '</div>';
     $('#billModalNicBack').html(nicBackHtml);
