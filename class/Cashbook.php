@@ -360,40 +360,128 @@ class Cashbook
         return $balance;
     }
 
+    // Get closing balance up to a specific date (inclusive) using direct SQL sums
+    public function getClosingBalanceUpToDate($endDate)
+    {
+        $db = Database::getInstance();
+        $openingBalance = $this->getOpeningBalance();
+        $endDate = mysqli_real_escape_string($db->DB_CON, $endDate);
+
+        $totalIn = 0;
+        $totalOut = 0;
+
+        // IN transactions
+
+        // 1. Cash sales
+        $query = "SELECT COALESCE(SUM(grand_total), 0) as total FROM sales_invoice WHERE payment_type = 1 AND is_cancel = 0 AND DATE(invoice_date) <= '$endDate'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 2. Payment receipts (cash portion)
+        $query = "SELECT COALESCE(SUM(sub.amount), 0) as total FROM (
+                    SELECT (SELECT COALESCE(SUM(prm.amount), 0) FROM payment_receipt_method prm WHERE prm.receipt_id = pr.id AND prm.payment_type_id = 1) as amount
+                    FROM payment_receipt pr
+                    WHERE DATE(pr.entry_date) <= '$endDate'
+                    HAVING amount > 0
+                  ) sub";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 3. Daily income
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM daily_income WHERE DATE(date) <= '$endDate'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 4. Deposit payments
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM deposit_payments WHERE DATE(payment_date) <= '$endDate' AND amount > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 5. Rent transport cost
+        $query = "SELECT COALESCE(SUM(transport_cost), 0) as total FROM equipment_rent WHERE DATE(rental_date) <= '$endDate' AND is_cancelled = 0 AND transport_cost > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 6. Transport details
+        $query = "SELECT COALESCE(SUM(total_amount), 0) as total FROM transport_details WHERE DATE(transport_date) <= '$endDate' AND total_amount > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 7. Repair income
+        $query = "SELECT COALESCE(SUM(total_cost), 0) as total FROM repair_jobs WHERE DATE(created_at) <= '$endDate' AND total_cost > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 8. Rent return customer paid
+        $query = "SELECT COALESCE(SUM(initial_customer_paid), 0) as total FROM equipment_rent_returns WHERE DATE(return_date) <= '$endDate' AND initial_customer_paid > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 9. Rent return late customer outstanding settlement
+        // Removed: this is already captured via payment_receipt when outstanding is settled
+
+        // OUT transactions
+
+        // 1. Company refund
+        $query = "SELECT COALESCE(SUM(initial_company_refund_paid), 0) as total FROM equipment_rent_returns WHERE DATE(return_date) <= '$endDate' AND initial_company_refund_paid > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 2. Late company refund
+        $query = "SELECT COALESCE(SUM(company_refund_paid - initial_company_refund_paid), 0) as total FROM equipment_rent_returns WHERE DATE(updated_at) <= '$endDate' AND (company_refund_paid - initial_company_refund_paid) > 0";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 3. Sales return
+        $query = "SELECT COALESCE(SUM(total_amount), 0) as total FROM sales_return WHERE DATE(return_date) <= '$endDate'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 4. Expenses
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE DATE(expense_date) <= '$endDate'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 5. ARN purchase
+        $query = "SELECT COALESCE(SUM(total_arn_value), 0) as total FROM arn_master WHERE DATE(entry_date) <= '$endDate' AND (is_cancelled IS NULL OR is_cancelled = 0) AND supplier_id != 0 AND purchase_type = 1";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 6. Supplier payments (cash portion)
+        $query = "SELECT COALESCE(SUM(sub.amount), 0) as total FROM (
+                    SELECT (SELECT COALESCE(SUM(prms.amount), 0) FROM payment_receipt_method_supplier prms WHERE prms.receipt_id = prs.id AND prms.payment_type_id = 1) as amount
+                    FROM payment_receipt_supplier prs
+                    WHERE DATE(prs.entry_date) <= '$endDate'
+                    HAVING amount > 0
+                  ) sub";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 7. Bank deposits
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM cashbook_transactions WHERE DATE(created_at) <= '$endDate' AND transaction_type = 'deposit'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 8. Withdrawals
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM cashbook_transactions WHERE DATE(created_at) <= '$endDate' AND transaction_type = 'withdrawal'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        return $openingBalance + $totalIn - $totalOut;
+    }
+
     // Get all transactions with details
     public function getAllTransactionsDetailed($dateFrom = null, $dateTo = null)
     {
         $db = Database::getInstance();
         $transactions = [];
 
-        // Base opening balance from company profile
+        // Calculate opening balance: previous day's closing balance
         $openingBalance = $this->getOpeningBalance();
 
-        // Find the earliest CASH SALES date as the cashbook start date
-        $queryEarliest = "SELECT MIN(invoice_date) as first_date 
-                          FROM sales_invoice 
-                          WHERE payment_type = 1 AND is_cancel = 0";
-
-        $resultEarliest = mysqli_fetch_array($db->readQuery($queryEarliest));
-        $firstTransactionDate = $resultEarliest['first_date'] ?? null;
-
-        // If a specific date is provided and it's AFTER the first transaction date,
-        // get the previous day's closing balance as this day's opening
-        if ($dateFrom && $dateTo && $firstTransactionDate) {
+        if ($dateFrom && $dateTo) {
             $prevDate = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
-
-            // Only calculate previous balance if the selected date is AFTER the first transaction day
-            if ($prevDate >= $firstTransactionDate) {
-                // Get previous day's closing balance by calling this method recursively
-                $prevDayTransactions = $this->getAllTransactionsDetailed($prevDate, $prevDate);
-
-                if (!empty($prevDayTransactions)) {
-                    // Get the last transaction's balance (which is the closing balance)
-                    $lastTransaction = end($prevDayTransactions);
-                    $openingBalance = (float)str_replace(',', '', $lastTransaction['balance']);
-                }
-            }
-            // If selected date IS the first transaction date, opening = company opening (no change)
+            $openingBalance = $this->getClosingBalanceUpToDate($prevDate);
         }
 
         // Store opening balance row separately (will be added at the top after sorting)
@@ -403,7 +491,7 @@ class Cashbook
             'transaction' => 'IN',
             'description' => 'Opening Balance',
             'doc' => '',
-            'debit' => number_format($openingBalance, 2),
+            'debit' => '0.00',
             'credit' => '0.00',
             'balance' => number_format($openingBalance, 2),
             'sort_date' => $dateFrom ? date('Y-m-d 00:00:00', strtotime($dateFrom)) : '0000-00-00 00:00:00',
@@ -522,11 +610,11 @@ class Cashbook
         }
 
         // Rent Transport Cost
-        $query = "SELECT er.rental_date as date, er.bill_number as doc, er.transport_cost as amount, 'Rent Transport Income' as description, pt.name as payment_type
+        $query = "SELECT er.rental_date as date, er.created_at as time, er.bill_number as doc, er.transport_cost as amount, 'Rent Transport Income' as description, pt.name as payment_type
                   FROM equipment_rent er
                   LEFT JOIN payment_type pt ON er.payment_type_id = pt.id
                   $whereRent AND er.is_cancelled = 0 AND er.transport_cost > 0
-                  ORDER BY er.rental_date ASC";
+                  ORDER BY er.rental_date ASC, er.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];
@@ -539,7 +627,7 @@ class Cashbook
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -610,26 +698,7 @@ class Cashbook
         }
 
         // Rent Return Late Customer Outstanding Settlement (IN)
-        $whereReturnLateIn = str_replace('invoice_date', 'err.updated_at', $where);
-        $query = "SELECT err.updated_at as date, CONCAT('RTN-', err.id) as doc, (err.customer_paid - err.initial_customer_paid) as amount, 'Rent Return Outstanding Settlement' as description
-                  FROM equipment_rent_returns err
-                  $whereReturnLateIn AND (err.customer_paid - err.initial_customer_paid) > 0
-                  ORDER BY err.updated_at ASC";
-        $result = $db->readQuery($query);
-        while ($row = mysqli_fetch_array($result)) {
-            $runningBalance += (float)$row['amount'];
-            $transactions[] = [
-                'date' => date('Y-m-d H:i:s', strtotime($row['date'])),
-                'account_type' => 'CASH',
-                'transaction' => 'IN',
-                'description' => $row['description'],
-                'doc' => $row['doc'],
-                'debit' => number_format($row['amount'], 2),
-                'credit' => '0.00',
-                'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
-            ];
-        }
+        // Removed: this is already captured via payment_receipt when outstanding is settled
 
         // Rent Return Company Refund Paid (OUT)
         $query = "SELECT err.return_date as date, err.created_at as time, CONCAT('RTN-', err.id) as doc, err.initial_company_refund_paid as amount, 'Company Outstanding Settlement' as description
