@@ -554,6 +554,42 @@ if (!empty($customerMobile)) {
         .summary-table td.summary-value {
             text-align: right;
         }
+
+        /* Invoice watermark */
+        .invoice-watermark {
+            position: absolute;
+            top: 225px;
+            left: 55%;
+            transform: translate(-50%, -50%) rotate(-1deg);
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #dc3545 !important;
+            opacity: .5;
+            z-index: 9999 !important;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            border: 8px solid #dc3545 !important;
+            padding: 10px 10px;
+            border-radius: 15px;
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        #invoice-content {
+            position: relative;
+            overflow: hidden;
+            min-height: 800px;
+        }
+
+        @media print {
+            .invoice-watermark {
+                opacity: 0.25 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
     </style>
 
 </head>
@@ -587,7 +623,7 @@ if (!empty($customerMobile)) {
                 
                 <!-- Header Banner -->
                 <div class="row mb-2">
-                    <div class="col-12 text-center">
+                    <div class="col-12 text-center position-relative">
                         <img src="assets/images/rent-header.png" alt="P.S Ekamuthu Enterprises" class="rent-header-img">
                     </div>
                 </div>
@@ -620,14 +656,6 @@ if (!empty($customerMobile)) {
                             <?php if ($EQUIPMENT_RENT->received_date): ?>
                                 <p class="mb-1" style="font-size:14px;"><strong class="meta-label">Received Date:</strong> <span class="meta-value"><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->received_date)); ?></span></p>
                             <?php endif; ?>
-                            <p class="mb-1" style="font-size:14px;">
-                                <strong class="meta-label">Status:</strong> 
-                                <?php if ($EQUIPMENT_RENT->status === 'rented'): ?>
-                                    <span class="badge bg-warning status-badge">Rented</span>
-                                <?php else: ?>
-                                    <span class="badge bg-success status-badge">Returned</span>
-                                <?php endif; ?>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -899,6 +927,11 @@ if (!empty($customerMobile)) {
                 </div>
 
             </div>
+            <?php if (isset($EQUIPMENT_RENT->status)): ?>
+                <div class="invoice-watermark">
+                    <?php echo htmlspecialchars($EQUIPMENT_RENT->status); ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
