@@ -28,6 +28,14 @@ jQuery(document).ready(function () {
                 timer: 2000,
                 showConfirmButton: false,
             });
+        } else if (!$("#remark").val() || $("#remark").val().length === 0) {
+            swal({
+                title: "Error!",
+                text: "Please enter a Remark",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
         } else {
             // Preloader start
             $(".someBlock").preloader();
@@ -100,6 +108,14 @@ jQuery(document).ready(function () {
             swal({
                 title: "Error!",
                 text: "Please enter an amount",
+                type: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } else if (!$("#remark").val() || $("#remark").val().length === 0) {
+            swal({
+                title: "Error!",
+                text: "Please enter a Remark",
                 type: "error",
                 timer: 2000,
                 showConfirmButton: false,

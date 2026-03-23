@@ -11,7 +11,7 @@ ini_set('display_errors', 1);
 if (isset($_POST['create'])) {
     try {
         // Validate required fields
-        if (empty($_POST['amount'])) {
+        if (empty($_POST['amount']) || empty($_POST['remark'])) {
             echo json_encode([
                 "status" => 'error',
                 "message" => 'Missing required fields'
@@ -53,7 +53,7 @@ if (isset($_POST['create'])) {
 if (isset($_POST['update'])) {
     try {
         // Validate required fields
-        if (empty($_POST['id']) || empty($_POST['amount'])) {
+        if (empty($_POST['id']) || empty($_POST['amount']) || empty($_POST['remark'])) {
             echo json_encode([
                 "status" => 'error',
                 "message" => 'Missing required fields for update'

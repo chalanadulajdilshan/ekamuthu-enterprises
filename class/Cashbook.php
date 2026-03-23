@@ -444,6 +444,7 @@ class Cashbook
         $wherePayment = str_replace('invoice_date', 'entry_date', $where);
         $query = "SELECT 
                       pr.entry_date as date, 
+                      pr.created_at as time,
                       pr.receipt_no as doc, 
                       (
                           SELECT COALESCE(SUM(prm.amount), 0)
@@ -456,7 +457,7 @@ class Cashbook
                   LEFT JOIN customer_master cm ON pr.customer_id = cm.id
                   $wherePayment
                   HAVING amount > 0
-                  ORDER BY pr.entry_date ASC";
+                  ORDER BY pr.entry_date ASC, pr.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];
@@ -469,16 +470,16 @@ class Cashbook
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
         // Daily income
         $whereIncome = str_replace('invoice_date', 'date', $where);
-        $query = "SELECT date, CONCAT('DI-', id) as doc, amount, COALESCE(remark, 'Daily Income') as description
+        $query = "SELECT date, created_at, CONCAT('DI-', id) as doc, amount, COALESCE(remark, 'Daily Income') as description
                   FROM daily_income
                   $whereIncome
-                  ORDER BY date ASC";
+                  ORDER BY date ASC, created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];
@@ -491,7 +492,7 @@ class Cashbook
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['created_at']))) ? $row['created_at'] : $row['date']
             ];
         }
 
@@ -500,10 +501,10 @@ class Cashbook
 
         // Deposit Payments
         $whereDepositPayment = str_replace('invoice_date', 'dp.payment_date', $where);
-        $query = "SELECT dp.payment_date as date, CONCAT('DEP-', dp.rent_id) as doc, dp.amount, COALESCE(NULLIF(dp.remark, ''), 'Rent Deposit') as description
+        $query = "SELECT dp.payment_date as date, dp.created_at as time, CONCAT('DEP-', dp.rent_id) as doc, dp.amount, COALESCE(NULLIF(dp.remark, ''), 'Rent Deposit') as description
                   FROM deposit_payments dp
                   $whereDepositPayment AND dp.amount > 0
-                  ORDER BY dp.payment_date ASC";
+                  ORDER BY dp.payment_date ASC, dp.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];
@@ -516,7 +517,7 @@ class Cashbook
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -544,10 +545,10 @@ class Cashbook
 
         // Transport Details Income
         $whereTransport = str_replace('invoice_date', 'transport_date', $where);
-        $query = "SELECT transport_date as date, CONCAT('TRN-', rent_id) as doc, total_amount as amount, 'Additional Transport Income' as description
+        $query = "SELECT transport_date as date, created_at as time, CONCAT('TRN-', rent_id) as doc, total_amount as amount, 'Additional Transport Income' as description
                   FROM transport_details
                   $whereTransport AND total_amount > 0
-                  ORDER BY transport_date ASC";
+                  ORDER BY transport_date ASC, created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];
@@ -560,7 +561,7 @@ class Cashbook
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -588,10 +589,10 @@ class Cashbook
 
         // Rent Return Customer Paid (IN)
         $whereReturnIn = str_replace('invoice_date', 'err.return_date', $where);
-        $query = "SELECT err.return_date as date, CONCAT('RTN-', err.id) as doc, err.initial_customer_paid as amount, 'Rent Return Customer Payment' as description
+        $query = "SELECT err.return_date as date, err.created_at as time, CONCAT('RTN-', err.id) as doc, err.initial_customer_paid as amount, 'Rent Return Customer Payment' as description
                   FROM equipment_rent_returns err
                   $whereReturnIn AND err.initial_customer_paid > 0
-                  ORDER BY err.return_date ASC";
+                  ORDER BY err.return_date ASC, err.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];
@@ -604,7 +605,7 @@ class Cashbook
                 'debit' => number_format($row['amount'], 2),
                 'credit' => '0.00',
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -631,10 +632,10 @@ class Cashbook
         }
 
         // Rent Return Company Refund Paid (OUT)
-        $query = "SELECT err.return_date as date, CONCAT('RTN-', err.id) as doc, err.initial_company_refund_paid as amount, 'Company Outstanding Settlement' as description
+        $query = "SELECT err.return_date as date, err.created_at as time, CONCAT('RTN-', err.id) as doc, err.initial_company_refund_paid as amount, 'Company Outstanding Settlement' as description
                   FROM equipment_rent_returns err
                   $whereReturnIn AND err.initial_company_refund_paid > 0
-                  ORDER BY err.return_date ASC";
+                  ORDER BY err.return_date ASC, err.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance -= (float)$row['amount'];
@@ -647,7 +648,7 @@ class Cashbook
                 'debit' => '0.00',
                 'credit' => number_format($row['amount'], 2),
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -674,13 +675,13 @@ class Cashbook
         }
 
         $whereSalesReturn = str_replace('invoice_date', 'sr.return_date', $where);
-        $query = "SELECT sr.return_date as date, sr.return_no as doc, sr.total_amount as amount,
+        $query = "SELECT sr.return_date as date, sr.created_at as time, sr.return_no as doc, sr.total_amount as amount,
                          CONCAT('Sales Return - ', COALESCE(cm.name, '')) as description
                   FROM sales_return sr
                   LEFT JOIN sales_invoice si ON sr.invoice_id = si.id
                   LEFT JOIN customer_master cm ON sr.customer_id = cm.id
                   $whereSalesReturn
-                  ORDER BY sr.return_date ASC";
+                  ORDER BY sr.return_date ASC, sr.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance -= (float)$row['amount'];
@@ -693,7 +694,7 @@ class Cashbook
                 'debit' => '0.00',
                 'credit' => number_format($row['amount'], 2),
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -724,13 +725,14 @@ class Cashbook
         $whereArnDetail = str_replace('invoice_date', 'am.entry_date', $where);
         $query = "SELECT 
                         am.entry_date as date,
+                        am.created_at as time,
                         am.arn_no as doc,
                         am.total_arn_value as amount,
                         CONCAT('ARN Purchase - ', COALESCE(cm.name, '')) as description
                   FROM arn_master am
                   LEFT JOIN customer_master cm ON am.supplier_id = cm.id
                   $whereArnDetail AND (am.is_cancelled IS NULL OR am.is_cancelled = 0) AND am.supplier_id != 0 AND am.purchase_type = 1
-                  ORDER BY am.entry_date ASC";
+                  ORDER BY am.entry_date ASC, am.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance -= (float)$row['amount'];
@@ -743,7 +745,7 @@ class Cashbook
                 'debit' => '0.00',
                 'credit' => number_format($row['amount'], 2),
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -751,6 +753,7 @@ class Cashbook
         $whereSupplier = str_replace('invoice_date', 'entry_date', $where);
         $query = "SELECT 
                       prs.entry_date as date, 
+                      prs.created_at as time,
                       prs.receipt_no as doc, 
                       (
                           SELECT COALESCE(SUM(prms.amount), 0)
@@ -762,7 +765,7 @@ class Cashbook
                   FROM payment_receipt_supplier prs
                   $whereSupplier
                   HAVING amount > 0
-                  ORDER BY prs.entry_date ASC";
+                  ORDER BY prs.entry_date ASC, prs.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance -= (float)$row['amount'];
@@ -775,7 +778,7 @@ class Cashbook
                 'debit' => '0.00',
                 'credit' => number_format($row['amount'], 2),
                 'balance' => number_format($runningBalance, 2),
-                'sort_date' => $row['date']
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
             ];
         }
 
@@ -832,9 +835,16 @@ class Cashbook
             ];
         }
 
-        // Sort by date
+        // Sort by date and time
         usort($transactions, function ($a, $b) {
-            return strcmp($a['sort_date'], $b['sort_date']);
+            $dateA = $a['sort_date'];
+            $dateB = $b['sort_date'];
+            
+            // Normalize to full timestamp for comparison if only date is present
+            if (strlen($dateA) === 10) $dateA .= ' 00:00:00';
+            if (strlen($dateB) === 10) $dateB .= ' 00:00:00';
+            
+            return strcmp($dateA, $dateB);
         });
 
         // Recalculate running balance after sorting, starting from opening balance

@@ -1103,8 +1103,8 @@ function generatePrintWindow(refNumber) {
             <div class="text-center mb-3 print-title">INVOICE - Hiring Charges</div>
             <div class="meta grid">
                 <div class="meta-block">
-                    <div><strong>Ref No:</strong> ${refNumber || '-'}</div>
-                    <div><strong>Invoice No:</strong> ${invoice}</div>
+                    <div><strong>Invoice No:</strong> ${refNumber || '-'}</div>
+                    <div><strong>Bill No:</strong> ${invoice}</div>
                     <div><strong>Date:</strong> ${rentalDate} <small>${dayCount}</small></div>
                     ${initialDeposit ? `<div><strong>Initial Deposit:</strong> ${initialDeposit}</div>` : ''}
                     <div class="period-row"><span>From Date:</span><span>${fromDate}</span></div>

@@ -114,10 +114,10 @@ $ref_no = "INC-" . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
                                             </div>
 
                                             <div class="col-md-4">
-                                                <label for="remark" class="form-label">Remark</label>
+                                                <label for="remark" class="form-label">Remark <span class="text-danger">*</span></label>
                                                 <div class="input-group mb-3">
                                                     <input type="text" class="form-control" id="remark" name="remark"
-                                                        placeholder="Enter Remark">
+                                                        placeholder="Enter Remark" required>
                                                 </div>
                                             </div>
                                         </div>
