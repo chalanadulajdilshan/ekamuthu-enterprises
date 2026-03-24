@@ -663,9 +663,17 @@ if ($action === 'get_outstanding_report') {
         $totalRent = $totalCharges;
         $rentPlusInitial = $totalRent + $initialDepositTotal;
 
-        $statusLabel = (isset($summary['rent_status']) && strtolower($summary['rent_status']) === 'returned')
-            ? 'Returned'
-            : 'Not Returned';
+        // Determine status based on whether all items are fully returned
+        $allItemsReturned = true;
+        if (!empty($summary['items'])) {
+            foreach ($summary['items'] as $item) {
+                if (floatval($item['pending_qty'] ?? 0) > 0) {
+                    $allItemsReturned = false;
+                    break;
+                }
+            }
+        }
+        $statusLabel = $allItemsReturned ? 'Returned' : 'Not Returned';
 
         $data[] = [
             'id' => $rentId,

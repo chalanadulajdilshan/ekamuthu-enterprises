@@ -13,6 +13,7 @@ include 'auth.php';
     <meta content="<?php echo $COMPANY_PROFILE_DETAILS->name ?>" name="author" />
     <?php include 'main-css.php' ?>
     <link href="assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css">
+    <link href="assets/libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         /* Custom styles to match print report */
@@ -58,6 +59,60 @@ include 'auth.php';
         .table tbody td {
             vertical-align: middle;
         }
+        
+        /* Row coloring based on status - Maximum specificity */
+        table#reportTable.dataTable tbody tr.status-returned,
+        table#reportTable.dataTable tbody tr.status-returned td,
+        table#reportTable tbody tr.status-returned,
+        table#reportTable tbody tr.status-returned td,
+        #reportTable tbody tr.status-returned,
+        #reportTable tbody tr.status-returned td {
+            background-color: #d4edda !important;
+            background: #d4edda !important;
+        }
+        
+        table#reportTable.dataTable tbody tr.status-not-returned,
+        table#reportTable.dataTable tbody tr.status-not-returned td,
+        table#reportTable tbody tr.status-not-returned,
+        table#reportTable tbody tr.status-not-returned td,
+        #reportTable tbody tr.status-not-returned,
+        #reportTable tbody tr.status-not-returned td {
+            background-color: #fff3cd !important;
+            background: #fff3cd !important;
+        }
+        
+        /* Ensure hover state still works */
+        table#reportTable.dataTable tbody tr.status-returned:hover,
+        table#reportTable.dataTable tbody tr.status-returned:hover td,
+        #reportTable tbody tr.status-returned:hover,
+        #reportTable tbody tr.status-returned:hover td {
+            background-color: #c3e6cb !important;
+            background: #c3e6cb !important;
+        }
+        
+        table#reportTable.dataTable tbody tr.status-not-returned:hover,
+        table#reportTable.dataTable tbody tr.status-not-returned:hover td,
+        #reportTable tbody tr.status-not-returned:hover,
+        #reportTable tbody tr.status-not-returned:hover td {
+            background-color: #ffeaa7 !important;
+            background: #ffeaa7 !important;
+        }
+        
+        /* Override any DataTables even/odd row coloring */
+        table#reportTable tbody tr.status-returned.odd,
+        table#reportTable tbody tr.status-returned.odd td,
+        table#reportTable tbody tr.status-returned.even,
+        table#reportTable tbody tr.status-returned.even td {
+            background-color: #d4edda !important;
+        }
+        
+        table#reportTable tbody tr.status-not-returned.odd,
+        table#reportTable tbody tr.status-not-returned.odd td,
+        table#reportTable tbody tr.status-not-returned.even,
+        table#reportTable tbody tr.status-not-returned.even td {
+            background-color: #fff3cd !important;
+        }
+        
         /* Hide elements marked for print exclusion */
         .print-hide { display: block; }
         @media print {
@@ -156,7 +211,7 @@ include 'auth.php';
                                     </div>
 
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-striped" id="reportTable">
+                                        <table class="table table-bordered" id="reportTable">
                                             <thead>
                                                 <tr>
                                                     <th style="width:40px;"></th>

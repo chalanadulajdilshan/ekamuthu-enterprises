@@ -240,6 +240,8 @@ function loadReport() {
     }
 
     reportTable = $('#reportTable').DataTable({
+        "responsive": true,
+        "autoWidth": false,
         "ajax": {
             "url": "ajax/php/outstanding-report.php",
             "type": "POST",
@@ -331,6 +333,32 @@ function loadReport() {
                 "render": function (data) { return formatAmount(parseAmount(data)); }
             }
         ],
+        "createdRow": function (row, data, dataIndex) {
+            // Apply colors based on status
+            var bgColor = '';
+            var cssClass = '';
+            
+            if (data.status_label === 'Returned') {
+                bgColor = '#d4edda';
+                cssClass = 'status-returned';
+            } else if (data.status_label === 'Not Returned') {
+                bgColor = '#fff3cd';
+                cssClass = 'status-not-returned';
+            }
+            
+            if (bgColor) {
+                // Add CSS class
+                $(row).addClass(cssClass);
+                
+                // Set inline style with !important equivalent
+                row.style.setProperty('background-color', bgColor, 'important');
+                
+                // Set background color on all cells
+                $(row).find('td').each(function() {
+                    this.style.setProperty('background-color', bgColor, 'important');
+                });
+            }
+        },
         "drawCallback": function () {
             var api = this.api();
             // totals based on filtered data
