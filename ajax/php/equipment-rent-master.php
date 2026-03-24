@@ -181,6 +181,9 @@ if (isset($_POST['create'])) {
                 $TD->end_location = $td['end_location'];
                 $TD->deliver_amount = $td['deliver_amount'] ?? 0;
                 $TD->pickup_amount = $td['pickup_amount'] ?? 0;
+                $TD->payment_method = $td['payment_method'] ?? 'credit';
+                $TD->is_settled = ($td['payment_method'] ?? 'credit') === 'cash' ? 1 : 0;
+                $TD->settled_date = ($td['payment_method'] ?? 'credit') === 'cash' ? $td['transport_date'] : null;
                 $TD->remark = $td['remark'] ?? '';
                 $TD->create();
             }
@@ -386,6 +389,16 @@ if (isset($_POST['update'])) {
                 $TD->end_location = $td['end_location'];
                 $TD->deliver_amount = $td['deliver_amount'] ?? 0;
                 $TD->pickup_amount = $td['pickup_amount'] ?? 0;
+                $TD->payment_method = $td['payment_method'] ?? 'credit';
+                if (!isset($td['is_settled'])) {
+                    $TD->is_settled = ($td['payment_method'] ?? 'credit') === 'cash' ? 1 : 0;
+                    $TD->settled_date = ($td['payment_method'] ?? 'credit') === 'cash' ? $td['transport_date'] : null;
+                } else {
+                    $TD->is_settled = (int)($td['is_settled'] ?? 0);
+                    $TD->settled_date = $td['settled_date'] ?? null;
+                    $TD->settlement_amount = $td['settlement_amount'] ?? 0;
+                    $TD->settlement_remark = $td['settlement_remark'] ?? null;
+                }
                 $TD->remark = $td['remark'] ?? '';
                 $TD->update();
             } else {
@@ -399,6 +412,9 @@ if (isset($_POST['update'])) {
                 $TD->end_location = $td['end_location'];
                 $TD->deliver_amount = $td['deliver_amount'] ?? 0;
                 $TD->pickup_amount = $td['pickup_amount'] ?? 0;
+                $TD->payment_method = $td['payment_method'] ?? 'credit';
+                $TD->is_settled = ($td['payment_method'] ?? 'credit') === 'cash' ? 1 : 0;
+                $TD->settled_date = ($td['payment_method'] ?? 'credit') === 'cash' ? $td['transport_date'] : null;
                 $TD->remark = $td['remark'] ?? '';
                 $TD->create();
             }

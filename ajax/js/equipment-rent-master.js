@@ -2507,7 +2507,7 @@ jQuery(document).ready(function () {
     $("#custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#btn-manage-deposits").hide();
     $("#transportDetailsTableBody").html(
-      '<tr><td colspan="11" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>',
+      '<tr><td colspan="12" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>',
     );
     $("#transport_modal_total").text("0.00");
     $("#depositPaymentsTableBody").html(
@@ -3961,6 +3961,7 @@ jQuery(document).ready(function () {
       vehicle_no: $("#transport_vehicle_id").val() ? vehName.split(' (')[0] : '',
       start_location: $("#transport_start_location").val(),
       end_location: $("#transport_end_location").val(),
+      payment_method: $("#transport_payment_method").val() || 'credit',
       deliver_amount: deliver,
       pickup_amount: pickup,
       remark: $("#transport_remark").val()
@@ -3975,6 +3976,7 @@ jQuery(document).ready(function () {
     $("#transport_dp_total").val("0.00");
     $("#transport_start_location").val("");
     $("#transport_end_location").val("");
+    $("#transport_payment_method").val("credit");
     $("#transport_remark").val("");
     $("#transport_employee_id").val("");
     $("#transport_vehicle_id").val("");
@@ -3985,6 +3987,155 @@ jQuery(document).ready(function () {
        var num = parseInt(currentDisplay.split("-")[1], 10);
        $("#transport_detail_id_display").val("TRN-" + String(num + 1).padStart(4, "0"));
     }
+  });
+
+  // Open settlement modal for credit transport
+  var currentTransportForSettlement = null;
+  
+  $(document).on("click", ".settle-transport-btn", function () {
+    var transportId = $(this).data("id");
+    var amount = $(this).data("amount");
+    
+    currentTransportForSettlement = {
+      id: transportId,
+      total_amount: amount
+    };
+    
+    // Close Transport Details modal first
+    $('#TransportDetailsModal').modal('hide');
+    
+    // Small delay to allow first modal to close smoothly
+    setTimeout(function() {
+      // Load settlement history
+      loadTransportSettlements(transportId);
+      
+      $('#TransportSettlementModal').modal('show');
+    }, 300);
+  });
+  
+  // Load settlement history for a transport
+  function loadTransportSettlements(transportId) {
+    $.post("ajax/php/transport-settlement.php", {
+      action: "get_settlements",
+      transport_id: transportId
+    }, function(response) {
+      if (response.status === 'success') {
+        var status = response.settlement_status || {};
+        var settlements = response.settlements || [];
+        
+        $("#settlement_transport_total").text(formatAmount(status.total_amount || 0));
+        $("#settlement_total_paid").text(formatAmount(status.total_settled || 0));
+        $("#settlement_remaining").text(formatAmount(status.remaining_amount || 0));
+        
+        // Render settlements table
+        var $tbody = $("#transportSettlementsTableBody");
+        $tbody.empty();
+        
+        if (settlements.length === 0) {
+          $tbody.html('<tr><td colspan="5" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>');
+        } else {
+          settlements.forEach(function(s) {
+            var html = '<tr>' +
+              '<td>' + (s.id || '-') + '</td>' +
+              '<td>' + (s.settlement_date || '-') + '</td>' +
+              '<td class="text-end">' + formatAmount(s.amount || 0) + '</td>' +
+              '<td>' + (s.remark || '-') + '</td>' +
+              '<td><button type="button" class="btn btn-sm btn-outline-danger delete-settlement-btn" data-id="' + s.id + '" title="Delete"><i class="uil uil-trash-alt"></i></button></td>' +
+              '</tr>';
+            $tbody.append(html);
+          });
+        }
+      }
+    }, 'json');
+  }
+  
+  // Add settlement payment
+  $("#btn-add-settlement-payment").on("click", function() {
+    if (!currentTransportForSettlement) return;
+    
+    var amount = parseAmount($("#settlement_pay_amount").val());
+    var date = $("#settlement_pay_date").val();
+    var remark = $("#settlement_pay_remark").val();
+    
+    if (amount <= 0) {
+      swal("Error", "Please enter a valid amount", "error");
+      return;
+    }
+    
+    if (!date) {
+      swal("Error", "Please select a date", "error");
+      return;
+    }
+    
+    $.post("ajax/php/transport-settlement.php", {
+      action: "add_settlement",
+      transport_id: currentTransportForSettlement.id,
+      amount: amount,
+      settlement_date: date,
+      remark: remark
+    }, function(response) {
+      if (response.status === 'success') {
+        // Clear form
+        $("#settlement_pay_amount").val("");
+        $("#settlement_pay_remark").val("");
+        
+        // Reload settlements
+        loadTransportSettlements(currentTransportForSettlement.id);
+        
+        // Reload transport details (will show when settlement modal closes)
+        var rentId = $("#rent_id").val();
+        if (rentId) {
+          loadTransportDetails(rentId);
+        }
+        
+        swal({
+          title: "Success!",
+          text: "Settlement payment added",
+          type: "success",
+          timer: 1500,
+          showConfirmButton: false
+        }).then(function() {
+          $('#TransportSettlementModal').modal('hide');
+          $('#TransportDetailsModal').modal('show');
+        });
+      } else {
+        swal("Error", response.message || "Failed to add settlement", "error");
+      }
+    }, 'json');
+  });
+  // Delete settlement
+  $(document).on("click", ".delete-settlement-btn", function() {
+    var settlementId = $(this).data("id");
+    
+    swal({
+      title: "Delete Settlement?",
+      text: "This will remove this settlement payment.",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete!",
+      cancelButtonText: "Cancel"
+    }, function(isConfirm) {
+      if (isConfirm) {
+        $.post("ajax/php/transport-settlement.php", {
+          action: "delete_settlement",
+          settlement_id: settlementId
+        }, function(response) {
+          if (response.status === 'success') {
+            loadTransportSettlements(currentTransportForSettlement.id);
+            
+            // Reload transport details
+            var rentId = $("#rent_id").val();
+            if (rentId) {
+              loadTransportDetails(rentId);
+            }
+            
+            swal("Deleted!", "Settlement removed", "success");
+          } else {
+            swal("Error", response.message || "Failed to delete", "error");
+          }
+        }, 'json');
+      }
+    });
   });
 
   // Delete transport detail locally
@@ -4033,7 +4184,7 @@ jQuery(document).ready(function () {
     
     if (rentTransportDetails.length === 0) {
       $tbody.html(
-        '<tr><td colspan="11" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>'
+        '<tr><td colspan="12" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>'
       );
       $("#transport_modal_total").text("0.00");
       $("#transport_cost").val("0.00");
@@ -4047,10 +4198,22 @@ jQuery(document).ready(function () {
       var vehDisplay = td.vehicle_no
         ? td.vehicle_no + (td.vehicle_brand ? ' (' + td.vehicle_brand + ')' : '')
         : '-';
+      var paymentMethod = td.payment_method || 'credit';
+      var isSettled = parseInt(td.is_settled || 0);
+      var paymentBadge = paymentMethod === 'cash' 
+        ? '<span class="badge bg-success">Cash</span>' 
+        : (isSettled ? '<span class="badge bg-success">Credit (Settled)</span>' : '<span class="badge bg-warning text-dark">Credit</span>');
       var deliver = parseFloat(td.deliver_amount || 0);
       var pickup = parseFloat(td.pickup_amount || 0);
       var rowTotal = deliver + pickup;
       total += rowTotal;
+
+      // Action buttons - show Settle for unsettled credit transports
+      var actionButtons = '';
+      if (td.id && paymentMethod === 'credit' && !isSettled) {
+        actionButtons += '<button type="button" class="btn btn-sm btn-outline-success settle-transport-btn me-1" data-id="' + td.id + '" data-amount="' + rowTotal + '" title="Settle"><i class="uil uil-check"></i></button>';
+      }
+      actionButtons += '<button type="button" class="btn btn-sm btn-outline-danger delete-transport-detail-btn" data-index="' + idx + '" title="Delete"><i class="uil uil-trash-alt"></i></button>';
 
       var html = '<tr>' +
         '<td>' + (td.id ? 'TRN-' + String(td.id).padStart(4, '0') : '[ Pending ]') + '</td>' +
@@ -4059,11 +4222,12 @@ jQuery(document).ready(function () {
         '<td>' + vehDisplay + '</td>' +
         '<td>' + (td.start_location || '-') + '</td>' +
         '<td>' + (td.end_location || '-') + '</td>' +
+        '<td class="text-center">' + paymentBadge + '</td>' +
         '<td class="text-end">' + formatAmount(deliver) + '</td>' +
         '<td class="text-end">' + formatAmount(pickup) + '</td>' +
         '<td class="text-end fw-bold">' + formatAmount(rowTotal) + '</td>' +
         '<td>' + (td.remark || '-') + '</td>' +
-        '<td><button type="button" class="btn btn-sm btn-outline-danger delete-transport-detail-btn" data-index="' + idx + '" title="Delete"><i class="uil uil-trash-alt"></i></button></td>' +
+        '<td>' + actionButtons + '</td>' +
         '</tr>';
       $tbody.append(html);
     });

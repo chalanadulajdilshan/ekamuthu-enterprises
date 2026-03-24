@@ -738,6 +738,13 @@ $bill_number = $lastId + 1;
                                     <input type="text" class="form-control" id="transport_end_location" placeholder="End location">
                                 </div>
                                 <div class="col-md-2">
+                                    <label for="transport_payment_method" class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="transport_payment_method">
+                                        <option value="credit">Credit - බැර</option>
+                                        <option value="cash">Cash - මුදල්</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
                                     <label for="transport_deliver_amount" class="form-label">Deliver Amount</label>
                                     <input type="text" class="form-control" id="transport_deliver_amount" placeholder="0.00">
                                 </div>
@@ -745,6 +752,8 @@ $bill_number = $lastId + 1;
                                     <label for="transport_pickup_amount" class="form-label">Pickup Amount</label>
                                     <input type="text" class="form-control" id="transport_pickup_amount" placeholder="0.00">
                                 </div>
+                            </div>
+                            <div class="row align-items-end mb-2">
                                 <div class="col-md-2">
                                     <label class="form-label">D + P Total</label>
                                     <input type="text" class="form-control bg-light fw-bold" id="transport_dp_total" value="0.00" readonly>
@@ -775,6 +784,7 @@ $bill_number = $lastId + 1;
                                     <th>Vehicle</th>
                                     <th>Start</th>
                                     <th>End</th>
+                                    <th>Payment</th>
                                     <th>Deliver</th>
                                     <th>Pickup</th>
                                     <th>Total</th>
@@ -783,7 +793,97 @@ $bill_number = $lastId + 1;
                                 </tr>
                             </thead>
                             <tbody id="transportDetailsTableBody">
-                                <tr><td colspan="11" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>
+                                <tr><td colspan="12" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transport Settlement Modal -->
+    <div id="TransportSettlementModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="TransportSettlementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-soft-success">
+                    <h5 class="modal-title" id="TransportSettlementModalLabel"><i class="uil uil-money-bill me-1"></i>Transport Settlements - ප්‍රවාහන ගෙවීම්</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Summary Display -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card border">
+                                <div class="card-body text-center py-2">
+                                    <small class="text-muted d-block">Total Amount</small>
+                                    <h5 class="mb-0" id="settlement_transport_total">0.00</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border border-success">
+                                <div class="card-body text-center py-2">
+                                    <small class="text-muted d-block">Total Paid</small>
+                                    <h5 class="mb-0 text-success" id="settlement_total_paid">0.00</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border border-warning">
+                                <div class="card-body text-center py-2">
+                                    <small class="text-muted d-block">Remaining</small>
+                                    <h5 class="mb-0 text-warning" id="settlement_remaining">0.00</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add New Settlement Form -->
+                    <div class="card border shadow-sm mb-3">
+                        <div class="card-header bg-soft-success py-2">
+                            <h6 class="mb-0 text-success"><i class="uil uil-plus-circle me-1"></i>Add Settlement Payment</h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row align-items-end">
+                                <div class="col-md-3">
+                                    <label for="settlement_pay_amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="settlement_pay_amount" placeholder="0.00">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="settlement_pay_date" class="form-label">Date <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control date-picker" id="settlement_pay_date" value="<?php echo date('Y-m-d'); ?>" autocomplete="off">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="settlement_pay_remark" class="form-label">Remark</label>
+                                    <input type="text" class="form-control" id="settlement_pay_remark" placeholder="Optional remark">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-success w-100" id="btn-add-settlement-payment">
+                                        <i class="uil uil-plus me-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settlement History Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="transportSettlementsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Remark</th>
+                                    <th style="width:80px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transportSettlementsTableBody">
+                                <tr><td colspan="5" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
