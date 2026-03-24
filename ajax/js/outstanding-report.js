@@ -958,9 +958,9 @@ function printBillDetails() {
         return;
     }
 
-    // Get reference number first, then proceed with print
-    var fromDate = $('#from_date').val();
-    var toDate = $('#to_date').val();
+    // Prioritize modal's selected date range over page filters
+    var fromDate = $('#billModalCalcStartDate').val() || $('#from_date').val();
+    var toDate = $('#billModalCalcDate').val() || $('#to_date').val();
     var monthFilter = $('#month_filter').val();
 
     // If only month filter is provided, derive a date range for that month using the bill's rental year
@@ -1034,9 +1034,9 @@ function generatePrintWindow(refNumber) {
         ? formatAmount(currentBillData.full_outstanding)
         : $('#billModalFullOutstanding').text().trim();
 
-    // Invoicing period from page filters (fallback to rental date if empty)
-    var fromDate = $('#from_date').val() || rentalDate;
-    var toDate = $('#to_date').val() || rentalDate;
+    // Invoicing period from modal's date range (fallback to page filters, then rental date)
+    var fromDate = $('#billModalCalcStartDate').val() || $('#from_date').val() || rentalDate;
+    var toDate = $('#billModalCalcDate').val() || $('#to_date').val() || rentalDate;
 
     // Initial deposit total (sum deposits)
     var initialDeposit = '';
