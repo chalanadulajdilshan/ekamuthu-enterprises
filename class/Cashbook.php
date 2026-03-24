@@ -244,7 +244,7 @@ class Cashbook
 
         // Cash from repair jobs
         $whereRepair = str_replace('si.invoice_date', 'rj.created_at', $where);
-        $queryRepair = "SELECT COALESCE(SUM(total_cost), 0) as total
+        $queryRepair = "SELECT COALESCE(SUM(total_cost - IFNULL(outsource_cost, 0)), 0) as total
                         FROM `repair_jobs` rj
                         $whereRepair";
         $resultRepair = mysqli_fetch_array($db->readQuery($queryRepair));
@@ -408,7 +408,7 @@ class Cashbook
         $totalIn += (float)$result['total'];
 
         // 7. Repair income
-        $query = "SELECT COALESCE(SUM(total_cost), 0) as total FROM repair_jobs WHERE DATE(created_at) <= '$endDate' AND total_cost > 0";
+        $query = "SELECT COALESCE(SUM(total_cost - IFNULL(outsource_cost, 0)), 0) as total FROM repair_jobs WHERE DATE(created_at) <= '$endDate' AND (total_cost - IFNULL(outsource_cost, 0)) > 0";
         $result = mysqli_fetch_array($db->readQuery($query));
         $totalIn += (float)$result['total'];
 
@@ -655,9 +655,9 @@ class Cashbook
 
         // Repair Income
         $whereRepair = str_replace('invoice_date', 'created_at', $where);
-        $query = "SELECT created_at as date, job_code as doc, total_cost as amount, 'Repair Income' as description
+        $query = "SELECT created_at as date, job_code as doc, (total_cost - IFNULL(outsource_cost, 0)) as amount, 'Repair Income' as description
                   FROM repair_jobs
-                  $whereRepair AND total_cost > 0
+                  $whereRepair AND (total_cost - IFNULL(outsource_cost, 0)) > 0
                   ORDER BY created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
