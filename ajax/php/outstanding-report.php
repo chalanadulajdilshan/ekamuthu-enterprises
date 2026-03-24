@@ -78,11 +78,12 @@ if ($action === 'get_outstanding_ref') {
         exit;
     }
 
-    // Generate new reference number: OSR-YYYYMM-XXXXX
-    $prefix = 'OSR-' . $year . str_pad($month, 2, '0', STR_PAD_LEFT) . '-';
+    // Generate new reference number: YYMM-NNN
+    $shortYear = substr($year, -2);
+    $prefix = $shortYear . str_pad($month, 2, '0', STR_PAD_LEFT) . '-';
     
     // Get last sequence for this month
-    $seqSql = "SELECT MAX(CAST(SUBSTRING(ref_number, -5) AS UNSIGNED)) as last_seq FROM `outstanding_report_refs` WHERE `year` = $year AND `month` = $month";
+    $seqSql = "SELECT MAX(CAST(SUBSTRING_INDEX(ref_number, '-', -1) AS UNSIGNED)) as last_seq FROM `outstanding_report_refs` WHERE `year` = $year AND `month` = $month";
     $seqResult = $db->readQuery($seqSql);
     $lastSeq = 0;
     if ($seqResult && $seqRow = mysqli_fetch_assoc($seqResult)) {
@@ -90,7 +91,7 @@ if ($action === 'get_outstanding_ref') {
     }
     
     $newSeq = $lastSeq + 1;
-    $refNumber = $prefix . str_pad($newSeq, 5, '0', STR_PAD_LEFT);
+    $refNumber = $prefix . str_pad($newSeq, 3, '0', STR_PAD_LEFT);
 
     // Insert new reference
     $fromDateEsc = mysqli_real_escape_string($db->DB_CON, $fromDate);
