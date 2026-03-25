@@ -114,6 +114,26 @@ if (isset($_POST['create'])) {
         $NOTE->department_id = (int)$departmentId;
         $NOTE->remarks = $_POST['remarks'] ?? '';
     
+        // Handle image upload
+        if (isset($_FILES['issue_note_image']) && $_FILES['issue_note_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../../uploads/issue_notes/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            
+            $fileExtension = strtolower(pathinfo($_FILES['issue_note_image']['name'], PATHINFO_EXTENSION));
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            
+            if (in_array($fileExtension, $allowedExtensions)) {
+                $fileName = uniqid('in_') . '_' . time() . '.' . $fileExtension;
+                $targetPath = $uploadDir . $fileName;
+                
+                if (move_uploaded_file($_FILES['issue_note_image']['tmp_name'], $targetPath)) {
+                    $NOTE->image_path = 'uploads/issue_notes/' . $fileName;
+                }
+            }
+        }
+
         $note_id = $NOTE->create();
     } else {
         // Ensure department stays in sync on subsequent appends
@@ -456,7 +476,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_issue_note_details') {
                 "department_id" => $ISSUE_NOTE->department_id,
                 "issue_date" => $ISSUE_NOTE->issue_date,
                 "issue_status" => $ISSUE_NOTE->issue_status,
-                "remarks" => $ISSUE_NOTE->remarks
+                "remarks" => $ISSUE_NOTE->remarks,
+                "image_path" => $ISSUE_NOTE->image_path
             ],
             "items" => $items
         ]);

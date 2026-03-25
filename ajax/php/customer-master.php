@@ -456,6 +456,7 @@ if (isset($_POST['get_all_customers'])) {
             nic LIKE '%$searchTerm%' OR 
             mobile_number LIKE '%$searchTerm%' OR 
             mobile_number_2 LIKE '%$searchTerm%' OR
+            company_name LIKE '%$searchTerm%' OR
             code LIKE '%$searchTerm%'
         )";
     }

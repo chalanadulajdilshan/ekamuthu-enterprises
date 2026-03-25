@@ -268,6 +268,17 @@ $(document).ready(function () {
                         $("#note_status_badge").html('<span class="badge bg-danger font-size-12">CANCELLED</span>');
                     }
 
+                    // Show attached image if exists
+                    if (note.image_path) {
+                        $("#image_preview").attr("src", note.image_path);
+                        $("#view_image_link").attr("href", note.image_path);
+                        $("#image_preview_container").show();
+                        $("#issue_note_image").hide(); // Hide upload field in view mode if image exists
+                    } else {
+                        $("#image_preview_container").hide();
+                        $("#issue_note_image").show();
+                    }
+
                     // View Mode: Just show what was in THIS note
                     // We don't recalculate remaining etc here because this is a historic view
                     issueItems = result.items.map(function (item) {
@@ -471,22 +482,27 @@ $(document).ready(function () {
             return;
         }
 
-        var formData = {
-            create: true,
-            issue_note_code: $("#issue_note_code").val(),
-            rent_invoice_id: $("#rent_invoice_id").val(),
-            customer_id: $("#customer_id").val(),
-            issue_date: $("#issue_date").val(),
-            issue_status: $("#issue_status").val(),
-            department_id: $("#department_id").val(),
-            remarks: $("#remarks").val(),
-            items: JSON.stringify(issueItems)
-        };
+        var formData = new FormData();
+        formData.append("create", true);
+        formData.append("issue_note_code", $("#issue_note_code").val());
+        formData.append("rent_invoice_id", $("#rent_invoice_id").val());
+        formData.append("customer_id", $("#customer_id").val());
+        formData.append("issue_date", $("#issue_date").val());
+        formData.append("issue_status", $("#issue_status").val());
+        formData.append("department_id", $("#department_id").val());
+        formData.append("remarks", $("#remarks").val());
+        formData.append("items", JSON.stringify(issueItems));
+        
+        if ($("#issue_note_image")[0].files[0]) {
+            formData.append("issue_note_image", $("#issue_note_image")[0].files[0]);
+        }
 
         $.ajax({
             url: "ajax/php/issue-note.php",
             type: "POST",
             data: formData,
+            processData: false,
+            contentType: false,
             dataType: "JSON",
             success: function (result) {
                 if (result.status === "success") {

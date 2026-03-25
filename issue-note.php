@@ -128,14 +128,23 @@ $issue_note_code = ($lastId + 1);
                                         </div>
 
                                         <div class="row mb-4">
-                                            <div class="col-md-6">
+                                            <div class="col-md-4">
                                                 <label class="form-label">Customer Details</label>
                                                 <input type="text" class="form-control mb-2" id="customer_name" readonly placeholder="Customer Name">
                                                 <input type="text" class="form-control" id="customer_phone" readonly placeholder="Phone Number">
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-5">
                                                 <label class="form-label">Remarks</label>
                                                 <textarea class="form-control" id="remarks" rows="3" placeholder="Enter remarks..."></textarea>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Attach Image - පින්තූරය අමුණන්න</label>
+                                                <input type="file" class="form-control" id="issue_note_image" accept="image/*">
+                                                <div id="image_preview_container" class="mt-2" style="display: none;">
+                                                    <a href="#" id="view_image_link" target="_blank">
+                                                        <img id="image_preview" src="" alt="Issue Note Image" class="img-thumbnail" style="max-height: 100px;">
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
 

@@ -10,6 +10,7 @@ class IssueNote
     public $issue_status;
     public $remarks;
     public $department_id;
+    public $image_path;
     public $created_at;
     public $updated_at;
 
@@ -29,6 +30,7 @@ class IssueNote
                 $this->issue_status = $result['issue_status'];
                 $this->remarks = $result['remarks'];
                 $this->department_id = $result['department_id'];
+                $this->image_path = $result['image_path'];
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
             }
@@ -41,7 +43,7 @@ class IssueNote
         $deptId = ($this->department_id !== null && $this->department_id !== '') ? (int)$this->department_id : 0;
 
         $query = "INSERT INTO `issue_notes` (
-            `issue_note_code`, `rent_invoice_id`, `customer_id`, `issue_date`, `issue_status`, `remarks`, `department_id`
+            `issue_note_code`, `rent_invoice_id`, `customer_id`, `issue_date`, `issue_status`, `remarks`, `department_id`, `image_path`
         ) VALUES (
             '" . $db->escapeString($this->issue_note_code) . "',
             '" . (int) $this->rent_invoice_id . "',
@@ -49,7 +51,8 @@ class IssueNote
             '" . $db->escapeString($this->issue_date) . "',
             '" . $db->escapeString($this->issue_status) . "',
             '" . $db->escapeString($this->remarks) . "',
-            '" . $deptId . "'
+            '" . $deptId . "',
+            '" . $db->escapeString($this->image_path) . "'
         )";
 
         $result = $db->readQuery($query);
@@ -72,7 +75,8 @@ class IssueNote
             `issue_date` = '" . $db->escapeString($this->issue_date) . "',
             `issue_status` = '" . $db->escapeString($this->issue_status) . "',
             `remarks` = '" . $db->escapeString($this->remarks) . "',
-            `department_id` = '" . $deptId . "'
+            `department_id` = '" . $deptId . "',
+            `image_path` = '" . $db->escapeString($this->image_path) . "'
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;
