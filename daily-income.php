@@ -13,7 +13,7 @@ $ref_no = "INC-" . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
 <head>
 
     <meta charset="utf-8" />
-    <title>Daily Income | <?php echo $COMPANY_PROFILE_DETAILS->name ?> </title>
+    <title>Sales Income | <?php echo $COMPANY_PROFILE_DETAILS->name ?> </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="<?php echo $COMPANY_PROFILE_DETAILS->name ?>" name="author" />
     <!-- include main CSS -->
@@ -56,7 +56,7 @@ $ref_no = "INC-" . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
                             <ol class="breadcrumb m-0 justify-content-md-end">
                                 <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Daily Income </li>
+                                <li class="breadcrumb-item active">Sales Income </li>
                             </ol>
                         </div>
                     </div>
@@ -77,8 +77,8 @@ $ref_no = "INC-" . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
                                         </div>
                                         <div class="d-flex align-items-center flex-grow-1">
                                             <div class="me-3">
-                                                <h5 class="font-size-16 mb-1">Daily Income Entry</h5>
-                                                <p class="text-muted text-truncate mb-0">Fill all information below to add Daily Income</p>
+                                                <h5 class="font-size-16 mb-1">Sales Income Entry</h5>
+                                                <p class="text-muted text-truncate mb-0">Fill all information below to add Sales Income</p>
                                             </div>
                                         </div>
                                         <div class="flex-shrink-0">
@@ -133,7 +133,7 @@ $ref_no = "INC-" . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title mb-0">Daily Income Records</h4>
+                                    <h4 class="card-title mb-0">Sales Income Records</h4>
                                 </div>
                                 <div class="card-body">
                                     <!-- Date Range Filter -->
