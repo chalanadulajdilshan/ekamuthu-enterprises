@@ -3962,12 +3962,12 @@ jQuery(document).ready(function () {
 
       var html = '<tr>' +
         '<td>' + (trip.trip_number || '-') + '</td>' +
+        '<td>' + (trip.transport_date || '-') + '</td>' +
         '<td>' + (trip.vehicle_no || '-') + '</td>' +
         '<td>' + (trip.employee_name || '-') + '</td>' +
         '<td>' + (trip.start_location || '-') + '</td>' +
         '<td>' + (trip.end_location || '-') + '</td>' +
         '<td>' + (trip.trip_type || '-') + '</td>' +
-        '<td class="text-end">' + formatAmount(trip.customer_fuel_cost || 0) + '</td>' +
         '<td class="text-end">' + formatAmount(trip.toll || 0) + '</td>' +
         '<td class="text-end">' + formatAmount(trip.helper_payment || 0) + '</td>' +
         '<td class="text-end">' + formatAmount(trip.pay_amount || 0) + '</td>' +

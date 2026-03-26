@@ -713,12 +713,12 @@ $bill_number = $lastId + 1;
                             <thead class="table-light">
                                 <tr>
                                     <th>Trip #</th>
+                                    <th>Date</th>
                                     <th>Vehicle</th>
                                     <th>Driver</th>
                                     <th>From</th>
                                     <th>To</th>
                                     <th>Trip Type</th>
-                                    <th>Fuel</th>
                                     <th>Toll</th>
                                     <th>Helper</th>
                                     <th>Transport Cost</th>

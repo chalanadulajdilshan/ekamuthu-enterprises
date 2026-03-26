@@ -117,17 +117,16 @@ jQuery(document).ready(function () {
     // Auto-Calculate Total Cost
     // ========================
     function calculateTotalCost() {
-        var fuel = parseFloat($('#customer_fuel_cost').val()) || 0;
         var toll = parseFloat($('#toll').val()) || 0;
         var helper = parseFloat($('#helper_payment').val()) || 0;
         var transport = parseFloat($('#transport_amount').val()) || 0;
         var transportCost = parseFloat($('#pay_amount_completion').val()) || 0;
-        var total = fuel + toll + helper + transport + transportCost;
+        var total = toll + helper + transport + transportCost;
         $('#total_cost').val(total.toFixed(2));
     }
 
     // Bind auto-calculation to cost fields and sync pay amounts
-    $('#customer_fuel_cost, #toll, #helper_payment, #transport_amount, #pay_amount, #pay_amount_completion').on('input change', function () {
+    $('#toll, #helper_payment, #transport_amount, #pay_amount, #pay_amount_completion').on('input change', function () {
         if ($(this).attr('id') === 'pay_amount') {
             $('#pay_amount_completion').val($(this).val());
         } else if ($(this).attr('id') === 'pay_amount_completion') {
@@ -222,6 +221,10 @@ jQuery(document).ready(function () {
         }
         if (!startMeter || startMeter === '') {
             swal({ title: 'Error!', text: 'Please enter start meter reading', type: 'error', timer: 2000, showConfirmButton: false });
+            return false;
+        }
+        if (!$('#transport_date').val()) {
+            swal({ title: 'Error!', text: 'Please select transport date', type: 'error', timer: 2000, showConfirmButton: false });
             return false;
         }
 
@@ -431,9 +434,11 @@ jQuery(document).ready(function () {
                             'data-employee_name="' + trip.employee_name + '" ' +
                             'data-start_meter="' + trip.start_meter + '" ' +
                             'data-end_meter="' + (trip.end_meter || '') + '" ' +
+                            'data-transport_date="' + (trip.transport_date || '') + '" ' +
                             'data-status="' + trip.status + '"' +
                             '>';
                         tbody += '<td>' + trip.key + '</td>';
+                        tbody += '<td>' + (trip.transport_date || '-') + '</td>';
                         tbody += '<td>' + trip.trip_number + '</td>';
                         tbody += '<td>' + trip.category_label + '</td>';
                         tbody += '<td>' + trip.customer_name + '</td>';
@@ -489,6 +494,7 @@ jQuery(document).ready(function () {
                     // Basic info
                     $('#id').val(trip.id);
                     $('#trip_number').val(trip.trip_number);
+                    $('#transport_date').val(trip.transport_date || '');
 
                     // Set trip category radio
                     $('input[name="trip_category"][value="' + trip.trip_category + '"]').prop('checked', true).trigger('change');
@@ -565,7 +571,6 @@ jQuery(document).ready(function () {
                     }
 
                     // Cost fields
-                    $('#customer_fuel_cost').val(parseFloat(trip.customer_fuel_cost || 0).toFixed(2));
                     $('#toll').val(parseFloat(trip.toll || 0).toFixed(2));
                     $('#helper_payment').val(parseFloat(trip.helper_payment || 0).toFixed(2));
                     $('#total_cost').val(parseFloat(trip.total_cost || 0).toFixed(2));

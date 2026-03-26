@@ -15,7 +15,6 @@ class TripManagement
     public $start_meter;
     public $end_meter;
     public $trip_type;
-    public $customer_fuel_cost;
     public $toll;
     public $helper_payment;
     public $transport_amount;
@@ -28,6 +27,7 @@ class TripManagement
     public $status;
     public $created_by;
     public $created_at;
+    public $transport_date;
     public $updated_at;
 
     public function __construct($id = null)
@@ -51,7 +51,6 @@ class TripManagement
                 $this->start_meter = $result['start_meter'];
                 $this->end_meter = $result['end_meter'];
                 $this->trip_type = $result['trip_type'];
-                $this->customer_fuel_cost = $result['customer_fuel_cost'] ?? 0;
                 $this->toll = $result['toll'] ?? 0;
                 $this->helper_payment = $result['helper_payment'] ?? 0;
                 $this->transport_amount = $result['transport_amount'] ?? 0;
@@ -60,6 +59,7 @@ class TripManagement
                 $this->payment_method = $result['payment_method'] ?? 'cash';
                 $this->is_settled = $result['is_settled'] ?? 0;
                 $this->settlement_amount = $result['settlement_amount'] ?? 0;
+                $this->transport_date = $result['transport_date'];
                 $this->remark = $result['remark'];
                 $this->status = $result['status'];
                 $this->created_by = $result['created_by'];
@@ -75,14 +75,14 @@ class TripManagement
         $now = date('Y-m-d H:i:s');
 
         // Auto-calculate total cost
-        $this->total_cost = floatval($this->customer_fuel_cost) + floatval($this->toll) + 
+        $this->total_cost = floatval($this->toll) + 
                            floatval($this->helper_payment) + floatval($this->transport_amount) + floatval($this->pay_amount);
 
         $query = "INSERT INTO `trip_management` (
             `trip_number`, `trip_category`, `invoice_type`, `bill_id`, `customer_id`,
             `vehicle_id`, `employee_id`, `start_location`, `end_location`,
-            `start_meter`, `end_meter`, `trip_type`,
-            `customer_fuel_cost`, `toll`, `helper_payment`, `transport_amount`,
+            `start_meter`, `end_meter`, `trip_type`, `transport_date`,
+            `toll`, `helper_payment`, `transport_amount`,
             `total_cost`, `pay_amount`, `payment_method`, `is_settled`, `settlement_amount`,
             `remark`, `status`, `created_by`, `created_at`
         ) VALUES (
@@ -98,7 +98,7 @@ class TripManagement
             '" . floatval($this->start_meter) . "',
             " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . floatval($this->end_meter) . "'" : "NULL") . ",
             " . ($this->trip_type ? "'" . addslashes($this->trip_type) . "'" : "NULL") . ",
-            '" . floatval($this->customer_fuel_cost) . "',
+            " . ($this->transport_date ? "'" . addslashes($this->transport_date) . "'" : "NULL") . ",
             '" . floatval($this->toll) . "',
             '" . floatval($this->helper_payment) . "',
             '" . floatval($this->transport_amount) . "',
@@ -130,7 +130,7 @@ class TripManagement
         $now = date('Y-m-d H:i:s');
 
         // Auto-calculate total cost
-        $this->total_cost = floatval($this->customer_fuel_cost) + floatval($this->toll) + 
+        $this->total_cost = floatval($this->toll) + 
                            floatval($this->helper_payment) + floatval($this->transport_amount) + floatval($this->pay_amount);
 
         $query = "UPDATE `trip_management` SET
@@ -145,7 +145,7 @@ class TripManagement
             `start_meter` = '" . floatval($this->start_meter) . "',
             `end_meter` = " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . floatval($this->end_meter) . "'" : "NULL") . ",
             `trip_type` = " . ($this->trip_type ? "'" . addslashes($this->trip_type) . "'" : "NULL") . ",
-            `customer_fuel_cost` = '" . floatval($this->customer_fuel_cost) . "',
+            `transport_date` = " . ($this->transport_date ? "'" . addslashes($this->transport_date) . "'" : "NULL") . ",
             `toll` = '" . floatval($this->toll) . "',
             `helper_payment` = '" . floatval($this->helper_payment) . "',
             `transport_amount` = '" . floatval($this->transport_amount) . "',

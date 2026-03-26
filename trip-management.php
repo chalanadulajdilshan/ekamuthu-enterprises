@@ -130,12 +130,17 @@ $customers = $CUSTOMER->all();
                                     </div>
                                     <div class="p-4 pt-0">
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Trip Number</label>
                                                 <input id="trip_number" name="trip_number" type="text"
                                                     value="<?php echo $trip_number ?>" class="form-control" readonly>
                                             </div>
-                                            <div class="col-md-8">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Transport Date <span class="text-danger">*</span></label>
+                                                <input id="transport_date" name="transport_date" type="date"
+                                                    value="<?php echo date('Y-m-d') ?>" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
                                                 <label class="form-label">Trip Category <span class="text-danger">*</span></label>
                                                 <div class="radio-group mt-2">
                                                     <div class="form-check">
@@ -384,12 +389,12 @@ $customers = $CUSTOMER->all();
                                     </div>
                                     <div class="p-4 pt-0">
                                         <div class="row">
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="end_meter" class="form-label">End Meter <span class="text-danger">*</span></label>
                                                 <input id="end_meter" name="end_meter" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="trip_type" class="form-label">Trip Type <span class="text-danger">*</span></label>
                                                 <select id="trip_type" name="trip_type" class="form-control">
                                                     <option value="">-- Select Trip Type --</option>
@@ -398,43 +403,38 @@ $customers = $CUSTOMER->all();
                                                     <option value="back_and_forth">Back & Forth</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-3">
-                                                <label for="customer_fuel_cost" class="form-label">Customer Fuel Cost</label>
-                                                <input id="customer_fuel_cost" name="customer_fuel_cost" type="number" step="0.01"
-                                                    placeholder="0.00" class="form-control">
-                                            </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="toll" class="form-label">Toll</label>
                                                 <input id="toll" name="toll" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control">
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="helper_payment" class="form-label">Helper Payment</label>
                                                 <input id="helper_payment" name="helper_payment" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control">
                                             </div>
-                                            <div class="col-md-3 conditional-section" id="section-pay-amount">
+                                            <div class="col-md-4 conditional-section" id="section-pay-amount">
                                                 <label for="pay_amount_completion" class="form-label">Transport Cost</label>
                                                 <input id="pay_amount_completion" name="pay_amount" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="total_cost" class="form-label">Total Cost</label>
                                                 <input id="total_cost" name="total_cost" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control bg-light fw-bold" readonly>
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="payment_method" class="form-label">Payment Method</label>
                                                 <select id="payment_method" name="payment_method" class="form-control">
                                                     <option value="cash">Cash</option>
                                                     <option value="credit">Credit</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-3 conditional-section" id="section-settlement-btn">
+                                            <div class="col-md-4 conditional-section" id="section-settlement-btn">
                                                 <label class="form-label">&nbsp;</label>
                                                 <div>
                                                     <button type="button" class="btn btn-info w-100" id="open-settlement-modal">
@@ -478,6 +478,7 @@ $customers = $CUSTOMER->all();
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th>Date</th>
                                         <th>Trip No</th>
                                         <th>Category</th>
                                         <th>Customer</th>

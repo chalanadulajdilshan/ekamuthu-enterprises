@@ -24,7 +24,7 @@ if (isset($_POST['create'])) {
     $TRIP->start_meter = isset($_POST['start_meter']) ? $_POST['start_meter'] : 0;
     $TRIP->end_meter = !empty($_POST['end_meter']) ? $_POST['end_meter'] : null;
     $TRIP->trip_type = !empty($_POST['trip_type']) ? $_POST['trip_type'] : null;
-    $TRIP->customer_fuel_cost = isset($_POST['customer_fuel_cost']) ? $_POST['customer_fuel_cost'] : 0;
+    $TRIP->transport_date = !empty($_POST['transport_date']) ? $_POST['transport_date'] : null;
     $TRIP->toll = isset($_POST['toll']) ? $_POST['toll'] : 0;
     $TRIP->helper_payment = isset($_POST['helper_payment']) ? $_POST['helper_payment'] : 0;
     $TRIP->transport_amount = isset($_POST['transport_amount']) ? $_POST['transport_amount'] : 0;
@@ -73,7 +73,7 @@ if (isset($_POST['update'])) {
     $TRIP->start_meter = isset($_POST['start_meter']) ? $_POST['start_meter'] : $TRIP->start_meter;
     $TRIP->end_meter = (isset($_POST['end_meter']) && $_POST['end_meter'] !== '') ? $_POST['end_meter'] : $TRIP->end_meter;
     $TRIP->trip_type = !empty($_POST['trip_type']) ? $_POST['trip_type'] : $TRIP->trip_type;
-    $TRIP->customer_fuel_cost = isset($_POST['customer_fuel_cost']) ? $_POST['customer_fuel_cost'] : $TRIP->customer_fuel_cost;
+    $TRIP->transport_date = !empty($_POST['transport_date']) ? $_POST['transport_date'] : $TRIP->transport_date;
     $TRIP->toll = isset($_POST['toll']) ? $_POST['toll'] : $TRIP->toll;
     $TRIP->helper_payment = isset($_POST['helper_payment']) ? $_POST['helper_payment'] : $TRIP->helper_payment;
     $TRIP->transport_amount = isset($_POST['transport_amount']) ? $_POST['transport_amount'] : $TRIP->transport_amount;
@@ -223,7 +223,7 @@ if (isset($_POST['fetch_trips'])) {
             'start_meter' => $trip['start_meter'],
             'end_meter' => $trip['end_meter'] ?? '-',
             'trip_type' => $trip['trip_type'] ?? '-',
-            'customer_fuel_cost' => $trip['customer_fuel_cost'] ?? 0,
+            'transport_date' => $trip['transport_date'] ?? '',
             'toll' => $trip['toll'] ?? 0,
             'helper_payment' => $trip['helper_payment'] ?? 0,
             'transport_amount' => $trip['transport_amount'] ?? 0,
