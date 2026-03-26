@@ -268,12 +268,8 @@ while ($row = mysqli_fetch_assoc($issueReturnsRes)) {
                             <th class="text-end">Security Deposit:</th>
                             <td class="text-end"><?php echo number_format($total_deposit, 2); ?></td>
                         </tr>
-                        <tr class="border-top">
-                            <th class="text-end">Total Estimated:</th>
-                            <td class="text-end font-size-16 fw-bold text-primary"><?php echo number_format($net_amount, 2); ?></td>
-                        </tr>
                         <?php if ($refund_balance != 0): ?>
-                        <tr>
+                        <tr class="border-top">
                             <th class="text-end"><?php echo $refund_balance > 0 ? 'Refundable to Customer:' : 'Outstanding Payable:'; ?></th>
                             <td class="text-end fw-bold <?php echo $refund_balance > 0 ? 'text-success' : 'text-danger'; ?>">
                                 <?php echo number_format(abs($refund_balance), 2); ?>
