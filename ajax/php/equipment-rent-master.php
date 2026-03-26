@@ -646,7 +646,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
             "return_remarks" => $returnRemarks,
             "deposit_payments" => DepositPayment::getByRentId($rent_id),
             "transport_details" => TransportDetail::getByRentId($rent_id),
-            "transport_total" => TransportDetail::getTotalByRentId($rent_id)
+            "transport_total" => TransportDetail::getTotalByRentId($rent_id),
+            "trip_total_cost" => TripManagement::getTotalCostByBillId($rent_id)
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);
@@ -686,7 +687,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_transport_details') {
         echo json_encode([
             "status" => "success",
             "transport_details" => TransportDetail::getByRentId($rent_id),
-            "transport_total" => TransportDetail::getTotalByRentId($rent_id)
+            "transport_total" => TransportDetail::getTotalByRentId($rent_id),
+            "trip_total_cost" => TripManagement::getTotalCostByBillId($rent_id)
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Rent ID required"]);

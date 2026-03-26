@@ -96,6 +96,8 @@ include_once(dirname(__FILE__) . '/Vehicle.php');
 include_once(dirname(__FILE__) . '/VehicleRepair.php');
 include_once(dirname(__FILE__) . '/TransportDetail.php');
 include_once(dirname(__FILE__) . '/TransportSettlement.php');
+include_once(dirname(__FILE__) . '/TripManagement.php');
+include_once(dirname(__FILE__) . '/TripSettlement.php');
 
 
 // Initialize session if not already started

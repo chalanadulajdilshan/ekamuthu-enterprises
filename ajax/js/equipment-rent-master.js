@@ -1322,6 +1322,7 @@ jQuery(document).ready(function () {
           $("#btn-manage-deposits").show();
           // Load transport details directly from loaded rent (we updated get_rent_details to include it, or we fetch it)
           rentTransportDetails = result.transport_details || []; // Populate rentTransportDetails
+          window.rentTripTotalCost = parseFloat(result.trip_total_cost || 0);
           loadTransportDetails(rent.id);
           // Render deposit payments if present
           if (result.deposit_payments) {
@@ -3908,336 +3909,71 @@ jQuery(document).ready(function () {
     });
   }
 
-  // When Transport Details modal opens, load dropdown data and transport details
+   // When Transport Details modal opens, load trip data
   $("#TransportDetailsModal").on("shown.bs.modal", function () {
-    loadTransportDropdownData();
-    loadNextTransportId();
     var rentId = $("#rent_id").val();
     if (rentId) {
+      // Set "Add New Trip" button URL
+      $("#btn-add-trip-for-bill").attr("href", "trip-management.php?page_id=113&bill_id=" + rentId);
       loadTransportDetails(rentId);
     }
   });
 
-  // Fetch and display next transport ID
-  function loadNextTransportId() {
-    $.ajax({
-      url: "ajax/php/equipment-rent-master.php",
-      type: "POST",
-      data: { action: "get_next_transport_id" },
-      dataType: "JSON",
-      success: function (result) {
-        if (result.status === "success") {
-          $("#transport_detail_id_display").val(result.next_code);
-        }
-      }
-    });
-  }
-
-  // Live D+P total calculation
-  $("#transport_deliver_amount, #transport_pickup_amount").on("input", function () {
-    var deliver = parseAmount($("#transport_deliver_amount").val()) || 0;
-    var pickup = parseAmount($("#transport_pickup_amount").val()) || 0;
-    $("#transport_dp_total").val(formatAmount(deliver + pickup));
-  });
-
-  // Save transport detail locally
-  $("#btn-save-transport-detail").on("click", function () {
-    var deliver = parseAmount($("#transport_deliver_amount").val()) || 0;
-    var pickup = parseAmount($("#transport_pickup_amount").val()) || 0;
-
-    if (deliver <= 0 && pickup <= 0) {
-      swal({
-        title: "Error!",
-        text: "Please enter a deliver or pickup amount.",
-        type: "error",
-        timer: 2500,
-        showConfirmButton: false
-      });
-      return;
-    }
-
-    var empSelect = $("#transport_employee_id")[0];
-    var empName = empSelect.options[empSelect.selectedIndex].text;
-    var vehSelect = $("#transport_vehicle_id")[0];
-    var vehName = vehSelect.options[vehSelect.selectedIndex].text;
-
-    var td = {
-      id: null,
-      transport_date: $("#transport_date").val(),
-      employee_id: $("#transport_employee_id").val(),
-      employee_name: $("#transport_employee_id").val() ? empName.replace(/^[^-]+ - /, '') : '',
-      employee_code: $("#transport_employee_id").val() ? empName.split(' - ')[0] : '',
-      vehicle_id: $("#transport_vehicle_id").val(),
-      vehicle_no: $("#transport_vehicle_id").val() ? vehName.split(' (')[0] : '',
-      start_location: $("#transport_start_location").val(),
-      end_location: $("#transport_end_location").val(),
-      payment_method: $("#transport_payment_method").val() || 'credit',
-      deliver_amount: deliver,
-      pickup_amount: pickup,
-      remark: $("#transport_remark").val()
-    };
-
-    rentTransportDetails.push(td);
-    renderTransportDetailsArray();
-
-    // Clear form
-    $("#transport_deliver_amount").val("");
-    $("#transport_pickup_amount").val("");
-    $("#transport_dp_total").val("0.00");
-    $("#transport_start_location").val("");
-    $("#transport_end_location").val("");
-    $("#transport_payment_method").val("credit");
-    $("#transport_remark").val("");
-    $("#transport_employee_id").val("");
-    $("#transport_vehicle_id").val("");
-    
-    // Auto-update next generic code if we want it, but 'New' or next count is fine.
-    var currentDisplay = $("#transport_detail_id_display").val();
-    if (currentDisplay && currentDisplay.startsWith("TRN-")) {
-       var num = parseInt(currentDisplay.split("-")[1], 10);
-       $("#transport_detail_id_display").val("TRN-" + String(num + 1).padStart(4, "0"));
-    }
-  });
-
-  // Open settlement modal for credit transport
-  var currentTransportForSettlement = null;
-  
-  $(document).on("click", ".settle-transport-btn", function () {
-    var transportId = $(this).data("id");
-    var amount = $(this).data("amount");
-    
-    currentTransportForSettlement = {
-      id: transportId,
-      total_amount: amount
-    };
-    
-    // Close Transport Details modal first
-    $('#TransportDetailsModal').modal('hide');
-    
-    // Small delay to allow first modal to close smoothly
-    setTimeout(function() {
-      // Load settlement history
-      loadTransportSettlements(transportId);
-      
-      $('#TransportSettlementModal').modal('show');
-    }, 300);
-  });
-  
-  // Load settlement history for a transport
-  function loadTransportSettlements(transportId) {
-    $.post("ajax/php/transport-settlement.php", {
-      action: "get_settlements",
-      transport_id: transportId
-    }, function(response) {
-      if (response.status === 'success') {
-        var status = response.settlement_status || {};
-        var settlements = response.settlements || [];
-        
-        $("#settlement_transport_total").text(formatAmount(status.total_amount || 0));
-        $("#settlement_total_paid").text(formatAmount(status.total_settled || 0));
-        $("#settlement_remaining").text(formatAmount(status.remaining_amount || 0));
-        
-        // Render settlements table
-        var $tbody = $("#transportSettlementsTableBody");
-        $tbody.empty();
-        
-        if (settlements.length === 0) {
-          $tbody.html('<tr><td colspan="5" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>');
-        } else {
-          settlements.forEach(function(s) {
-            var html = '<tr>' +
-              '<td>' + (s.id || '-') + '</td>' +
-              '<td>' + (s.settlement_date || '-') + '</td>' +
-              '<td class="text-end">' + formatAmount(s.amount || 0) + '</td>' +
-              '<td>' + (s.remark || '-') + '</td>' +
-              '<td><button type="button" class="btn btn-sm btn-outline-danger delete-settlement-btn" data-id="' + s.id + '" title="Delete"><i class="uil uil-trash-alt"></i></button></td>' +
-              '</tr>';
-            $tbody.append(html);
-          });
-        }
-      }
-    }, 'json');
-  }
-  
-  // Add settlement payment
-  $("#btn-add-settlement-payment").on("click", function() {
-    if (!currentTransportForSettlement) return;
-    
-    var amount = parseAmount($("#settlement_pay_amount").val());
-    var date = $("#settlement_pay_date").val();
-    var remark = $("#settlement_pay_remark").val();
-    
-    if (amount <= 0) {
-      swal("Error", "Please enter a valid amount", "error");
-      return;
-    }
-    
-    if (!date) {
-      swal("Error", "Please select a date", "error");
-      return;
-    }
-    
-    $.post("ajax/php/transport-settlement.php", {
-      action: "add_settlement",
-      transport_id: currentTransportForSettlement.id,
-      amount: amount,
-      settlement_date: date,
-      remark: remark
-    }, function(response) {
-      if (response.status === 'success') {
-        // Clear form
-        $("#settlement_pay_amount").val("");
-        $("#settlement_pay_remark").val("");
-        
-        // Reload settlements
-        loadTransportSettlements(currentTransportForSettlement.id);
-        
-        // Reload transport details (will show when settlement modal closes)
-        var rentId = $("#rent_id").val();
-        if (rentId) {
-          loadTransportDetails(rentId);
-        }
-        
-        swal({
-          title: "Success!",
-          text: "Settlement payment added",
-          type: "success",
-          timer: 1500,
-          showConfirmButton: false
-        }).then(function() {
-          $('#TransportSettlementModal').modal('hide');
-          $('#TransportDetailsModal').modal('show');
-        });
-      } else {
-        swal("Error", response.message || "Failed to add settlement", "error");
-      }
-    }, 'json');
-  });
-  // Delete settlement
-  $(document).on("click", ".delete-settlement-btn", function() {
-    var settlementId = $(this).data("id");
-    
-    swal({
-      title: "Delete Settlement?",
-      text: "This will remove this settlement payment.",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete!",
-      cancelButtonText: "Cancel"
-    }, function(isConfirm) {
-      if (isConfirm) {
-        $.post("ajax/php/transport-settlement.php", {
-          action: "delete_settlement",
-          settlement_id: settlementId
-        }, function(response) {
-          if (response.status === 'success') {
-            loadTransportSettlements(currentTransportForSettlement.id);
-            
-            // Reload transport details
-            var rentId = $("#rent_id").val();
-            if (rentId) {
-              loadTransportDetails(rentId);
-            }
-            
-            swal("Deleted!", "Settlement removed", "success");
-          } else {
-            swal("Error", response.message || "Failed to delete", "error");
-          }
-        }, 'json');
-      }
-    });
-  });
-
-  // Delete transport detail locally
-  $(document).on("click", ".delete-transport-detail-btn", function () {
-    var index = $(this).data("index");
-    swal(
-      {
-        title: "Delete Transport?",
-        text: "This will remove this transport detail from the current list.",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete!",
-        cancelButtonText: "Cancel"
-      },
-      function (isConfirm) {
-        if (isConfirm) {
-          rentTransportDetails.splice(index, 1);
-          renderTransportDetailsArray();
-        }
-      }
-    );
-  });
-
-  // Load transport details for a rent
+  // Load transport details (now loads trips from trip_management)
   function loadTransportDetails(rentId) {
     $.ajax({
-      url: "ajax/php/equipment-rent-master.php",
+      url: "ajax/php/trip-management.php",
       type: "POST",
-      data: { action: "get_transport_details", rent_id: rentId },
+      data: { get_trips_by_bill: true, bill_id: rentId },
       dataType: "JSON",
       success: function (result) {
         if (result.status === "success") {
-          rentTransportDetails = result.transport_details || [];
-          renderTransportDetailsArray();
+          var trips = result.trips || [];
+          var totalCost = parseFloat(result.total_cost || 0);
+          window.rentTripTotalCost = totalCost;
+          renderTransportDetailsArray(trips, totalCost);
         }
       }
     });
   }
 
-  // Render transport details table
-  function renderTransportDetailsArray() {
+  // Render trips table in the modal
+  function renderTransportDetailsArray(trips, totalCost) {
     var $tbody = $("#transportDetailsTableBody");
     $tbody.empty();
-    
-    var total = 0;
-    
-    if (rentTransportDetails.length === 0) {
+
+    if (!trips || trips.length === 0) {
       $tbody.html(
-        '<tr><td colspan="12" class="text-center text-muted py-3">No transport details recorded yet.</td></tr>'
+        '<tr><td colspan="13" class="text-center text-muted py-3">No trips recorded yet.</td></tr>'
       );
       $("#transport_modal_total").text("0.00");
-      $("#transport_cost").val("0.00");
+      var tripCostEmpty = parseFloat(window.rentTripTotalCost || 0);
+      $("#transport_cost").val(formatAmount(tripCostEmpty));
       return;
     }
+    var total = 0;
+    trips.forEach(function (trip) {
+      var tripTotal = parseFloat(trip.total_cost || 0);
+      total += tripTotal;
 
-    rentTransportDetails.forEach(function (td, idx) {
-      var empDisplay = td.employee_name
-        ? (td.employee_code ? td.employee_code + ' - ' : '') + td.employee_name
-        : '-';
-      var vehDisplay = td.vehicle_no
-        ? td.vehicle_no + (td.vehicle_brand ? ' (' + td.vehicle_brand + ')' : '')
-        : '-';
-      var paymentMethod = td.payment_method || 'credit';
-      var isSettled = parseInt(td.is_settled || 0);
-      var paymentBadge = paymentMethod === 'cash' 
-        ? '<span class="badge bg-success">Cash</span>' 
-        : (isSettled ? '<span class="badge bg-success">Credit (Settled)</span>' : '<span class="badge bg-warning text-dark">Credit</span>');
-      var deliver = parseFloat(td.deliver_amount || 0);
-      var pickup = parseFloat(td.pickup_amount || 0);
-      var rowTotal = deliver + pickup;
-      total += rowTotal;
-
-      // Action buttons - show Settle for unsettled credit transports
-      var actionButtons = '';
-      if (td.id && paymentMethod === 'credit' && !isSettled) {
-        actionButtons += '<button type="button" class="btn btn-sm btn-outline-success settle-transport-btn me-1" data-id="' + td.id + '" data-amount="' + rowTotal + '" title="Settle"><i class="uil uil-check"></i></button>';
-      }
-      actionButtons += '<button type="button" class="btn btn-sm btn-outline-danger delete-transport-detail-btn" data-index="' + idx + '" title="Delete"><i class="uil uil-trash-alt"></i></button>';
+      var paymentBadge = (trip.payment_method || 'cash') === 'credit'
+        ? (parseInt(trip.is_settled || 0) ? '<span class="badge bg-success">Settled</span>' : '<span class="badge bg-warning text-dark">Credit</span>')
+        : '<span class="badge bg-info">Cash</span>';
 
       var html = '<tr>' +
-        '<td>' + (td.id ? 'TRN-' + String(td.id).padStart(4, '0') : '[ Pending ]') + '</td>' +
-        '<td>' + (td.transport_date || '-') + '</td>' +
-        '<td>' + empDisplay + '</td>' +
-        '<td>' + vehDisplay + '</td>' +
-        '<td>' + (td.start_location || '-') + '</td>' +
-        '<td>' + (td.end_location || '-') + '</td>' +
+        '<td>' + (trip.trip_number || '-') + '</td>' +
+        '<td>' + (trip.vehicle_no || '-') + '</td>' +
+        '<td>' + (trip.employee_name || '-') + '</td>' +
+        '<td>' + (trip.start_location || '-') + '</td>' +
+        '<td>' + (trip.end_location || '-') + '</td>' +
+        '<td>' + (trip.trip_type || '-') + '</td>' +
+        '<td class="text-end">' + formatAmount(trip.customer_fuel_cost || 0) + '</td>' +
+        '<td class="text-end">' + formatAmount(trip.toll || 0) + '</td>' +
+        '<td class="text-end">' + formatAmount(trip.helper_payment || 0) + '</td>' +
+        '<td class="text-end">' + formatAmount(trip.pay_amount || 0) + '</td>' +
+        '<td class="text-end fw-bold">' + formatAmount(tripTotal) + '</td>' +
         '<td class="text-center">' + paymentBadge + '</td>' +
-        '<td class="text-end">' + formatAmount(deliver) + '</td>' +
-        '<td class="text-end">' + formatAmount(pickup) + '</td>' +
-        '<td class="text-end fw-bold">' + formatAmount(rowTotal) + '</td>' +
-        '<td>' + (td.remark || '-') + '</td>' +
-        '<td>' + actionButtons + '</td>' +
+        '<td><a href="trip-management.php?page_id=113&trip_id=' + trip.id + '" class="btn btn-sm btn-outline-primary" target="_blank" title="View Trip"><i class="uil uil-eye"></i></a></td>' +
         '</tr>';
       $tbody.append(html);
     });
