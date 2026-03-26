@@ -225,6 +225,20 @@ $(document).ready(function () {
                                     <td><span class="badge bg-info">Fixed Rate Item</span></td>
                                     <td class="text-right">Flat charge applies</td>
                                 </tr>`;
+          } else if (calc.rent_type === 'month') {
+            settlementHtml += `
+                                <tr>
+                                    <td><span class="badge bg-primary">Monthly Billing</span></td>
+                                    <td class="text-right"></td>
+                                </tr>
+                                <tr>
+                                    <td>Used Months:</td>
+                                    <td class="text-right">${calc.used_months} month(s)</td>
+                                </tr>
+                                <tr>
+                                    <td>Monthly Rate (per unit):</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.per_unit_monthly)}</td>
+                                </tr>`;
           } else {
             settlementHtml += `
                                 <tr>
@@ -254,7 +268,18 @@ $(document).ready(function () {
                                 </tr>`;
 
           if (calc.is_late) {
-            settlementHtml += `
+            if (calc.rent_type === 'month') {
+              settlementHtml += `
+                                <tr class="text-danger">
+                                    <td>Overdue Months:</td>
+                                    <td class="text-right">${calc.overdue_months} month(s)</td>
+                                </tr>
+                                <tr class="text-danger">
+                                    <td>Penalty (${calc.penalty_percentage}%):</td>
+                                    <td class="text-right">Rs. ${formatAmount(calc.penalty_amount)}</td>
+                                </tr>`;
+            } else {
+              settlementHtml += `
                                 <tr class="text-danger">
                                     <td>Overdue Days:</td>
                                     <td class="text-right">${calc.overdue_days} day(s)</td>
@@ -263,6 +288,7 @@ $(document).ready(function () {
                                     <td>Penalty (${calc.penalty_percentage}%):</td>
                                     <td class="text-right">Rs. ${formatAmount(calc.penalty_amount)}</td>
                                 </tr>`;
+            }
           }
 
           settlementHtml += `

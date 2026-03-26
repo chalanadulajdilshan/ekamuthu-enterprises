@@ -503,7 +503,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                                 THEN err.rental_override
                                 ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                                     THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
-                                    ELSE (GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
+                                    WHEN eri.rent_type = 'month'
+                                    THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
+                                        * GREATEST(1, TIMESTAMPDIFF(MONTH, eri.rental_date, err.return_date) + CASE WHEN DATE_ADD(eri.rental_date, INTERVAL TIMESTAMPDIFF(MONTH, eri.rental_date, err.return_date) MONTH) < err.return_date THEN 1 ELSE 0 END)
+                                        * err.return_qty)
+                                ELSE (GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                         * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                         * err.return_qty)
                                 END
@@ -546,6 +550,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
         $accruedQuery = "SELECT COALESCE(SUM(
             CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                 THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                     * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
+                WHEN ri.rent_type = 'month'
+                THEN GREATEST(1, TIMESTAMPDIFF(MONTH, ri.rental_date, '$today') + CASE WHEN DATE_ADD(ri.rental_date, INTERVAL TIMESTAMPDIFF(MONTH, ri.rental_date, '$today') MONTH) < '$today' THEN 1 ELSE 0 END)
+                     * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
                      * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
                 ELSE (DATEDIFF('$today', ri.rental_date) + 1)
                      * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))

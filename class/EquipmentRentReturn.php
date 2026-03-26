@@ -495,7 +495,8 @@ class EquipmentRentReturn
         $duration = max(1, floatval($item['duration']));
         $rent_type = $item['rent_type'];
         $duration_days = ($rent_type === 'month') ? $duration * 30 : $duration;
-        // Monthly rent amounts already represent the day rate, so don't divide by 30
+        // For monthly items, per_unit_rent_total is the monthly rate per unit
+        // For daily items, per_unit_rent_total is the daily rate per unit
         $per_unit_daily = $per_unit_rent_total;
 
         // Validate return quantity
@@ -514,9 +515,26 @@ class EquipmentRentReturn
         // Match UI preview logic: charge based on the number of full days elapsed, with a minimum of one day
         $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400));
         
-        // Check if return is late (used_days > duration_days)
-        $is_late = $used_days > $duration_days;
-        $overdue_days = $is_late ? ($used_days - $duration_days) : 0;
+        // For monthly items: calculate ceiling months (any partial month = 1 full month)
+        $used_months = 0;
+        $overdue_months = 0;
+        if ($rent_type === 'month') {
+            $rental_date_obj = new DateTime($rental_date);
+            $return_date_obj = new DateTime($return_date);
+            $date_diff = $rental_date_obj->diff($return_date_obj);
+            $used_months = $date_diff->y * 12 + $date_diff->m;
+            if ($date_diff->d > 0) {
+                $used_months++;
+            }
+            $used_months = max(1, $used_months);
+            $is_late = $used_months > $duration;
+            $overdue_months = $is_late ? ($used_months - (int)$duration) : 0;
+            $overdue_days = 0;
+        } else {
+            // Check if return is late (used_days > duration_days)
+            $is_late = $used_days > $duration_days;
+            $overdue_days = $is_late ? ($used_days - $duration_days) : 0;
+        }
 
         $isAfterCutoff = false;
         if (intval($after_9am_extra_day) === 1) {
@@ -560,6 +578,10 @@ class EquipmentRentReturn
                                 THEN err2.rental_override
                                 ELSE CASE WHEN COALESCE(e2.is_fixed_rate, 0) = 1
                                     THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
+                                    WHEN eri2.rent_type = 'month'
+                                    THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
+                                        * GREATEST(1, TIMESTAMPDIFF(MONTH, eri2.rental_date, err2.return_date) + CASE WHEN DATE_ADD(eri2.rental_date, INTERVAL TIMESTAMPDIFF(MONTH, eri2.rental_date, err2.return_date) MONTH) < err2.return_date THEN 1 ELSE 0 END)
+                                        * err2.return_qty)
                                     ELSE ((DATEDIFF(err2.return_date, eri2.rental_date) + 1)
                                         * (COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
                                         * err2.return_qty)
@@ -586,8 +608,11 @@ class EquipmentRentReturn
         // For fixed-rate items: flat rate regardless of days used
         if ($is_fixed_rate) {
             $rental_amount = $per_unit_rent_total * $return_qty;
+        } else if ($rent_type === 'month') {
+            // Monthly billing: charge full months (ceiling - any partial month = 1 full month)
+            $rental_amount = $per_unit_rent_total * $used_months * $return_qty;
         } else {
-            // Standard: based on days used (extra day amount is separate)
+            // Daily billing: based on days used (extra day amount is separate)
             $rental_amount = $per_unit_daily * $used_days * $return_qty;
         }
         
@@ -627,12 +652,17 @@ class EquipmentRentReturn
             'total_previous_charges' => round($total_previous_charges, 2),
             'remaining_deposit' => round($remaining_deposit, 2),
             'rental_amount' => round($rental_amount, 2),
+            'rent_type' => $rent_type,
             'per_unit_daily' => round($per_unit_daily, 2),
+            'per_unit_monthly' => ($rent_type === 'month') ? round($per_unit_rent_total, 2) : 0,
             'used_days' => $used_days,
+            'used_months' => $used_months,
             'charged_days' => $charged_days,
             'duration_days' => $duration_days,
+            'duration_months' => ($rent_type === 'month') ? (int)$duration : 0,
             'is_late' => $is_late,
             'overdue_days' => $overdue_days,
+            'overdue_months' => $overdue_months,
             'extra_day_amount' => round($finalExtraDayAmount, 2),
             'penalty_percentage' => round($penalty_percentage, 2),
             'penalty_amount' => round($penalty_amount, 2),
@@ -657,11 +687,16 @@ class EquipmentRentReturn
                          (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily,
                          -- used days from rental_date to this return_date (>=1), matching PHP ceil day diff
                          GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) AS used_days,
+                         eri.rent_type,
                          -- rental for this return qty: use rental_override if set, else calculate
                          CASE WHEN err.rental_override IS NOT NULL
                            THEN err.rental_override
                            ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
+                             WHEN eri.rent_type = 'month'
+                             THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
+                               * GREATEST(1, TIMESTAMPDIFF(MONTH, eri.rental_date, err.return_date) + CASE WHEN DATE_ADD(eri.rental_date, INTERVAL TIMESTAMPDIFF(MONTH, eri.rental_date, err.return_date) MONTH) < err.return_date THEN 1 ELSE 0 END)
+                               * err.return_qty
                              ELSE GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                * err.return_qty

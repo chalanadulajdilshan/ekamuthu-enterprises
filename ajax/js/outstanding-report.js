@@ -907,21 +907,40 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
             var pendingQty = parseFloat(item.pending_qty || 0);
             if (pendingQty <= 0) return;
 
-            // Use start date for calculation (rental date or user-selected start date)
-            var effectiveStartDate = calcStartDate || new Date(data.rental_date);
+            // Use item rental date if available, otherwise fall back to bill rental date or user-selected start date
+            var itemRentalDate = item.rental_date ? new Date(item.rental_date) : null;
+            var effectiveStartDate = calcStartDate || itemRentalDate || new Date(data.rental_date);
             if (isNaN(effectiveStartDate.getTime())) return;
             
             var startMidnight = new Date(effectiveStartDate.getFullYear(), effectiveStartDate.getMonth(), effectiveStartDate.getDate());
             var endMidnight = new Date(calcEndDate.getFullYear(), calcEndDate.getMonth(), calcEndDate.getDate());
-            var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
             
-            // Calculate per unit daily rate
+            // Calculate per unit rate
             var totalQty = parseFloat(item.quantity || 0);
             var totalAmount = parseFloat(item.amount || 0);
-            var perUnitDaily = totalQty > 0 ? (totalAmount / totalQty) : 0;
+            var perUnitRate = totalQty > 0 ? (totalAmount / totalQty) : 0;
             
-            // Calculate projected amount for pending quantity
-            var projectedAmount = pendingQty * usedDays * perUnitDaily;
+            var rentType = item.rent_type || 'day';
+            var projectedAmount = 0;
+            
+            if (rentType === 'month') {
+                // Monthly billing: charge full months (ceiling - any partial month = 1 full month)
+                var months = (endMidnight.getFullYear() - startMidnight.getFullYear()) * 12
+                           + (endMidnight.getMonth() - startMidnight.getMonth());
+                // Check if there are remaining days beyond the full months
+                var tempDate = new Date(startMidnight);
+                tempDate.setMonth(tempDate.getMonth() + months);
+                if (tempDate < endMidnight) {
+                    months++;
+                }
+                var usedMonths = Math.max(1, months);
+                projectedAmount = pendingQty * usedMonths * perUnitRate;
+            } else {
+                // Daily billing: charge per day
+                var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
+                projectedAmount = pendingQty * usedDays * perUnitRate;
+            }
+            
             projectedOutstanding += projectedAmount;
         });
     }

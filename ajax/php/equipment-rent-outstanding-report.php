@@ -32,6 +32,8 @@ try {
                     e.code AS equipment_code,
                     se.code AS sub_equipment_code,
                     eri.rental_date,
+                    eri.rent_type,
+                    eri.duration,
                     CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END AS duration_days,
                     DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY) AS due_date,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id), 0)) AS pending_qty,
@@ -60,9 +62,26 @@ try {
             $overdueDays = max(0, (int)$row['overdue_days']);
             $pendingQty = max(0, (float)$row['pending_qty']);
             $perUnitDaily = floatval($row['per_unit_daily']);
-            $outstandingAmount = ($overdueDays > 0 && $pendingQty > 0)
-                ? round($perUnitDaily * $overdueDays * $pendingQty, 2)
-                : 0;
+            $rentType = $row['rent_type'] ?? 'day';
+            $itemDuration = max(1, floatval($row['duration'] ?? 1));
+
+            // For monthly items: calculate outstanding using ceiling months
+            if ($rentType === 'month' && $overdueDays > 0 && $pendingQty > 0) {
+                $rentalDateObj = new DateTime($row['rental_date']);
+                $asOfDateObj = new DateTime($asOfDateSafe);
+                $dateDiff = $rentalDateObj->diff($asOfDateObj);
+                $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
+                if ($dateDiff->d > 0) {
+                    $usedMonths++;
+                }
+                $usedMonths = max(1, $usedMonths);
+                $overdueMonths = max(0, $usedMonths - (int)$itemDuration);
+                $outstandingAmount = ($overdueMonths > 0) ? round($perUnitDaily * $overdueMonths * $pendingQty, 2) : 0;
+            } else {
+                $outstandingAmount = ($overdueDays > 0 && $pendingQty > 0)
+                    ? round($perUnitDaily * $overdueDays * $pendingQty, 2)
+                    : 0;
+            }
 
             if ($pendingQty <= 0 || $overdueDays <= 0) {
                 continue; // skip items not overdue or fully returned

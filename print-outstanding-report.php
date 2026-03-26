@@ -120,7 +120,9 @@ $projectedSql = "SELECT
                     er.status as rent_status,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
                     (DATEDIFF('$today', eri.rental_date) + 1) AS used_days,
-                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
+                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily,
+                    eri.rent_type,
+                    eri.duration AS item_duration
                 FROM equipment_rent_items eri
                 INNER JOIN equipment_rent er ON eri.rent_id = er.id
                 LEFT JOIN customer_master cm ON er.customer_id = cm.id
@@ -135,9 +137,24 @@ if ($projectedResult) {
             continue;
         }
 
-        $usedDays = max(1, (int)$row['used_days']);
         $perUnitDaily = floatval($row['per_unit_daily']);
-        $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
+        $rentType = $row['rent_type'] ?? 'day';
+
+        // For monthly items: calculate projected amount using ceiling months
+        if ($rentType === 'month') {
+            $rentalDateObj = new DateTime($row['rental_date']);
+            $todayObj = new DateTime($today);
+            $dateDiff = $rentalDateObj->diff($todayObj);
+            $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
+            if ($dateDiff->d > 0) {
+                $usedMonths++;
+            }
+            $usedMonths = max(1, $usedMonths);
+            $projectedAmount = round($pendingQty * $usedMonths * $perUnitDaily, 2);
+        } else {
+            $usedDays = max(1, (int)$row['used_days']);
+            $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
+        }
         if ($projectedAmount <= 0) {
             continue;
         }

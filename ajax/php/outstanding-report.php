@@ -309,7 +309,9 @@ if ($action === 'get_outstanding_report') {
                         er.status as rent_status,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0)) AS pending_qty,
                     (DATEDIFF('$today', eri.rental_date) + 1) AS used_days,
-                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
+                    (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily,
+                    eri.rent_type,
+                    eri.duration AS item_duration
                 FROM equipment_rent_items eri
                     INNER JOIN equipment_rent er ON eri.rent_id = er.id
                     LEFT JOIN customer_master cm ON er.customer_id = cm.id
@@ -324,9 +326,24 @@ if ($action === 'get_outstanding_report') {
                 continue;
             }
 
-            $usedDays = max(1, (int)$row['used_days']);
             $perUnitDaily = floatval($row['per_unit_daily']);
-            $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
+            $rentType = $row['rent_type'] ?? 'day';
+
+            // For monthly items: calculate projected amount using ceiling months
+            if ($rentType === 'month') {
+                $rentalDateObj = new DateTime($row['rental_date']);
+                $todayObj = new DateTime($today);
+                $dateDiff = $rentalDateObj->diff($todayObj);
+                $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
+                if ($dateDiff->d > 0) {
+                    $usedMonths++;
+                }
+                $usedMonths = max(1, $usedMonths);
+                $projectedAmount = round($pendingQty * $usedMonths * $perUnitDaily, 2);
+            } else {
+                $usedDays = max(1, (int)$row['used_days']);
+                $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
+            }
             if ($projectedAmount <= 0) {
                 continue;
             }
@@ -349,6 +366,7 @@ if ($action === 'get_outstanding_report') {
                         COALESCE(eri.damage_amount, 0) AS damage_amount,
                         eri.duration,
                         eri.rent_type,
+                        eri.rental_date AS item_rental_date,
                         COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err2 WHERE err2.rent_item_id = eri.id), 0) AS returned_qty,
                         e.item_name,
                         e.code AS equipment_code,
@@ -379,7 +397,8 @@ if ($action === 'get_outstanding_report') {
                     'amount' => $iRow['amount'] ?? 0,
                     'damage_amount' => floatval($iRow['damage_amount'] ?? 0),
                     'duration' => $iRow['duration'] ?? 0,
-                    'rent_type' => $iRow['rent_type'] ?? ''
+                    'rent_type' => $iRow['rent_type'] ?? '',
+                    'rental_date' => $iRow['item_rental_date'] ?? ''
                 ];
             }
         }
@@ -557,6 +576,17 @@ if ($action === 'get_outstanding_report') {
                 // Rental amount calculation mirrors EquipmentRentReturn::getByRentItemId
                 if ($isFixedRate) {
                     $rentalAmount = $perUnitDaily * $returnQty;
+                } else if ($rentType === 'month') {
+                    // Monthly billing: charge full months (ceiling)
+                    $rentalDateObj = new DateTime($rentalDate);
+                    $returnDateObj = new DateTime($returnDate);
+                    $dateDiff = $rentalDateObj->diff($returnDateObj);
+                    $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
+                    if ($dateDiff->d > 0) {
+                        $usedMonths++;
+                    }
+                    $usedMonths = max(1, $usedMonths);
+                    $rentalAmount = $usedMonths * $perUnitDaily * $returnQty;
                 } else {
                     $rentalAmount = $usedDays * $perUnitDaily * $returnQty;
                 }
