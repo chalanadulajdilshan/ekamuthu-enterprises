@@ -56,6 +56,34 @@ $termsConditions = $TC->getActive();
             padding-bottom: 10px;
         }
 
+        .rent-header-container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .rent-header-img {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            height: 140px;
+            max-height: 140px;
+            object-fit: contain;
+            margin: 0 auto 10px auto;
+        }
+
+        @media print {
+            .rent-header-container {
+                max-width: 980px !important;
+            }
+
+            .rent-header-img {
+                margin-bottom: 6px !important;
+                height: 140px !important;
+                max-height: 140px !important;
+                max-width: 100% !important;
+            }
+        }
+
         .company-header {
             margin-bottom: 15px;
         }
@@ -251,25 +279,20 @@ $termsConditions = $TC->getActive();
     <!-- Quotation Content -->
     <div class="quotation-container">
 
+        <!-- Header Banner -->
+        <div class="row mb-2">
+            <div class="col-12 text-center">
+                <img src="assets/images/header.png" alt="P.S Ekamuthu Enterprises" class="rent-header-img">
+            </div>
+        </div>
+
         <!-- Title -->
         <div class="quotation-title">Quotation</div>
 
-        <!-- Header: Company Info + Date -->
-        <div class="row company-header">
-            <div class="col-8 company-details">
-                <p class="company-name"><?php echo $COMPANY_PROFILE->name; ?></p>
-                <p><?php echo $COMPANY_PROFILE->address; ?></p>
-                <p>&nbsp;</p>
-                <p>Phone (<?php echo substr($COMPANY_PROFILE->mobile_number_1, 0, 3); ?>) <?php echo substr($COMPANY_PROFILE->mobile_number_1, 3); ?></p>
-                <?php if (!empty($COMPANY_PROFILE->mobile_number_2)) { ?>
-                    <p>Contact :<?php echo $COMPANY_PROFILE->mobile_number_2; ?></p>
-                <?php } ?>
-                <p>Email: <?php echo $COMPANY_PROFILE->email; ?></p>
-                <p>Web: www.psekamuthuenterprises.com</p>
-            </div>
-            <div class="col-4 date-section">
-                <p><strong>Date</strong> &nbsp;&nbsp;&nbsp;&nbsp;
-                    <?php echo date('d/m/Y', strtotime($QUOTATION->rental_date)); ?></p>
+        <!-- Header: Date -->
+        <div class="row mb-1">
+            <div class="col-12 text-end date-section">
+                <p><strong>Date:</strong> <?php echo date('d/m/Y', strtotime($QUOTATION->rental_date)); ?></p>
             </div>
         </div>
 

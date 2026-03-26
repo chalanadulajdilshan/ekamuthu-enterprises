@@ -74,6 +74,44 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
                 height: 11in;
             }
         }
+
+        .rent-header-container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .rent-header-img {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            height: 140px;
+            max-height: 140px;
+            object-fit: contain;
+            margin: 0 auto 10px auto;
+        }
+
+        @media print {
+            .rent-header-container {
+                max-width: 980px !important;
+            }
+
+            .rent-header-img {
+                margin-bottom: 6px !important;
+                height: 140px !important;
+                max-height: 140px !important;
+                max-width: 100% !important;
+            }
+        }
+
+        .quotation-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -100,40 +138,39 @@ $CUSTOMER_MASTER = new CustomerMaster($QUOTATION->customer_id);
             <div class="card-body">
                 <div class="invoice-title">
 
-                    <div class="col-sm-6 text-sm-end float-end">
-                        <p><strong>Quotation No:</strong> #<?php echo $QUOTATION->quotation_no ?></p>
-                        <p><strong>Quotation Date:</strong>
-                            <?php echo date('d M, Y', strtotime($QUOTATION->date)); ?></p>
+                    <!-- Header Banner -->
+                    <div class="row mb-2">
+                        <div class="col-12 text-center">
+                            <img src="assets/images/header.png" alt="P.S Ekamuthu Enterprises" class="rent-header-img">
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <img src="./uploads/company-logos/<?php echo $COMPANY_PROFILE->image_name ?>" alt="logo" style="height:60px; width:auto;">
+
+                    <!-- Title -->
+                    <div class="quotation-title">Quotation</div>
+
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <p class="mb-1"><strong>Quotation No:</strong> #<?php echo $QUOTATION->quotation_no ?></p>
+                            <p class="mb-0"><strong>Quotation Date:</strong> <?php echo date('d M, Y', strtotime($QUOTATION->date)); ?></p>
+                        </div>
                     </div>
 
                     <div class="row mb-4">
-                        <!-- Left: Company Info -->
+                        <!-- Left: Customer Info -->
                         <div class="col-sm-6">
                             <div class="text-muted">
-                                <p class="mb-1"><i
-                                        class="uil uil-building me-1"></i><?php echo $COMPANY_PROFILE->name ?></p>
-                                <p class="mb-1"><i
-                                        class="uil uil-map-marker me-1"></i><?php echo $COMPANY_PROFILE->address ?></p>
-                                <p class="mb-1"><i
-                                        class="uil uil-envelope-alt me-1"></i><?php echo $COMPANY_PROFILE->email ?></p>
-                                <p><i class="uil uil-phone me-1"></i><?php echo $COMPANY_PROFILE->mobile_number_1 ?></p>
+                                <p class="mb-1"><strong>To:</strong></p>
+                                <p class="mb-1"><?php echo $CUSTOMER_MASTER->name ?></p>
+                                <p class="mb-1"><?php echo $CUSTOMER_MASTER->address ?></p>
+                                <p class="mb-1"><?php echo $CUSTOMER_MASTER->mobile_number ?></p>
+                                <p class="mb-0"><?php echo $CUSTOMER_MASTER->email ?></p>
                             </div>
                         </div>
-
-                        <!-- Right: Billed To -->
                         <div class="col-sm-6 text-sm-end">
-
-                            <p><?php echo $CUSTOMER_MASTER->name ?><br><?php echo $CUSTOMER_MASTER->address ?>
-                                <br><?php echo $CUSTOMER_MASTER->mobile_number ?><br>
-                                <?php echo $CUSTOMER_MASTER->email ?>
-                            </p>
                         </div>
                     </div>
-
-
                 </div>
 
                 <div class="table-responsive">
