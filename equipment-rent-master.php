@@ -924,6 +924,7 @@ $bill_number = $lastId + 1;
                                         <th>Received Date</th>
                                         <th>Items</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="equipmentRentTableBody"></tbody>
@@ -972,6 +973,7 @@ $bill_number = $lastId + 1;
                                         <th>Received Date</th>
                                         <th>Items</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="returnedBillsTableBody"></tbody>
@@ -982,6 +984,7 @@ $bill_number = $lastId + 1;
             </div>
         </div>
     </div>
+
 
     <!-- Customer Select Modal -->
     <div id="CustomerSelectModal" class="modal fade bs-example-modal-xl" tabindex="-1" role="dialog"

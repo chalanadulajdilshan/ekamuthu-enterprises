@@ -1165,7 +1165,7 @@ jQuery(document).ready(function () {
   function loadEquipmentRentList(searchTerm) {
     var $tbody = $("#equipmentRentTableBody");
     $tbody.html(
-      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>',
+      '<tr><td colspan="8" class="text-center text-muted py-3">Loading...</td></tr>',
     );
 
     $.ajax({
@@ -1186,7 +1186,7 @@ jQuery(document).ready(function () {
 
         if (!rows.length) {
           $tbody.html(
-            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>',
+            '<tr><td colspan="8" class="text-center text-muted py-3">No records found</td></tr>',
           );
           return;
         }
@@ -1235,6 +1235,11 @@ jQuery(document).ready(function () {
             "<td>" +
             statusLabel +
             "</td>" +
+            "<td>" +
+            "<button class='btn btn-sm btn-soft-primary btn-view-bill' data-id='" +
+            (row.id || "") +
+            "' title='View Bill'><i class='uil uil-eye'></i> View</button>" +
+            "</td>" +
             "</tr>";
           $tbody.append(html);
         });
@@ -1252,7 +1257,7 @@ jQuery(document).ready(function () {
       error: function (xhr) {
         console.error("Server Error:", xhr.responseText);
         $tbody.html(
-          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>',
+          '<tr><td colspan="8" class="text-center text-danger py-3">Failed to load records</td></tr>',
         );
       },
     });
@@ -1599,7 +1604,7 @@ jQuery(document).ready(function () {
   function loadReturnedBillsList(searchTerm, companyOutstandingOnly) {
     var $tbody = $("#returnedBillsTableBody");
     $tbody.html(
-      '<tr><td colspan="7" class="text-center text-muted py-3">Loading...</td></tr>',
+      '<tr><td colspan="8" class="text-center text-muted py-3">Loading...</td></tr>',
     );
 
     var payload = {
@@ -1626,7 +1631,7 @@ jQuery(document).ready(function () {
 
         if (!rows.length) {
           $tbody.html(
-            '<tr><td colspan="7" class="text-center text-muted py-3">No records found</td></tr>',
+            '<tr><td colspan="8" class="text-center text-muted py-3">No records found</td></tr>',
           );
           return;
         }
@@ -1689,6 +1694,11 @@ jQuery(document).ready(function () {
             "<td>" +
             statusLabel +
             "</td>" +
+            "<td>" +
+            "<button class='btn btn-sm btn-soft-primary btn-view-bill' data-id='" +
+            (row.id || "") +
+            "' title='View Bill'><i class='uil uil-eye'></i> View</button>" +
+            "</td>" +
             "</tr>";
           $tbody.append(html);
         });
@@ -1706,7 +1716,7 @@ jQuery(document).ready(function () {
       error: function (xhr) {
         console.error("Server Error:", xhr.responseText);
         $tbody.html(
-          '<tr><td colspan="7" class="text-center text-danger py-3">Failed to load records</td></tr>',
+          '<tr><td colspan="8" class="text-center text-danger py-3">Failed to load records</td></tr>',
         );
       },
     });
@@ -4241,5 +4251,20 @@ jQuery(document).ready(function () {
   const rentId = urlParams.get('rent_id');
   if (rentId) {
     loadRentDetails(rentId);
+  }
+
+  // Global View Bill Event Handler
+  $(document).on("click", ".btn-view-bill", function (e) {
+    e.stopPropagation();
+    var id = $(this).data("id");
+    if (id) {
+      viewRentBill(id);
+    }
+  });
+
+  function viewRentBill(rentId) {
+    if (rentId) {
+      window.open("view-rent-bill.php?rent_id=" + rentId, "_blank");
+    }
   }
 });
