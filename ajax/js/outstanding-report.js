@@ -924,17 +924,10 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
             var projectedAmount = 0;
             
             if (rentType === 'month') {
-                // Monthly billing: charge full months (ceiling - any partial month = 1 full month)
-                var months = (endMidnight.getFullYear() - startMidnight.getFullYear()) * 12
-                           + (endMidnight.getMonth() - startMidnight.getMonth());
-                // Check if there are remaining days beyond the full months
-                var tempDate = new Date(startMidnight);
-                tempDate.setMonth(tempDate.getMonth() + months);
-                if (tempDate < endMidnight) {
-                    months++;
-                }
-                var usedMonths = Math.max(1, months);
-                projectedAmount = pendingQty * usedMonths * perUnitRate;
+                // Monthly billing: round used days up to 30-day blocks
+                var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
+                var chargedDays = Math.max(1, Math.ceil(usedDays / 30)) * 30;
+                projectedAmount = pendingQty * chargedDays * perUnitRate;
             } else {
                 // Daily billing: charge per day
                 var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);

@@ -329,17 +329,11 @@ if ($action === 'get_outstanding_report') {
             $perUnitDaily = floatval($row['per_unit_daily']);
             $rentType = $row['rent_type'] ?? 'day';
 
-            // For monthly items: calculate projected amount using ceiling months
+            // For monthly items: round used days up to 30-day blocks, then rate * charged_days
             if ($rentType === 'month') {
-                $rentalDateObj = new DateTime($row['rental_date']);
-                $todayObj = new DateTime($today);
-                $dateDiff = $rentalDateObj->diff($todayObj);
-                $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
-                if ($dateDiff->d > 0) {
-                    $usedMonths++;
-                }
-                $usedMonths = max(1, $usedMonths);
-                $projectedAmount = round($pendingQty * $usedMonths * $perUnitDaily, 2);
+                $usedDays = max(1, (int)$row['used_days']);
+                $chargedDays = max(1, (int)ceil($usedDays / 30)) * 30;
+                $projectedAmount = round($pendingQty * $chargedDays * $perUnitDaily, 2);
             } else {
                 $usedDays = max(1, (int)$row['used_days']);
                 $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
@@ -577,16 +571,9 @@ if ($action === 'get_outstanding_report') {
                 if ($isFixedRate) {
                     $rentalAmount = $perUnitDaily * $returnQty;
                 } else if ($rentType === 'month') {
-                    // Monthly billing: charge full months (ceiling)
-                    $rentalDateObj = new DateTime($rentalDate);
-                    $returnDateObj = new DateTime($returnDate);
-                    $dateDiff = $rentalDateObj->diff($returnDateObj);
-                    $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
-                    if ($dateDiff->d > 0) {
-                        $usedMonths++;
-                    }
-                    $usedMonths = max(1, $usedMonths);
-                    $rentalAmount = $usedMonths * $perUnitDaily * $returnQty;
+                    // Monthly billing: round used days up to 30-day blocks
+                    $chargedDays = max(1, (int)ceil($usedDays / 30)) * 30;
+                    $rentalAmount = $chargedDays * $perUnitDaily * $returnQty;
                 } else {
                     $rentalAmount = $usedDays * $perUnitDaily * $returnQty;
                 }

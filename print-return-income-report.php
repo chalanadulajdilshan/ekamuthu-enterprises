@@ -27,8 +27,12 @@ $query = "SELECT err.*,
                  -- Rental Amount Calculation (fixed-rate items use flat amount)
                  CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                    THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                   WHEN eri.rent_type = 'month'
+                   THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
+                     * (GREATEST(1, CEILING(GREATEST(1, DATEDIFF(err.return_date, eri.rental_date)) / 30)) * 30)
+                     * err.return_qty
                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
-                     * ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) / (CASE WHEN eri.rent_type = 'month' THEN 30 ELSE 1 END))
+                     * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                      * err.return_qty)
                  END AS calc_rental_amount,
                  GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400)) as rented_days_count

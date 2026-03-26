@@ -515,22 +515,18 @@ class EquipmentRentReturn
         // Match UI preview logic: charge based on the number of full days elapsed, with a minimum of one day
         $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400));
         
-        // For monthly items: charge monthly_rate * used_days (monthly rate acts as daily rate)
+        // For monthly items: round used_days up to nearest 30-day block
+        // 1-30 days → 30, 31-60 days → 60, etc.
+        // Rental = monthly_rate * charged_days * return_qty
         $used_months = 0;
         $overdue_months = 0;
+        $charged_days_monthly = 0;
         if ($rent_type === 'month') {
-            $rental_date_obj = new DateTime($rental_date);
-            $return_date_obj = new DateTime($return_date);
-            $date_diff = $rental_date_obj->diff($return_date_obj);
-            $used_months = $date_diff->y * 12 + $date_diff->m;
-            if ($date_diff->d > 0) {
-                $used_months++;
-            }
-            $used_months = max(1, $used_months);
-            // Late check based on days (duration in months * 30)
-            $is_late = $used_days > $duration_days;
+            $used_months = max(1, (int)ceil($used_days / 30));
+            $charged_days_monthly = $used_months * 30;
+            $is_late = $used_months > $duration;
+            $overdue_months = $is_late ? ($used_months - (int)$duration) : 0;
             $overdue_days = $is_late ? ($used_days - $duration_days) : 0;
-            $overdue_months = $is_late ? max(0, $used_months - (int)$duration) : 0;
         } else {
             // Check if return is late (used_days > duration_days)
             $is_late = $used_days > $duration_days;
@@ -581,7 +577,7 @@ class EquipmentRentReturn
                                     THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
                                     WHEN eri2.rent_type = 'month'
                                     THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
-                                        * GREATEST(1, DATEDIFF(err2.return_date, eri2.rental_date))
+                                        * (GREATEST(1, CEILING(GREATEST(1, DATEDIFF(err2.return_date, eri2.rental_date)) / 30)) * 30)
                                         * err2.return_qty)
                                     ELSE ((DATEDIFF(err2.return_date, eri2.rental_date) + 1)
                                         * (COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
@@ -610,8 +606,8 @@ class EquipmentRentReturn
         if ($is_fixed_rate) {
             $rental_amount = $per_unit_rent_total * $return_qty;
         } else if ($rent_type === 'month') {
-            // Monthly billing: monthly_rate * used_days * return_qty
-            $rental_amount = $per_unit_rent_total * $used_days * $return_qty;
+            // Monthly billing: rate * charged_days (rounded to 30-day blocks) * qty
+            $rental_amount = $per_unit_rent_total * $charged_days_monthly * $return_qty;
         } else {
             // Daily billing: based on days used (extra day amount is separate)
             $rental_amount = $per_unit_daily * $used_days * $return_qty;
@@ -696,7 +692,7 @@ class EquipmentRentReturn
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
                              WHEN eri.rent_type = 'month'
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
-                               * GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
+                               * (GREATEST(1, CEILING(GREATEST(1, DATEDIFF(err.return_date, eri.rental_date)) / 30)) * 30)
                                * err.return_qty
                              ELSE GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))

@@ -65,18 +65,11 @@ try {
             $rentType = $row['rent_type'] ?? 'day';
             $itemDuration = max(1, floatval($row['duration'] ?? 1));
 
-            // For monthly items: calculate outstanding using ceiling months
+            // For monthly items: round overdue days up to 30-day blocks, then rate * charged_days
+            // For daily items: charge per overdue day
             if ($rentType === 'month' && $overdueDays > 0 && $pendingQty > 0) {
-                $rentalDateObj = new DateTime($row['rental_date']);
-                $asOfDateObj = new DateTime($asOfDateSafe);
-                $dateDiff = $rentalDateObj->diff($asOfDateObj);
-                $usedMonths = $dateDiff->y * 12 + $dateDiff->m;
-                if ($dateDiff->d > 0) {
-                    $usedMonths++;
-                }
-                $usedMonths = max(1, $usedMonths);
-                $overdueMonths = max(0, $usedMonths - (int)$itemDuration);
-                $outstandingAmount = ($overdueMonths > 0) ? round($perUnitDaily * $overdueMonths * $pendingQty, 2) : 0;
+                $chargedDays = max(1, (int)ceil($overdueDays / 30)) * 30;
+                $outstandingAmount = round($perUnitDaily * $chargedDays * $pendingQty, 2);
             } else {
                 $outstandingAmount = ($overdueDays > 0 && $pendingQty > 0)
                     ? round($perUnitDaily * $overdueDays * $pendingQty, 2)

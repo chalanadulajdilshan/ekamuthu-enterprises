@@ -226,6 +226,7 @@ $(document).ready(function () {
                                     <td class="text-right">Flat charge applies</td>
                                 </tr>`;
           } else if (calc.rent_type === 'month') {
+            var chargedDaysMonthly = Math.max(1, Math.ceil(calc.used_days / 30)) * 30;
             settlementHtml += `
                                 <tr>
                                     <td><span class="badge bg-primary">Monthly Billing</span></td>
@@ -236,7 +237,11 @@ $(document).ready(function () {
                                     <td class="text-right">${calc.used_days} day(s)</td>
                                 </tr>
                                 <tr>
-                                    <td>Monthly Rate (per unit/day):</td>
+                                    <td>Charged Days:</td>
+                                    <td class="text-right">${chargedDaysMonthly} day(s) <small class="text-muted">(${calc.used_months} month(s))</small></td>
+                                </tr>
+                                <tr>
+                                    <td>Monthly Rate (per unit):</td>
                                     <td class="text-right">Rs. ${formatAmount(calc.per_unit_monthly)}</td>
                                 </tr>`;
           } else {
