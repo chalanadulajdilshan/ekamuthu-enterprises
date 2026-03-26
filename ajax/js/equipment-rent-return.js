@@ -232,11 +232,11 @@ $(document).ready(function () {
                                     <td class="text-right"></td>
                                 </tr>
                                 <tr>
-                                    <td>Used Months:</td>
-                                    <td class="text-right">${calc.used_months} month(s)</td>
+                                    <td>Used Days:</td>
+                                    <td class="text-right">${calc.used_days} day(s)</td>
                                 </tr>
                                 <tr>
-                                    <td>Monthly Rate (per unit):</td>
+                                    <td>Monthly Rate (per unit/day):</td>
                                     <td class="text-right">Rs. ${formatAmount(calc.per_unit_monthly)}</td>
                                 </tr>`;
           } else {

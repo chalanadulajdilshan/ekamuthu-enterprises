@@ -505,7 +505,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                                     THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
                                     WHEN eri.rent_type = 'month'
                                     THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
-                                        * GREATEST(1, TIMESTAMPDIFF(MONTH, eri.rental_date, err.return_date) + CASE WHEN DATE_ADD(eri.rental_date, INTERVAL TIMESTAMPDIFF(MONTH, eri.rental_date, err.return_date) MONTH) < err.return_date THEN 1 ELSE 0 END)
+                                        * GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                         * err.return_qty)
                                 ELSE (GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                         * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
@@ -552,8 +552,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
                      * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
                 WHEN ri.rent_type = 'month'
-                THEN GREATEST(1, TIMESTAMPDIFF(MONTH, ri.rental_date, '$today') + CASE WHEN DATE_ADD(ri.rental_date, INTERVAL TIMESTAMPDIFF(MONTH, ri.rental_date, '$today') MONTH) < '$today' THEN 1 ELSE 0 END)
-                     * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                THEN (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
+                     * GREATEST(1, DATEDIFF('$today', ri.rental_date))
                      * (ri.quantity - COALESCE(ri.total_returned_qty, 0))
                 ELSE (DATEDIFF('$today', ri.rental_date) + 1)
                      * (COALESCE(ri.amount,0) / NULLIF(ri.quantity,0))
