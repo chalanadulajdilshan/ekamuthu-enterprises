@@ -148,6 +148,21 @@ $(document).ready(function () {
                     $("#department_id").val(ret.department_id).attr("disabled", !!ret.department_id);
                     $("#remarks").val(ret.remarks);
 
+                    // Show attached image
+                    if (ret.image_path) {
+                        $("#image_upload_container").html(`
+                            <label class="form-label">Attached Image</label>
+                            <div class="mt-2">
+                                <a href="${ret.image_path}" target="_blank">
+                                    <img src="${ret.image_path}" alt="Return Image" style="max-height: 150px; border: 1px solid #ddd; padding: 5px; border-radius: 5px; cursor: pointer;">
+                                </a>
+                                <p class="text-muted mt-1 font-size-12">Click image to view full size</p>
+                            </div>
+                        `);
+                    } else {
+                        $("#image_upload_container").hide();
+                    }
+
                     // Show selected issue note status
                     if (ret.issue_note_status === 'cancelled') {
                         $("#selected_issue_status_badge").html('<span class="badge bg-danger font-size-10">CANCELLED ISSUE</span>');
@@ -418,21 +433,27 @@ $(document).ready(function () {
             return;
         }
 
-        var formData = {
-            create: true,
-            return_id: current_return_id,
-            return_code: $("#return_note_code").val(),
-            issue_note_id: $("#issue_note_id").val(),
-            return_date: $("#return_date").val(),
-            department_id: $("#department_id").val(),
-            remarks: $("#remarks").val(),
-            items: JSON.stringify(returnItems)
-        };
+        var formData = new FormData();
+        formData.append("create", true);
+        formData.append("return_id", current_return_id || "");
+        formData.append("return_code", $("#return_note_code").val());
+        formData.append("issue_note_id", $("#issue_note_id").val());
+        formData.append("return_date", $("#return_date").val());
+        formData.append("department_id", $("#department_id").val() || "");
+        formData.append("remarks", $("#remarks").val());
+        formData.append("items", JSON.stringify(returnItems));
+
+        var imageFile = $("#issue_return_image")[0].files[0];
+        if (imageFile) {
+            formData.append("issue_return_image", imageFile);
+        }
 
         $.ajax({
             url: "ajax/php/issue-return-note.php",
             type: "POST",
             data: formData,
+            processData: false,
+            contentType: false,
             dataType: "JSON",
             success: function (result) {
                 if (result.status === "success") {
@@ -460,6 +481,21 @@ $(document).ready(function () {
                 swal("Error!", "Server error occurred", "error");
             }
         });
+    });
+
+    // Image preview
+    $("#issue_return_image").change(function() {
+        var input = this;
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#image_preview').attr('src', e.target.result);
+                $('#image_preview_container').fadeIn();
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            $('#image_preview_container').fadeOut();
+        }
     });
 
     // New Return Action

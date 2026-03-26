@@ -7,6 +7,7 @@ class IssueReturnNote
     public $issue_note_id;
     public $return_date;
     public $remarks;
+    public $image_path;
     public $department_id;
     public $created_at;
     public $updated_at;
@@ -24,6 +25,7 @@ class IssueReturnNote
                 $this->issue_note_id = $result['issue_note_id'];
                 $this->return_date = $result['return_date'];
                 $this->remarks = $result['remarks'];
+                $this->image_path = $result['image_path'];
                 $this->department_id = $result['department_id'];
                 $this->created_at = $result['created_at'];
                 $this->updated_at = $result['updated_at'];
@@ -35,12 +37,13 @@ class IssueReturnNote
     {
         $db = Database::getInstance();
         $query = "INSERT INTO `issue_returns` (
-            `return_code`, `issue_note_id`, `return_date`, `remarks`
+            `return_code`, `issue_note_id`, `return_date`, `remarks`, `image_path`
         ) VALUES (
             '" . $db->escapeString($this->return_code) . "',
             '" . (int) $this->issue_note_id . "',
             '" . $db->escapeString($this->return_date) . "',
-            '" . $db->escapeString($this->remarks) . "'
+            '" . $db->escapeString($this->remarks) . "',
+            '" . $db->escapeString($this->image_path) . "'
         )";
 
         $result = $db->readQuery($query);
@@ -57,7 +60,8 @@ class IssueReturnNote
         $db = Database::getInstance();
         $query = "UPDATE `issue_returns` SET
             `return_date` = '" . $db->escapeString($this->return_date) . "',
-            `remarks` = '" . $db->escapeString($this->remarks) . "'
+            `remarks` = '" . $db->escapeString($this->remarks) . "',
+            `image_path` = '" . $db->escapeString($this->image_path) . "'
             WHERE `id` = " . (int) $this->id;
 
         return $db->readQuery($query) ? true : false;

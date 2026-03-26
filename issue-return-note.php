@@ -142,11 +142,19 @@ $return_note_code = ((int)$lastCode) + 1;
                                             <div class="col-md-6">
                                                 <label class="form-label">Customer Details</label>
                                                 <input type="text" class="form-control mb-2" id="customer_name" readonly placeholder="Customer Name">
-                                                <input type="text" class="form-control" id="customer_phone" readonly placeholder="Phone Number">
+                                                <input type="text" class="form-control mb-3" id="customer_phone" readonly placeholder="Phone Number">
+                                                
+                                                <div id="image_upload_container">
+                                                    <label class="form-label">Attach Image (Optional)</label>
+                                                    <input type="file" class="form-control" id="issue_return_image" name="issue_return_image" accept="image/*">
+                                                    <div id="image_preview_container" class="mt-2" style="display: none;">
+                                                        <img id="image_preview" src="#" alt="Image Preview" style="max-height: 120px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;">
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Remarks</label>
-                                                <textarea class="form-control" id="remarks" rows="3" placeholder="Enter remarks..."></textarea>
+                                                <textarea class="form-control" id="remarks" rows="5" placeholder="Enter remarks..."></textarea>
                                             </div>
                                         </div>
 

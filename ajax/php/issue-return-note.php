@@ -78,6 +78,27 @@ if (isset($_POST['create'])) {
         $RETURN->return_date = $_POST['return_date'];
         $RETURN->department_id = $_POST['department_id'] ?? null;
         $RETURN->remarks = $_POST['remarks'] ?? '';
+
+        // Handle image upload
+        if (isset($_FILES['issue_return_image']) && $_FILES['issue_return_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../../uploads/issue_returns/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            
+            $fileExtension = strtolower(pathinfo($_FILES['issue_return_image']['name'], PATHINFO_EXTENSION));
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            
+            if (in_array($fileExtension, $allowedExtensions)) {
+                $fileName = uniqid('ir_') . '_' . time() . '.' . $fileExtension;
+                $targetPath = $uploadDir . $fileName;
+                
+                if (move_uploaded_file($_FILES['issue_return_image']['tmp_name'], $targetPath)) {
+                    $RETURN->image_path = 'uploads/issue_returns/' . $fileName;
+                }
+            }
+        }
+
         $return_id = $RETURN->create();
     }
 
@@ -246,6 +267,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_return_note_details') {
                 "department_id" => $RETURN->department_id,
                 "return_date" => $RETURN->return_date,
                 "remarks" => $RETURN->remarks,
+                "image_path" => $RETURN->image_path,
                 "status" => 'returned',
                 "issue_note_status" => $ISSUE_NOTE->issue_status
             ],

@@ -5,6 +5,7 @@ CREATE TABLE `issue_returns` (
   `issue_note_id` INT(11) NOT NULL,
   `return_date` DATE NOT NULL,
   `remarks` TEXT DEFAULT NULL,
+  `image_path` VARCHAR(255) DEFAULT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
