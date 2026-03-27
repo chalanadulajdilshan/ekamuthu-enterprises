@@ -2,6 +2,9 @@ jQuery(document).ready(function () {
     const resetForm = () => {
         $("#form-data")[0].reset();
         $("#amount").val("0.00");
+        $("#repair_type").val("");
+        $("#technician").val("");
+        $("#description").val("");
         $("#remark").val("");
         $("#vehicle_id").val("");
         $("#vehicle_label").val("");
@@ -106,6 +109,9 @@ jQuery(document).ready(function () {
         const vehicle_id = $(this).data("vehicle_id");
         const vehicle_label = $(this).data("vehicle_label");
         const repair_date = $(this).data("repair_date");
+        const repair_type = $(this).data("repair_type");
+        const description = $(this).data("description");
+        const technician = $(this).data("technician");
         const amount = $(this).data("amount");
         const remark = $(this).data("remark");
 
@@ -114,6 +120,9 @@ jQuery(document).ready(function () {
         $("#vehicle_id").val(vehicle_id);
         $("#vehicle_label").val(vehicle_label);
         $("#repair_date").val(repair_date);
+        $("#repair_type").val(repair_type);
+        $("#description").val(description);
+        $("#technician").val(technician);
         $("#amount").val(amount);
         $("#remark").val(remark);
 

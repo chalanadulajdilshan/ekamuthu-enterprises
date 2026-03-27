@@ -5,8 +5,11 @@ class VehicleRepair
     public $id;
     public $ref_no;
     public $vehicle_id;
+    public $repair_type;
+    public $description;
     public $repair_date;
     public $amount;
+    public $technician;
     public $remark;
     public $created_by;
     public $created_at;
@@ -22,8 +25,11 @@ class VehicleRepair
                 $this->id = $result['id'];
                 $this->ref_no = $result['ref_no'];
                 $this->vehicle_id = $result['vehicle_id'];
+                $this->repair_type = $result['repair_type'];
+                $this->description = $result['description'];
                 $this->repair_date = $result['repair_date'];
                 $this->amount = $result['amount'];
+                $this->technician = $result['technician'];
                 $this->remark = $result['remark'];
                 $this->created_by = $result['created_by'];
                 $this->created_at = $result['created_at'];
@@ -37,16 +43,23 @@ class VehicleRepair
 
         $ref_no = mysqli_real_escape_string($db->DB_CON, $this->ref_no);
         $vehicle_id = (int)$this->vehicle_id;
+        $repair_type = mysqli_real_escape_string($db->DB_CON, $this->repair_type);
+        $description = mysqli_real_escape_string($db->DB_CON, $this->description);
         $repair_date = mysqli_real_escape_string($db->DB_CON, $this->repair_date);
         $amount = (float)$this->amount;
+        $technician = mysqli_real_escape_string($db->DB_CON, $this->technician);
         $remark = mysqli_real_escape_string($db->DB_CON, $this->remark);
         $created_by = (int)$this->created_by;
+        $id = (int)$this->id;
 
-        $query = "INSERT INTO vehicle_repairs (ref_no, vehicle_id, repair_date, amount, remark, created_by, created_at) VALUES (" .
+        $query = "INSERT INTO vehicle_repairs (ref_no, vehicle_id, repair_type, description, repair_date, amount, technician, remark, created_by, created_at) VALUES (" .
             "'{$ref_no}', " .
             "{$vehicle_id}, " .
+            "'{$repair_type}', " .
+            "'{$description}', " .
             "'{$repair_date}', " .
             "{$amount}, " .
+            "'{$technician}', " .
             "'{$remark}', " .
             "{$created_by}, NOW())";
 
@@ -84,17 +97,24 @@ class VehicleRepair
         }
         $db = Database::getInstance();
         $id = (int)$this->id;
+        $id = (int)$this->id;
         $ref_no = mysqli_real_escape_string($db->DB_CON, $this->ref_no);
         $vehicle_id = (int)$this->vehicle_id;
+        $repair_type = mysqli_real_escape_string($db->DB_CON, $this->repair_type);
+        $description = mysqli_real_escape_string($db->DB_CON, $this->description);
         $repair_date = mysqli_real_escape_string($db->DB_CON, $this->repair_date);
         $amount = (float)$this->amount;
+        $technician = mysqli_real_escape_string($db->DB_CON, $this->technician);
         $remark = mysqli_real_escape_string($db->DB_CON, $this->remark);
 
         $query = "UPDATE vehicle_repairs SET " .
             "ref_no='{$ref_no}', " .
             "vehicle_id={$vehicle_id}, " .
+            "repair_type='{$repair_type}', " .
+            "description='{$description}', " .
             "repair_date='{$repair_date}', " .
             "amount={$amount}, " .
+            "technician='{$technician}', " .
             "remark='{$remark}' " .
             "WHERE id={$id}";
 

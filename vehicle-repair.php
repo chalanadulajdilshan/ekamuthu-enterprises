@@ -96,6 +96,22 @@ $repairs = $VEHICLE_REPAIR->all();
                                                 <label for="repair_date" class="form-label">Repair Date</label>
                                                 <input id="repair_date" name="repair_date" type="date" class="form-control mb-3" value="<?php echo date('Y-m-d'); ?>">
                                             </div>
+                                            <div class="col-md-3">
+                                                <label for="repair_type" class="form-label">Repair Type</label>
+                                                <select id="repair_type" name="repair_type" class="form-select mb-3">
+                                                    <option value="">-- Select Type --</option>
+                                                    <option value="Engine Repair">Engine Repair</option>
+                                                    <option value="Tyre Replacement">Tyre Replacement</option>
+                                                    <option value="Body Work">Body Work</option>
+                                                    <option value="Electrical">Electrical</option>
+                                                    <option value="Service">Service</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="technician" class="form-label">Technician</label>
+                                                <input id="technician" name="technician" type="text" class="form-control mb-3" placeholder="Technician Name">
+                                            </div>
                                             <div class="col-md-2">
                                                 <label for="amount" class="form-label">Amount</label>
                                                 <div class="input-group mb-3">
@@ -103,7 +119,11 @@ $repairs = $VEHICLE_REPAIR->all();
                                                     <input id="amount" name="amount" type="number" class="form-control text-end" step="0.01" min="0" value="0.00">
                                                 </div>
                                             </div>
-                                            <div class="col-md-12">
+                                            <div class="col-md-6">
+                                                <label for="description" class="form-label">Description</label>
+                                                <textarea id="description" name="description" class="form-control" rows="2" placeholder="Enter repair details"></textarea>
+                                            </div>
+                                            <div class="col-md-6">
                                                 <label for="remark" class="form-label">Remark</label>
                                                 <textarea id="remark" name="remark" class="form-control" rows="2" placeholder="Enter remark"></textarea>
                                             </div>
@@ -186,6 +206,8 @@ $repairs = $VEHICLE_REPAIR->all();
                                     <th>#</th>
                                     <th>Ref No</th>
                                     <th>Vehicle</th>
+                                    <th>Type</th>
+                                    <th>Technician</th>
                                     <th>Date</th>
                                     <th>Amount</th>
                                     <th>Select</th>
@@ -197,6 +219,8 @@ $repairs = $VEHICLE_REPAIR->all();
                                         <td><?php echo $r++; ?></td>
                                         <td><?php echo htmlspecialchars($repair['ref_no']); ?></td>
                                         <td><?php echo htmlspecialchars($repair['vehicle_no']); ?> (<?php echo htmlspecialchars($repair['vehicle_ref_no']); ?>)</td>
+                                        <td><?php echo htmlspecialchars($repair['repair_type']); ?></td>
+                                        <td><?php echo htmlspecialchars($repair['technician']); ?></td>
                                         <td><?php echo htmlspecialchars($repair['repair_date']); ?></td>
                                         <td><?php echo number_format($repair['amount'], 2); ?></td>
                                         <td class="text-center">
@@ -206,6 +230,9 @@ $repairs = $VEHICLE_REPAIR->all();
                                                 data-vehicle_id="<?php echo $repair['vehicle_id']; ?>"
                                                 data-vehicle_label="<?php echo htmlspecialchars($repair['vehicle_no']); ?> (<?php echo htmlspecialchars($repair['vehicle_ref_no']); ?>)"
                                                 data-repair_date="<?php echo htmlspecialchars($repair['repair_date']); ?>"
+                                                data-repair_type="<?php echo htmlspecialchars($repair['repair_type']); ?>"
+                                                data-description="<?php echo htmlspecialchars($repair['description']); ?>"
+                                                data-technician="<?php echo htmlspecialchars($repair['technician']); ?>"
                                                 data-amount="<?php echo htmlspecialchars($repair['amount']); ?>"
                                                 data-remark="<?php echo htmlspecialchars($repair['remark']); ?>">
                                                 Choose
