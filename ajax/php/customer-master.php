@@ -439,7 +439,7 @@ if (isset($_POST['delete']) && isset($_POST['id'])) {
 }
 
 // Get all customers with search (no pagination limit)
-if (isset($_POST['get_all_customers'])) {
+if (isset($_POST['get_all_customers']) || (isset($_POST['action']) && $_POST['action'] == 'get_all_customers')) {
     $search = isset($_POST['search']) ? trim($_POST['search']) : '';
     $companySearch = isset($_POST['company_search']) ? trim($_POST['company_search']) : '';
     

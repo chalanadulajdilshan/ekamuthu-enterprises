@@ -9,6 +9,14 @@ if ($action === 'add_settlement') {
     $transportId = isset($_POST['transport_id']) ? (int)$_POST['transport_id'] : 0;
     $settlementDate = $_POST['settlement_date'] ?? date('Y-m-d');
     $amount = isset($_POST['amount']) ? floatval($_POST['amount']) : 0;
+    $paymentType = trim($_POST['payment_type'] ?? 'Cash');
+    $bankId = !empty($_POST['bank_id']) ? (int)$_POST['bank_id'] : null;
+    $branchId = !empty($_POST['branch_id']) ? (int)$_POST['branch_id'] : null;
+    $chequeNo = trim($_POST['cheque_no'] ?? '');
+    $chequeDate = !empty($_POST['cheque_date']) ? $_POST['cheque_date'] : null;
+    $transferDate = !empty($_POST['transfer_date']) ? $_POST['transfer_date'] : null;
+    $accountNo = trim($_POST['account_no'] ?? '');
+    $referenceNo = trim($_POST['reference_no'] ?? '');
     $remark = trim($_POST['remark'] ?? '');
 
     if ($transportId <= 0) {
@@ -48,6 +56,14 @@ if ($action === 'add_settlement') {
     $TS->transport_id = $transportId;
     $TS->settlement_date = $settlementDate;
     $TS->amount = $amount;
+    $TS->payment_type = $paymentType;
+    $TS->bank_id = $bankId;
+    $TS->branch_id = $branchId;
+    $TS->cheque_no = $chequeNo ?: null;
+    $TS->cheque_date = $chequeDate;
+    $TS->transfer_date = $transferDate;
+    $TS->account_no = $accountNo ?: null;
+    $TS->reference_no = $referenceNo ?: null;
     $TS->remark = $remark;
 
     $settlementId = $TS->create();
@@ -126,6 +142,27 @@ if ($action === 'get_transport_by_rent') {
         'transports' => $transports,
         'unsettled_credit' => $unsettledCredit
     ]);
+    exit;
+}
+
+// Get branches by bank ID
+if ($action === 'get_branches') {
+    $bankId = isset($_POST['bank_id']) ? (int)$_POST['bank_id'] : 0;
+    if ($bankId > 0) {
+        $BRANCH = new Branch(NULL);
+        $branches = $BRANCH->getByBankId($bankId);
+        $data = [];
+        foreach ($branches as $branch) {
+            $data[] = [
+                'id' => $branch['id'],
+                'name' => $branch['name'],
+                'code' => $branch['code'] ?? ''
+            ];
+        }
+        echo json_encode(['status' => 'success', 'branches' => $data]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid Bank ID']);
+    }
     exit;
 }
 

@@ -234,13 +234,21 @@ class Cashbook
         $resultReturnLateIn = mysqli_fetch_array($db->readQuery($queryReturnLateIn));
         $totalReturnLateIn = (float) $resultReturnLateIn['total'];
 
-        // Cash from transport details
-        $whereTransport = str_replace('si.invoice_date', 'td.transport_date', $where);
-        $queryTransport = "SELECT COALESCE(SUM(total_amount), 0) as total
-                           FROM `transport_details` td
-                           $whereTransport";
+        // Cash from trip management (trips paid in cash)
+        $whereTransport = str_replace('si.invoice_date', 'tm.transport_date', $where);
+        $queryTransport = "SELECT COALESCE(SUM(total_cost), 0) as total
+                           FROM `trip_management` tm
+                           $whereTransport AND tm.payment_method = 'cash'";
         $resultTransport = mysqli_fetch_array($db->readQuery($queryTransport));
         $totalTransport = (float) $resultTransport['total'];
+
+        // Cash from trip settlements
+        $whereSettlement = str_replace('si.invoice_date', 'ts.settlement_date', $where);
+        $querySettlement = "SELECT COALESCE(SUM(amount), 0) as total
+                            FROM `trip_settlements` ts
+                            $whereSettlement";
+        $resultSettlement = mysqli_fetch_array($db->readQuery($querySettlement));
+        $totalSettlement = (float) $resultSettlement['total'];
 
         // Cash from repair jobs
         $whereRepair = str_replace('si.invoice_date', 'rj.created_at', $where);
@@ -402,8 +410,13 @@ class Cashbook
         $result = mysqli_fetch_array($db->readQuery($query));
         $totalIn += (float)$result['total'];
 
-        // 6. Transport details
-        $query = "SELECT COALESCE(SUM(total_amount), 0) as total FROM transport_details WHERE DATE(transport_date) <= '$endDate' AND total_amount > 0";
+        // 6. Trip Management (Cash only)
+        $query = "SELECT COALESCE(SUM(total_cost), 0) as total FROM trip_management WHERE DATE(transport_date) <= '$endDate' AND total_cost > 0 AND payment_method = 'cash'";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalIn += (float)$result['total'];
+
+        // 6b. Trip Settlements
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM trip_settlements WHERE DATE(settlement_date) <= '$endDate' AND amount > 0";
         $result = mysqli_fetch_array($db->readQuery($query));
         $totalIn += (float)$result['total'];
 
@@ -631,12 +644,35 @@ class Cashbook
             ];
         }
 
-        // Transport Details Income
+        // Trip Management Income (Cash only)
         $whereTransport = str_replace('invoice_date', 'transport_date', $where);
-        $query = "SELECT transport_date as date, created_at as time, CONCAT('TRN-', rent_id) as doc, total_amount as amount, 'Additional Transport Income' as description
-                  FROM transport_details
-                  $whereTransport AND total_amount > 0
+        $query = "SELECT transport_date as date, created_at as time, trip_number as doc, total_cost as amount, 'Trip Income (Cash)' as description
+                  FROM trip_management
+                  $whereTransport AND total_cost > 0 AND payment_method = 'cash'
                   ORDER BY transport_date ASC, created_at ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance += (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'IN',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => number_format($row['amount'], 2),
+                'credit' => '0.00',
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
+            ];
+        }
+
+        // Trip Settlement Income
+        $whereSettlement = str_replace('invoice_date', 'settlement_date', $where);
+        $query = "SELECT ts.settlement_date as date, ts.created_at as time, tm.trip_number as doc, ts.amount, 'Trip Settlement' as description
+                  FROM trip_settlements ts
+                  LEFT JOIN trip_management tm ON ts.trip_id = tm.id
+                  $whereSettlement AND ts.amount > 0
+                  ORDER BY ts.settlement_date ASC, ts.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance += (float)$row['amount'];

@@ -33,7 +33,7 @@ $(document).ready(function () {
       dataType: "JSON",
       beforeSend: function () {
         $("#reportTableBody").html(
-          '<tr><td colspan="11" class="text-center py-3"><i class="uil uil-spinner-alt uil-spin me-1"></i>Loading...</td></tr>'
+          '<tr><td colspan="12" class="text-center py-3"><i class="uil uil-spinner-alt uil-spin me-1"></i>Loading...</td></tr>'
         );
       },
       success: function (response) {
@@ -55,7 +55,7 @@ $(document).ready(function () {
 
           if (data.length === 0) {
             $tbody.html(
-              '<tr><td colspan="11" class="text-center text-muted py-3">No unsettled credit transport found.</td></tr>'
+              '<tr><td colspan="12" class="text-center text-muted py-3">No unsettled credit transport found.</td></tr>'
             );
             return;
           }
@@ -90,6 +90,43 @@ $(document).ready(function () {
                 },
               },
               { data: "transport_date" },
+              {
+                data: "due_date",
+                render: function (data, type, row) {
+                  if (!data || data === "-") return data;
+                  if (type !== "display") return data;
+
+                  var dueDate = new Date(data);
+                  var today = new Date();
+                  today.setHours(0, 0, 0, 0);
+
+                  var timeDiff = dueDate.getTime() - today.getTime();
+                  var daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                  if (daysDiff < 0) {
+                    return (
+                      '<span class="badge bg-danger rounded-pill" title="Overdue by ' +
+                      Math.abs(daysDiff) +
+                      ' days">' +
+                      data +
+                      " (Overdue)</span>"
+                    );
+                  } else if (daysDiff === 0) {
+                    return (
+                      '<span class="badge bg-danger rounded-pill">' +
+                      data +
+                      " (Due Today)</span>"
+                    );
+                  } else if (daysDiff <= 3) {
+                    return (
+                      '<span class="badge bg-danger rounded-pill">' +
+                      data +
+                      " (Due Soon)</span>"
+                    );
+                  }
+                  return data;
+                },
+              },
               {
                 data: "employee_name",
                 render: function (data, type, row) {
@@ -164,6 +201,24 @@ $(document).ready(function () {
                 },
               },
             ],
+            createdRow: function (row, data, dataIndex) {
+              if (!data.due_date || data.due_date === "-") return;
+
+              var dueDate = new Date(data.due_date);
+              var today = new Date();
+              today.setHours(0, 0, 0, 0);
+
+              var timeDiff = dueDate.getTime() - today.getTime();
+              var daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+              if (daysDiff < 0) {
+                $(row).addClass("overdue-row");
+              } else if (daysDiff === 0) {
+                $(row).addClass("due-today-row");
+              } else if (daysDiff <= 3) {
+                $(row).addClass("due-soon-row");
+              }
+            },
             drawCallback: function () {
               // Calculate footer totals
               var api = this.api();
@@ -187,7 +242,7 @@ $(document).ready(function () {
       },
       error: function () {
         $("#reportTableBody").html(
-          '<tr><td colspan="11" class="text-center text-danger py-3">Failed to load report</td></tr>'
+          '<tr><td colspan="12" class="text-center text-danger py-3">Failed to load report</td></tr>'
         );
       },
     });
@@ -219,11 +274,65 @@ $(document).ready(function () {
   // Settle transport from report
   $(document).on("click", ".btn-settle-transport", function () {
     var transportId = $(this).data("id");
-    var remainingAmount = $(this).data("amount");
-    var totalAmount = $(this).data("total");
-
-    // Load settlement history and show modal
     loadSettlementModal(transportId);
+  });
+
+  // Payment method change - show/hide fields
+  $("#report_settlement_payment_type").on("change", function () {
+    var method = $(this).val();
+    $("#ts_bankDetails").hide();
+    $("#ts_chequeDetails").hide();
+    $("#ts_transferDetails").hide();
+
+    if (method === "Cheque") {
+      $("#ts_bankDetails").show();
+      $("#ts_chequeDetails").show();
+    } else if (method === "Bank Transfer") {
+      $("#ts_bankDetails").show();
+      $("#ts_transferDetails").show();
+    }
+  });
+
+  // Bank change - load branches
+  $("#ts_bank_id").on("change", function () {
+    var bankId = $(this).val();
+    var $branchSelect = $("#ts_branch_id");
+
+    if (!bankId) {
+      $branchSelect
+        .html('<option value="">Select Bank First</option>')
+        .prop("disabled", true);
+      return;
+    }
+
+    $branchSelect
+      .html('<option value="">Loading...</option>')
+      .prop("disabled", true);
+
+    $.post(
+      "ajax/php/transport-settlement.php",
+      { action: "get_branches", bank_id: bankId },
+      function (response) {
+        if (response.status === "success" && response.branches) {
+          var html = '<option value="">Select Branch</option>';
+          response.branches.forEach(function (b) {
+            html +=
+              '<option value="' +
+              b.id +
+              '">' +
+              b.name +
+              (b.code ? " (" + b.code + ")" : "") +
+              "</option>";
+          });
+          $branchSelect.html(html).prop("disabled", false);
+        } else {
+          $branchSelect
+            .html('<option value="">No branches found</option>')
+            .prop("disabled", true);
+        }
+      },
+      "json"
+    );
   });
 
   function loadSettlementModal(transportId) {
@@ -255,27 +364,47 @@ $(document).ready(function () {
 
           if (settlements.length === 0) {
             $tbody.html(
-              '<tr><td colspan="5" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>'
+              '<tr><td colspan="7" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>'
             );
           } else {
             settlements.forEach(function (s) {
+              var paymentType = s.payment_type || "Cash";
+              var badgeClass = "bg-secondary";
+              if (paymentType.toLowerCase().includes("cash"))
+                badgeClass = "bg-success";
+              else if (paymentType.toLowerCase().includes("cheque"))
+                badgeClass = "bg-warning text-dark";
+              else if (
+                paymentType.toLowerCase().includes("bank") ||
+                paymentType.toLowerCase().includes("transfer")
+              )
+                badgeClass = "bg-info text-dark";
+
+              // Build details column
+              var details = [];
+              if (s.bank_name) details.push("Bank: " + s.bank_name);
+              if (s.branch_name) details.push("Branch: " + s.branch_name);
+              if (s.cheque_no) details.push("Cheque#: " + s.cheque_no);
+              if (s.cheque_date) details.push("Cheque Date: " + s.cheque_date);
+              if (s.account_no) details.push("A/C: " + s.account_no);
+              if (s.reference_no) details.push("Ref: " + s.reference_no);
+              if (s.transfer_date)
+                details.push("Transfer Date: " + s.transfer_date);
+
+              var detailsHtml = details.length > 0
+                ? '<small>' + details.join("<br>") + '</small>'
+                : "-";
+
               var html =
                 "<tr>" +
-                "<td>" +
-                (s.id || "-") +
-                "</td>" +
-                "<td>" +
-                (s.settlement_date || "-") +
-                "</td>" +
-                '<td class="text-end">' +
-                formatAmount(s.amount || 0) +
-                "</td>" +
-                "<td>" +
-                (s.remark || "-") +
-                "</td>" +
+                "<td>" + (s.id || "-") + "</td>" +
+                "<td>" + (s.settlement_date || "-") + "</td>" +
+                '<td><span class="badge ' + badgeClass + '">' + paymentType + "</span></td>" +
+                "<td>" + detailsHtml + "</td>" +
+                '<td class="text-end">' + formatAmount(s.amount || 0) + "</td>" +
+                "<td>" + (s.remark || "-") + "</td>" +
                 '<td><button type="button" class="btn btn-sm btn-outline-danger report-delete-settlement-btn" data-id="' +
-                s.id +
-                '" title="Delete"><i class="uil uil-trash-alt"></i></button></td>' +
+                s.id + '" title="Delete"><i class="uil uil-trash-alt"></i></button></td>' +
                 "</tr>";
               $tbody.append(html);
             });
@@ -288,11 +417,28 @@ $(document).ready(function () {
     );
   }
 
+  // Reset form fields
+  function resetSettlementForm() {
+    $("#report_settlement_amount").val("");
+    $("#report_settlement_remark").val("");
+    $("#report_settlement_payment_type").val("Cash").trigger("change");
+    $("#ts_bank_id").val("");
+    $("#ts_branch_id")
+      .html('<option value="">Select Bank First</option>')
+      .prop("disabled", true);
+    $("#ts_cheque_no").val("");
+    $("#ts_cheque_date").val("");
+    $("#ts_transfer_date").val("");
+    $("#ts_account_no").val("");
+    $("#ts_reference_no").val("");
+  }
+
   // Add settlement from report
   $("#btn-report-add-settlement").on("click", function () {
     var transportId = $("#report_settlement_transport_id").val();
     var amount = parseAmount($("#report_settlement_amount").val());
     var date = $("#report_settlement_date").val();
+    var paymentType = $("#report_settlement_payment_type").val();
     var remark = $("#report_settlement_remark").val();
 
     if (amount <= 0) {
@@ -305,19 +451,39 @@ $(document).ready(function () {
       return;
     }
 
+    // Build data object
+    var postData = {
+      action: "add_settlement",
+      transport_id: transportId,
+      amount: amount,
+      settlement_date: date,
+      payment_type: paymentType,
+      remark: remark,
+    };
+
+    // Add payment-specific fields
+    if (paymentType === "Cheque" || paymentType === "Bank Transfer") {
+      postData.bank_id = $("#ts_bank_id").val();
+      postData.branch_id = $("#ts_branch_id").val();
+    }
+
+    if (paymentType === "Cheque") {
+      postData.cheque_date = $("#ts_cheque_date").val();
+      postData.cheque_no = $("#ts_cheque_no").val();
+    }
+
+    if (paymentType === "Bank Transfer") {
+      postData.transfer_date = $("#ts_transfer_date").val();
+      postData.account_no = $("#ts_account_no").val();
+      postData.reference_no = $("#ts_reference_no").val();
+    }
+
     $.post(
       "ajax/php/transport-settlement.php",
-      {
-        action: "add_settlement",
-        transport_id: transportId,
-        amount: amount,
-        settlement_date: date,
-        remark: remark,
-      },
+      postData,
       function (response) {
         if (response.status === "success") {
-          $("#report_settlement_amount").val("");
-          $("#report_settlement_remark").val("");
+          resetSettlementForm();
 
           // Reload settlement modal
           loadSettlementModal(transportId);
@@ -388,55 +554,6 @@ $(document).ready(function () {
         }
       }
     );
-  });
-
-  // Customer select modal
-  var customerTable = null;
-
-  $("#customerModal").on("shown.bs.modal", function () {
-    if (customerTable) return;
-
-    // Load customers
-    $.post(
-      "ajax/php/customer-master.php",
-      { action: "get_all_customers" },
-      function (response) {
-        var customers = [];
-        
-        if (Array.isArray(response)) {
-          customers = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          customers = response.data;
-        } else if (response.status === "success" && Array.isArray(response.customers)) {
-          customers = response.customers;
-        }
-
-        customerTable = $("#customerSelectTbl").DataTable({
-          data: customers,
-          columns: [
-            { data: "code" },
-            { data: "name" },
-            { data: "mobile" },
-          ],
-          pageLength: 10,
-          ordering: true,
-          order: [[1, "asc"]],
-          destroy: true,
-        });
-
-        $("#customerSelectTbl tbody").on("click", "tr", function () {
-          var data = customerTable.row(this).data();
-          if (data) {
-            $("#customer_id").val(data.id);
-            $("#customer_code").val(data.code + " - " + data.name);
-            $("#customerModal").modal("hide");
-          }
-        });
-      },
-      "json"
-    ).fail(function() {
-      alert("Failed to load customers");
-    });
   });
 
   // Auto-load report on page load

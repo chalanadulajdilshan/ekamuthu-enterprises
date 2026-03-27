@@ -72,7 +72,7 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 10mm 10mm 12mm 10mm;
+                margin: 5mm;
             }
 
             .no-print,
@@ -84,7 +84,12 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
             .dataTables_length,
             .dataTables_info,
             .btn,
-            button {
+            button,
+            .modal-backdrop,
+            .modal,
+            /* Hide the Action column headers and body */
+            th:nth-last-child(1),
+            td:nth-last-child(1) {
                 display: none !important;
             }
 
@@ -110,94 +115,128 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
             }
 
             .container-fluid {
-                padding: 0 10mm !important;
+                padding: 0 !important;
+                width: 100% !important;
             }
 
             .card { 
                 box-shadow: none !important; 
-                border: 1px solid #dee2e6 !important;
+                border: none !important;
                 page-break-inside: avoid;
             }
 
             .card-body {
-                padding: 10px !important;
+                padding: 0 !important;
             }
 
-            .table {
-                font-size: 10px !important;
-                border-collapse: collapse !important;
-                width: 100% !important;
-                page-break-inside: auto;
+            /* Improved summary layout for print */
+            #summarySection {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                margin-bottom: 5mm !important;
             }
 
-            .table thead th {
-                background-color: #f8f9fa !important;
-                border: 1px solid #000 !important;
-                padding: 4px !important;
-                font-size: 9px !important;
-                font-weight: 600 !important;
-            }
-
-            .table tbody td {
-                border: 1px solid #000 !important;
-                padding: 3px !important;
-                font-size: 9px !important;
-            }
-
-            .table tfoot td {
-                border: 1px solid #000 !important;
-                padding: 4px !important;
-                font-size: 10px !important;
-                font-weight: 700 !important;
-                background-color: #f1f1f1 !important;
-            }
-
-            .table tr {
-                page-break-inside: avoid;
+            #summarySection .col-md-3 {
+                flex: 1 !important;
+                width: 25% !important;
+                padding: 0 2mm !important;
             }
 
             .report-stat-item {
+                padding: 5px !important;
                 border: 1px solid #000 !important;
-                padding: 8px !important;
-                margin: 0 5px 10px 0 !important;
+                border-radius: 4px !important;
             }
 
             .report-stat-label {
                 font-size: 9px !important;
+                margin-bottom: 2px !important;
             }
 
             .report-stat-value {
                 font-size: 16px !important;
             }
 
-            h4, h5, h6 {
-                margin: 5px 0 !important;
-            }
-
-            /* Hide action column in print */
-            .table thead th:last-child,
-            .table tbody td:last-child,
-            .table tfoot td:last-child {
-                display: none !important;
-            }
-        }
-
-        /* Optional: Portrait mode (can be activated via CSS class or media query) */
-        @media print and (orientation: portrait) {
-            @page {
-                size: A4 portrait;
-                margin: 10mm 8mm 12mm 8mm;
+            /* Table layout for print */
+            .table-responsive {
+                overflow: visible !important;
             }
 
             .table {
                 font-size: 8px !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
             }
 
-            .table thead th,
-            .table tbody td {
-                font-size: 7px !important;
-                padding: 2px !important;
+            /* Override DataTables Responsive hiding columns */
+            .table th, .table td {
+                display: table-cell !important;
             }
+
+            /* Hide the DataTables responsive expand button */
+            table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before, 
+            table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control::before {
+                display: none !important;
+            }
+            
+            /* Hide the expanded child row if it was open */
+            table.dataTable > tbody > tr.child {
+                display: none !important;
+            }
+
+            .table thead th {
+                background-color: #f8f9fa !important;
+                border: 0.5pt solid #000 !important;
+                padding: 4px !important;
+                font-size: 8px !important;
+                white-space: normal !important;
+            }
+
+            .table tbody td {
+                border: 0.5pt solid #000 !important;
+                padding: 3px !important;
+                font-size: 8px !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                word-break: break-word !important;
+            }
+
+            .table tfoot td {
+                border: 0.5pt solid #000 !important;
+                padding: 4px !important;
+                font-size: 9px !important;
+                font-weight: bold !important;
+            }
+
+            /* Hide the Action column headers and body (last column) */
+            .table th:last-child,
+            .table td:last-child {
+                display: none !important;
+            }
+            
+            /* Give some specific priority widths to keep formatting tight */
+            th:nth-child(2), td:nth-child(2) { width: 5%; } /* Bill No */
+            th:nth-child(9), td:nth-child(9) { width: 8%; text-align: right !important; }  /* Total */
+            th:nth-child(10), td:nth-child(10) { width: 8%; text-align: right !important; } /* Settled */
+            th:nth-child(11), td:nth-child(11) { width: 8%; text-align: right !important; } /* Remaining */
+
+            /* Remove colors for B&W printers but keep weight */
+            .text-success, .text-danger, .text-warning, .badge, a {
+                color: #000 !important;
+                text-decoration: none !important;
+                background-color: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                font-weight: bold !important;
+            }
+        }
+
+        .overdue-row td, 
+        .due-today-row td,
+        .due-soon-row td {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
         }
     </style>
 </head>
@@ -310,6 +349,7 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
                                                     <th>Customer</th>
                                                     <th>Bill No</th>
                                                     <th>Transport Date</th>
+                                                    <th>Due Date</th>
                                                     <th>Employee</th>
                                                     <th>Vehicle</th>
                                                     <th>Start</th>
@@ -321,11 +361,11 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
                                                 </tr>
                                             </thead>
                                             <tbody id="reportTableBody">
-                                                <tr><td colspan="11" class="text-center text-muted py-3">Click Search to load report</td></tr>
+                                                <tr><td colspan="12" class="text-center text-muted py-3">Click Search to load report</td></tr>
                                             </tbody>
                                             <tfoot>
                                                 <tr class="fw-bold bg-light">
-                                                    <td colspan="7" class="text-end">Totals:</td>
+                                                    <td colspan="8" class="text-end">Totals:</td>
                                                     <td id="tblTotalAmount" class="text-end">0.00</td>
                                                     <td id="tblTotalSettled" class="text-end">0.00</td>
                                                     <td id="tblTotalRemaining" class="text-end">0.00</td>
@@ -342,30 +382,6 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
                 </div>
             </div>
             <?php include 'footer.php'; ?>
-        </div>
-    </div>
-
-    <!-- Customer Select Modal -->
-    <div id="customerModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Select Customer - පාරිභෝගිකයා තෝරන්න</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <table id="customerSelectTbl" class="table table-bordered table-hover w-100">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Mobile</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -414,22 +430,90 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
                             <h6 class="mb-0 text-success"><i class="uil uil-plus-circle me-1"></i>Add Settlement Payment</h6>
                         </div>
                         <div class="card-body py-3">
-                            <div class="row align-items-end">
-                                <div class="col-md-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Amount <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="report_settlement_amount" placeholder="0.00">
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Date <span class="text-danger">*</span></label>
+                                <div class="col-md-4">
+                                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control date-picker" id="report_settlement_date" value="<?php echo date('Y-m-d'); ?>" autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="report_settlement_payment_type">
+                                        <option value="Cash" selected>Cash</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Bank Details (Cheque & Bank Transfer) -->
+                            <div id="ts_bankDetails" style="display: none;">
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Bank</label>
+                                        <select class="form-select" id="ts_bank_id">
+                                            <option value="">Select Bank</option>
+                                            <?php
+                                            $BANK = new Bank(NULL);
+                                            foreach ($BANK->all() as $bank) {
+                                                echo '<option value="' . $bank['id'] . '">' . $bank['name'] . ' (' . $bank['code'] . ')</option>';
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Branch</label>
+                                        <select class="form-select" id="ts_branch_id" disabled>
+                                            <option value="">Select Bank First</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cheque Specific -->
+                            <div id="ts_chequeDetails" style="display: none;">
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Cheque Date</label>
+                                        <input type="text" class="form-control date-picker" id="ts_cheque_date" placeholder="YYYY-MM-DD" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Cheque No</label>
+                                        <input type="text" class="form-control" id="ts_cheque_no" placeholder="Enter cheque number">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transfer Specific -->
+                            <div id="ts_transferDetails" style="display: none;">
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Transfer Date</label>
+                                        <input type="text" class="form-control date-picker" id="ts_transfer_date" placeholder="YYYY-MM-DD" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Account No</label>
+                                        <input type="text" class="form-control" id="ts_account_no" placeholder="Enter account number">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Reference No</label>
+                                        <input type="text" class="form-control" id="ts_reference_no" placeholder="Enter reference number">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-8">
                                     <label class="form-label">Remark</label>
                                     <input type="text" class="form-control" id="report_settlement_remark" placeholder="Optional remark">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
                                     <button type="button" class="btn btn-success w-100" id="btn-report-add-settlement">
-                                        <i class="uil uil-plus me-1"></i>Add
+                                        <i class="uil uil-plus me-1"></i>Add Payment
                                     </button>
                                 </div>
                             </div>
@@ -443,13 +527,15 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
                                 <tr>
                                     <th>#</th>
                                     <th>Date</th>
+                                    <th>Payment Method</th>
+                                    <th>Details</th>
                                     <th>Amount</th>
                                     <th>Remark</th>
                                     <th style="width:80px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="reportSettlementsTableBody">
-                                <tr><td colspan="5" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted py-3">No settlements recorded yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -463,6 +549,7 @@ if (isset($COMPANY_PROFILE_DETAILS) && is_object($COMPANY_PROFILE_DETAILS)) {
 
     <?php include 'main-js.php'; ?>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="ajax/js/common.js"></script>
     <script src="ajax/js/transport-outstanding-report.js?v=<?php echo time(); ?>"></script>
 
     <script>

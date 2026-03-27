@@ -11,17 +11,18 @@ if ($action === 'get_report') {
     
     // Get all unsettled credit transport details grouped by rent/bill
     $query = "SELECT 
-                td.id AS transport_id,
-                td.rent_id,
-                td.transport_date,
-                td.start_location,
-                td.end_location,
-                td.deliver_amount,
-                td.pickup_amount,
-                td.total_amount,
-                td.payment_method,
-                td.is_settled,
-                td.remark,
+                tm.id AS transport_id,
+                tm.bill_id AS rent_id,
+                tm.transport_date,
+                tm.due_date,
+                tm.start_location,
+                tm.end_location,
+                tm.transport_amount AS deliver_amount,
+                0 AS pickup_amount,
+                tm.total_cost AS total_amount,
+                tm.payment_method,
+                tm.is_settled,
+                tm.remark,
                 em.name AS employee_name,
                 em.code AS employee_code,
                 v.vehicle_no,
@@ -32,25 +33,25 @@ if ($action === 'get_report') {
                 c.code AS customer_code,
                 c.id AS customer_id,
                 COALESCE(ts_sum.total_settled, 0) AS total_settled,
-                (td.total_amount - COALESCE(ts_sum.total_settled, 0)) AS remaining_amount
-              FROM transport_details td
-              LEFT JOIN employee_master em ON td.employee_id = em.id
-              LEFT JOIN vehicles v ON td.vehicle_id = v.id
-              LEFT JOIN equipment_rent r ON td.rent_id = r.id
-              LEFT JOIN customer_master c ON r.customer_id = c.id
+                (tm.total_cost - COALESCE(ts_sum.total_settled, 0)) AS remaining_amount
+              FROM trip_management tm
+              LEFT JOIN employee_master em ON tm.employee_id = em.id
+              LEFT JOIN vehicles v ON tm.vehicle_id = v.id
+              LEFT JOIN equipment_rent r ON tm.bill_id = r.id
+              LEFT JOIN customer_master c ON IFNULL(tm.customer_id, r.customer_id) = c.id
               LEFT JOIN (
-                  SELECT transport_id, SUM(amount) AS total_settled
-                  FROM transport_settlements
-                  GROUP BY transport_id
-              ) ts_sum ON td.id = ts_sum.transport_id
-              WHERE td.payment_method = 'credit'
-                AND td.is_settled = 0";
+                  SELECT trip_id, SUM(amount) AS total_settled
+                  FROM trip_settlements
+                  GROUP BY trip_id
+              ) ts_sum ON tm.id = ts_sum.trip_id
+              WHERE tm.payment_method = 'credit'
+                AND tm.is_settled = 0";
     
     if ($customerId > 0) {
-        $query .= " AND r.customer_id = " . $customerId;
+        $query .= " AND IFNULL(tm.customer_id, r.customer_id) = " . $customerId;
     }
     
-    $query .= " ORDER BY c.name ASC, td.transport_date DESC";
+    $query .= " ORDER BY c.name ASC, tm.transport_date DESC";
     
     $result = $db->readQuery($query);
     $data = [];
@@ -76,6 +77,7 @@ if ($action === 'get_report') {
                 'customer_code' => $row['customer_code'] ?? '-',
                 'customer_id' => $row['customer_id'],
                 'transport_date' => $row['transport_date'],
+                'due_date' => $row['due_date'] ?? '-',
                 'employee_name' => $row['employee_name'] ?? '-',
                 'employee_code' => $row['employee_code'] ?? '',
                 'vehicle_no' => $row['vehicle_no'] ?? '-',
