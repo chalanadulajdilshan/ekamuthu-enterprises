@@ -28,6 +28,7 @@ class TripManagement
     public $created_by;
     public $created_at;
     public $transport_date;
+    public $due_date;
     public $updated_at;
 
     public function __construct($id = null)
@@ -60,6 +61,7 @@ class TripManagement
                 $this->is_settled = $result['is_settled'] ?? 0;
                 $this->settlement_amount = $result['settlement_amount'] ?? 0;
                 $this->transport_date = $result['transport_date'];
+                $this->due_date = $result['due_date'];
                 $this->remark = $result['remark'];
                 $this->status = $result['status'];
                 $this->created_by = $result['created_by'];
@@ -81,7 +83,7 @@ class TripManagement
         $query = "INSERT INTO `trip_management` (
             `trip_number`, `trip_category`, `invoice_type`, `bill_id`, `customer_id`,
             `vehicle_id`, `employee_id`, `start_location`, `end_location`,
-            `start_meter`, `end_meter`, `trip_type`, `transport_date`,
+            `start_meter`, `end_meter`, `trip_type`, `transport_date`, `due_date`,
             `toll`, `helper_payment`, `transport_amount`,
             `total_cost`, `pay_amount`, `payment_method`, `is_settled`, `settlement_amount`,
             `remark`, `status`, `created_by`, `created_at`
@@ -99,6 +101,7 @@ class TripManagement
             " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . floatval($this->end_meter) . "'" : "NULL") . ",
             " . ($this->trip_type ? "'" . addslashes($this->trip_type) . "'" : "NULL") . ",
             " . ($this->transport_date ? "'" . addslashes($this->transport_date) . "'" : "NULL") . ",
+            " . ($this->due_date ? "'" . addslashes($this->due_date) . "'" : "NULL") . ",
             '" . floatval($this->toll) . "',
             '" . floatval($this->helper_payment) . "',
             '" . floatval($this->transport_amount) . "',
@@ -146,6 +149,7 @@ class TripManagement
             `end_meter` = " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . floatval($this->end_meter) . "'" : "NULL") . ",
             `trip_type` = " . ($this->trip_type ? "'" . addslashes($this->trip_type) . "'" : "NULL") . ",
             `transport_date` = " . ($this->transport_date ? "'" . addslashes($this->transport_date) . "'" : "NULL") . ",
+            `due_date` = " . ($this->due_date ? "'" . addslashes($this->due_date) . "'" : "NULL") . ",
             `toll` = '" . floatval($this->toll) . "',
             `helper_payment` = '" . floatval($this->helper_payment) . "',
             `transport_amount` = '" . floatval($this->transport_amount) . "',

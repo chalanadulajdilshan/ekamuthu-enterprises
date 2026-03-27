@@ -141,8 +141,11 @@ jQuery(document).ready(function () {
     $('#payment_method').on('change', function () {
         if ($(this).val() === 'credit') {
             $('#section-settlement-btn').addClass('show');
+            $('#section-due-date').addClass('show');
         } else {
             $('#section-settlement-btn').removeClass('show');
+            $('#section-due-date').removeClass('show');
+            $('#due_date').val('');
         }
     });
 
@@ -435,6 +438,7 @@ jQuery(document).ready(function () {
                             'data-start_meter="' + trip.start_meter + '" ' +
                             'data-end_meter="' + (trip.end_meter || '') + '" ' +
                             'data-transport_date="' + (trip.transport_date || '') + '" ' +
+                            'data-due_date="' + (trip.due_date || '') + '" ' +
                             'data-status="' + trip.status + '"' +
                             '>';
                         tbody += '<td>' + trip.key + '</td>';
@@ -579,6 +583,9 @@ jQuery(document).ready(function () {
                     // Payment method
                     if (trip.payment_method) {
                         $('#payment_method').val(trip.payment_method).trigger('change');
+                        if (trip.payment_method === 'credit' && trip.due_date) {
+                            $('#due_date').val(trip.due_date);
+                        }
                     }
                 }
             }

@@ -25,6 +25,7 @@ if (isset($_POST['create'])) {
     $TRIP->end_meter = !empty($_POST['end_meter']) ? $_POST['end_meter'] : null;
     $TRIP->trip_type = !empty($_POST['trip_type']) ? $_POST['trip_type'] : null;
     $TRIP->transport_date = !empty($_POST['transport_date']) ? $_POST['transport_date'] : null;
+    $TRIP->due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
     $TRIP->toll = isset($_POST['toll']) ? $_POST['toll'] : 0;
     $TRIP->helper_payment = isset($_POST['helper_payment']) ? $_POST['helper_payment'] : 0;
     $TRIP->transport_amount = isset($_POST['transport_amount']) ? $_POST['transport_amount'] : 0;
@@ -74,6 +75,7 @@ if (isset($_POST['update'])) {
     $TRIP->end_meter = (isset($_POST['end_meter']) && $_POST['end_meter'] !== '') ? $_POST['end_meter'] : $TRIP->end_meter;
     $TRIP->trip_type = !empty($_POST['trip_type']) ? $_POST['trip_type'] : $TRIP->trip_type;
     $TRIP->transport_date = !empty($_POST['transport_date']) ? $_POST['transport_date'] : $TRIP->transport_date;
+    $TRIP->due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : $TRIP->due_date;
     $TRIP->toll = isset($_POST['toll']) ? $_POST['toll'] : $TRIP->toll;
     $TRIP->helper_payment = isset($_POST['helper_payment']) ? $_POST['helper_payment'] : $TRIP->helper_payment;
     $TRIP->transport_amount = isset($_POST['transport_amount']) ? $_POST['transport_amount'] : $TRIP->transport_amount;
@@ -224,6 +226,7 @@ if (isset($_POST['fetch_trips'])) {
             'end_meter' => $trip['end_meter'] ?? '-',
             'trip_type' => $trip['trip_type'] ?? '-',
             'transport_date' => $trip['transport_date'] ?? '',
+            'due_date' => $trip['due_date'] ?? '',
             'toll' => $trip['toll'] ?? 0,
             'helper_payment' => $trip['helper_payment'] ?? 0,
             'transport_amount' => $trip['transport_amount'] ?? 0,

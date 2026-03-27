@@ -428,12 +428,16 @@ $customers = $CUSTOMER->all();
                                         </div>
                                         <div class="row mt-3">
                                             <div class="col-md-4">
-                                                <label for="payment_method" class="form-label">Payment Method</label>
-                                                <select id="payment_method" name="payment_method" class="form-control">
-                                                    <option value="cash">Cash</option>
-                                                    <option value="credit">Credit</option>
-                                                </select>
-                                            </div>
+                                                 <label for="payment_method" class="form-label">Payment Method</label>
+                                                 <select id="payment_method" name="payment_method" class="form-control">
+                                                     <option value="cash">Cash</option>
+                                                     <option value="credit">Credit</option>
+                                                 </select>
+                                             </div>
+                                             <div class="col-md-4 conditional-section" id="section-due-date">
+                                                 <label for="due_date" class="form-label">Due Date <span class="text-danger">*</span></label>
+                                                 <input id="due_date" name="due_date" type="date" class="form-control">
+                                             </div>
                                             <div class="col-md-4 conditional-section" id="section-settlement-btn">
                                                 <label class="form-label">&nbsp;</label>
                                                 <div>
