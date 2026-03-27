@@ -341,8 +341,8 @@ $customers = $CUSTOMER->all();
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="start_meter" class="form-label">Start Meter <span class="text-danger">*</span></label>
-                                                <input id="start_meter" name="start_meter" type="number" step="0.01"
-                                                    placeholder="0.00" class="form-control">
+                                                <input id="start_meter" name="start_meter" type="number" step="1" min="0"
+                                                    placeholder="0" class="form-control">
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="remark" class="form-label">Remark</label>
@@ -391,8 +391,8 @@ $customers = $CUSTOMER->all();
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <label for="end_meter" class="form-label">End Meter <span class="text-danger">*</span></label>
-                                                <input id="end_meter" name="end_meter" type="number" step="0.01"
-                                                    placeholder="0.00" class="form-control">
+                                                <input id="end_meter" name="end_meter" type="number" step="1" min="0"
+                                                    placeholder="0" class="form-control">
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="trip_type" class="form-label">Trip Type <span class="text-danger">*</span></label>
@@ -415,7 +415,7 @@ $customers = $CUSTOMER->all();
                                                 <input id="helper_payment" name="helper_payment" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control">
                                             </div>
-                                            <div class="col-md-4 conditional-section" id="section-pay-amount">
+                                            <div class="col-md-4">
                                                 <label for="pay_amount_completion" class="form-label">Transport Cost</label>
                                                 <input id="pay_amount_completion" name="pay_amount" type="number" step="0.01"
                                                     placeholder="0.00" class="form-control">
@@ -545,13 +545,21 @@ $customers = $CUSTOMER->all();
                         <div class="card-body p-3">
                             <h6 class="text-success mb-3"><i class="uil uil-plus-circle me-1"></i> Add Settlement Payment</h6>
                             <div class="row g-3 align-items-end">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="form-label">Amount <span class="text-danger">*</span></label>
                                     <input type="number" id="settle-amount" step="0.01" class="form-control" placeholder="0.00">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="form-label">Date <span class="text-danger">*</span></label>
                                     <input type="date" id="settle-date" class="form-control" value="<?= date('Y-m-d') ?>">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Method</label>
+                                    <select id="settle-payment-method" class="form-select">
+                                        <option value="cash">Cash</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cheque">Cheque</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Remark</label>

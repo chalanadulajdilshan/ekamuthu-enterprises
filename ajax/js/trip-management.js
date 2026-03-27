@@ -9,13 +9,11 @@ jQuery(document).ready(function () {
         var category = $(this).val();
         if (category === 'customer') {
             $('#section-invoice-type').addClass('show');
-            // Show pay amount in completion section
-            $('#section-pay-amount').addClass('show');
         } else {
             $('#section-invoice-type').removeClass('show');
             $('#section-bill').removeClass('show');
             $('#section-customer-transport').removeClass('show');
-            $('#section-pay-amount').removeClass('show');
+            $('#section-customer-transport').removeClass('show');
             // Reset invoice type
             $('input[name="invoice_type"]').prop('checked', false);
             $('#bill_id').val('').trigger('change');
@@ -281,10 +279,8 @@ jQuery(document).ready(function () {
                     $('#section-trip-details').addClass('show');
                     $('#create').hide();
 
-                    // Show pay amount if customer trip
-                    if ($('input[name="trip_category"]:checked').val() === 'customer') {
-                        $('#section-pay-amount').addClass('show');
-                    }
+                    // Show trip details section & switch to update mode
+                    $('#section-trip-details').addClass('show');
                 } else {
                     swal({ title: 'Error!', text: result.message || 'Something went wrong.', type: 'error', showConfirmButton: true });
                 }
@@ -560,11 +556,9 @@ jQuery(document).ready(function () {
                     // Show trip details section
                     $('#section-trip-details').addClass('show');
 
-                    // Show pay amount for customer trips
-                    if (trip.trip_category === 'customer') {
-                        $('#section-pay-amount').addClass('show');
-                        $('#pay_amount').val(parseFloat(trip.pay_amount || 0).toFixed(2));
-                    }
+                    // Always load pay amount
+                    $('#pay_amount').val(parseFloat(trip.pay_amount || 0).toFixed(2));
+                    $('#pay_amount_completion').val(parseFloat(trip.pay_amount || 0).toFixed(2));
 
                     // Trip completion fields
                     if (trip.end_meter && trip.end_meter !== '-') {
@@ -707,6 +701,7 @@ jQuery(document).ready(function () {
         var amount = parseFloat($('#settle-amount').val());
         var date = $('#settle-date').val();
         var remark = $('#settle-remark').val();
+        var paymentMethod = $('#settle-payment-method').val();
 
         if (!amount || amount <= 0) {
             swal({ title: 'Error!', text: 'Please enter a valid amount', type: 'error', timer: 2000, showConfirmButton: false });
@@ -725,7 +720,8 @@ jQuery(document).ready(function () {
                 trip_id: tripId,
                 amount: amount,
                 settlement_date: date,
-                remark: remark
+                remark: remark,
+                payment_method: paymentMethod
             },
             dataType: 'json',
             success: function (result) {

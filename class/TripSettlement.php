@@ -7,6 +7,7 @@ class TripSettlement
     public $settlement_date;
     public $amount;
     public $remark;
+    public $payment_method;
     public $created_at;
 
     public function __construct($id = null)
@@ -21,6 +22,7 @@ class TripSettlement
                 $this->trip_id = $result['trip_id'];
                 $this->settlement_date = $result['settlement_date'];
                 $this->amount = $result['amount'];
+                $this->payment_method = $result['payment_method'] ?? 'cash';
                 $this->remark = $result['remark'];
                 $this->created_at = $result['created_at'];
             }
@@ -33,11 +35,12 @@ class TripSettlement
         $now = date('Y-m-d H:i:s');
         
         $query = "INSERT INTO `trip_settlements` (
-            `trip_id`, `settlement_date`, `amount`, `remark`, `created_at`
+            `trip_id`, `settlement_date`, `amount`, `payment_method`, `remark`, `created_at`
         ) VALUES (
             '" . (int) $this->trip_id . "',
             '" . addslashes($this->settlement_date) . "',
             '" . floatval($this->amount) . "',
+            '" . addslashes($this->payment_method ?: 'cash') . "',
             " . ($this->remark ? "'" . addslashes($this->remark) . "'" : "NULL") . ",
             '$now'
         )";

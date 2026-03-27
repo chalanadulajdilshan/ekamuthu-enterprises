@@ -246,7 +246,7 @@ class Cashbook
         $whereSettlement = str_replace('si.invoice_date', 'ts.settlement_date', $where);
         $querySettlement = "SELECT COALESCE(SUM(amount), 0) as total
                             FROM `trip_settlements` ts
-                            $whereSettlement";
+                            $whereSettlement AND ts.payment_method = 'cash'";
         $resultSettlement = mysqli_fetch_array($db->readQuery($querySettlement));
         $totalSettlement = (float) $resultSettlement['total'];
 
@@ -266,6 +266,7 @@ class Cashbook
             + $totalReturnIn
             + $totalReturnLateIn
             + $totalTransport
+            + $totalSettlement
             + $totalRepair;
     }
 
@@ -415,8 +416,8 @@ class Cashbook
         $result = mysqli_fetch_array($db->readQuery($query));
         $totalIn += (float)$result['total'];
 
-        // 6b. Trip Settlements
-        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM trip_settlements WHERE DATE(settlement_date) <= '$endDate' AND amount > 0";
+        // 6b. Trip Settlements (Cash only)
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM trip_settlements WHERE DATE(settlement_date) <= '$endDate' AND amount > 0 AND payment_method = 'cash'";
         $result = mysqli_fetch_array($db->readQuery($query));
         $totalIn += (float)$result['total'];
 
@@ -671,7 +672,7 @@ class Cashbook
         $query = "SELECT ts.settlement_date as date, ts.created_at as time, tm.trip_number as doc, ts.amount, 'Trip Settlement' as description
                   FROM trip_settlements ts
                   LEFT JOIN trip_management tm ON ts.trip_id = tm.id
-                  $whereSettlement AND ts.amount > 0
+                  $whereSettlement AND ts.amount > 0 AND ts.payment_method = 'cash'
                   ORDER BY ts.settlement_date ASC, ts.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {

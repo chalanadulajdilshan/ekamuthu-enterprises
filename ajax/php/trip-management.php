@@ -274,6 +274,7 @@ if (isset($_POST['add_settlement'])) {
     $settlement->trip_id = (int) $_POST['trip_id'];
     $settlement->settlement_date = $_POST['settlement_date'];
     $settlement->amount = floatval($_POST['amount']);
+    $settlement->payment_method = $_POST['payment_method'] ?? 'cash';
     $settlement->remark = !empty($_POST['remark']) ? $_POST['remark'] : null;
     
     $result = $settlement->create();

@@ -97,8 +97,8 @@ class TripManagement
             " . ($this->employee_id ? (int) $this->employee_id : "NULL") . ",
             " . ($this->start_location ? "'" . addslashes($this->start_location) . "'" : "NULL") . ",
             " . ($this->end_location ? "'" . addslashes($this->end_location) . "'" : "NULL") . ",
-            '" . floatval($this->start_meter) . "',
-            " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . floatval($this->end_meter) . "'" : "NULL") . ",
+            '" . intval($this->start_meter) . "',
+            " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . intval($this->end_meter) . "'" : "NULL") . ",
             " . ($this->trip_type ? "'" . addslashes($this->trip_type) . "'" : "NULL") . ",
             " . ($this->transport_date ? "'" . addslashes($this->transport_date) . "'" : "NULL") . ",
             " . ($this->due_date ? "'" . addslashes($this->due_date) . "'" : "NULL") . ",
@@ -145,8 +145,8 @@ class TripManagement
             `employee_id` = " . ($this->employee_id ? (int) $this->employee_id : "NULL") . ",
             `start_location` = " . ($this->start_location ? "'" . addslashes($this->start_location) . "'" : "NULL") . ",
             `end_location` = " . ($this->end_location ? "'" . addslashes($this->end_location) . "'" : "NULL") . ",
-            `start_meter` = '" . floatval($this->start_meter) . "',
-            `end_meter` = " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . floatval($this->end_meter) . "'" : "NULL") . ",
+            `start_meter` = '" . intval($this->start_meter) . "',
+            `end_meter` = " . ($this->end_meter !== null && $this->end_meter !== '' ? "'" . intval($this->end_meter) . "'" : "NULL") . ",
             `trip_type` = " . ($this->trip_type ? "'" . addslashes($this->trip_type) . "'" : "NULL") . ",
             `transport_date` = " . ($this->transport_date ? "'" . addslashes($this->transport_date) . "'" : "NULL") . ",
             `due_date` = " . ($this->due_date ? "'" . addslashes($this->due_date) . "'" : "NULL") . ",
@@ -179,19 +179,20 @@ class TripManagement
         $db = Database::getInstance();
         return $db->readQuery($query);
     }
-
     public function all()
     {
         $query = "SELECT tm.*,
-                         cm.name AS customer_name, cm.code AS customer_code,
+                         COALESCE(cm_direct.name, cm_invoice.name) AS customer_name, 
+                         COALESCE(cm_direct.code, cm_invoice.code) AS customer_code,
                          v.vehicle_no, v.brand AS vehicle_brand, v.model AS vehicle_model,
                          em.name AS employee_name, em.code AS employee_code,
                          er.bill_number
                   FROM `trip_management` tm
-                  LEFT JOIN `customer_master` cm ON tm.customer_id = cm.id
+                  LEFT JOIN `customer_master` cm_direct ON tm.customer_id = cm_direct.id
+                  LEFT JOIN `equipment_rent` er ON tm.bill_id = er.id
+                  LEFT JOIN `customer_master` cm_invoice ON er.customer_id = cm_invoice.id
                   LEFT JOIN `vehicles` v ON tm.vehicle_id = v.id
                   LEFT JOIN `employee_master` em ON tm.employee_id = em.id
-                  LEFT JOIN `equipment_rent` er ON tm.bill_id = er.id
                   ORDER BY tm.id DESC";
         $db = Database::getInstance();
         $result = $db->readQuery($query);
@@ -248,6 +249,48 @@ class TripManagement
                   WHERE `bill_id` = " . (int) $billId;
         $result = mysqli_fetch_assoc($db->readQuery($query));
         return floatval($result['total'] ?? 0);
+    }
+
+    public static function getByFilters($fromDate = null, $toDate = null, $vehicleId = null, $customerId = null)
+    {
+        $db = Database::getInstance();
+        $query = "SELECT tm.*,
+                         COALESCE(cm_direct.name, cm_invoice.name) AS customer_name, 
+                         COALESCE(cm_direct.code, cm_invoice.code) AS customer_code,
+                         v.vehicle_no, v.brand AS vehicle_brand, v.model AS vehicle_model,
+                         em.name AS employee_name, em.code AS employee_code,
+                         er.bill_number
+                  FROM `trip_management` tm
+                  LEFT JOIN `customer_master` cm_direct ON tm.customer_id = cm_direct.id
+                  LEFT JOIN `equipment_rent` er ON tm.bill_id = er.id
+                  LEFT JOIN `customer_master` cm_invoice ON er.customer_id = cm_invoice.id
+                  LEFT JOIN `vehicles` v ON tm.vehicle_id = v.id
+                  LEFT JOIN `employee_master` em ON tm.employee_id = em.id
+                  WHERE 1=1";
+
+        if ($fromDate) {
+            $query .= " AND tm.transport_date >= '" . addslashes($fromDate) . "'";
+        }
+        if ($toDate) {
+            $query .= " AND tm.transport_date <= '" . addslashes($toDate) . "'";
+        }
+        if ($vehicleId) {
+            $query .= " AND tm.vehicle_id = " . (int) $vehicleId;
+        }
+        if ($customerId) {
+            $query .= " AND COALESCE(tm.customer_id, er.customer_id) = " . (int) $customerId;
+        }
+
+        $query .= " ORDER BY tm.transport_date DESC, tm.id DESC";
+
+        $result = $db->readQuery($query);
+        $data = [];
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $data[] = $row;
+            }
+        }
+        return $data;
     }
 }
 
