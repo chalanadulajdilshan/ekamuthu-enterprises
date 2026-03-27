@@ -34,10 +34,10 @@ try {
                     eri.rental_date,
                     eri.rent_type,
                     eri.duration,
-                    CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END AS duration_days,
-                    DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY) AS due_date,
+                    CASE WHEN eri.rent_type = 'month' THEN eri.duration * DAY(LAST_DAY(eri.rental_date)) ELSE eri.duration END AS duration_days,
+                    DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * DAY(LAST_DAY(eri.rental_date)) ELSE eri.duration END) DAY) AS due_date,
                     (eri.quantity - COALESCE((SELECT SUM(return_qty) FROM equipment_rent_returns err WHERE err.rent_item_id = eri.id), 0)) AS pending_qty,
-                    GREATEST(0, DATEDIFF('$asOfDateSafe', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * 30 ELSE eri.duration END) DAY))) AS overdue_days,
+                    GREATEST(0, DATEDIFF('$asOfDateSafe', DATE_ADD(eri.rental_date, INTERVAL (CASE WHEN eri.rent_type = 'month' THEN eri.duration * DAY(LAST_DAY(eri.rental_date)) ELSE eri.duration END) DAY))) AS overdue_days,
                     (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily
                   FROM equipment_rent_items eri
                   LEFT JOIN equipment_rent er ON eri.rent_id = er.id

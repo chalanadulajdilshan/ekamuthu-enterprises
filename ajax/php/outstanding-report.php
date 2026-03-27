@@ -329,10 +329,11 @@ if ($action === 'get_outstanding_report') {
             $perUnitDaily = floatval($row['per_unit_daily']);
             $rentType = $row['rent_type'] ?? 'day';
 
-            // For monthly items: round used days up to 30-day blocks, then rate * charged_days
+            // For monthly items: charge minimum of days in rental month, then exact days
             if ($rentType === 'month') {
+                $daysInRentalMonth = (int)date('t', strtotime($row['rental_date']));
                 $usedDays = max(1, (int)$row['used_days']);
-                $chargedDays = max(1, (int)ceil($usedDays / 30)) * 30;
+                $chargedDays = max($daysInRentalMonth, $usedDays);
                 $projectedAmount = round($pendingQty * $chargedDays * $perUnitDaily, 2);
             } else {
                 $usedDays = max(1, (int)$row['used_days']);
@@ -571,8 +572,9 @@ if ($action === 'get_outstanding_report') {
                 if ($isFixedRate) {
                     $rentalAmount = $perUnitDaily * $returnQty;
                 } else if ($rentType === 'month') {
-                    // Monthly billing: round used days up to 30-day blocks
-                    $chargedDays = max(1, (int)ceil($usedDays / 30)) * 30;
+                    // Monthly billing: charge minimum of days in rental month, then exact days
+                    $daysInRentalMonth = (int)date('t', strtotime($rentalDate));
+                    $chargedDays = max($daysInRentalMonth, $usedDays);
                     $rentalAmount = $chargedDays * $perUnitDaily * $returnQty;
                 } else {
                     $rentalAmount = $usedDays * $perUnitDaily * $returnQty;

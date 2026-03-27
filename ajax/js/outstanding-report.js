@@ -924,9 +924,10 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
             var projectedAmount = 0;
             
             if (rentType === 'month') {
-                // Monthly billing: round used days up to 30-day blocks
+                // Monthly billing: charge minimum of days in rental month, then exact days
+                var daysInMonth = new Date(startMidnight.getFullYear(), startMidnight.getMonth() + 1, 0).getDate();
                 var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
-                var chargedDays = Math.max(1, Math.ceil(usedDays / 30)) * 30;
+                var chargedDays = Math.max(daysInMonth, usedDays);
                 projectedAmount = pendingQty * chargedDays * perUnitRate;
             } else {
                 // Daily billing: charge per day

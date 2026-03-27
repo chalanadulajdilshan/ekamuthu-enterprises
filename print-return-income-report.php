@@ -29,7 +29,7 @@ $query = "SELECT err.*,
                    THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
                    WHEN eri.rent_type = 'month'
                    THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
-                     * (GREATEST(1, CEILING(GREATEST(1, DATEDIFF(err.return_date, eri.rental_date)) / 30)) * 30)
+                     * GREATEST(DAY(LAST_DAY(eri.rental_date)), DATEDIFF(err.return_date, eri.rental_date))
                      * err.return_qty
                    ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
                      * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
