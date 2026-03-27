@@ -2641,7 +2641,7 @@ jQuery(document).ready(function () {
 
   var returnAllPreviewTimer = null;
   $(
-    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override, #return_all_extra_charge, #return_all_repair_cost",
+    "#return_all_date, #return_all_time, #return_all_after_9am, #return_all_rental_override, #return_all_extra_charge, #return_all_repair_cost, #return_all_damage_amount",
   ).on("change input", function () {
     // Debounce to avoid rapid-fire AJAX calls from datepicker events
     clearTimeout(returnAllPreviewTimer);
@@ -2663,6 +2663,8 @@ jQuery(document).ready(function () {
       extraChargeInput === "" ? 0 : parseFloat(extraChargeInput);
     var repairCostInput = $("#return_all_repair_cost").val();
     var repairCost = repairCostInput === "" ? 0 : parseFloat(repairCostInput);
+    var damageAmountInput = $("#return_all_damage_amount").val();
+    var damageAmount = damageAmountInput === "" ? 0 : parseFloat(damageAmountInput);
 
     if (!rentId || !returnDate || !returnTime) {
       $("#returnAllPreview").hide();
@@ -2700,6 +2702,7 @@ jQuery(document).ready(function () {
         rental_override: rentalOverride,
         extra_charge_amount: extraCharge,
         repair_cost: repairCost,
+        damage_amount: damageAmount,
       },
       dataType: "json",
       success: function (res) {

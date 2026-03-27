@@ -226,7 +226,10 @@ $(document).ready(function () {
                                     <td class="text-right">Flat charge applies</td>
                                 </tr>`;
           } else if (calc.rent_type === 'month') {
-            var chargedDaysMonthly = Math.max(1, Math.ceil(calc.used_days / 30)) * 30;
+            // Updated monthly billing: charge minimum of days in rental month, then exact days
+            // rental_date is available in the calc response but not explicitly passed back.
+            // However, the backend already calculated charged_days correctly using the new logic.
+            // We use calc.charged_days directly here.
             settlementHtml += `
                                 <tr>
                                     <td><span class="badge bg-primary">Monthly Billing</span></td>
@@ -238,7 +241,7 @@ $(document).ready(function () {
                                 </tr>
                                 <tr>
                                     <td>Charged Days:</td>
-                                    <td class="text-right">${chargedDaysMonthly} day(s) <small class="text-muted">(${calc.used_months} month(s))</small></td>
+                                    <td class="text-right">${calc.charged_days} day(s)</td>
                                 </tr>
                                 <tr>
                                     <td>Monthly Rate (per unit):</td>

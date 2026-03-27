@@ -1174,7 +1174,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'return_all') {
             $RETURN->return_date = $nowDate;
             $RETURN->return_time = $nowTime;
             $RETURN->return_qty = $pendingQty;
-            $RETURN->damage_amount = 0;
+            $RETURN->damage_amount = floatval($calculation['damage_amount'] ?? 0);
             $RETURN->after_9am_extra_day = $after9Flag;
             $RETURN->extra_day_amount = floatval($calculation['extra_day_amount'] ?? 0);
             $RETURN->penalty_percentage = floatval($calculation['penalty_percentage'] ?? 0);
