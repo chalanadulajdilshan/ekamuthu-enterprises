@@ -94,6 +94,7 @@ include_once(dirname(__FILE__) . '/GatepassItem.php');
 include_once(dirname(__FILE__) . '/Translations.php');
 include_once(dirname(__FILE__) . '/Vehicle.php');
 include_once(dirname(__FILE__) . '/VehicleRepair.php');
+include_once(dirname(__FILE__) . '/VehicleBreakdown.php');
 include_once(dirname(__FILE__) . '/TransportDetail.php');
 include_once(dirname(__FILE__) . '/TransportSettlement.php');
 include_once(dirname(__FILE__) . '/TripManagement.php');
