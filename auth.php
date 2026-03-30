@@ -54,6 +54,8 @@ $skipPages[] = 'system-payment-required.php';
 $skipPages[] = 'print-return-income-report.php';
 $skipPages[] = 'print-outstanding-report.php';
 $skipPages[] = 'print-item-income-report.php';
+$skipPages[] = 'fuel-efficiency-report.php';
+$skipPages[] = 'vehicle-fuel-management.php';
 
 foreach ($nonPermissionPages as $page) {
     $skipPages[] = $page['page']; // add page name to skipPages array
