@@ -101,6 +101,8 @@ include_once(dirname(__FILE__) . '/TripManagement.php');
 include_once(dirname(__FILE__) . '/TripSettlement.php');
 include_once(dirname(__FILE__) . '/VehicleFuel.php');
 include_once(dirname(__FILE__) . '/SupplierMaster.php');
+include_once(dirname(__FILE__) . '/SupplierInvoice.php');
+include_once(dirname(__FILE__) . '/SupplierInvoiceItem.php');
 
 
 
