@@ -25,16 +25,16 @@ if ($id > 0) {
             'created_at' => $PAYMENT_RECEIPT_SUPPLIER->created_at
         ];
 
-        // Load customer details
-        $CUSTOMER = new CustomerMaster($PAYMENT_RECEIPT_SUPPLIER->customer_id);
-        if ($CUSTOMER->id) {
+        // Load supplier details
+        $SUPPLIER = new SupplierMaster($PAYMENT_RECEIPT_SUPPLIER->customer_id);
+        if ($SUPPLIER->id) {
             $customer = [
-                'id' => $CUSTOMER->id,
-                'code' => $CUSTOMER->code,
-                'name' => $CUSTOMER->name,
-                'address' => $CUSTOMER->address,
-                'email' => $CUSTOMER->email,
-                'mobile' => $CUSTOMER->mobile_number
+                'id' => $SUPPLIER->id,
+                'code' => $SUPPLIER->code,
+                'name' => $SUPPLIER->name,
+                'address' => $SUPPLIER->address,
+                'email' => $SUPPLIER->email,
+                'mobile' => $SUPPLIER->mobile_number
             ];
         }
 

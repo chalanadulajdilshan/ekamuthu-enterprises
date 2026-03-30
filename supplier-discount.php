@@ -234,7 +234,7 @@ $last_dis_id = 'SD/0' . ($lastId + 1);
                                     $DISCOUNT = new SuplierDiscount(null);
                                     foreach ($DISCOUNT->all() as $key => $discount) {
                                         $key++;
-                                        $SUPLIER = new CustomerMaster($discount['suplier_id']);
+                                        $SUPLIER = new SupplierMaster($discount['suplier_id']);
                                         $BRAND = new Brand($discount['brand_id']);
                                         ?>
                                         <tr class="select-model" data-id="<?php echo $discount['id']; ?>"

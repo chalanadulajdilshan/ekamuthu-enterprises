@@ -21,7 +21,6 @@
                                     <th>Mobile</th>
                                     <th>Email</th>
                                     <th>Credit Limit</th>
-                                    <th>Is Vat</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>

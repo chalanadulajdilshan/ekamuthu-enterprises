@@ -70,8 +70,9 @@ if (isset($_POST['create'])) {
                     }
                 }
             }
-            $CUSTOMER_MASTER = new CustomerMaster(NULL);
-            $CUSTOMER_MASTER->updateCustomerOutstanding($_POST['customer_id'], $_POST['paid_amount'], false);
+            $SUPPLIER_MASTER = new SupplierMaster($_POST['customer_id']);
+            $SUPPLIER_MASTER->outstanding = (float)$SUPPLIER_MASTER->outstanding - (float)$_POST['paid_amount'];
+            $SUPPLIER_MASTER->update();
 
             $DOCUMENT_TRACKING = new DocumentTracking(null);
             $DOCUMENT_TRACKING->incrementDocumentId('payment_receipt_supplier');
@@ -94,7 +95,7 @@ if (isset($_POST['update'])) {
         exit();
     }
 
-    $RECEIPT = new PaymentReceipt($_POST['id']); // Load receipt by ID
+    $RECEIPT = new PaymentReceiptSupplier($_POST['id']); // Load receipt by ID
 
     $RECEIPT->receipt_no   = $_POST['receipt_no'];
     $RECEIPT->customer_id  = $_POST['customer_id'];
@@ -114,7 +115,7 @@ if (isset($_POST['update'])) {
 
 // Delete payment receipt
 if (isset($_POST['delete']) && isset($_POST['id'])) {
-    $RECEIPT = new PaymentReceipt($_POST['id']);
+    $RECEIPT = new PaymentReceiptSupplier($_POST['id']);
     $res = $RECEIPT->delete();
 
     if ($res) {

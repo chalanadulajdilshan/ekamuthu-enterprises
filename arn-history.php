@@ -270,7 +270,7 @@ include './auth.php';
                                             $db = Database::getInstance();
                                             foreach ($arns as $key => $arn) {
                                                 $key++;
-                                                $CUSTOMER_MASTER = new CustomerMaster($arn['supplier_id']);
+                                                $SUPPLIER_MASTER = new SupplierMaster($arn['supplier_id']);
                                                 $DEPARTMENT_MASTER = new DepartmentMaster($arn['department']);
                                                 $PAYMENT_TYPE = new PaymentType($arn['purchase_type']);
                                                 $is_cancelled = isset($arn['is_cancelled']) && $arn['is_cancelled'] == 1;
@@ -285,7 +285,7 @@ include './auth.php';
                                                     <td><?php echo $key; ?></td>
                                                     <td><?php echo htmlspecialchars($arn['arn_no']); ?></td>
                                                     <td><?php echo htmlspecialchars($arn['invoice_date']); ?></td>
-                                                    <td><?php echo htmlspecialchars($CUSTOMER_MASTER->code . ' - ' . $CUSTOMER_MASTER->name); ?></td>
+                                                    <td><?php echo htmlspecialchars($SUPPLIER_MASTER->code . ' - ' . $SUPPLIER_MASTER->name); ?></td>
                                                     <td><?php echo htmlspecialchars($PAYMENT_TYPE->name ?? ''); ?></td>
                                                     <td class="text-end"><?php echo number_format($arn['total_arn_value'], 2); ?></td>
                                                     <td class="text-end"><?php echo number_format($arn['paid_amount'], 2); ?></td>

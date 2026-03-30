@@ -218,6 +218,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 6. Update purchase_return with total amount
     $db->readQuery("UPDATE purchase_return SET total_amount = '$total_amount' WHERE id = '$return_id'");
+    
+    // 7. Update supplier outstanding
+    if ($total_amount > 0) {
+        $SUPPLIER = new SupplierMaster($supplier_id);
+        $SUPPLIER->outstanding = (float)$SUPPLIER->outstanding - (float)$total_amount;
+        $SUPPLIER->update();
+    }
 
     echo json_encode([
         'status' => 'success',

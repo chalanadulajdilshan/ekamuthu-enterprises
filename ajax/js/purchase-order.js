@@ -773,12 +773,10 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         ajax: {
-            url: "ajax/php/customer-master.php", // Make sure this is the correct endpoint
+            url: "ajax/php/supplier-master.php", // Upgraded to new supplier table
             type: "POST",
             data: function (d) {
                 d.filter = true;
-                d.supplier_only = true; // Filter suppliers only
-                d.category = [2, 3]; // Only show Supplier (2) or Both (3)
             },
             dataSrc: function (json) {
                 return json.data;

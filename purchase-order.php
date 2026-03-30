@@ -412,7 +412,7 @@ $po_id = $COMPANY_PROFILE_DETAILS->company_code . '/PO/00/0' . ($lastId + 1);
                                     <?php
                                     $PURCHASE_ORDER = new PurchaseOrder(null);
                                     foreach ($PURCHASE_ORDER->all() as $key => $purchase_order) {
-                                        $CUSTOMER_MASTER = new CustomerMaster($purchase_order['supplier_id']);
+                                        $SUPPLIER_MASTER = new SupplierMaster($purchase_order['supplier_id']);
                                         $DEPARTMENT_MASTER = new DepartmentMaster($purchase_order['department']);
                                         $key++;
                                     ?>
@@ -420,9 +420,9 @@ $po_id = $COMPANY_PROFILE_DETAILS->company_code . '/PO/00/0' . ($lastId + 1);
                                             data-po_number="<?= htmlspecialchars($purchase_order['po_number']); ?>"
                                             data-order_date="<?= htmlspecialchars($purchase_order['order_date']); ?>"
                                             data-supplier_id="<?= htmlspecialchars($purchase_order['supplier_id']); ?>"
-                                            data-supplier_code="<?= htmlspecialchars($CUSTOMER_MASTER->code); ?>"
-                                            data-supplier_name="<?= htmlspecialchars($CUSTOMER_MASTER->name); ?>"
-                                            data-supplier_address="<?= htmlspecialchars($CUSTOMER_MASTER->address); ?>"
+                                            data-supplier_code="<?= htmlspecialchars($SUPPLIER_MASTER->code); ?>"
+                                            data-supplier_name="<?= htmlspecialchars($SUPPLIER_MASTER->name); ?>"
+                                            data-supplier_address="<?= htmlspecialchars($SUPPLIER_MASTER->address); ?>"
                                             data-brand="<?= htmlspecialchars($purchase_order['brand']); ?>"
                                             data-category="<?= htmlspecialchars($purchase_order['category']); ?>"
                                             data-invoice_no="<?= htmlspecialchars($purchase_order['invoice_no']); ?>"
@@ -435,7 +435,7 @@ $po_id = $COMPANY_PROFILE_DETAILS->company_code . '/PO/00/0' . ($lastId + 1);
                                             <td><?= $key; ?></td>
                                             <td><?= htmlspecialchars($purchase_order['po_number']); ?></td>
                                             <td><?= htmlspecialchars($purchase_order['order_date']); ?></td>
-                                            <td><?= htmlspecialchars($CUSTOMER_MASTER->code . ' - ' . $CUSTOMER_MASTER->name); ?>
+                                            <td><?= htmlspecialchars($SUPPLIER_MASTER->code . ' - ' . $SUPPLIER_MASTER->name); ?>
                                             </td>
                                             <td><?= htmlspecialchars($DEPARTMENT_MASTER->name); ?></td>
 

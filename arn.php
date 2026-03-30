@@ -550,7 +550,7 @@ $arn_id = $COMPANY_PROFILE_DETAILS->company_code . '/ARN/00/' . ($lastId + 1);
                                     <?php
                                     $PURCHASE_ORDER = new PurchaseOrder(null);
                                     foreach ($PURCHASE_ORDER->getAllByStatus(0) as $key => $purchase_order) {
-                                        $CUSTOMER_MASTER = new CustomerMaster($purchase_order['supplier_id']);
+                                        $SUPPLIER_MASTER = new SupplierMaster($purchase_order['supplier_id']);
                                         $DEPARTMENT_MASTER = new DepartmentMaster($purchase_order['department']);
                                         $key++;
                                     ?>
@@ -558,9 +558,9 @@ $arn_id = $COMPANY_PROFILE_DETAILS->company_code . '/ARN/00/' . ($lastId + 1);
                                             data-po_number="<?= htmlspecialchars($purchase_order['po_number']); ?>"
                                             data-order_date="<?= htmlspecialchars($purchase_order['order_date']); ?>"
                                             data-supplier_id="<?= htmlspecialchars($purchase_order['supplier_id']); ?>"
-                                            data-supplier_code="<?= htmlspecialchars($CUSTOMER_MASTER->code); ?>"
-                                            data-supplier_name="<?= htmlspecialchars($CUSTOMER_MASTER->name); ?>"
-                                            data-supplier_address="<?= htmlspecialchars($CUSTOMER_MASTER->address); ?>"
+                                            data-supplier_code="<?= htmlspecialchars($SUPPLIER_MASTER->code); ?>"
+                                            data-supplier_name="<?= htmlspecialchars($SUPPLIER_MASTER->name); ?>"
+                                            data-supplier_address="<?= htmlspecialchars($SUPPLIER_MASTER->address); ?>"
 
                                             data-address="<?= htmlspecialchars($purchase_order['address']); ?>"
 
@@ -575,7 +575,7 @@ $arn_id = $COMPANY_PROFILE_DETAILS->company_code . '/ARN/00/' . ($lastId + 1);
                                             <td><?= $key; ?></td>
                                             <td><?= htmlspecialchars($purchase_order['po_number']); ?></td>
                                             <td><?= htmlspecialchars($purchase_order['order_date']); ?></td>
-                                            <td><?= htmlspecialchars($CUSTOMER_MASTER->code . ' - ' . $CUSTOMER_MASTER->name); ?>
+                                            <td><?= htmlspecialchars($SUPPLIER_MASTER->code . ' - ' . $SUPPLIER_MASTER->name); ?>
                                             </td>
                                             <td><?= htmlspecialchars($DEPARTMENT_MASTER->name); ?></td>
 
@@ -625,7 +625,7 @@ $arn_id = $COMPANY_PROFILE_DETAILS->company_code . '/ARN/00/' . ($lastId + 1);
                                     <?php
                                     $ARN_MASTER = new ArnMaster(null);
                                     foreach ($ARN_MASTER->all() as $key => $arn_master) {
-                                        $CUSTOMER_MASTER = new CustomerMaster($arn_master['supplier_id']);
+                                        $SUPPLIER_MASTER = new SupplierMaster($arn_master['supplier_id']);
                                         $DEPARTMENT_MASTER = new DepartmentMaster($arn_master['department']);
                                         $key++;
 
@@ -653,9 +653,9 @@ $arn_id = $COMPANY_PROFILE_DETAILS->company_code . '/ARN/00/' . ($lastId + 1);
                                             data-entry_date="<?= htmlspecialchars($arn_master['entry_date'] ?? ''); ?>"
                                             data-invoice_date="<?= htmlspecialchars($arn_master['invoice_date'] ?? ''); ?>"
                                             data-supplier_id="<?= htmlspecialchars($arn_master['supplier_id'] ?? ''); ?>"
-                                            data-supplier_code="<?= htmlspecialchars($CUSTOMER_MASTER->code ?? ''); ?>"
-                                            data-supplier_name="<?= htmlspecialchars($CUSTOMER_MASTER->name ?? ''); ?>"
-                                            data-supplier_address="<?= htmlspecialchars($CUSTOMER_MASTER->address ?? ''); ?>"
+                                            data-supplier_code="<?= htmlspecialchars($SUPPLIER_MASTER->code ?? ''); ?>"
+                                            data-supplier_name="<?= htmlspecialchars($SUPPLIER_MASTER->name ?? ''); ?>"
+                                            data-supplier_address="<?= htmlspecialchars($SUPPLIER_MASTER->address ?? ''); ?>"
                                             data-brand_id="<?= htmlspecialchars($arn_master['brand_id'] ?? ''); ?>"
                                             data-category_id="<?= htmlspecialchars($arn_master['category_id'] ?? ''); ?>"
                                             data-category="<?= htmlspecialchars($arn_master['category'] ?? ''); ?>"
@@ -681,7 +681,7 @@ $arn_id = $COMPANY_PROFILE_DETAILS->company_code . '/ARN/00/' . ($lastId + 1);
                                                     <span class="badge bg-danger ms-2">Cancelled</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td><?= htmlspecialchars(($CUSTOMER_MASTER->code ?? '') . ' - ' . ($CUSTOMER_MASTER->name ?? '')); ?></td>
+                                            <td><?= htmlspecialchars(($SUPPLIER_MASTER->code ?? '') . ' - ' . ($SUPPLIER_MASTER->name ?? '')); ?></td>
                                             <td><?= htmlspecialchars($arn_master['bl_no'] ?? ''); ?></td>
                                             <td><?= htmlspecialchars($arn_master['invoice_date'] ?? ''); ?></td>
                                             <td><?= htmlspecialchars($DEPARTMENT_MASTER->name ?? ''); ?></td>

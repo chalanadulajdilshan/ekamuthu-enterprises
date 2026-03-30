@@ -230,11 +230,10 @@ jQuery(document).ready(function () {
       processing: true,
       serverSide: true,
       ajax: {
-        url: "ajax/php/customer-master.php",
+        url: "ajax/php/supplier-master.php",
         type: "POST",
         data: function (d) {
           d.filter = true;
-          d.category = [2, 3]; // send as array
         },
         dataSrc: function (json) {
           return json.data;
@@ -250,8 +249,7 @@ jQuery(document).ready(function () {
         { data: "mobile_number", title: "Mobile" },
         { data: "email", title: "Email" },
         { data: "credit_limit", title: "Credit Limit" },
-        { data: "vat_no", title: "Is Vat" },
-        { data: "status_label", title: "Status" },
+        { data: "status_label", title: "Status" }
       ],
       order: [[0, "desc"]],
       pageLength: 100,
@@ -263,6 +261,7 @@ jQuery(document).ready(function () {
       if (data) {
         // Populate supplier master form fields
         $("#customer_id").val(data.id || "");
+        $("#supplier_id_hidden").val(data.id || "");
         $("#code").val(data.code || "");
         $("#name").val(data.name || "");
         $("#address").val(data.address || "");

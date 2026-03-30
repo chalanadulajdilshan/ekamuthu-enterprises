@@ -71,9 +71,9 @@ if (isset($data['create'])) {
     
     // Set paid amount to 0 for company ARN adjust (no payment)
     $ARN->paid_amount = '0';
-    $CUSTOMER = new CustomerMaster($ARN->supplier_id);
-    $CUSTOMER->outstanding = $ARN->total_arn_value;
-    $CUSTOMER->update();
+    $SUPPLIER = new SupplierMaster($ARN->supplier_id);
+    $SUPPLIER->outstanding = (float)$SUPPLIER->outstanding + (float)$ARN->total_arn_value;
+    $SUPPLIER->update();
 
     // 2. Update Purchase Order Status using numeric PO ID
     $purchaseOrderId = isset($data['purchase_order_id']) ? (int)$data['purchase_order_id'] : 0;
@@ -293,7 +293,7 @@ if (isset($_POST['filter'])) {
     $query = "SELECT SQL_CALC_FOUND_ROWS am.id, am.arn_no, am.invoice_date, cm.code, cm.name, am.purchase_type, am.total_arn_value, am.paid_amount,
               CASE WHEN am.is_cancelled = 1 THEN 'Cancelled' ELSE 'Active' END as status
               FROM arn_master am
-              LEFT JOIN customer_master cm ON am.supplier_id = cm.id
+              LEFT JOIN supplier_master cm ON am.supplier_id = cm.id
               WHERE 1=1";
 
     if (!empty($searchValue)) {

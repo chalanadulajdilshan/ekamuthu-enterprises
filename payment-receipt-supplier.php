@@ -534,13 +534,13 @@ $payment_receipt_id = $COMPANY_PROFILE_DETAILS->company_code . '/SPR/00/0' . ($l
 
                                 foreach ($PAYMENT_RECEIPT_SUPPLIER->all() as $key => $paymentReceiptSupplier) {
                                     $key++;
-                                    $CUSTOMER_MASTER = new CustomerMaster($paymentReceiptSupplier['customer_id']);
+                                    $SUPPLIER_MASTER = new SupplierMaster($paymentReceiptSupplier['customer_id']);
                                     ?>
                                     <tr class="clickable-row" style="cursor: pointer;" 
                                         onclick="window.open('payment-receipt-supplier-view.php?id=<?php echo $paymentReceiptSupplier['id']; ?>', '_blank');">
                                         <td><?php echo $key; ?></td>
-                                        <td><?php echo htmlspecialchars($CUSTOMER_MASTER->code); ?></td>
-                                        <td><?php echo htmlspecialchars($CUSTOMER_MASTER->name); ?></td>
+                                        <td><?php echo htmlspecialchars($SUPPLIER_MASTER->code); ?></td>
+                                        <td><?php echo htmlspecialchars($SUPPLIER_MASTER->name); ?></td>
                                         <td><?php echo htmlspecialchars($paymentReceiptSupplier['receipt_no']); ?></td>
                                         <td><?php echo htmlspecialchars($paymentReceiptSupplier['entry_date']); ?></td>
                                         <td><?php echo htmlspecialchars($paymentReceiptSupplier['amount_paid']); ?></td>

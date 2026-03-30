@@ -112,15 +112,6 @@ class SuplierDiscount
 
         $where = "WHERE 1=1";
 
-        // Filter by category if specified (for supplier-only filter)
-        if (
-            isset($request['supplier_only']) && $request['supplier_only'] &&
-            isset($request['category']) && is_array($request['category'])
-        ) {
-            $categories = implode(',', array_map('intval', $request['category']));
-            $where .= " AND category IN ($categories)";
-        }
-
         // Search filter
         if (!empty($search)) {
             $where .= " AND (name LIKE '%$search%' OR code LIKE '%$search%' OR mobile_number LIKE '%$search%')";
@@ -136,48 +127,31 @@ class SuplierDiscount
         }
 
         // Total records
-        $totalSql = "SELECT COUNT(*) as total FROM customer_master";
+        $totalSql = "SELECT COUNT(*) as total FROM supplier_master";
         $totalQuery = $db->readQuery($totalSql);
         $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 
         // Filtered records
-        $filteredSql = "SELECT COUNT(*) as filtered FROM customer_master $where";
+        $filteredSql = "SELECT COUNT(*) as filtered FROM supplier_master $where";
         $filteredQuery = $db->readQuery($filteredSql);
         $filteredData = mysqli_fetch_assoc($filteredQuery)['filtered'];
 
         // Paginated query
-        $sql = "SELECT * FROM customer_master $where ORDER BY id DESC LIMIT $start, $length";
+        $sql = "SELECT * FROM supplier_master $where ORDER BY id DESC LIMIT $start, $length";
         $dataQuery = $db->readQuery($sql);
 
         $data = [];
+        $key = $start + 1;
 
         while ($row = mysqli_fetch_assoc($dataQuery)) {
-            // Format category labels
-            $categoryLabel = '';
-            switch ($row['category']) {
-                case 1:
-                    $categoryLabel = 'Customer';
-                    break;
-                case 2:
-                    $categoryLabel = 'Supplier';
-                    break;
-                case 3:
-                    $categoryLabel = 'Both';
-                    break;
-                default:
-                    $categoryLabel = 'Unknown';
-            }
-
             $nestedData = [
+                "key" => $key++,
                 "id" => $row['id'],
                 "code" => $row['code'],
                 "name" => $row['name'],
                 "mobile_number" => $row['mobile_number'],
-                "email" => $row['email'],
-                "category" => $categoryLabel,
-                "province" => $row['province'] ?? '',
                 "credit_limit" => $row['credit_limit'] ?? '0',
-                "vat_no" => $row['vat_no'] ?? '',
+                "outstanding" => $row['outstanding'] ?? '0',
                 "status" => $row['is_active'],
                 "status_label" => $row['is_active'] == 1
                     ? '<span class="badge bg-soft-success font-size-12">Active</span>'

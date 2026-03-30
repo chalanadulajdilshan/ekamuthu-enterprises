@@ -4,11 +4,11 @@
 include 'class/include.php';
 include 'auth.php';
 
-$CUSTOMER_MASTER = new CustomerMaster(NULL);
+$SUPPLIER_MASTER = new SupplierMaster(NULL);
 
 // Get the last inserted package id
-$lastId = $CUSTOMER_MASTER->getLastID();
-$customer_id = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
+$lastId = $SUPPLIER_MASTER->getLastID();
+$supplier_code = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
 ?>
 
 <head>
@@ -120,7 +120,7 @@ $customer_id = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <label for="customerCode" class="form-label">Supplier Code</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
-                                                            value="<?php echo $customer_id ?>" readonly>
+                                                            value="<?php echo $supplier_code ?>" readonly>
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#supplierModal"><i
                                                                 class="uil uil-search me-1"></i>
@@ -214,10 +214,9 @@ $customer_id = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <div class="col-12 mt-3">
                                                     <label for="remark" class="form-label">Remark Note</label>
                                                     <textarea id="remark" name="remark" class="form-control" rows="4"
-                                                        placeholder="Enter any remarks or notes about the customer..."></textarea>
+                                                        placeholder="Enter any remarks or notes about the supplier..."></textarea>
                                                 </div>
-                                                <input type="hidden" id="customer_id" name="customer_id" />
-                                                <input id="category" name="category" type="hidden" value="2">
+                                                <input type="hidden" id="supplier_id_hidden" name="supplier_id" />
                                             </div>
                                         </form>
                                     </div>
@@ -241,7 +240,7 @@ $customer_id = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
     <!-- /////////////////////////// -->
-    <script src="ajax/js/customer-master.js"></script>
+    <script src="ajax/js/supplier-master.js"></script>
     <script src="ajax/js/common.js"></script>
     <?php include 'supplier-master-model.php' ?>
 

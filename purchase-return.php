@@ -210,7 +210,7 @@ $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
                                                         foreach ($ARN_RETURN->all() as $key => $return) {
                                                             $key++;
                                                             $DEPARTMENT = new DepartmentMaster($return['department_id']);
-                                                            $SUPPLIER = new CustomerMaster($return['supplier_id']);
+                                                            $SUPPLIER = new SupplierMaster($return['supplier_id']);
                                                             $ARN = new ArnMaster($return['arn_id']);
                                                         ?>
                                                             <tr class="view-return-items" data-id="<?= $return['id']; ?>">
@@ -291,7 +291,7 @@ $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
                                     <?php
                                     $ARN_ORDER = new ArnMaster(null);
                                     foreach ($ARN_ORDER->all() as $key => $arn_order) {
-                                        $CUSTOMER_MASTER = new CustomerMaster($arn_order['supplier_id']);
+                                        $SUPPLIER_MASTER = new SupplierMaster($arn_order['supplier_id']);
                                         $DEPARTMENT_MASTER = new DepartmentMaster($arn_order['department']);
                                         $key++;
                                     ?>
@@ -301,8 +301,8 @@ $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
                                             data-arn_no="<?= htmlspecialchars($arn_order['arn_no']); ?>"
                                             data-order_date="<?= htmlspecialchars($arn_order['po_date']); ?>"
                                             data-supplier_id="<?= htmlspecialchars($arn_order['supplier_id']); ?>"
-                                            data-supplier_code="<?= htmlspecialchars($CUSTOMER_MASTER->code); ?>"
-                                            data-supplier_name="<?= htmlspecialchars($CUSTOMER_MASTER->name); ?>"
+                                            data-supplier_code="<?= htmlspecialchars($SUPPLIER_MASTER->code); ?>"
+                                            data-supplier_name="<?= htmlspecialchars($SUPPLIER_MASTER->name); ?>"
                                             data-pi_no="<?= htmlspecialchars($arn_order['pi_no']); ?>"
                                             data-lc_tt_no="<?= htmlspecialchars($arn_order['lc_tt_no']); ?>"
                                             data-department="<?= htmlspecialchars($arn_order['department']); ?>"
@@ -312,7 +312,7 @@ $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
                                             <td><?= $key; ?></td>
                                             <td><?= htmlspecialchars($arn_order['arn_no']); ?></td>
                                             <td><?= htmlspecialchars($arn_order['po_date']); ?></td>
-                                            <td><?= htmlspecialchars($CUSTOMER_MASTER->code . ' - ' . $CUSTOMER_MASTER->name); ?></td>
+                                            <td><?= htmlspecialchars($SUPPLIER_MASTER->code . ' - ' . $SUPPLIER_MASTER->name); ?></td>
                                             <td><?= htmlspecialchars($arn_order['pi_no']); ?></td>
                                             <td><?= htmlspecialchars($DEPARTMENT_MASTER->name); ?></td>
 
@@ -365,7 +365,7 @@ $DOCUMENT_TRACKING = new DocumentTracking($doc_id);
 
     <!-- JAVASCRIPT -->
     <script src="assets/libs/jquery/jquery.min.js"></script>
-    <script src="ajax/js/customer-master.js"></script>
+    <script src="ajax/js/supplier-master.js"></script>
     <script src="ajax/js/purchase-order-return.js"></script>
 
     <!-- /////////////////////////// -->

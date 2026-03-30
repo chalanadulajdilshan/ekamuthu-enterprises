@@ -598,9 +598,9 @@ jQuery(document).ready(function ($) {
         processing: true,
         serverSide: true,
         ajax: {
-          url: "ajax/php/customer-master.php",
+          url: "ajax/php/supplier-master.php",
           type: "POST",
-          data: { filter: true, category: 2 },
+          data: { filter: true },
           dataSrc: (json) => json.data,
           error: (xhr) => console.error("Server Error Response:", xhr.responseText),
         },

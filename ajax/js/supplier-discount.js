@@ -329,11 +329,10 @@ jQuery(document).ready(function () {
       processing: true,
       serverSide: true,
       ajax: {
-        url: "ajax/php/customer-master.php",
+        url: "ajax/php/supplier-master.php",
         type: "POST",
         data: function (d) {
           d.filter = true;
-          d.category = [2, 3]; // Only show Supplier (2) or Both (3)
         },
         dataSrc: function (json) {
           return json.data;
@@ -347,9 +346,8 @@ jQuery(document).ready(function () {
         { data: "code", title: "Code" },
         { data: "name", title: "Name" },
         { data: "mobile_number", title: "Mobile" },
-        { data: "email", title: "Email" },
         { data: "credit_limit", title: "Credit Limit" },
-        { data: "vat_no", title: "Is Vat" },
+        { data: "outstanding", title: "Outstanding" },
         { data: "status_label", title: "Status" }
       ],
       order: [[0, 'desc']],
