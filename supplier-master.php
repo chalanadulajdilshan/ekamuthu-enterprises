@@ -198,7 +198,7 @@ $supplier_code = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                 <div class="col-md-3 mt-3">
                                                     <label for="outstanding" class="form-label">Outstanding Balance</label>
                                                     <input id="outstanding" name="outstanding" type="text"
-                                                        class="form-control" placeholder="Enter outstanding balance">
+                                                        class="form-control" placeholder="Outstanding balance" readonly>
                                                 </div>
 
                                                 <div class="col-md-1 mt-5 d-flex justify-content-center align-items-center">

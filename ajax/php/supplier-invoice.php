@@ -34,6 +34,30 @@ if (isset($_POST['action']) && $_POST['action'] == 'create_supplier_invoice') {
         exit();
     }
 
+    // Check for duplicate Invoice No
+    $invoiceNo = $_POST['invoice_no'] ?? '';
+    if (!empty($invoiceNo)) {
+        $db = Database::getInstance();
+        $checkInvoice = "SELECT id FROM supplier_invoices WHERE invoice_no = '" . $db->escapeString($invoiceNo) . "'";
+        $result = $db->readQuery($checkInvoice);
+        if (mysqli_num_rows($result) > 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Invoice No already exists. Please use a unique Invoice No.']);
+            exit();
+        }
+    }
+
+    // Check for duplicate Order No
+    $orderNo = $_POST['order_no'] ?? '';
+    if (!empty($orderNo)) {
+        $db = Database::getInstance();
+        $checkOrder = "SELECT id FROM supplier_invoices WHERE order_no = '" . $db->escapeString($orderNo) . "'";
+        $result = $db->readQuery($checkOrder);
+        if (mysqli_num_rows($result) > 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Order No already exists. Please use a unique Order No.']);
+            exit();
+        }
+    }
+
     // Calculate grand total
     $grandTotal = 0;
     foreach ($items as $item) {
@@ -91,6 +115,12 @@ if (isset($_POST['action']) && $_POST['action'] == 'create_supplier_invoice') {
         // Increment document tracking
         $DOCUMENT_TRACKING = new DocumentTracking(null);
         $DOCUMENT_TRACKING->incrementDocumentId('supplier_invoice');
+
+        // Increase supplier outstanding if credit payment
+        if (($INVOICE->payment_type ?? '') === 'credit') {
+            $db = Database::getInstance();
+            $db->readQuery("UPDATE `supplier_master` SET `outstanding` = `outstanding` + $grandTotal WHERE `id` = " . (int)$_POST['supplier_id']);
+        }
 
         // Audit log
         $AUDIT_LOG = new AuditLog(null);
@@ -157,14 +187,44 @@ if (isset($_POST['action']) && $_POST['action'] == 'update_supplier_invoice') {
     $invoiceId = $_POST['id'];
     $items = json_decode($_POST['items'], true);
 
+    // Check for duplicate Invoice No (excluding current record)
+    $invoiceNo = $_POST['invoice_no'] ?? '';
+    if (!empty($invoiceNo)) {
+        $db = Database::getInstance();
+        $checkInvoice = "SELECT id FROM supplier_invoices WHERE invoice_no = '" . $db->escapeString($invoiceNo) . "' AND id != " . (int)$invoiceId;
+        $result = $db->readQuery($checkInvoice);
+        if (mysqli_num_rows($result) > 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Invoice No already exists. Please use a unique Invoice No.']);
+            exit();
+        }
+    }
+
+    // Check for duplicate Order No (excluding current record)
+    $orderNo = $_POST['order_no'] ?? '';
+    if (!empty($orderNo)) {
+        $db = Database::getInstance();
+        $checkOrder = "SELECT id FROM supplier_invoices WHERE order_no = '" . $db->escapeString($orderNo) . "' AND id != " . (int)$invoiceId;
+        $result = $db->readQuery($checkOrder);
+        if (mysqli_num_rows($result) > 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Order No already exists. Please use a unique Order No.']);
+            exit();
+        }
+    }
+
     // Calculate grand total
     $grandTotal = 0;
     foreach ($items as $item) {
         $grandTotal += floatval($item['amount']);
     }
 
+    // Get old invoice data before update to adjust outstanding
+    $OLD_INVOICE = new SupplierInvoice($invoiceId);
+    $oldPaymentType = $OLD_INVOICE->payment_type;
+    $oldGrandTotal = floatval($OLD_INVOICE->grand_total);
+    $oldSupplierId = (int)$OLD_INVOICE->supplier_id;
+
     // Handle cheque image upload
-    $EXISTING = new SupplierInvoice($invoiceId);
+    $EXISTING = $OLD_INVOICE;
     $chequeImageName = $EXISTING->cheque_image;
 
     if (isset($_FILES['cheque_image']) && $_FILES['cheque_image']['error'] === UPLOAD_ERR_OK) {
@@ -214,6 +274,20 @@ if (isset($_POST['action']) && $_POST['action'] == 'update_supplier_invoice') {
             $ITEM->create();
         }
 
+        // Adjust supplier_master outstanding
+        $db = Database::getInstance();
+        $newPaymentType = $_POST['payment_type'] ?? 'cash';
+        $newSupplierId = (int)$_POST['supplier_id'];
+
+        // Reverse old outstanding if was credit
+        if ($oldPaymentType === 'credit') {
+            $db->readQuery("UPDATE `supplier_master` SET `outstanding` = GREATEST(`outstanding` - $oldGrandTotal, 0) WHERE `id` = $oldSupplierId");
+        }
+        // Add new outstanding if now credit
+        if ($newPaymentType === 'credit') {
+            $db->readQuery("UPDATE `supplier_master` SET `outstanding` = `outstanding` + $grandTotal WHERE `id` = $newSupplierId");
+        }
+
         // Audit log
         $AUDIT_LOG = new AuditLog(null);
         $AUDIT_LOG->ref_id = $invoiceId;
@@ -236,6 +310,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'update_supplier_invoice') {
 if (isset($_POST['action']) && $_POST['action'] == 'delete') {
 
     $INVOICE = new SupplierInvoice($_POST['id']);
+
+    // Reverse supplier outstanding if credit invoice
+    if ($INVOICE->payment_type === 'credit') {
+        $db = Database::getInstance();
+        $outstandingAmount = floatval($INVOICE->outstanding_amount);
+        $db->readQuery("UPDATE `supplier_master` SET `outstanding` = GREATEST(`outstanding` - $outstandingAmount, 0) WHERE `id` = " . (int)$INVOICE->supplier_id);
+    }
+
     $result = $INVOICE->delete();
 
     // Audit log

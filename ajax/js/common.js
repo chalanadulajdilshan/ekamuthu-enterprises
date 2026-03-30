@@ -262,6 +262,8 @@ jQuery(document).ready(function () {
         // Populate supplier master form fields
         $("#customer_id").val(data.id || "");
         $("#supplier_id_hidden").val(data.id || "");
+        $("#supplier_id").val(data.id || ""); // For supplier outstanding payment page
+        $("#supplier_code").val((data.code || "") + " - " + (data.name || "")); // For supplier outstanding payment page
         $("#code").val(data.code || "");
         $("#name").val(data.name || "");
         $("#address").val(data.address || "");

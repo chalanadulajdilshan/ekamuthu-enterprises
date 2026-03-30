@@ -10,6 +10,7 @@ class SupplierInvoice
     public $invoice_date;
     public $delivery_date;
     public $grand_total;
+    public $outstanding_amount;
     public $payment_type;
     public $cheque_no;
     public $cheque_date;
@@ -59,11 +60,11 @@ class SupplierInvoice
 
         $query = "INSERT INTO `supplier_invoices` (
             `grn_number`, `order_no`, `supplier_id`, `invoice_no`, `invoice_date`, `delivery_date`,
-            `grand_total`, `payment_type`, `cheque_no`, `cheque_date`, `bank_name`,
+            `grand_total`, `outstanding_amount`, `payment_type`, `cheque_no`, `cheque_date`, `bank_name`,
             `branch_name`, `cheque_image`, `credit_period`, `status`, `created_by`, `created_at`
         ) VALUES (
             '{$grn_number}', '{$order_no}', '{$supplier_id}', '{$invoice_no}', '{$invoice_date}', '{$delivery_date}',
-            '{$grand_total}', '{$payment_type}', '{$cheque_no}', '{$cheque_date}', '{$bank_name}',
+            '{$grand_total}', '" . ($payment_type == 'credit' ? $grand_total : 0) . "', '{$payment_type}', '{$cheque_no}', '{$cheque_date}', '{$bank_name}',
             '{$branch_name}', '{$cheque_image}', '{$credit_period}', 0, '{$created_by}', '{$created_at}'
         )";
 
@@ -102,6 +103,7 @@ class SupplierInvoice
             `invoice_date` = '{$invoice_date}',
             `delivery_date` = '{$delivery_date}',
             `grand_total` = '{$grand_total}',
+            `outstanding_amount` = '" . ($payment_type == 'credit' ? $grand_total : 0) . "',
             `payment_type` = '{$payment_type}',
             `cheque_no` = '{$cheque_no}',
             `cheque_date` = '{$cheque_date}',
