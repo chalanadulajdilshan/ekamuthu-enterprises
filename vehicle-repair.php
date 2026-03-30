@@ -82,7 +82,7 @@ $repairs = $VEHICLE_REPAIR->all();
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Vehicle</label>
                                                 <div class="input-group mb-3">
                                                     <input type="hidden" id="vehicle_id" name="vehicle_id" value="">
@@ -112,7 +112,7 @@ $repairs = $VEHICLE_REPAIR->all();
                                                 <label for="technician" class="form-label">Technician</label>
                                                 <input id="technician" name="technician" type="text" class="form-control mb-3" placeholder="Technician Name">
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-3">
                                                 <label for="amount" class="form-label">Amount</label>
                                                 <div class="input-group mb-3">
                                                     <span class="input-group-text">Rs.</span>
