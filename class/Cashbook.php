@@ -314,6 +314,14 @@ class Cashbook
         $resultArn = mysqli_fetch_array($db->readQuery($queryArn));
         $totalArn = (float) $resultArn['total'];
 
+        // Supplier Invoices (Cash/Cheque payments - OUT)
+        $whereSupplierInvoice = str_replace('e.expense_date', 'si.invoice_date', $where);
+        $querySupplierInvoice = "SELECT COALESCE(SUM(si.grand_total), 0) as total 
+                                FROM `supplier_invoices` si
+                                $whereSupplierInvoice AND si.payment_type IN ('cash', 'cheque')";
+        $resultSupplierInvoice = mysqli_fetch_array($db->readQuery($querySupplierInvoice));
+        $totalSupplierInvoice = (float) $resultSupplierInvoice['total'];
+
         $whereSalesReturn = str_replace('e.expense_date', 'sr.return_date', $where);
         $querySalesReturn = "SELECT COALESCE(SUM(sr.total_amount), 0) as total 
                              FROM `sales_return` sr
@@ -349,7 +357,7 @@ class Cashbook
         $resultReturnLateOut = mysqli_fetch_array($db->readQuery($queryReturnLateOut));
         $totalReturnLateOut = (float) $resultReturnLateOut['total'];
 
-        return $totalExpenses + $totalSupplierPayments + $totalArn + $totalSalesReturn + $totalDeposits + $totalWithdrawals + $totalReturnOut + $totalReturnLateOut;
+        return $totalExpenses + $totalSupplierPayments + $totalArn + $totalSupplierInvoice + $totalSalesReturn + $totalDeposits + $totalWithdrawals + $totalReturnOut + $totalReturnLateOut;
     }
 
     // Get balance in hand
@@ -458,6 +466,11 @@ class Cashbook
 
         // 5. ARN purchase
         $query = "SELECT COALESCE(SUM(total_arn_value), 0) as total FROM arn_master WHERE DATE(entry_date) <= '$endDate' AND (is_cancelled IS NULL OR is_cancelled = 0) AND supplier_id != 0 AND purchase_type = 1";
+        $result = mysqli_fetch_array($db->readQuery($query));
+        $totalOut += (float)$result['total'];
+
+        // 5b. Supplier Invoices (Cash/Cheque payments - OUT)
+        $query = "SELECT COALESCE(SUM(grand_total), 0) as total FROM supplier_invoices WHERE DATE(invoice_date) <= '$endDate' AND payment_type IN ('cash', 'cheque')";
         $result = mysqli_fetch_array($db->readQuery($query));
         $totalOut += (float)$result['total'];
 
@@ -839,6 +852,34 @@ class Cashbook
                   LEFT JOIN customer_master cm ON am.supplier_id = cm.id
                   $whereArnDetail AND (am.is_cancelled IS NULL OR am.is_cancelled = 0) AND am.supplier_id != 0 AND am.purchase_type = 1
                   ORDER BY am.entry_date ASC, am.created_at ASC";
+        $result = $db->readQuery($query);
+        while ($row = mysqli_fetch_array($result)) {
+            $runningBalance -= (float)$row['amount'];
+            $transactions[] = [
+                'date' => date('Y-m-d', strtotime($row['date'])),
+                'account_type' => 'CASH',
+                'transaction' => 'OUT',
+                'description' => $row['description'],
+                'doc' => $row['doc'],
+                'debit' => '0.00',
+                'credit' => number_format($row['amount'], 2),
+                'balance' => number_format($runningBalance, 2),
+                'sort_date' => (date('Y-m-d', strtotime($row['date'])) == date('Y-m-d', strtotime($row['time']))) ? $row['time'] : $row['date']
+            ];
+        }
+
+        // Supplier Invoices (Cash/Cheque payments - OUT)
+        $whereSupplierInvoice = str_replace('invoice_date', 'si.invoice_date', $where);
+        $query = "SELECT 
+                        si.invoice_date as date,
+                        si.created_at as time,
+                        si.grn_number as doc,
+                        si.grand_total as amount,
+                        CONCAT('Supplier Invoice - ', COALESCE(sm.name, '')) as description
+                  FROM supplier_invoices si
+                  LEFT JOIN supplier_master sm ON si.supplier_id = sm.id
+                  $whereSupplierInvoice AND si.payment_type IN ('cash', 'cheque')
+                  ORDER BY si.invoice_date ASC, si.created_at ASC";
         $result = $db->readQuery($query);
         while ($row = mysqli_fetch_array($result)) {
             $runningBalance -= (float)$row['amount'];
