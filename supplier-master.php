@@ -70,6 +70,10 @@ $supplier_code = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 </a>
                             <?php endif; ?>
 
+                            <a href="supplier-invoice-report.php" class="btn btn-info ms-2">
+                                <i class="uil uil-chart-line me-1"></i> Analysis Report
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
