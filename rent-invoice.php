@@ -690,6 +690,7 @@ if (!empty($customerMobile)) {
                                 <th>Equipment Name</th>
                                 <th>Code</th>
                                 <th>Type</th>
+                                <th class="text-end">Rate</th>
                                 <th>Duration</th>
                                 <th class="text-center">Bill Qty</th>
                                 <th class="text-center">Issued Qty</th>
@@ -712,6 +713,14 @@ if (!empty($customerMobile)) {
                                         <?php else: ?>
                                             <span class="badge bg-info">Daily</span>
                                         <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <?php 
+                                        $qty = (float)($item['quantity'] ?? 1);
+                                        if ($qty <= 0) $qty = 1;
+                                        $rate = (float)($item['amount'] ?? 0) / $qty;
+                                        echo number_format($rate, 2); 
+                                        ?>
                                     </td>
                                     <td>
                                         <?php 
