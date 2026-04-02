@@ -911,7 +911,7 @@ if (!empty($customerMobile)) {
                         <div style="border-top: 1px solid #000; padding-top: 8px;">
                             <div class="d-flex align-items-start gap-3">
                                 <div style="flex-grow: 1;">
-                                    <div style="min-height: 45px; border-bottom: 1px dashed #999; margin-bottom: 4px; width: 100%;"></div>
+                                    <div style="min-height: 45px; border-bottom: 1px dashed #999; margin: 0 auto 4px auto; width: 300px;"></div>
                                     <p style="font-size: 11px; margin-bottom: 2px; text-align: center;">
                                         උපකරණය භාර ගන්නාවූ පාරිභෝගිකයාගේ අත්සන<br>
                                         <strong>Signature of customer which is receiving the equipment</strong>
@@ -975,33 +975,35 @@ if (!empty($customerMobile)) {
                 </div>
                 <?php endif; ?>
 
-                <!-- Customer Signature Section 2 - Agreement Acknowledgement -->
-                <div class="row mt-3">
+                <!-- Unified Signature Section -->
+                <div class="row mt-4">
                     <div class="col-12">
                         <div style="border-top: 1px solid #ccc; padding-top: 10px;">
-                            <p style="font-size: 12px; margin-bottom: 4px;">
+                            <p style="font-size: 11px; margin-bottom: 8px;">
                                 <strong>සහතික කිරීම / Certification:</strong>
                                 ඉහත සඳහන් කොන්දේසි වලට එකඟව මා විසින් අද දින භාර ගැනීම.
                             </p>
-                            <div style="min-height: 45px; border-bottom: 1px dashed #999; margin-bottom: 4px;"></div>
-                            <p style="font-size: 11px; margin-bottom: 0; text-align: center;">
-                                <strong>පාරිභෝගිකයාගේ අත්සන / Customer Signature</strong>
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                Date : ......................
-                            </p>
+                            <table class="signature-table" style="width:100%; border-collapse: separate; border-spacing: 15px 0;">
+                                <tr>
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 30px;">
+                                        _________________________<br>
+                                        <strong>Prepared By</strong>
+                                    </td>
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 30px;">
+                                        _________________________<br>
+                                        <strong>Approved By</strong>
+                                    </td>
+                                    <td style="text-align:center; vertical-align: bottom; width: 30%; padding-top: 30px;">
+                                        <div style="border-bottom: 1px dashed #999; margin-bottom: 4px; margin-left: auto; margin-right: auto; width: 100%;"></div>
+                                        <p style="font-size: 10.5px; margin-bottom: 0;"><strong>Customer Signature</strong></p>
+                                    </td>
+                                    <td style="text-align:center; vertical-align: bottom; width: 20%; padding-top: 30px;">
+                                        <div style="border-bottom: 1px dashed #999; margin-bottom: 4px; margin-left: auto; margin-right: auto; width: 100%;"></div>
+                                        <p style="font-size: 10.5px; margin-bottom: 0;"><strong>Date</strong></p>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Internal Signature Section -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <table class="signature-table" style="width:100%;">
-                            <tr>
-                                <td style="text-align:center;padding-top:40px;">_________________________<br><strong>Prepared By</strong></td>
-                                <td style="text-align:center;padding-top:40px;">_________________________<br><strong>Approved By</strong></td>
-                            </tr>
-                        </table>
                     </div>
                 </div>
 
