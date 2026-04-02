@@ -21,7 +21,7 @@ $termsConditions = $TC->getActive();
 
 <head>
     <meta charset="utf-8" />
-    <title>Equipment Rent Quotation | <?php echo $COMPANY_PROFILE_DETAILS->name ?> </title>
+    <title>Equipment Rent Quotation | <?php echo $COMPANY_PROFILE->name ?> </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Unicons CDN -->
     <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
@@ -299,10 +299,15 @@ $termsConditions = $TC->getActive();
             </div>
         </div>
 
-        <!-- Quotation For -->
         <div class="quotation-for">
             <strong>Quotation for :</strong> &nbsp;&nbsp;&nbsp;
-            <?php echo $CUSTOMER_MASTER->name; ?>
+            <?php 
+            $displayCustomer = !empty($CUSTOMER_MASTER->name) ? $CUSTOMER_MASTER->name : $QUOTATION->customer_name;
+            if (!empty($CUSTOMER_MASTER->code)) {
+                $displayCustomer = $CUSTOMER_MASTER->code . ' - ' . $displayCustomer;
+            }
+            echo htmlspecialchars($displayCustomer); 
+            ?>
         </div>
 
         <!-- Items Table -->
