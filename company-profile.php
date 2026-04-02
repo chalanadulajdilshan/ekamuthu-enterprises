@@ -172,6 +172,13 @@ include 'auth.php';
                                                         placeholder="Enter email address">
                                                 </div>
 
+                                                <!-- Company Registration Number -->
+                                                <div class="col-md-2">
+                                                    <label for="registration_number" class="form-label">Reg: Number</label>
+                                                    <input id="registration_number" name="registration_number" type="text" class="form-control"
+                                                        placeholder="Enter registration number">
+                                                </div>
+
                                                 <!-- Color Theme -->
                                                 <div class="col-md-2">
                                                     <label class="form-label" for="theme">Color Theme</label>

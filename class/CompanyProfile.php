@@ -21,6 +21,7 @@ class CompanyProfile
     public $home_view_mode;
     public $is_one_company;
     public $is_credit;
+    public $registration_number;
 
     private static $homeViewModeColumnChecked = false;
     private static $hasHomeViewModeColumn = false;
@@ -74,6 +75,7 @@ class CompanyProfile
                 $this->home_view_mode = isset($result['home_view_mode']) && !empty($result['home_view_mode']) ? $result['home_view_mode'] : 'both';
                 $this->is_one_company = $result['is_one_company'];
                 $this->is_credit = $result['is_credit'];
+                $this->registration_number = $result['registration_number'] ?? '';
             }
         }
     }
@@ -85,8 +87,8 @@ class CompanyProfile
         $customer_id = ($this->customer_id === null || $this->customer_id === '') ? 'NULL' : (int)$this->customer_id;
 
         $homeViewMode = !empty($this->home_view_mode) ? $this->home_view_mode : 'both';
-        $columns = "`name`, `address`, `mobile_number_1`, `mobile_number_2`, `mobile_number_3`, `email`, `image_name`, `is_active`, `is_vat`, `vat_number`, `company_code`, `vat_percentage`, `customer_id`, `theme`, `favicon`,`is_one_company`, `is_credit`";
-        $values = "'{$this->name}', '{$this->address}', '{$this->mobile_number_1}', '{$this->mobile_number_2}', '{$this->mobile_number_3}', '{$this->email}', '{$this->image_name}', '{$this->is_active}', '{$this->is_vat}', '{$this->vat_number}', '{$this->company_code}', '{$this->vat_percentage}', {$customer_id}, '{$this->theme}', '{$this->favicon}', '{$this->is_one_company}', '{$this->is_credit}'";
+        $columns = "`name`, `address`, `mobile_number_1`, `mobile_number_2`, `mobile_number_3`, `email`, `image_name`, `is_active`, `is_vat`, `vat_number`, `company_code`, `vat_percentage`, `customer_id`, `theme`, `favicon`,`is_one_company`, `is_credit`, `registration_number`";
+        $values = "'{$this->name}', '{$this->address}', '{$this->mobile_number_1}', '{$this->mobile_number_2}', '{$this->mobile_number_3}', '{$this->email}', '{$this->image_name}', '{$this->is_active}', '{$this->is_vat}', '{$this->vat_number}', '{$this->company_code}', '{$this->vat_percentage}', {$customer_id}, '{$this->theme}', '{$this->favicon}', '{$this->is_one_company}', '{$this->is_credit}', '{$this->registration_number}'";
 
         if (self::$hasHomeViewModeColumn) {
             $columns .= ", `home_view_mode`";
@@ -121,7 +123,8 @@ class CompanyProfile
             `theme` = '{$this->theme}',
             `favicon` = '{$this->favicon}',
             `is_one_company` = '{$this->is_one_company}',
-            `is_credit` = '{$this->is_credit}'";
+            `is_credit` = '{$this->is_credit}',
+            `registration_number` = '{$this->registration_number}'";
 
         if (self::$hasHomeViewModeColumn) {
             $set .= ",

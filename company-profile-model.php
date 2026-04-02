@@ -39,6 +39,7 @@
                                         data-mobile2="<?php echo htmlspecialchars($company['mobile_number_2']); ?>"
                                         data-mobile3="<?php echo htmlspecialchars($company['mobile_number_3']); ?>"
                                         data-email="<?php echo htmlspecialchars($company['email']); ?>"
+                                        data-registrationnumber="<?php echo htmlspecialchars($company['registration_number'] ?? ''); ?>"
                                         data-vatnumber="<?php echo htmlspecialchars($company['vat_number']); ?>"
                                         data-companycode="<?php echo htmlspecialchars($company['company_code']); ?>"
                                         data-customerid="<?php echo htmlspecialchars($company['customer_id'] ?? ''); ?>"

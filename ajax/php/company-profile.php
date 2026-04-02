@@ -90,6 +90,7 @@ if (isset($_POST['create']) || isset($_POST['update'])) {
     $COMPANY->is_vat = isset($_POST['is_vat']) ? 1 : 0;
     $COMPANY->is_one_company = isset($_POST['is_one_company']) ? 1 : 0;
     $COMPANY->is_credit = isset($_POST['is_credit']) ? 1 : 0;
+    $COMPANY->registration_number = $_POST['registration_number'] ?? '';
     $COMPANY->vat_percentage = isset($_POST['vat_percentage']) ? (float)$_POST['vat_percentage'] : 0;
     $COMPANY->company_code = $_POST['company_code'] ?? '';
     $COMPANY->customer_id = $_POST['customer_id'] ?? null;
@@ -160,7 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'is_credit' => $company->is_credit,
                 'customer_id' => $company->customer_id,
                 'theme' => $company->theme ?? 'default',
-                'home_view_mode' => $company->home_view_mode ?? 'both'
+                'home_view_mode' => $company->home_view_mode ?? 'both',
+                'registration_number' => $company->registration_number ?? ''
             ]
         ];
     } else {

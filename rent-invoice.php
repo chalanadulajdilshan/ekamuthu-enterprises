@@ -629,6 +629,9 @@ if (!empty($customerMobile)) {
                     <div class="col-5 text-end">
                         <div style="font-size: 15px;">
                             <span style="font-size: 18px;"><strong>Bill No:</strong> <span style="font-size: 24px; font-weight: 800;"><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></span></span>
+                            <?php if (!empty($COMPANY_PROFILE->registration_number)): ?>
+                                <div style="font-size: 14px; margin-top: 2px;"><strong>Reg No:</strong> <?php echo htmlspecialchars($COMPANY_PROFILE->registration_number); ?></div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -902,6 +905,35 @@ if (!empty($customerMobile)) {
                 ?>
 
                 <?php if (empty($return_rows)): ?>
+                <!-- Customer Signature Section 1 - Receiving Equipment -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div style="border-top: 1px solid #000; padding-top: 8px;">
+                            <div class="d-flex align-items-start gap-3">
+                                <div style="flex-grow: 1;">
+                                    <div style="min-height: 45px; border-bottom: 1px dashed #999; margin-bottom: 4px; width: 100%;"></div>
+                                    <p style="font-size: 11px; margin-bottom: 2px; text-align: center;">
+                                        උපකරණය භාර ගන්නාවූ පාරිභෝගිකයාගේ අත්සන<br>
+                                        <strong>Signature of customer which is receiving the equipment</strong>
+                                    </p>
+                                    <br>
+                                    <p style="font-size: 10px; margin-top: 4px; color: #555; text-align: center; line-height: 1.4;">
+                                        (සමාගමක් / ආ‍යතනයක් වන අවස්ථාවකදී යන්ත්‍රය රැගෙන යාමට පැමිණෙන අය විසින්  <br>
+                                        සමාගම / ආයතනය බලය දීමේ ලිපියක් ඉදිරිපත් කල යුතුය)<br>
+                                        The letter of Auth (With company seal/Authorized signature)
+                                    </p>
+                                </div>
+                                <div class="no-print" style="width: 120px; height: 140px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
+                                    <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
+                                </div>
+                                <div class="d-none d-print-block" style="width: 120px; height: 140px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
+                                    <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Remark Section (hide for return bills) -->
                 <div class="mt-4">
                     <div style="border-top:2px solid #ccc; padding-top:12px;">
@@ -943,14 +975,31 @@ if (!empty($customerMobile)) {
                 </div>
                 <?php endif; ?>
 
-                <!-- Signature Section -->
-                <div class="row mt-5">
+                <!-- Customer Signature Section 2 - Agreement Acknowledgement -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div style="border-top: 1px solid #ccc; padding-top: 10px;">
+                            <p style="font-size: 12px; margin-bottom: 4px;">
+                                <strong>සහතික කිරීම / Certification:</strong>
+                                ඉහත සඳහන් කොන්දේසි වලට එකඟව මා විසින් අද දින භාර ගැනීම.
+                            </p>
+                            <div style="min-height: 45px; border-bottom: 1px dashed #999; margin-bottom: 4px;"></div>
+                            <p style="font-size: 11px; margin-bottom: 0; text-align: center;">
+                                <strong>පාරිභෝගිකයාගේ අත්සන / Customer Signature</strong>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                Date : ......................
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Internal Signature Section -->
+                <div class="row mt-4">
                     <div class="col-12">
                         <table class="signature-table" style="width:100%;">
                             <tr>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Prepared By</strong></td>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Approved By</strong></td>
-                                <td style="text-align:center;padding-top:50px;">_________________________<br><strong>Customer Signature</strong></td>
+                                <td style="text-align:center;padding-top:40px;">_________________________<br><strong>Prepared By</strong></td>
+                                <td style="text-align:center;padding-top:40px;">_________________________<br><strong>Approved By</strong></td>
                             </tr>
                         </table>
                     </div>

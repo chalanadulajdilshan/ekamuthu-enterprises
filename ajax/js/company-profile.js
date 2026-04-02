@@ -295,6 +295,7 @@ jQuery(document).ready(function () {
         $('#mobile_number_2').val($(this).data('mobile2'));
         $('#mobile_number_3').val($(this).data('mobile3'));
         $('#email').val($(this).data('email'));
+        $('#registration_number').val($(this).data('registrationnumber'));
         $('#vat_number').val($(this).data('vatnumber'));
         $('#company_code').val($(this).data('companycode')).prop('readonly', false);
         $('#customer_id').val($(this).data('customerid'));

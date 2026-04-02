@@ -179,6 +179,9 @@ while ($row = mysqli_fetch_assoc($issueReturnsRes)) {
                 <div class="col-sm-6 text-sm-end">
                     <h5 class="font-size-15 mb-1">Bill Info:</h5>
                     <p class="mb-1 text-muted"><strong>Bill No:</strong> <span class="badge bg-soft-info font-size-14"><?php echo htmlspecialchars($EQUIPMENT_RENT->bill_number); ?></span></p>
+                    <?php if (!empty($COMPANY_PROFILE->registration_number)): ?>
+                        <p class="mb-1 text-muted"><strong>Reg No:</strong> <?php echo htmlspecialchars($COMPANY_PROFILE->registration_number); ?></p>
+                    <?php endif; ?>
                     <p class="mb-1 text-muted"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
                     <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
                         <p class="mb-1 text-muted"><strong>Rented From:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>

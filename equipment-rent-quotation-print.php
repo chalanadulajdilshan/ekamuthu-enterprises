@@ -293,6 +293,9 @@ $termsConditions = $TC->getActive();
         <div class="row mb-1">
             <div class="col-12 text-end date-section">
                 <p><strong>Date:</strong> <?php echo date('d/m/Y', strtotime($QUOTATION->rental_date)); ?></p>
+                <?php if (!empty($COMPANY_PROFILE->registration_number)): ?>
+                    <p><strong>Reg No:</strong> <?php echo htmlspecialchars($COMPANY_PROFILE->registration_number); ?></p>
+                <?php endif; ?>
             </div>
         </div>
 
