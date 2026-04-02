@@ -918,27 +918,24 @@ if (!empty($customerMobile)) {
 
                 <?php if (empty($return_rows)): ?>
                 <!-- Customer Signature Section 1 - Receiving Equipment -->
-                <div class="row mt-3">
+                <div class="row mt-1">
                     <div class="col-12">
                         <div>
                             <div class="d-flex align-items-start gap-3">
                                 <div style="flex-grow: 1;">
                                     <div style="min-height: 35px; border-bottom: 1px dashed #999; margin: 0 auto 4px auto; width: 300px;"></div>
-                                    <p style="font-size: 11px; margin-bottom: 0; text-align: center;">
-                                        උපකරණය භාර ගන්නාවූ පාරිභෝගිකයාගේ අත්සන<br>
-                                        <strong>Signature of customer which is receiving the equipment</strong>
+                                    <p style="font-size: 10px; margin-bottom: 2px; text-align: center; line-height: 1.1;">
+                                        උපකරණය භාර ගන්නාවූ පාරිභෝගිකයාගේ අත්සන / <strong>Signature of customer which is receiving the equipment</strong>
                                     </p>
-                                    <p style="font-size: 10px; margin-top: 2px; color: #555; text-align: center; line-height: 1.2;">
-                                        (සමාගමක් / ආ‍යතනයක් වන අවස්ථාවකදී යන්ත්‍රය රැගෙන යාමට පැමිණෙන අය විසින්  <br>
-                                        සමාගම / ආයතනය බලය දීමේ ලිපියක් ඉදිරිපත් කල යුතුය)<br>
-                                        The letter of Auth (With company seal/Authorized signature)
+                                    <p style="font-size: 9px; margin: 0; color: #555; text-align: center; line-height: 1.1;">
+                                        (සමාගමක් / ආ‍යතනයක් වන අවස්ථාවකදී බලය දීමේ ලිපියක් ඉදිරිපත් කල යුතුය) / <span>The letter of Auth (With company seal/Authorized signature)</span>
                                     </p>
                                 </div>
-                                <div class="no-print" style="width: 100px; height: 100px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
-                                    <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
+                                <div class="no-print" style="width: 100px; height: 80px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center;">
+                                    <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
                                 </div>
-                                <div class="d-none d-print-block" style="width: 100px; height: 100px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
-                                    <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
+                                <div class="d-none d-print-block" style="width: 100px; height: 80px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center;">
+                                    <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
                                 </div>
                             </div>
                         </div>
@@ -946,7 +943,7 @@ if (!empty($customerMobile)) {
                 </div>
 
                 <!-- Remark Section (hide for return bills) -->
-                <div class="mt-1">
+                <div class="mt-0">
                     <div style="border-top:2px solid #ccc; padding-top:4px;">
                         <strong>Terms & Conditions :</strong>
                         <div style="min-height:60px; padding:8px 0; font-size:14px;">
