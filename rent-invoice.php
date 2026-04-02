@@ -949,7 +949,7 @@ if (!empty($customerMobile)) {
                 <div class="mt-1">
                     <div style="border-top:2px solid #ccc; padding-top:4px;">
                         <strong>Terms & Conditions :</strong>
-                        <div style="min-height:60px;  padding:8px 0; font-size:14px;">
+                        <div style="min-height:60px; padding:8px 0; font-size:14px;">
                             <?php if (!empty($paymentRemarks) || !empty($customTerms)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
                                     <?php foreach ($customTerms as $term): ?>
