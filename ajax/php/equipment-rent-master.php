@@ -66,20 +66,34 @@ if (isset($_POST['create'])) {
         exit();
     }
 
-    // Validate all sub-equipment availability before creating
+    // Validate all equipment availability before creating
     foreach ($items as $item) {
         $EQUIP_CHECK = new Equipment($item['equipment_id']);
-        if ($EQUIP_CHECK->no_sub_items == 1) {
-            continue;
-        }
+        $requestedQty = (float)($item['quantity'] ?? 1);
+        $deptId = $item['department_id'] ?? null;
 
-        if (!EquipmentRentItem::isSubEquipmentAvailable($item['sub_equipment_id'])) {
-            $SUB_EQ = new SubEquipment($item['sub_equipment_id']);
-            echo json_encode([
-                "status" => "error",
-                "message" => "Sub equipment '{$SUB_EQ->code}' is already rented out"
-            ]);
-            exit();
+        if ($EQUIP_CHECK->no_sub_items == 1) {
+            // Bulk item check
+            if ($deptId) {
+                $avail = SubEquipment::getDepartmentAvailableStock($item['equipment_id'], $deptId, true);
+                if ($requestedQty > $avail) {
+                    echo json_encode([
+                        "status" => "error",
+                        "message" => "Insufficient stock for '{$EQUIP_CHECK->item_name}'. Requested: $requestedQty, Available: $avail"
+                    ]);
+                    exit();
+                }
+            }
+        } else {
+            // Serialized item check
+            if (!EquipmentRentItem::isSubEquipmentAvailable($item['sub_equipment_id'])) {
+                $SUB_EQ = new SubEquipment($item['sub_equipment_id']);
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Sub equipment '{$SUB_EQ->code}' is already rented out"
+                ]);
+                exit();
+            }
         }
     }
 
@@ -1635,20 +1649,29 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_item_departments') {
         
         if ($EQUIPMENT->no_sub_items == 1) {
             // BULK ITEMS: Get all departments and calculate availability
-            $query = "SELECT se.department_id, se.qty, se.rented_qty, dm.name 
+            $query = "SELECT se.department_id, se.qty, dm.name,
+                      (
+                          SELECT COALESCE(SUM(eri.quantity - (SELECT COALESCE(SUM(return_qty),0) FROM equipment_rent_returns WHERE rent_item_id = eri.id)), 0)
+                          FROM equipment_rent_items eri 
+                          WHERE eri.equipment_id = se.equipment_id 
+                          AND eri.department_id = se.department_id 
+                          AND eri.status = 'rented'
+                          AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                      ) as dynamic_rented_qty
                       FROM sub_equipment se 
                       JOIN department_master dm ON se.department_id = dm.id 
                       WHERE se.equipment_id = $equipment_id";
                       
             $res = $db->readQuery($query);
             while ($row = mysqli_fetch_assoc($res)) {
-                $available = (float)$row['qty'] - (float)$row['rented_qty'];
+                $rented = (float)$row['dynamic_rented_qty'];
+                $available = (float)$row['qty'] - $rented;
                 $result_departments[] = [
                     'id' => $row['department_id'],
                     'name' => $row['name'],
                     'available_qty' => max(0, $available),
                     'total_qty' => $row['qty'],
-                    'rented_qty' => $row['rented_qty'],
+                    'rented_qty' => $rented,
                     'is_selected' => false
                 ];
             }

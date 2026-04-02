@@ -333,4 +333,40 @@ class SubEquipment
         $result = mysqli_fetch_assoc($db->readQuery($query));
         return $result ? (float)$result['available'] : 0;
     }
+
+    public static function getDepartmentAvailableStock($equipment_id, $department_id, $is_bulk = false)
+    {
+        $db = Database::getInstance();
+        $equipment_id = (int) $equipment_id;
+        $department_id = (int) $department_id;
+
+        if ($is_bulk) {
+            // For bulk items: Use dynamic check to be safe
+            $query = "SELECT se.qty,
+                      (
+                          SELECT COALESCE(SUM(eri.quantity - (SELECT COALESCE(SUM(return_qty),0) FROM equipment_rent_returns WHERE rent_item_id = eri.id)), 0)
+                          FROM equipment_rent_items eri 
+                          WHERE eri.equipment_id = se.equipment_id 
+                          AND eri.department_id = se.department_id 
+                          AND eri.status = 'rented'
+                          AND (eri.sub_equipment_id IS NULL OR eri.sub_equipment_id = 0)
+                      ) as rented
+                      FROM sub_equipment se 
+                      WHERE se.equipment_id = $equipment_id AND se.department_id = $department_id";
+            
+            $res = $db->readQuery($query);
+            if ($row = mysqli_fetch_assoc($res)) {
+                return max(0, (float)$row['qty'] - (float)$row['rented']);
+            }
+            return 0;
+        } else {
+            // For serialized items: Count available units
+            $query = "SELECT COUNT(*) as available 
+                      FROM sub_equipment 
+                      WHERE equipment_id = $equipment_id AND department_id = $department_id 
+                      AND rental_status = 'available'";
+            $result = mysqli_fetch_assoc($db->readQuery($query));
+            return $result ? (float)$result['available'] : 0;
+        }
+    }
 }
