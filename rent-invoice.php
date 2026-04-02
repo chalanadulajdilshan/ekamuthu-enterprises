@@ -823,7 +823,15 @@ if (!empty($customerMobile)) {
 
                 <!-- Summary Section -->
                 <div class="row mt-3">
-                    <div class="col-12 d-flex justify-content-end">
+                    <div class="col-md-6 col-6">
+                        <div style="border: 1px solid #ddd; padding: 10px; min-height: 100px; border-radius: 4px; background: #fafafa;">
+                            <h6 style="font-size: 13px; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">Remarks:</h6>
+                            <div style="font-size: 11px; line-height: 1.4; color: #333;">
+                                <?php echo !empty($EQUIPMENT_RENT->remark) ? nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)) : '-'; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-6 d-flex justify-content-end">
                         <div class="summary-wrapper">
                             <table class="summary-table" style="width:auto;">
                             <tr>
