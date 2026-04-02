@@ -510,7 +510,8 @@ class EquipmentRentReturn
         $rental_dt = strtotime($rental_date);
         $return_dt = strtotime($return_date);
         
-        $days_in_rental_month = (int)date('t', strtotime($rental_date));
+        $rental_date_time = strtotime($rental_date);
+        $days_in_rental_month = ((int)date('n', $rental_date_time) === 2) ? 30 : (int)date('t', $rental_date_time);
         $duration_days = ($rent_type === 'month') ? $duration * $days_in_rental_month : $duration;
         // Match UI preview logic: charge based on the number of full days elapsed, with a minimum of one day
         $used_days = max(1, (int)ceil(($return_dt - $rental_dt) / 86400));
@@ -579,7 +580,7 @@ class EquipmentRentReturn
                                     THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0)) * err2.return_qty)
                                     WHEN eri2.rent_type = 'month'
                                     THEN ((COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
-                                        * GREATEST(DAY(LAST_DAY(eri2.rental_date)), DATEDIFF(err2.return_date, eri2.rental_date))
+                                    * GREATEST(CASE WHEN MONTH(eri2.rental_date) = 2 THEN 30 ELSE DAY(LAST_DAY(eri2.rental_date)) END, DATEDIFF(err2.return_date, eri2.rental_date))
                                         * err2.return_qty)
                                     ELSE ((DATEDIFF(err2.return_date, eri2.rental_date) + 1)
                                         * (COALESCE(eri2.amount,0) / NULLIF(eri2.quantity,0))
@@ -681,7 +682,7 @@ class EquipmentRentReturn
         $query = "SELECT err.*, u.name as created_by_name,
                          COALESCE(e.is_fixed_rate, 0) AS is_fixed_rate,
                          -- duration days (month=>30)
-                         CASE WHEN eri.rent_type = 'month' THEN eri.duration * DAY(LAST_DAY(eri.rental_date)) ELSE eri.duration END AS duration_days,
+                         CASE WHEN eri.rent_type = 'month' THEN eri.duration * (CASE WHEN MONTH(eri.rental_date) = 2 THEN 30 ELSE DAY(LAST_DAY(eri.rental_date)) END) ELSE eri.duration END AS duration_days,
                          -- per-unit daily rate (monthly entries are already stored per day)
                          (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) AS per_unit_daily,
                          -- used days from rental_date to this return_date (>=1), matching PHP ceil day diff
@@ -694,7 +695,7 @@ class EquipmentRentReturn
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty
                              WHEN eri.rent_type = 'month'
                              THEN (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
-                               * GREATEST(DAY(LAST_DAY(eri.rental_date)), DATEDIFF(err.return_date, eri.rental_date))
+                               * GREATEST(CASE WHEN MONTH(eri.rental_date) = 2 THEN 30 ELSE DAY(LAST_DAY(eri.rental_date)) END, DATEDIFF(err.return_date, eri.rental_date))
                                * err.return_qty
                              ELSE GREATEST(1, DATEDIFF(err.return_date, eri.rental_date))
                                * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))

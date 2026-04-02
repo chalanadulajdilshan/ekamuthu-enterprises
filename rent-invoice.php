@@ -110,6 +110,10 @@ $chargesQuery = "SELECT COALESCE(SUM(
                             THEN err.rental_override
                             ELSE CASE WHEN COALESCE(e.is_fixed_rate, 0) = 1
                                 THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) * err.return_qty)
+                                WHEN eri.rent_type = 'month'
+                                THEN ((COALESCE(eri.amount,0) / NULLIF(eri.quantity,0)) 
+                                    * GREATEST(CASE WHEN MONTH(eri.rental_date) = 2 THEN 30 ELSE DAY(LAST_DAY(eri.rental_date)) END, DATEDIFF(err.return_date, eri.rental_date))
+                                    * err.return_qty)
                                 ELSE (GREATEST(1, CEILING(TIMESTAMPDIFF(SECOND, eri.rental_date, err.return_date) / 86400))
                                     * (COALESCE(eri.amount,0) / NULLIF(eri.quantity,0))
                                     * err.return_qty)
