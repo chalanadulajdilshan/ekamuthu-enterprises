@@ -918,12 +918,12 @@ if (!empty($customerMobile)) {
 
                 <?php if (empty($return_rows)): ?>
                 <!-- Customer Signature Section 1 - Receiving Equipment -->
-                <div class="row mt-4">
+                <div class="row mt-3">
                     <div class="col-12">
-                        <div style="border-top: 1px solid #000; padding-top: 8px;">
+                        <div>
                             <div class="d-flex align-items-start gap-3">
                                 <div style="flex-grow: 1;">
-                                    <div style="min-height: 45px; border-bottom: 1px dashed #999; margin: 0 auto 4px auto; width: 300px;"></div>
+                                    <div style="min-height: 35px; border-bottom: 1px dashed #999; margin: 0 auto 4px auto; width: 300px;"></div>
                                     <p style="font-size: 11px; margin-bottom: 0; text-align: center;">
                                         උපකරණය භාර ගන්නාවූ පාරිභෝගිකයාගේ අත්සන<br>
                                         <strong>Signature of customer which is receiving the equipment</strong>
@@ -946,10 +946,10 @@ if (!empty($customerMobile)) {
                 </div>
 
                 <!-- Remark Section (hide for return bills) -->
-                <div class="mt-4">
-                    <div style="border-top:2px solid #ccc; padding-top:12px;">
+                <div class="mt-1">
+                    <div style="border-top:2px solid #ccc; padding-top:4px;">
                         <strong>Terms & Conditions :</strong>
-                        <div style="min-height:60px; border-bottom:2px solid #ccc; padding:8px 0; font-size:14px;">
+                        <div style="min-height:60px;  padding:8px 0; font-size:14px;">
                             <?php if (!empty($paymentRemarks) || !empty($customTerms)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
                                     <?php foreach ($customTerms as $term): ?>
