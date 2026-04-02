@@ -1,0 +1,12 @@
+{
+  "name": "pos-system",
+  "version": "1.0.0",
+  "description": "POS System for Ekamuthu Enterprises",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "start cmd /c \"cd server && npm run dev\" && cd client && npm run dev",
+    "build": "cd client && npm run build"
+  }
+}

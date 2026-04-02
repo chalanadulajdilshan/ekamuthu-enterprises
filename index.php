@@ -343,6 +343,21 @@ $homeViewMode = $COMPANY_PROFILE_DETAILS->home_view_mode ?? 'both';
                                             endif;
                                         endforeach;
                                         ?>
+
+                                        <!-- POS System Button -->
+                                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                            <a href="http://localhost:5173" target="_blank" class="btn btn-lg w-100 d-flex align-items-center justify-content-start gp-tile-btn" 
+                                               style="background: linear-gradient(135deg, #6366f1, #7c3aed); border: 2px solid #6366f1; color: #fff; box-shadow: 0 4px 15px rgba(99,102,241,0.3); transition: all 0.3s ease;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(99,102,241,0.4)';" 
+                                               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(99,102,241,0.3)';">
+                                                <i class="uil uil-shopping-cart-alt me-3 gp-tile-icon" style="font-size: 1.8rem;"></i>
+                                                <div class="d-flex flex-column align-items-start">
+                                                    <span class="fw-bold">POS System</span>
+                                                    <small style="opacity: 0.85;">විකුණුම් පද්ධතිය</small>
+                                                </div>
+                                            </a>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
