@@ -924,21 +924,20 @@ if (!empty($customerMobile)) {
                             <div class="d-flex align-items-start gap-3">
                                 <div style="flex-grow: 1;">
                                     <div style="min-height: 45px; border-bottom: 1px dashed #999; margin: 0 auto 4px auto; width: 300px;"></div>
-                                    <p style="font-size: 11px; margin-bottom: 2px; text-align: center;">
+                                    <p style="font-size: 11px; margin-bottom: 0; text-align: center;">
                                         උපකරණය භාර ගන්නාවූ පාරිභෝගිකයාගේ අත්සන<br>
                                         <strong>Signature of customer which is receiving the equipment</strong>
                                     </p>
-                                    <br>
-                                    <p style="font-size: 10px; margin-top: 4px; color: #555; text-align: center; line-height: 1.4;">
+                                    <p style="font-size: 10px; margin-top: 2px; color: #555; text-align: center; line-height: 1.2;">
                                         (සමාගමක් / ආ‍යතනයක් වන අවස්ථාවකදී යන්ත්‍රය රැගෙන යාමට පැමිණෙන අය විසින්  <br>
                                         සමාගම / ආයතනය බලය දීමේ ලිපියක් ඉදිරිපත් කල යුතුය)<br>
                                         The letter of Auth (With company seal/Authorized signature)
                                     </p>
                                 </div>
-                                <div class="no-print" style="width: 120px; height: 140px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
+                                <div class="no-print" style="width: 100px; height: 100px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
                                     <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
                                 </div>
-                                <div class="d-none d-print-block" style="width: 120px; height: 140px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
+                                <div class="d-none d-print-block" style="width: 100px; height: 100px; border: 2px solid #000; display: flex; align-items: flex-end; justify-content: center;">
                                     <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
                                 </div>
                             </div>
@@ -995,23 +994,23 @@ if (!empty($customerMobile)) {
                                 <strong>සහතික කිරීම / Certification:</strong>
                                 ඉහත සඳහන් කොන්දේසි වලට එකඟව මා විසින් අද දින භාර ගැනීම.
                             </p>
-                            <table class="signature-table" style="width:100%; border-collapse: separate; border-spacing: 15px 0;">
+                            <table class="signature-table" style="width:100%; border-collapse: separate; border-spacing: 20px 0;">
                                 <tr>
-                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 30px;">
-                                        _________________________<br>
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                        <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
                                         <strong>Prepared By</strong>
                                     </td>
-                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 30px;">
-                                        _________________________<br>
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                        <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
                                         <strong>Approved By</strong>
                                     </td>
-                                    <td style="text-align:center; vertical-align: bottom; width: 30%; padding-top: 30px;">
-                                        <div style="border-bottom: 1px dashed #999; margin-bottom: 4px; margin-left: auto; margin-right: auto; width: 100%;"></div>
-                                        <p style="font-size: 10.5px; margin-bottom: 0;"><strong>Customer Signature</strong></p>
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                        <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
+                                        <strong>Customer Signature</strong>
                                     </td>
-                                    <td style="text-align:center; vertical-align: bottom; width: 20%; padding-top: 30px;">
-                                        <div style="border-bottom: 1px dashed #999; margin-bottom: 4px; margin-left: auto; margin-right: auto; width: 100%;"></div>
-                                        <p style="font-size: 10.5px; margin-bottom: 0;"><strong>Date</strong></p>
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                        <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
+                                        <strong>Date</strong>
                                     </td>
                                 </tr>
                             </table>
