@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FiShoppingCart, FiTrendingUp, FiPackage, FiAlertCircle, FiActivity, FiArrowRight, FiArrowLeft, FiSun, FiMoon, FiTruck, FiTag } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiTag, FiActivity, FiTrendingUp, FiAlertCircle, FiArrowRight } from 'react-icons/fi';
 import { getDashboardStats, getRecentSales } from '../services/api';
 import RecentSalesModal from './RecentSalesModal';
 
-const Dashboard = ({ onNavigate, theme, toggleTheme }) => {
+const Dashboard = ({ onNavigate }) => {
   const [stats, setStats] = useState(null);
   const [recentSales, setRecentSales] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,154 +14,171 @@ const Dashboard = ({ onNavigate, theme, toggleTheme }) => {
       try {
         const [statsRes, salesRes] = await Promise.all([
           getDashboardStats(),
-          getRecentSales()
+          getRecentSales(),
         ]);
         setStats(statsRes.data.data);
-        setRecentSales(salesRes.data.data.slice(0, 5)); // Show only top 5 recent
+        setRecentSales(salesRes.data.data.slice(0, 5));
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        console.error('Dashboard fetch error:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-    
-    // Refresh stats every 60 seconds
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div className="pos-dashboard">
-        <div className="pos-loading">
-          <div className="pos-spinner"></div>
-          <span>Loading Dashboard...</span>
-        </div>
+      <div className="loading-container">
+        <div className="spinner" />
+        <span>Loading dashboard...</span>
       </div>
     );
   }
 
   return (
-    <div className="pos-dashboard">
-      <div className="pos-dashboard-top-nav">
-         <div className="pos-logo">
-            <div className="pos-logo-icon">
-              <FiShoppingCart />
-            </div>
-            <div className="pos-logo-text">
-              POS <span>Dashboard</span>
-            </div>
-          </div>
-          <div style={{display: 'flex', gap: '12px'}}>
-              <button className="pos-header-btn" onClick={toggleTheme} title="Toggle Theme">
-                {theme === 'light' ? <FiMoon /> : <FiSun />}
-              </button>
-              <a href="/" className="pos-back-btn" title="Back to Main System">
-                  <FiArrowLeft />
-                  <span>Exit to Main App</span>
-              </a>
-          </div>
+    <div className="page">
+      {/* Page Header */}
+      <div className="page-header">
+        <h1 className="page-title">Welcome back</h1>
+        <p className="page-subtitle">Here's what's happening with your business today.</p>
       </div>
 
-      <div className="pos-dashboard-header">
-        <div>
-          <h1 className="pos-dashboard-title">Overview</h1>
-          <p className="pos-dashboard-subtitle">Welcome to the POS System. Here's what's happening today.</p>
+      {/* Stats */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-card-label">Transactions Today</span>
+            <div className="stat-card-icon" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
+              <FiActivity />
+            </div>
+          </div>
+          <div className="stat-card-value">{stats?.today_sales_count || 0}</div>
+          <div className="stat-card-sub">Sales invoices processed</div>
         </div>
-        <div style={{display: 'flex', gap: '12px'}}>
-          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('itemMaster')}>
-            <FiPackage /> Manage Products
-          </button>
-          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('supplierMaster')}>
-            <FiTruck /> Manage Suppliers
-          </button>
-          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('brandMaster')}>
-            <FiTag /> Manage Brands
-          </button>
-          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px' }} onClick={() => onNavigate('pos')}>
-            <FiShoppingCart /> Open POS Terminal
-          </button>
+
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-card-label">Revenue Today</span>
+            <div className="stat-card-icon" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
+              <FiTrendingUp />
+            </div>
+          </div>
+          <div className="stat-card-value" style={{ fontSize: '20px' }}>
+            Rs.&nbsp;{parseFloat(stats?.today_sales_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </div>
+          <div className="stat-card-sub">Total collected</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-card-label">Active Products</span>
+            <div className="stat-card-icon" style={{ background: 'var(--info-light)', color: 'var(--info)' }}>
+              <FiPackage />
+            </div>
+          </div>
+          <div className="stat-card-value">{stats?.total_products || 0}</div>
+          <div className="stat-card-sub">Items in catalog</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-card-label">Low Stock Alerts</span>
+            <div className="stat-card-icon" style={{ background: 'var(--warning-light)', color: 'var(--warning)' }}>
+              <FiAlertCircle />
+            </div>
+          </div>
+          <div
+            className="stat-card-value"
+            style={{ color: stats?.low_stock_count > 0 ? 'var(--warning)' : undefined }}
+          >
+            {stats?.low_stock_count || 0}
+          </div>
+          <div className="stat-card-sub">Items need restocking</div>
         </div>
       </div>
 
-      <div className="pos-dashboard-stats-grid">
-        <div className="pos-dashboard-stat-card">
-          <div className="pos-dashboard-stat-icon" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-primary)' }}>
-            <FiActivity />
-          </div>
-          <div className="pos-dashboard-stat-info">
-            <span className="pos-dashboard-stat-value">{stats?.today_sales_count || 0}</span>
-            <span className="pos-dashboard-stat-label">Transactions Today</span>
-          </div>
-        </div>
-        <div className="pos-dashboard-stat-card">
-          <div className="pos-dashboard-stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--accent-success)' }}>
-            <FiTrendingUp />
-          </div>
-          <div className="pos-dashboard-stat-info">
-            <span className="pos-dashboard-stat-value">Rs. {parseFloat(stats?.today_sales_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-            <span className="pos-dashboard-stat-label">Revenue Today</span>
-          </div>
-        </div>
-        <div className="pos-dashboard-stat-card">
-          <div className="pos-dashboard-stat-icon" style={{ background: 'rgba(6, 182, 212, 0.1)', color: 'var(--accent-info)' }}>
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <button className="quick-action-card" onClick={() => onNavigate('itemMaster')}>
+          <div className="quick-action-icon" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
             <FiPackage />
           </div>
-          <div className="pos-dashboard-stat-info">
-            <span className="pos-dashboard-stat-value">{stats?.total_products || 0}</span>
-            <span className="pos-dashboard-stat-label">Active Products</span>
+          <div>
+            <div className="quick-action-label">Manage Products</div>
+            <div className="quick-action-sub">Add, edit or view inventory items</div>
           </div>
-        </div>
-        <div className="pos-dashboard-stat-card">
-          <div className="pos-dashboard-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-warning)' }}>
-            <FiAlertCircle />
+        </button>
+
+        <button className="quick-action-card" onClick={() => onNavigate('supplierMaster')}>
+          <div className="quick-action-icon" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
+            <FiTruck />
           </div>
-          <div className="pos-dashboard-stat-info">
-            <span className="pos-dashboard-stat-value">{stats?.low_stock_count || 0}</span>
-            <span className="pos-dashboard-stat-label">Low Stock Alerts</span>
+          <div>
+            <div className="quick-action-label">Manage Suppliers</div>
+            <div className="quick-action-sub">Vendor database and credit terms</div>
           </div>
-        </div>
+        </button>
+
+        <button className="quick-action-card" onClick={() => onNavigate('brandMaster')}>
+          <div className="quick-action-icon" style={{ background: 'var(--warning-light)', color: 'var(--warning)' }}>
+            <FiTag />
+          </div>
+          <div>
+            <div className="quick-action-label">Manage Brands</div>
+            <div className="quick-action-sub">Product labels and origins</div>
+          </div>
+        </button>
       </div>
 
-      <div className="pos-dashboard-recent">
-        <div className="pos-dashboard-recent-header">
-          <h3>Recent Transactions</h3>
-          <button className="pos-category-btn" onClick={() => setShowRecentModal(true)}>
+      {/* Recent Transactions */}
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">
+            <FiActivity />
+            Recent Transactions
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowRecentModal(true)}>
             View All <FiArrowRight />
           </button>
         </div>
-        <div className="pos-dashboard-recent-list">
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-container">
+          <table className="table">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
-                <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '13px' }}>Invoice ID</th>
-                <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '13px' }}>Time</th>
-                <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '13px' }}>Customer</th>
-                <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'right' }}>Total Amount</th>
+              <tr>
+                <th>Invoice No.</th>
+                <th>Time</th>
+                <th>Customer</th>
+                <th style={{ textAlign: 'right' }}>Total</th>
               </tr>
             </thead>
             <tbody>
-              {recentSales.map(sale => (
-                <tr key={sale.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--accent-primary)', fontSize: '14px' }}>
-                    {sale.invoice_no}
-                  </td>
-                  <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                    {new Date(sale.invoice_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
-                    {sale.customer_name || 'Walk-in Customer'}
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: 'var(--accent-success)', fontSize: '14px' }}>
-                    Rs. {parseFloat(sale.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              ))}
-              {recentSales.length === 0 && (
+              {recentSales.length > 0 ? (
+                recentSales.map(sale => (
+                  <tr key={sale.id}>
+                    <td>
+                      <span className="badge badge-primary">{sale.invoice_no}</span>
+                    </td>
+                    <td style={{ color: 'var(--text-muted)' }}>
+                      {new Date(sale.invoice_date).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td>{sale.customer_name || 'Walk-in Customer'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>
+                      Rs.&nbsp;{parseFloat(sale.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td colSpan="4" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No recent transactions today.
+                  <td colSpan="4">
+                    <div className="empty-state" style={{ padding: '28px' }}>
+                      <div className="empty-state-title">No transactions today</div>
+                    </div>
                   </td>
                 </tr>
               )}

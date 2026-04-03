@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiEye, FiClock } from 'react-icons/fi';
+import { FiX, FiClock } from 'react-icons/fi';
 import { getRecentSales } from '../services/api';
 
 const RecentSalesModal = ({ onClose }) => {
@@ -21,68 +21,50 @@ const RecentSalesModal = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="pos-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="pos-modal" style={{ maxWidth: 600 }}>
-        <div className="pos-modal-header">
-          <div className="pos-modal-title">
-            <FiClock style={{ marginRight: 8 }} />
-            Recent POS Sales
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal modal-lg">
+        <div className="modal-header">
+          <div className="modal-title">
+            <FiClock />
+            Recent Sales
           </div>
-          <button className="pos-modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose}>
             <FiX />
           </button>
         </div>
 
-        <div className="pos-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto', padding: 0 }}>
+        <div className="modal-body" style={{ padding: 0, maxHeight: '60vh', overflowY: 'auto' }}>
           {loading ? (
-            <div className="pos-loading" style={{ padding: 40 }}>
-              <div className="pos-spinner"></div>
+            <div className="loading-container">
+              <div className="spinner" />
               <span>Loading...</span>
             </div>
           ) : sales.length === 0 ? (
-            <div className="pos-empty" style={{ padding: 40 }}>
-              <div className="pos-empty-text">No recent POS sales</div>
+            <div className="empty-state">
+              <div className="empty-state-title">No recent sales</div>
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="table">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <th style={thStyle}>Invoice #</th>
-                  <th style={thStyle}>Date</th>
-                  <th style={thStyle}>Customer</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th style={{ textAlign: 'right' }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {sales.map(sale => (
-                  <tr key={sale.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={tdStyle}>
-                      <span style={{ 
-                        color: 'var(--accent-primary)', 
-                        fontWeight: 600, 
-                        fontSize: 13 
-                      }}>
-                        {sale.invoice_no}
-                      </span>
+                  <tr key={sale.id}>
+                    <td>
+                      <span className="badge badge-primary">{sale.invoice_no}</span>
                     </td>
-                    <td style={tdStyle}>
-                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                        {new Date(sale.invoice_date).toLocaleDateString('en-GB')}
-                      </span>
+                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                      {new Date(sale.invoice_date).toLocaleDateString('en-GB')}
                     </td>
-                    <td style={tdStyle}>
-                      <span style={{ fontSize: 13 }}>
-                        {sale.customer_name || 'Walk-in'}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <span style={{ 
-                        fontWeight: 700, 
-                        color: 'var(--accent-success)', 
-                        fontSize: 13 
-                      }}>
-                        Rs. {parseFloat(sale.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </span>
+                    <td>{sale.customer_name || 'Walk-in'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>
+                      Rs.&nbsp;{parseFloat(sale.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
                 ))}
@@ -91,31 +73,14 @@ const RecentSalesModal = ({ onClose }) => {
           )}
         </div>
 
-        <div className="pos-modal-footer">
-          <button className="pos-modal-btn" onClick={onClose}>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" style={{ marginLeft: 'auto' }} onClick={onClose}>
             <FiX /> Close
           </button>
         </div>
       </div>
     </div>
   );
-};
-
-const thStyle = {
-  padding: '12px 16px',
-  textAlign: 'left',
-  fontSize: 11,
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-  color: 'var(--text-muted)',
-  background: 'var(--bg-primary)',
-  position: 'sticky',
-  top: 0,
-};
-
-const tdStyle = {
-  padding: '10px 16px',
 };
 
 export default RecentSalesModal;

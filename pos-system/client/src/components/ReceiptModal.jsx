@@ -26,27 +26,23 @@ const ReceiptModal = ({ data, onClose }) => {
         <head>
           <title>Receipt - ${data.invoice_no}</title>
           <style>
-            body { 
-              font-family: 'Courier New', monospace; 
-              margin: 0; padding: 16px; 
-              font-size: 12px; color: #000;
-            }
-            .pos-receipt { padding: 0; }
-            .pos-receipt-header { text-align: center; padding-bottom: 12px; border-bottom: 2px dashed #000; margin-bottom: 12px; }
-            .pos-receipt-company { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
-            .pos-receipt-address { font-size: 10px; color: #555; margin-bottom: 2px; }
-            .pos-receipt-divider { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-            .pos-receipt-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
-            .pos-receipt-info-label { color: #555; }
-            .pos-receipt-info-value { font-weight: 600; }
-            .pos-receipt-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-            .pos-receipt-table th { font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid #000; text-align: left; }
-            .pos-receipt-table th:last-child, .pos-receipt-table td:last-child { text-align: right; }
-            .pos-receipt-table td { padding: 5px 0; font-size: 11px; border-bottom: 1px solid #eee; }
-            .pos-receipt-totals { margin-top: 10px; padding-top: 8px; border-top: 2px dashed #000; }
-            .pos-receipt-total-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
-            .pos-receipt-total-row.grand { font-size: 15px; font-weight: 800; padding: 6px 0; border-top: 2px solid #000; margin-top: 4px; }
-            .pos-receipt-footer { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 2px dashed #000; font-size: 11px; color: #555; }
+            body { font-family: 'Courier New', monospace; margin: 0; padding: 16px; font-size: 12px; color: #000; }
+            .receipt { padding: 0; }
+            .receipt-header { text-align: center; padding-bottom: 12px; border-bottom: 2px dashed #000; margin-bottom: 12px; }
+            .receipt-company { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+            .receipt-address { font-size: 10px; color: #555; margin-bottom: 2px; }
+            .receipt-divider { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+            .receipt-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+            .receipt-info-label { color: #555; }
+            .receipt-info-value { font-weight: 600; }
+            .receipt-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+            .receipt-table th { font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid #000; text-align: left; }
+            .receipt-table th:last-child, .receipt-table td:last-child { text-align: right; }
+            .receipt-table td { padding: 5px 0; font-size: 11px; border-bottom: 1px solid #eee; }
+            .receipt-totals { margin-top: 10px; padding-top: 8px; border-top: 2px dashed #000; }
+            .receipt-total-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+            .receipt-total-row.grand { font-size: 15px; font-weight: 800; padding: 6px 0; border-top: 2px solid #000; margin-top: 4px; }
+            .receipt-footer { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 2px dashed #000; font-size: 11px; color: #555; }
           </style>
         </head>
         <body>
@@ -63,47 +59,47 @@ const ReceiptModal = ({ data, onClose }) => {
   const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="pos-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="pos-modal">
-        <div className="pos-modal-header">
-          <div className="pos-modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FiCheck style={{ color: '#22c55e' }} />
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">
+            <FiCheck style={{ color: 'var(--success)' }} />
             Sale Complete
           </div>
-          <button className="pos-modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose}>
             <FiX />
           </button>
         </div>
 
-        <div className="pos-modal-body">
-          <div className="pos-receipt" ref={receiptRef}>
-            <div className="pos-receipt-header">
-              <div className="pos-receipt-company">{company.name || 'Ekamuthu Enterprises'}</div>
-              {company.address && <div className="pos-receipt-address">{company.address}</div>}
-              {company.phone && <div className="pos-receipt-address">Tel: {company.phone}</div>}
-              {company.email && <div className="pos-receipt-address">{company.email}</div>}
+        <div className="modal-body">
+          <div className="receipt" ref={receiptRef}>
+            <div className="receipt-header">
+              <div className="receipt-company">{company.name || 'Ekamuthu Enterprises'}</div>
+              {company.address && <div className="receipt-address">{company.address}</div>}
+              {company.phone && <div className="receipt-address">Tel: {company.phone}</div>}
+              {company.email && <div className="receipt-address">{company.email}</div>}
             </div>
 
-            <div className="pos-receipt-info">
-              <span className="pos-receipt-info-label">Invoice #:</span>
-              <span className="pos-receipt-info-value">{data.invoice_no}</span>
+            <div className="receipt-info">
+              <span className="receipt-info-label">Invoice #:</span>
+              <span className="receipt-info-value">{data.invoice_no}</span>
             </div>
-            <div className="pos-receipt-info">
-              <span className="pos-receipt-info-label">Date:</span>
-              <span className="pos-receipt-info-value">{formattedDate} {formattedTime}</span>
+            <div className="receipt-info">
+              <span className="receipt-info-label">Date:</span>
+              <span className="receipt-info-value">{formattedDate} {formattedTime}</span>
             </div>
-            <div className="pos-receipt-info">
-              <span className="pos-receipt-info-label">Customer:</span>
-              <span className="pos-receipt-info-value">{data.customer?.name || 'Walk-in Customer'}</span>
+            <div className="receipt-info">
+              <span className="receipt-info-label">Customer:</span>
+              <span className="receipt-info-value">{data.customer?.name || 'Walk-in Customer'}</span>
             </div>
-            <div className="pos-receipt-info">
-              <span className="pos-receipt-info-label">Payment:</span>
-              <span className="pos-receipt-info-value">{data.payment_type === 1 ? 'Cash' : 'Credit'}</span>
+            <div className="receipt-info">
+              <span className="receipt-info-label">Payment:</span>
+              <span className="receipt-info-value">{data.payment_type === 1 ? 'Cash' : 'Credit'}</span>
             </div>
 
-            <hr className="pos-receipt-divider" />
+            <hr className="receipt-divider" />
 
-            <table className="pos-receipt-table">
+            <table className="receipt-table">
               <thead>
                 <tr>
                   <th>Item</th>
@@ -126,35 +122,35 @@ const ReceiptModal = ({ data, onClose }) => {
               </tbody>
             </table>
 
-            <div className="pos-receipt-totals">
-              <div className="pos-receipt-total-row">
+            <div className="receipt-totals">
+              <div className="receipt-total-row">
                 <span>Subtotal</span>
                 <span>Rs. {parseFloat(data.sub_total).toFixed(2)}</span>
               </div>
               {data.discount > 0 && (
-                <div className="pos-receipt-total-row">
+                <div className="receipt-total-row">
                   <span>Discount</span>
                   <span>- Rs. {parseFloat(data.discount).toFixed(2)}</span>
                 </div>
               )}
-              <div className="pos-receipt-total-row grand">
+              <div className="receipt-total-row grand">
                 <span>Grand Total</span>
                 <span>Rs. {parseFloat(data.grand_total).toFixed(2)}</span>
               </div>
             </div>
 
-            <div className="pos-receipt-footer">
+            <div className="receipt-footer">
               <p style={{ fontWeight: 600, marginBottom: 4 }}>Thank you for your purchase!</p>
               <p>Goods once sold will not be taken back</p>
             </div>
           </div>
         </div>
 
-        <div className="pos-modal-footer">
-          <button className="pos-modal-btn" onClick={onClose}>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>
             <FiX /> Close
           </button>
-          <button className="pos-modal-btn primary" onClick={handlePrint}>
+          <button className="btn btn-primary" onClick={handlePrint}>
             <FiPrinter /> Print Receipt
           </button>
         </div>

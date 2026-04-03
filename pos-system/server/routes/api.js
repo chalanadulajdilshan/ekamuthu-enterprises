@@ -24,46 +24,57 @@ const saveImage = (base64String, code) => {
     }
 };
 
-// GET /api/products - Fetch all active products with stock
+// GET /api/products - Fetch products (all by default, filtered by params)
 router.get('/products', async (req, res) => {
     try {
         const search = req.query.search || '';
         const category = req.query.category || '';
-        
+        const allProducts = req.query.all === 'true'; // Show all products including inactive
+
         let query = `
-            SELECT 
-                im.id, im.code, im.name, im.brand, im.category, 
+            SELECT
+                im.id, im.code, im.name, im.brand, im.category,
                 im.list_price, im.invoice_price, im.discount,
-                im.is_active, im.pattern, im.size, im.re_order_level, im.re_order_qty, im.note,
-                im.group as image_file,
+                im.is_active, im.barcode, im.reminder_note, im.re_order_level, im.re_order_qty, im.note,
+                im.image_file,
                 IFNULL(sm_total.total_qty, 0) as available_qty,
                 cm.name as category_name,
                 b.name as brand_name
             FROM item_master im
             LEFT JOIN (
-                SELECT item_id, SUM(quantity) as total_qty 
-                FROM stock_master 
+                SELECT item_id, SUM(quantity) as total_qty
+                FROM stock_master
                 GROUP BY item_id
             ) sm_total ON im.id = sm_total.item_id
             LEFT JOIN category_master cm ON im.category = cm.id
             LEFT JOIN brands b ON im.brand = b.id
-            WHERE im.is_active = 1
+            WHERE 1=1
         `;
-        
+
         const params = [];
-        
+
+        // Only filter by active status if not requesting all products
+        if (!allProducts) {
+            query += ` AND im.is_active = 1`;
+        }
+
         if (search) {
             query += ` AND (im.name LIKE ? OR im.code LIKE ?)`;
             params.push(`%${search}%`, `%${search}%`);
         }
-        
+
         if (category) {
             query += ` AND im.category = ?`;
             params.push(category);
         }
-        
-        query += ` HAVING available_qty > 0 ORDER BY im.name ASC`;
-        
+
+        // Only filter by stock if not requesting all products
+        if (!allProducts) {
+            query += ` HAVING available_qty > 0`;
+        }
+
+        query += ` ORDER BY im.name ASC`;
+
         const [rows] = await db.query(query, params);
         res.json({ success: true, data: rows });
     } catch (error) {
@@ -85,7 +96,7 @@ router.post('/products', async (req, res) => {
 
         const [result] = await db.query(
             `INSERT INTO item_master (
-                code, name, brand, size, pattern, \`group\`, category, 
+                code, name, brand, reminder_note, barcode, image_file, category, 
                 re_order_level, re_order_qty, stock_type, note, 
                 list_price, invoice_price, discount, is_active
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
@@ -120,7 +131,7 @@ router.put('/products/:id', async (req, res) => {
                 code = ?, name = ?, brand = ?, category = ?, 
                 re_order_level = ?, re_order_qty = ?, 
                 list_price = ?, invoice_price = ?, discount = ?, is_active = ?,
-                pattern = ?, size = ?, note = ?`;
+                barcode = ?, reminder_note = ?, note = ?`;
         
         const params = [
             code, name, brand || 1, category || 1, 
@@ -130,7 +141,7 @@ router.put('/products/:id', async (req, res) => {
         ];
 
         if (imageFilename) {
-            updateQuery += `, \`group\` = ?`;
+            updateQuery += `, image_file = ?`;
             params.push(imageFilename);
         }
 
