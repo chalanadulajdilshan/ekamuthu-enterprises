@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { FiSave, FiSearch, FiPackage, FiList, FiPlus, FiCamera, FiX, FiSettings } from 'react-icons/fi';
-import { getProducts, getCategories, createProduct, updateProduct } from '../services/api';
+import { getProducts, getCategories, getBrands, createProduct, updateProduct } from '../services/api';
 import Swal from 'sweetalert2';
 
 const initialForm = {

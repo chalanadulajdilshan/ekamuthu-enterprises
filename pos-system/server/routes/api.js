@@ -47,7 +47,7 @@ router.get('/products', async (req, res) => {
                 GROUP BY item_id
             ) sm_total ON im.id = sm_total.item_id
             LEFT JOIN category_master cm ON im.category = cm.id
-            LEFT JOIN brands b ON im.brand = b.id
+            LEFT JOIN brand b ON im.brand = b.id
             WHERE 1=1
         `;
 
@@ -171,7 +171,7 @@ router.get('/categories', async (req, res) => {
 // GET /api/brands - Fetch all brands
 router.get('/brands', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM brands ORDER BY name ASC');
+        const [rows] = await db.query('SELECT * FROM brand ORDER BY name ASC');
         res.json({ success: true, data: rows });
     } catch (error) {
         console.error('Error fetching brands:', error);
