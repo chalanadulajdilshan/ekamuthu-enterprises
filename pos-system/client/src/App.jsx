@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import ItemMaster from './components/ItemMaster';
 import SupplierMaster from './components/SupplierMaster';
 import BrandMaster from './components/BrandMaster';
+import GRN from './components/GRN';
 import ReceiptModal from './components/ReceiptModal';
 import Settings from './components/Settings';
 
@@ -13,6 +14,7 @@ const PAGE_META = {
   itemMaster:     { name: 'Item Master',      breadcrumb: 'Products → Item Master' },
   supplierMaster: { name: 'Supplier Master',  breadcrumb: 'Masters → Suppliers' },
   brandMaster:    { name: 'Brand Master',     breadcrumb: 'Masters → Brands' },
+  grn:            { name: 'GRN',              breadcrumb: 'Inventory → GRN' },
   settings:       { name: 'Settings',         breadcrumb: 'System → Settings' },
 };
 
@@ -134,6 +136,7 @@ function App() {
           {currentView === 'itemMaster'     && <ItemMaster />}
           {currentView === 'supplierMaster' && <SupplierMaster />}
           {currentView === 'brandMaster'    && <BrandMaster />}
+          {currentView === 'grn'            && <GRN onBack={() => setCurrentView('dashboard')} />}
           {currentView === 'settings'       && <Settings theme={theme} onThemeChange={handleThemeChange} />}
         </div>
       </div>

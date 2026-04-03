@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiPackage, FiTruck, FiTag, FiActivity, FiTrendingUp, FiAlertCircle, FiArrowRight } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiTag, FiActivity, FiTrendingUp, FiAlertCircle, FiArrowRight, FiShoppingCart } from 'react-icons/fi';
 import { getDashboardStats, getRecentSales } from '../services/api';
 import RecentSalesModal from './RecentSalesModal';
 
@@ -129,6 +129,16 @@ const Dashboard = ({ onNavigate }) => {
           <div>
             <div className="quick-action-label">Manage Brands</div>
             <div className="quick-action-sub">Product labels and origins</div>
+          </div>
+        </button>
+
+        <button className="quick-action-card" onClick={() => onNavigate('grn')}>
+          <div className="quick-action-icon" style={{ background: 'var(--info-light)', color: 'var(--info)' }}>
+            <FiShoppingCart />
+          </div>
+          <div>
+            <div className="quick-action-label">Goods Received (GRN)</div>
+            <div className="quick-action-sub">Restock inventory and record purchases</div>
           </div>
         </button>
       </div>

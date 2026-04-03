@@ -43,4 +43,9 @@ export const getSaleDetails = (id) => api.get(`/sales/${id}`);
 // Dashboard
 export const getDashboardStats = () => api.get('/dashboard-stats');
 
+// GRN (ARN)
+export const getGrns = () => api.get('/grn');
+export const createGrn = (data) => api.post('/grn', data);
+export const getNextGrnNo = () => api.get('/grn/next-no');
+
 export default api;

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const grnController = require('../controllers/grnController');
 const db = require('../config/db');
 const fs = require('fs');
 const path = require('path');
@@ -181,22 +182,53 @@ router.get('/brands', async (req, res) => {
 
 // GET /api/customers - Fetch customers
 router.get('/customers', async (req, res) => {
+    // ... logic ...
+});
+
+// GET /api/suppliers - Fetch suppliers
+router.get('/suppliers', async (req, res) => {
     try {
         const search = req.query.search || '';
-        let query = 'SELECT id, code, name, mobile, address, email FROM customer_master WHERE 1=1';
+        let query = 'SELECT * FROM brands WHERE 1=1'; // Suppliers are stored in 'brands' table in this DB
         const params = [];
-        
         if (search) {
-            query += ` AND (name LIKE ? OR code LIKE ? OR mobile LIKE ?)`;
-            params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+            query += ` AND (name LIKE ? OR code LIKE ?)`;
+            params.push(`%${search}%`, `%${search}%`);
         }
-        
-        query += ' ORDER BY name ASC LIMIT 50';
-        
+        query += ' ORDER BY name ASC';
         const [rows] = await db.query(query, params);
         res.json({ success: true, data: rows });
     } catch (error) {
-        console.error('Error fetching customers:', error);
+        console.error('Error fetching suppliers:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// POST /api/suppliers - Create supplier
+router.post('/suppliers', async (req, res) => {
+    try {
+        const { code, name, address, mobile_number, email, contact_person, credit_limit, is_active } = req.body;
+        const [result] = await db.query(
+            `INSERT INTO brands (code, name, address, mobile_number, email, contact_person, credit_limit, is_active) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [code, name, address, mobile_number, email, contact_person, credit_limit || 0, is_active ? 1 : 0]
+        );
+        res.json({ success: true, id: result.insertId });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// PUT /api/suppliers/:id - Update supplier
+router.put('/suppliers/:id', async (req, res) => {
+    try {
+        const { code, name, address, mobile_number, email, contact_person, credit_limit, is_active } = req.body;
+        await db.query(
+            `UPDATE brands SET code=?, name=?, address=?, mobile_number=?, email=?, contact_person=?, credit_limit=?, is_active=? WHERE id=?`,
+            [code, name, address, mobile_number, email, contact_person, credit_limit || 0, is_active ? 1 : 0, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -420,5 +452,10 @@ router.get('/dashboard-stats', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
+// GRN (ARN)
+router.get('/grn', grnController.index);
+router.post('/grn', grnController.store);
+router.get('/grn/next-no', grnController.getNextNo);
 
 module.exports = router;
