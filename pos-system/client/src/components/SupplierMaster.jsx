@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiSave, FiSearch, FiTruck, FiList, FiPlus, FiPhone, FiMail, FiMapPin, FiCreditCard, FiUser, FiMessageSquare } from 'react-icons/fi';
+import { FiSave, FiSearch, FiTruck, FiList, FiPlus, FiPhone, FiMail, FiMapPin, FiCreditCard, FiUser, FiMessageSquare, FiX } from 'react-icons/fi';
 import { getSuppliers, createSupplier, updateSupplier } from '../services/api';
 import Swal from 'sweetalert2';
 
@@ -128,37 +128,56 @@ const SupplierMaster = () => {
         </div>
       </div>
 
-      {/* Supplier Browser */}
+      {/* Supplier Browser Modal */}
       {showList && (
-        <div className="list-sidebar">
-          <div className="list-sidebar-header">
-            <div className="search-wrapper">
-              <FiSearch className="search-icon" />
-              <input
-                className="search-input"
-                type="text"
-                placeholder="Search by name or code..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowList(false)}>
+          <div className="modal modal-lg">
+            <div className="modal-header">
+              <div className="modal-title">
+                <FiList />
+                Browse Suppliers
+              </div>
+              <button className="modal-close" onClick={() => setShowList(false)}>
+                <FiX />
+              </button>
             </div>
-          </div>
-          <div className="list-sidebar-body">
-            {filtered.length > 0 ? filtered.map(s => (
-              <div key={s.id} className="list-item" onClick={() => selectSupplier(s)}>
-                <div className="list-item-name">{s.name}</div>
-                <div className="list-item-meta">
-                  <span className="badge badge-primary">{s.code || 'NO CODE'}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiPhone size={10} /> {s.mobile_number}
-                  </span>
-                </div>
+
+            <div className="modal-body">
+              <div className="search-wrapper" style={{ marginBottom: 16 }}>
+                <FiSearch className="search-icon" />
+                <input
+                  className="search-input"
+                  type="text"
+                  placeholder="Search by name or code..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                />
               </div>
-            )) : (
-              <div className="empty-state">
-                <div className="empty-state-title">No suppliers found</div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, maxHeight: '50vh', overflowY: 'auto' }}>
+                {filtered.length > 0 ? filtered.map(s => (
+                  <div key={s.id} className="list-item" onClick={() => selectSupplier(s)} style={{ cursor: 'pointer' }}>
+                    <div className="list-item-name">{s.name}</div>
+                    <div className="list-item-meta">
+                      <span className="badge badge-primary">{s.code || 'NO CODE'}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <FiPhone size={10} /> {s.mobile_number}
+                      </span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="empty-state" style={{ gridColumn: '1 / -1', padding: 40 }}>
+                    <div className="empty-state-title">No suppliers found</div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowList(false)}>
+                <FiX /> Close
+              </button>
+            </div>
           </div>
         </div>
       )}

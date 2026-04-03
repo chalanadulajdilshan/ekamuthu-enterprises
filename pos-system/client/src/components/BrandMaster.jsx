@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiSave, FiSearch, FiList, FiPlus, FiTag, FiGlobe, FiMessageSquare } from 'react-icons/fi';
+import { FiSave, FiSearch, FiList, FiPlus, FiTag, FiGlobe, FiMessageSquare, FiX } from 'react-icons/fi';
 import { getBrands, getBrandCategories, createBrand, updateBrand } from '../services/api';
 import Swal from 'sweetalert2';
 
@@ -115,40 +115,59 @@ const BrandMaster = () => {
         </div>
       </div>
 
-      {/* Brand Browser */}
+      {/* Brand Browser Modal */}
       {showList && (
-        <div className="list-sidebar">
-          <div className="list-sidebar-header">
-            <div className="search-wrapper">
-              <FiSearch className="search-icon" />
-              <input
-                className="search-input"
-                type="text"
-                placeholder="Search brands..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowList(false)}>
+          <div className="modal modal-lg">
+            <div className="modal-header">
+              <div className="modal-title">
+                <FiList />
+                Browse Brands
+              </div>
+              <button className="modal-close" onClick={() => setShowList(false)}>
+                <FiX />
+              </button>
             </div>
-          </div>
-          <div className="list-sidebar-body">
-            {filtered.length > 0 ? filtered.map(b => (
-              <div key={b.id} className="list-item" onClick={() => selectBrand(b)}>
-                <div className="list-item-name">{b.name}</div>
-                <div className="list-item-meta">
-                  <span className="badge badge-info" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiTag size={9} />
-                    {categories.find(c => c.id === b.category_id)?.name || 'Unknown'}
-                  </span>
-                  <span className={`badge ${b.is_active ? 'badge-success' : 'badge-warning'}`}>
-                    {b.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
+
+            <div className="modal-body">
+              <div className="search-wrapper" style={{ marginBottom: 16 }}>
+                <FiSearch className="search-icon" />
+                <input
+                  className="search-input"
+                  type="text"
+                  placeholder="Search brands..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                />
               </div>
-            )) : (
-              <div className="empty-state">
-                <div className="empty-state-title">No brands found</div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, maxHeight: '50vh', overflowY: 'auto' }}>
+                {filtered.length > 0 ? filtered.map(b => (
+                  <div key={b.id} className="list-item" onClick={() => selectBrand(b)} style={{ cursor: 'pointer' }}>
+                    <div className="list-item-name">{b.name}</div>
+                    <div className="list-item-meta">
+                      <span className="badge badge-info" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <FiTag size={9} />
+                        {categories.find(c => c.id === b.category_id)?.name || 'Unknown'}
+                      </span>
+                      <span className={`badge ${b.is_active ? 'badge-success' : 'badge-warning'}`}>
+                        {b.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="empty-state" style={{ gridColumn: '1 / -1', padding: 40 }}>
+                    <div className="empty-state-title">No brands found</div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowList(false)}>
+                <FiX /> Close
+              </button>
+            </div>
           </div>
         </div>
       )}

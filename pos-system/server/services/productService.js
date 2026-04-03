@@ -24,4 +24,8 @@ const updateProduct = async (id, data) => {
     return await Product.update(id, { ...data, image_file: imageFilename });
 };
 
-module.exports = { getAllProducts, createProduct, updateProduct };
+const deleteProduct = async (id) => {
+    return await Product.delete(id);
+};
+
+module.exports = { getAllProducts, createProduct, updateProduct, deleteProduct };

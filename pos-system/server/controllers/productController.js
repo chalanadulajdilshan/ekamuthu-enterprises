@@ -1,4 +1,4 @@
-const { getAllProducts, createProduct, updateProduct } = require('../services/productService');
+const { getAllProducts, createProduct, updateProduct, deleteProduct } = require('../services/productService');
 
 exports.index = async (req, res) => {
     try {
@@ -32,5 +32,23 @@ exports.update = async (req, res) => {
     } catch (error) {
         console.error('ProductController.update:', error);
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.destroy = async (req, res) => {
+    try {
+        await deleteProduct(req.params.id);
+        res.json({ success: true, message: 'Item deleted successfully' });
+    } catch (error) {
+        console.error('ProductController.destroy:', error);
+        
+        let message = 'Failed to delete item';
+        if (error.code === 'ER_ROW_IS_REFERENCED_2' || error.errno === 1451) {
+            message = 'Cannot delete this item because it has associated records (stock, sales, etc). Please deactivate it instead.';
+        } else {
+            message = error.message;
+        }
+        
+        res.status(500).json({ success: false, message });
     }
 };

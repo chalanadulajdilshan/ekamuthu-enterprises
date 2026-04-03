@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { FiSave, FiSearch, FiPackage, FiList, FiPlus, FiCamera, FiX, FiSettings } from 'react-icons/fi';
-import { getProducts, getCategories, getBrands, createProduct, updateProduct } from '../services/api';
+import { FiSave, FiSearch, FiPackage, FiList, FiPlus, FiCamera, FiX, FiSettings, FiTrash2 } from 'react-icons/fi';
+import { getProducts, getDepartments, getBrands, createProduct, updateProduct, deleteProduct } from '../services/api';
 import Swal from 'sweetalert2';
 
 const initialForm = {
@@ -19,20 +19,13 @@ const initialForm = {
   min_stock: '',
   max_stock: '',
   pack_qty: '1',
-  quick_menu: false,
-  can_price_edit: false,
-  scale_item: false,
-  is_available: true,
-  lottery_item: false,
-  voucher_item: false,
-  serial_track: false,
   image: null,
   image_url: null,
 };
 
 const ItemMaster = () => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [brands, setBrands] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -44,13 +37,13 @@ const ItemMaster = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [prodRes, catRes, brandRes] = await Promise.all([
+      const [prodRes, deptRes, brandRes] = await Promise.all([
         getProducts({ all: 'true' }),
-        getCategories(),
+        getDepartments(),
         getBrands()
       ]);
       setProducts(prodRes.data.data || []);
-      setCategories(catRes.data.data || []);
+      setDepartments(deptRes.data.data || []);
       setBrands(brandRes.data.data || []);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -99,7 +92,6 @@ const ItemMaster = () => {
       reminder_note: p.reminder_note || '',
       min_stock: p.re_order_level || '',
       pack_qty: p.re_order_qty || '1',
-      is_available: p.is_active !== undefined ? Boolean(p.is_active) : true,
       image_url: p.image_file ? `/uploads/${p.image_file}` : null,
     });
     setShowList(false);
@@ -118,11 +110,14 @@ const ItemMaster = () => {
         category: formData.category,
         brand: formData.brand,
         list_price: formData.cost_price,
+        net_price: formData.net_price,
+        tax_type: formData.tax_type,
         invoice_price: formData.retail_price,
         re_order_level: formData.min_stock,
         re_order_qty: formData.pack_qty,
+        max_stock: formData.max_stock,
         note: formData.note,
-        is_active: formData.is_available,
+        is_active: true,
         pattern: formData.barcode,
         size: formData.reminder_note,
         image: formData.image,
@@ -138,6 +133,36 @@ const ItemMaster = () => {
       window.location.reload();
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save item. Please try again.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!formData.id) return;
+    const confirmed = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      setSaving(true);
+      await deleteProduct(formData.id);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Deleted!',
+        text: 'Item has been deleted successfully',
+      });
+      window.location.reload();
+    } catch (err) {
+      console.error('Delete error:', err);
+      const msg = err.response?.data?.message || 'Failed to delete item. This usually happens if the item is already used in stock or sales records.';
+      Swal.fire({ icon: 'error', title: 'Deletion Failed', text: msg });
     } finally {
       setSaving(false);
     }
@@ -172,11 +197,16 @@ const ItemMaster = () => {
           <button className="btn btn-secondary" onClick={() => setFormData(initialForm)}>
             <FiPlus /> New Item
           </button>
+          {formData.id && (
+            <button className="btn btn-secondary" onClick={handleDelete} disabled={saving} style={{ color: 'var(--danger)', borderColor: 'var(--danger-light)' }}>
+              <FiTrash2 /> Delete
+            </button>
+          )}
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
             {saving ? (
-              <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving...</>
+              <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Processing...</>
             ) : (
-              <><FiSave /> Save Item</>
+              <><FiSave /> {formData.id ? 'Update Item' : 'Save Item'}</>
             )}
           </button>
         </div>
@@ -278,12 +308,12 @@ const ItemMaster = () => {
                   <label className="form-label">Department *</label>
                   <select className="form-select" name="category" value={formData.category} onChange={handleInput}>
                     <option value="">-- Select --</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
 
                 <div className="form-group span-3">
-                  <label className="form-label">Location / Brand</label>
+                  <label className="form-label">Brand</label>
                   <select className="form-select" name="brand" value={formData.brand} onChange={handleInput}>
                     <option value="">-- Select --</option>
                     {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -363,45 +393,8 @@ const ItemMaster = () => {
           </div>
         </div>
 
-        {/* Right: Settings + Image */}
+        {/* Right Area: Image Upload */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Settings */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title"><FiSettings /> Settings</div>
-            </div>
-            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { name: 'quick_menu',     label: 'Quick Menu' },
-                { name: 'can_price_edit', label: 'Price Editable by Till' },
-                { name: 'scale_item',     label: 'Scale Item' },
-                { name: 'is_available',   label: 'Available for Sale', highlight: true },
-                { name: 'lottery_item',   label: 'Lottery Item' },
-                { name: 'voucher_item',   label: 'Discount Voucher' },
-                { name: 'serial_track',   label: 'Serial Track' },
-              ].map(({ name, label, highlight }) => (
-                <label
-                  key={name}
-                  className="form-checkbox"
-                  style={highlight && formData[name] ? {
-                    borderColor: 'var(--success)',
-                    background: 'var(--success-light)',
-                    color: 'var(--success)',
-                    fontWeight: 600,
-                  } : {}}
-                >
-                  <input
-                    type="checkbox"
-                    name={name}
-                    checked={formData[name]}
-                    onChange={handleInput}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </div>
-
           {/* Image Upload */}
           <div
             className="image-upload"

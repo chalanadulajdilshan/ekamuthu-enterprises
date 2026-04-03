@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `item_master` (
   `barcode` varchar(100) DEFAULT NULL COMMENT 'Entered Bar Code',
   `name` varchar(255) NOT NULL COMMENT 'Description / Item Name',
   `brand` int(11) DEFAULT '1' COMMENT 'Supplier / Brand Mapping',
-  `category` int(11) DEFAULT '1' COMMENT 'Department / Category Mapping',
+  `department_id` int(11) DEFAULT '1' COMMENT 'Department Mapping',
   `stock_type` int(11) DEFAULT '1',
   `note` text DEFAULT NULL,
   `reminder_note` text DEFAULT NULL,
@@ -27,15 +27,9 @@ CREATE TABLE IF NOT EXISTS `item_master` (
   `max_stock` int(11) DEFAULT '0',
   `re_order_qty` int(11) DEFAULT '1' COMMENT 'Pack Quantity',
   
-  -- SETTINGS & STATUS
+  -- STATUS
   `is_active` tinyint(1) DEFAULT '1' COMMENT 'Is Available to Sale',
   `image_file` varchar(255) DEFAULT NULL COMMENT 'Product Image Filename',
-  `quick_menu` tinyint(1) DEFAULT '0',
-  `can_price_edit` tinyint(1) DEFAULT '0',
-  `scale_item` tinyint(1) DEFAULT '0',
-  `lottery_item` tinyint(1) DEFAULT '0',
-  `voucher_item` tinyint(1) DEFAULT '0',
-  `serial_track` tinyint(1) DEFAULT '0',
   
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
