@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiShoppingCart, FiTrendingUp, FiPackage, FiAlertCircle, FiActivity, FiArrowRight, FiArrowLeft, FiSun, FiMoon } from 'react-icons/fi';
+import { FiShoppingCart, FiTrendingUp, FiPackage, FiAlertCircle, FiActivity, FiArrowRight, FiArrowLeft, FiSun, FiMoon, FiTruck, FiTag } from 'react-icons/fi';
 import { getDashboardStats, getRecentSales } from '../services/api';
 import RecentSalesModal from './RecentSalesModal';
 
@@ -72,6 +72,12 @@ const Dashboard = ({ onNavigate, theme, toggleTheme }) => {
         <div style={{display: 'flex', gap: '12px'}}>
           <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('itemMaster')}>
             <FiPackage /> Manage Products
+          </button>
+          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('supplierMaster')}>
+            <FiTruck /> Manage Suppliers
+          </button>
+          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('brandMaster')}>
+            <FiTag /> Manage Brands
           </button>
           <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px' }} onClick={() => onNavigate('pos')}>
             <FiShoppingCart /> Open POS Terminal

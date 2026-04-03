@@ -16,9 +16,15 @@ export const createProduct = (data) => api.post('/products', data);
 export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const getCategories = () => api.get('/categories');
 export const getBrands = () => api.get('/brands');
+export const getBrandCategories = () => api.get('/brand-categories');
+export const createBrand = (data) => api.post('/brands', data);
+export const updateBrand = (id, data) => api.put(`/brands/${id}`, data);
 
-// Customers
+// Customers / Suppliers
 export const getCustomers = (search = '') => api.get('/customers', { params: { search } });
+export const getSuppliers = (search = '') => api.get('/suppliers', { params: { search } });
+export const createSupplier = (data) => api.post('/suppliers', data);
+export const updateSupplier = (id, data) => api.put(`/suppliers/${id}`, data);
 
 // Company
 export const getCompany = () => api.get('/company');

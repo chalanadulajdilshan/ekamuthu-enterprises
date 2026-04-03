@@ -137,7 +137,7 @@ const ItemMaster = ({ onNavigate, theme, toggleTheme }) => {
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.code.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div style={{minHeight: '100vh', backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column'}}>
+    <div style={{height: '100vh', overflowY: 'auto', backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column'}}>
       {/* Header */}
       <div style={{height: 64, borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-panel)', display: 'flex', alignItems: 'center', padding: '0 24px', justifyContent: 'space-between'}}>
          <div style={{display: 'flex', alignItems: 'center', gap: 24}}>

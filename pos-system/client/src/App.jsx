@@ -6,6 +6,8 @@ import ReceiptModal from './components/ReceiptModal';
 import RecentSalesModal from './components/RecentSalesModal';
 import Dashboard from './components/Dashboard';
 import ItemMaster from './components/ItemMaster';
+import SupplierMaster from './components/SupplierMaster';
+import BrandMaster from './components/BrandMaster';
 import { getProducts, getCategories } from './services/api';
 import toast from 'react-hot-toast';
 
@@ -177,6 +179,14 @@ function App() {
 
   if (currentView === 'itemMaster') {
     return <ItemMaster onNavigate={setCurrentView} theme={theme} toggleTheme={toggleTheme} />;
+  }
+
+  if (currentView === 'supplierMaster') {
+    return <SupplierMaster onNavigate={setCurrentView} theme={theme} toggleTheme={toggleTheme} />;
+  }
+
+  if (currentView === 'brandMaster') {
+    return <BrandMaster onNavigate={setCurrentView} theme={theme} toggleTheme={toggleTheme} />;
   }
 
   return (
