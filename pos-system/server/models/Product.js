@@ -18,7 +18,7 @@ class Product {
                 GROUP BY item_id
             ) sm_total ON im.id = sm_total.item_id
             LEFT JOIN category_master cm ON im.category = cm.id
-            LEFT JOIN brand b ON im.brand = b.id
+            LEFT JOIN brands b ON im.brand = b.id
             WHERE 1=1
         `;
 
