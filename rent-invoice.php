@@ -560,7 +560,7 @@ if (!empty($customerMobile)) {
             width: 100%;
             text-align: center;
             padding: 5px 0;
-            margin: 10px 0 20px 0;
+            margin: 0;
             font-size: 28px;
             font-weight: 800;
             text-transform: uppercase;
@@ -698,7 +698,6 @@ if (!empty($customerMobile)) {
                                 <th>Code</th>
                                 <th>Type</th>
                                 <th class="text-end">Rate</th>
-                                <th>Duration</th>
                                 <th class="text-center">Bill Qty</th>
                                 <th class="text-center">Issued Qty</th>
                                 <th class="text-end">Amount</th>
@@ -727,12 +726,6 @@ if (!empty($customerMobile)) {
                                         if ($qty <= 0) $qty = 1;
                                         $rate = (float)($item['amount'] ?? 0) / $qty;
                                         echo number_format($rate, 2); 
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <?php 
-                                        echo intval($item['duration']); 
-                                        echo ($item['rent_type'] === 'month') ? ' Months' : ' Days';
                                         ?>
                                     </td>
                                     <?php
@@ -823,15 +816,36 @@ if (!empty($customerMobile)) {
 
                 <!-- Summary Section -->
                 <div class="row mt-3">
-                    <div class="col-md-6 col-6">
-                        <div style="border: 1px solid #ddd; padding: 10px; min-height: 100px; border-radius: 4px; background: #fafafa;">
-                            <h6 style="font-size: 13px; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">Remarks:</h6>
-                            <div style="font-size: 11px; line-height: 1.4; color: #333;">
-                                <?php echo !empty($EQUIPMENT_RENT->remark) ? nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)) : '-'; ?>
+                    <div class="col-md-8 col-8">
+                        <div class="d-flex align-items-start gap-2">
+                            <div style="flex-grow: 1;">
+                                <div style="border: 1px solid #ddd; padding: 10px; min-height: 100px; border-radius: 4px; background: #fafafa;">
+                                    <h6 style="font-size: 13px; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">Remarks:</h6>
+                                    <div style="font-size: 11px; line-height: 1.4; color: #333;">
+                                        <?php echo !empty($EQUIPMENT_RENT->remark) ? nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)) : '-'; ?>
+                                    </div>
+                                    <?php if (!empty($rent_items)): 
+                                        $firstItem = $rent_items[0];
+                                        $durationVal = intval($firstItem['duration']);
+                                        $durationUnit = ($firstItem['rent_type'] === 'month') ? ' Months' : ' Days';
+                                    ?>
+                                    <div style="margin-top: 8px; font-weight: bold; font-size: 12px; border-top: 1px dashed #eee; padding-top: 4px; color: #000;">
+                                        All items estimated duration = <?php echo $durationVal . $durationUnit; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
+                            <?php if (empty($return_rows)): ?>
+                            <div class="no-print" style="width: 100px; height: 100px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; flex-shrink: 0; background: #fff;">
+                                <p style="font-size: 11px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
+                            </div>
+                            <div class="d-none d-print-block" style="width: 100px; height: 100px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; flex-shrink: 0; background: #fff;">
+                                <p style="font-size: 11px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
-                    <div class="col-md-6 col-6 d-flex justify-content-end">
+                    <div class="col-md-4 col-4 d-flex justify-content-end">
                         <div class="summary-wrapper">
                             <table class="summary-table" style="width:auto;">
                             <tr>
@@ -930,12 +944,6 @@ if (!empty($customerMobile)) {
                                     <p style="font-size: 9px; margin: 0; color: #555; text-align: center; line-height: 1.1;">
                                         (සමාගමක් / ආ‍යතනයක් වන අවස්ථාවකදී බලය දීමේ ලිපියක් ඉදිරිපත් කල යුතුය) / <span>The letter of Auth (With company seal/Authorized signature)</span>
                                     </p>
-                                </div>
-                                <div class="no-print" style="width: 100px; height: 80px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center;">
-                                    <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
-                                </div>
-                                <div class="d-none d-print-block" style="width: 100px; height: 80px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center;">
-                                    <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
                                 </div>
                             </div>
                         </div>
