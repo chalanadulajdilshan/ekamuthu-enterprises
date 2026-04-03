@@ -30,8 +30,40 @@ if (isset($_POST['create']) || isset($_POST['update'])) {
     $isUpdate = isset($_POST['update']);
     $COMPANY = $isUpdate ? new CompanyProfile($_POST['company_id'] ?? 0) : new CompanyProfile();
 
-    // Handle logo upload
-    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+    // Handle logo upload (Cropped or Original)
+    if (!empty($_POST['cropped_logo'])) {
+        $uploadDir = '../../uploads/company-logos/';
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $imgData = $_POST['cropped_logo'];
+        if (preg_match('/^data:image\/(\w+);base64,/', $imgData, $type)) {
+            $imgData = substr($imgData, strpos($imgData, ',') + 1);
+            $type = strtolower($type[1]); // jpg, png, etc
+
+            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                // throw new \Exception('invalid image type');
+            }
+
+            $imgData = base64_decode($imgData);
+
+            if ($imgData === false) {
+                // throw new \Exception('base64_decode failed');
+            }
+
+            $randomFileName = uniqid('logo_', true) . '.' . $type;
+            $uploadPath = $uploadDir . $randomFileName;
+
+            if (file_put_contents($uploadPath, $imgData)) {
+                // Delete old logo if exists and we're updating
+                if ($isUpdate && !empty($COMPANY->image_name) && file_exists($uploadDir . $COMPANY->image_name)) {
+                    @unlink($uploadDir . $COMPANY->image_name);
+                }
+                $COMPANY->image_name = $randomFileName;
+            }
+        }
+    } else if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '../../uploads/company-logos/';
         $allowedExtensions = ['png', 'jpg', 'jpeg', 'webp'];
         $fileExt = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));

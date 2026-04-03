@@ -251,7 +251,7 @@ include 'auth.php';
                                                     <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
                                                     <small class="text-muted">Recommended size: 250x60 pixels</small>
                                                     <div class="mt-2">
-                                                        <img id="logo-preview" src="<?php echo !empty($COMPANY->image_name) ? 'uploads/company-logos/' . $COMPANY->image_name : 'assets/images/default-company.png'; ?>" alt="Logo Preview" style="max-height: 60px; max-width: 100%;">
+                                                        <img id="logo-preview" src="<?php echo !empty($COMPANY_PROFILE_DETAILS->image_name) ? 'uploads/company-logos/' . $COMPANY_PROFILE_DETAILS->image_name : 'assets/images/default-company.png'; ?>" alt="Logo Preview" style="max-height: 60px; max-width: 100%;">
                                                     </div>
                                                 </div>
 
@@ -261,7 +261,7 @@ include 'auth.php';
                                                     <input type="file" class="form-control" id="favicon" name="favicon" accept="image/x-icon,image/vnd.microsoft.icon,.ico">
                                                     <small class="text-muted">Recommended format: .ico, size: 32x32 or 16x16 pixels</small>
                                                     <div class="mt-2">
-                                                        <img id="favicon-preview" src="<?php echo !empty($COMPANY->favicon) ? 'uploads/company-logos/' . $COMPANY->favicon : 'assets/images/favicon.ico'; ?>" alt="Favicon Preview" style="width: 32px; height: 32px;">
+                                                        <img id="favicon-preview" src="<?php echo !empty($COMPANY_PROFILE_DETAILS->favicon) ? 'uploads/company-logos/' . $COMPANY_PROFILE_DETAILS->favicon : 'assets/images/favicon.ico'; ?>" alt="Favicon Preview" style="width: 32px; height: 32px;">
                                                     </div>
                                                 </div>
 
@@ -284,6 +284,7 @@ include 'auth.php';
                                             </div>
                                             <input type="hidden" name="company_id" id="company_id">
                                             <input type="hidden" id="image_name" name="image_name" />
+                                            <input type="hidden" id="cropped-logo" name="cropped_logo" />
 
                                     </div>
                                     </form>

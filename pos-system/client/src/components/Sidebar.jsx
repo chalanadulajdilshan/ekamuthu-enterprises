@@ -1,4 +1,4 @@
-import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink } from 'react-icons/fi';
+import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink, FiSettings } from 'react-icons/fi';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: FiHome },
@@ -7,17 +7,32 @@ const navItems = [
   { id: 'brandMaster', label: 'Brands', icon: FiTag },
 ];
 
-const Sidebar = ({ currentView, onNavigate }) => {
+const Sidebar = ({ currentView, onNavigate, companyData }) => {
+  const logoUrl = companyData?.image_name && companyData.image_name.trim() !== ''
+    ? `http://localhost/ekamuthu-enterprises/uploads/company-logos/${companyData.image_name}`
+    : null;
+
+  // Split name for nicer layout
+  const nameParts = companyData?.name?.split(' ') || ['Ekamuthu', 'Enterprises'];
+  const nameFirst = nameParts[0];
+  const nameRest  = nameParts.slice(1).join(' ');
+
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <FiShoppingBag />
-        </div>
-        <div>
-          <div className="sidebar-logo-text">Ekamuthu</div>
-          <div className="sidebar-logo-sub">Enterprises</div>
-        </div>
+        {logoUrl ? (
+          <img src={logoUrl} alt="Logo" className="sidebar-logo-img" />
+        ) : (
+          <>
+            <div className="sidebar-logo-icon">
+              <FiShoppingBag />
+            </div>
+            <div>
+              <div className="sidebar-logo-text">{nameFirst}</div>
+              <div className="sidebar-logo-sub">{nameRest}</div>
+            </div>
+          </>
+        )}
       </div>
 
       <nav className="sidebar-nav">
@@ -35,6 +50,13 @@ const Sidebar = ({ currentView, onNavigate }) => {
       </nav>
 
       <div className="sidebar-footer">
+        <button
+          className={`sidebar-nav-item ${currentView === 'settings' ? 'active' : ''}`}
+          onClick={() => onNavigate('settings')}
+        >
+          <FiSettings />
+          <span>Settings</span>
+        </button>
         <a href="/" className="sidebar-nav-item" style={{ textDecoration: 'none' }}>
           <FiExternalLink />
           <span>Main System</span>

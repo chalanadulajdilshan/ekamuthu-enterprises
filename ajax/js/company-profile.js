@@ -476,51 +476,8 @@ jQuery(document).ready(function () {
         }
     });
 
-    // Crop and Upload (if used separately)
-    $('#form-data').submit(function (e) {
-        e.preventDefault();
-
-        if (cropper) {
-            const canvas = cropper.getCroppedCanvas({ width: 600, height: 200 });
-
-            canvas.toBlob(blob => {
-                removeBackground(blob, function (bgRemovedBlob) {
-                    const imageUrl = URL.createObjectURL(bgRemovedBlob);
-                    const image = new Image();
-                    image.src = imageUrl;
-
-                    image.onload = () => {
-                        const upscaler = new Upscaler();
-                        upscaler.upscale(image).then(enhancedCanvas => {
-                            enhancedCanvas.toBlob(enhancedBlob => {
-                                const formData = new FormData($('#form-data')[0]);
-                                formData.append('logo', enhancedBlob, 'logo.png');
-                                formData.append('create', true);
-
-                                $('.someBlock').preloader();
-
-                                $.ajax({
-                                    url: 'ajax/php/company-profile.php',
-                                    type: 'POST',
-                                    data: formData,
-                                    cache: false,
-                                    contentType: false,
-                                    processData: false,
-                                    success: function (response) {
-                                        $('.someBlock').preloader('remove');
-                                        console.log(response);
-                                    }
-                                });
-
-                            }, 'image/png');
-                        });
-                    };
-                });
-            });
-        } else {
-            swal("Error", "Please upload and crop the logo before saving.", "error");
-        }
-    });
+    // The following was a redundant or experimental submit handler. 
+    // Regular save/update logic is handled above by #create and #update click handlers.
 
     // Background remover
     function removeBackground(fileBlob, callback) {
