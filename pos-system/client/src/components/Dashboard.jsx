@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FiShoppingCart, FiTrendingUp, FiPackage, FiAlertCircle, FiActivity, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import { FiShoppingCart, FiTrendingUp, FiPackage, FiAlertCircle, FiActivity, FiArrowRight, FiArrowLeft, FiSun, FiMoon } from 'react-icons/fi';
 import { getDashboardStats, getRecentSales } from '../services/api';
 import RecentSalesModal from './RecentSalesModal';
 
-const Dashboard = ({ onNavigate }) => {
+const Dashboard = ({ onNavigate, theme, toggleTheme }) => {
   const [stats, setStats] = useState(null);
   const [recentSales, setRecentSales] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,10 +53,15 @@ const Dashboard = ({ onNavigate }) => {
               POS <span>Dashboard</span>
             </div>
           </div>
-          <a href="/" className="pos-back-btn" title="Back to Main System">
-              <FiArrowLeft />
-              <span>Exit to Main App</span>
-          </a>
+          <div style={{display: 'flex', gap: '12px'}}>
+              <button className="pos-header-btn" onClick={toggleTheme} title="Toggle Theme">
+                {theme === 'light' ? <FiMoon /> : <FiSun />}
+              </button>
+              <a href="/" className="pos-back-btn" title="Back to Main System">
+                  <FiArrowLeft />
+                  <span>Exit to Main App</span>
+              </a>
+          </div>
       </div>
 
       <div className="pos-dashboard-header">
@@ -64,9 +69,14 @@ const Dashboard = ({ onNavigate }) => {
           <h1 className="pos-dashboard-title">Overview</h1>
           <p className="pos-dashboard-subtitle">Welcome to the POS System. Here's what's happening today.</p>
         </div>
-        <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px' }} onClick={() => onNavigate('pos')}>
-          <FiShoppingCart /> Open POS Terminal
-        </button>
+        <div style={{display: 'flex', gap: '12px'}}>
+          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', boxShadow: 'none' }} onClick={() => onNavigate('itemMaster')}>
+            <FiPackage /> Manage Products
+          </button>
+          <button className="pos-checkout-btn" style={{ width: 'auto', padding: '12px 24px' }} onClick={() => onNavigate('pos')}>
+            <FiShoppingCart /> Open POS Terminal
+          </button>
+        </div>
       </div>
 
       <div className="pos-dashboard-stats-grid">

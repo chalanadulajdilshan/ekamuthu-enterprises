@@ -1,6 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const fs = require('fs');
+const path = require('path');
+
+// Helper to save base64 image
+const saveImage = (base64String, code) => {
+    if (!base64String || !base64String.includes('base64,')) return null;
+    try {
+        const base64Data = base64String.split('base64,')[1];
+        const filename = `item_${code}_${Date.now()}.jpg`;
+        const uploadPath = path.join(__dirname, '../../uploads', filename);
+        
+        // Ensure directory exists (basic check)
+        const dir = path.join(__dirname, '../../uploads');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        
+        fs.writeFileSync(uploadPath, base64Data, 'base64');
+        return filename;
+    } catch (error) {
+        console.error('Error saving image:', error);
+        return null;
+    }
+};
 
 // GET /api/products - Fetch all active products with stock
 router.get('/products', async (req, res) => {
@@ -12,7 +34,8 @@ router.get('/products', async (req, res) => {
             SELECT 
                 im.id, im.code, im.name, im.brand, im.category, 
                 im.list_price, im.invoice_price, im.discount,
-                im.is_active,
+                im.is_active, im.pattern, im.size, im.re_order_level, im.re_order_qty, im.note,
+                im.group as image_file,
                 IFNULL(sm_total.total_qty, 0) as available_qty,
                 cm.name as category_name,
                 b.name as brand_name
@@ -49,6 +72,80 @@ router.get('/products', async (req, res) => {
     }
 });
 
+// POST /api/products - Create a new product
+router.post('/products', async (req, res) => {
+    try {
+        const {
+            code, name, brand, category, list_price, invoice_price, 
+            discount, re_order_level, re_order_qty, is_active,
+            pattern, size, note, image
+        } = req.body;
+
+        const imageFilename = saveImage(image, code);
+
+        const [result] = await db.query(
+            `INSERT INTO item_master (
+                code, name, brand, size, pattern, \`group\`, category, 
+                re_order_level, re_order_qty, stock_type, note, 
+                list_price, invoice_price, discount, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
+            [
+                code, name, brand || 1, size || '', pattern || '', 
+                imageFilename || '',
+                category || 1, re_order_level || 0, re_order_qty || 0, 
+                note || '', list_price || 0, invoice_price || 0, 
+                discount || 0, is_active ? 1 : 0
+            ]
+        );
+
+        res.json({ success: true, message: 'Item created successfully', id: result.insertId });
+    } catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// PUT /api/products/:id - Update a product
+router.put('/products/:id', async (req, res) => {
+    try {
+        const {
+            code, name, brand, category, list_price, invoice_price, 
+            discount, re_order_level, re_order_qty, is_active,
+            pattern, size, note, image
+        } = req.body;
+
+        const imageFilename = saveImage(image, code);
+
+        let updateQuery = `UPDATE item_master SET 
+                code = ?, name = ?, brand = ?, category = ?, 
+                re_order_level = ?, re_order_qty = ?, 
+                list_price = ?, invoice_price = ?, discount = ?, is_active = ?,
+                pattern = ?, size = ?, note = ?`;
+        
+        const params = [
+            code, name, brand || 1, category || 1, 
+            re_order_level || 0, re_order_qty || 0, 
+            list_price || 0, invoice_price || 0, discount || 0, is_active ? 1 : 0,
+            pattern || '', size || '', note || ''
+        ];
+
+        if (imageFilename) {
+            updateQuery += `, \`group\` = ?`;
+            params.push(imageFilename);
+        }
+
+        updateQuery += ` WHERE id = ?`;
+        params.push(req.params.id);
+
+        await db.query(updateQuery, params);
+
+        res.json({ success: true, message: 'Item updated successfully' });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // GET /api/categories - Fetch all categories
 router.get('/categories', async (req, res) => {
     try {
@@ -56,6 +153,17 @@ router.get('/categories', async (req, res) => {
         res.json({ success: true, data: rows });
     } catch (error) {
         console.error('Error fetching categories:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// GET /api/brands - Fetch all brands
+router.get('/brands', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM brands ORDER BY name ASC');
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error('Error fetching brands:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

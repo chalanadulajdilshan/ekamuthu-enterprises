@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { FiShoppingCart, FiSearch, FiGrid, FiMaximize, FiArrowLeft, FiClock } from 'react-icons/fi';
+import { FiShoppingCart, FiSearch, FiGrid, FiMaximize, FiArrowLeft, FiClock, FiSun, FiMoon } from 'react-icons/fi';
 import ProductGrid from './components/ProductGrid';
 import CartPanel from './components/CartPanel';
 import ReceiptModal from './components/ReceiptModal';
 import RecentSalesModal from './components/RecentSalesModal';
 import Dashboard from './components/Dashboard';
+import ItemMaster from './components/ItemMaster';
 import { getProducts, getCategories } from './services/api';
 import toast from 'react-hot-toast';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [theme, setTheme] = useState('light');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
@@ -34,6 +36,11 @@ function App() {
       setLoading(false);
     }
   }, [searchTerm, activeCategory, currentView]);
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // Fetch categories
   const fetchCategories = useCallback(async () => {
@@ -150,10 +157,14 @@ function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [currentView]);
 
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
   if (currentView === 'dashboard') {
     return (
       <>
-        <Dashboard onNavigate={setCurrentView} />
+        <Dashboard onNavigate={setCurrentView} theme={theme} toggleTheme={toggleTheme} />
         {receiptData && (
           <ReceiptModal
             data={receiptData}
@@ -162,6 +173,10 @@ function App() {
         )}
       </>
     );
+  }
+
+  if (currentView === 'itemMaster') {
+    return <ItemMaster onNavigate={setCurrentView} theme={theme} toggleTheme={toggleTheme} />;
   }
 
   return (
@@ -191,6 +206,9 @@ function App() {
           </div>
 
           <div className="pos-header-actions">
+            <button className="pos-header-btn" onClick={toggleTheme} title="Toggle Theme">
+              {theme === 'light' ? <FiMoon /> : <FiSun />}
+            </button>
             <button className="pos-header-btn" onClick={() => setShowRecent(true)} title="Recent Sales">
               <FiClock />
             </button>

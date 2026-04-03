@@ -12,7 +12,10 @@ const api = axios.create({
 
 // Products
 export const getProducts = (params = {}) => api.get('/products', { params });
+export const createProduct = (data) => api.post('/products', data);
+export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const getCategories = () => api.get('/categories');
+export const getBrands = () => api.get('/brands');
 
 // Customers
 export const getCustomers = (search = '') => api.get('/customers', { params: { search } });
