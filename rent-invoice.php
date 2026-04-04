@@ -579,6 +579,20 @@ if (!empty($customerMobile)) {
             min-height: 800px;
         }
 
+        @media print {
+            #invoice-content {
+                min-height: 0 !important;
+            }
+            .rent-header-img {
+                height: 90px !important;
+                max-height: 90px !important;
+                margin-bottom: 4px !important;
+            }
+            .signature-table td {
+                padding-top: 20px !important;
+            }
+        }
+
     </style>
 
 </head>
@@ -673,7 +687,7 @@ if (!empty($customerMobile)) {
                 <!-- Remaining Left-Side Info -->
                 <div class="row mb-4">
                     <div class="col-7">
-                        <div style="font-size:15px; line-height:2.0;">
+                        <div style="font-size:15px; line-height:1.6;">
                             <strong>WP No: </strong><?php echo !empty($CUSTOMER_MASTER->mobile_number_2) ? formatPhone($CUSTOMER_MASTER->mobile_number_2) : '..................................................'; ?><br>
                             <strong>NIC: </strong><?php echo !empty($CUSTOMER_MASTER->nic) ? htmlspecialchars($CUSTOMER_MASTER->nic) : '..................................................'; ?><br>
                             <strong>Work Site Address: </strong><?php echo !empty($EQUIPMENT_RENT->workplace_address) ? htmlspecialchars($EQUIPMENT_RENT->workplace_address) : '..................................................'; ?>
@@ -819,7 +833,7 @@ if (!empty($customerMobile)) {
                     <div class="col-md-8 col-8">
                         <div class="d-flex align-items-start gap-2">
                             <div style="flex-grow: 1;">
-                                <div style="border: 1px solid #ddd; padding: 10px; min-height: 100px; border-radius: 4px; background: #fafafa;">
+                                <div style="border: 1px solid #ddd; padding: 8px; min-height: 60px; border-radius: 4px; background: #fafafa;">
                                     <h6 style="font-size: 13px; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">Remarks:</h6>
                                     <div style="font-size: 11px; line-height: 1.4; color: #333;">
                                         <?php echo !empty($EQUIPMENT_RENT->remark) ? nl2br(htmlspecialchars($EQUIPMENT_RENT->remark)) : '-'; ?>
@@ -954,7 +968,7 @@ if (!empty($customerMobile)) {
                 <div class="mt-0">
                     <div style="border-top:2px solid #ccc; padding-top:4px;">
                         <strong>Terms & Conditions :</strong>
-                        <div style="min-height:60px; padding:8px 0; font-size:14px;">
+                        <div style="min-height:30px; padding:4px 0; font-size:12px;">
                             <?php if (!empty($paymentRemarks) || !empty($customTerms)): ?>
                                 <ul class="mb-0" style="padding-left:18px;">
                                     <?php foreach ($customTerms as $term): ?>
@@ -1001,19 +1015,19 @@ if (!empty($customerMobile)) {
                             </p>
                             <table class="signature-table" style="width:100%; border-collapse: separate; border-spacing: 20px 0;">
                                 <tr>
-                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 20px !important;">
                                         <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
                                         <strong>Prepared By</strong>
                                     </td>
-                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 20px !important;">
                                         <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
                                         <strong>Approved By</strong>
                                     </td>
-                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 20px !important;">
                                         <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
                                         <strong>Customer Signature</strong>
                                     </td>
-                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 40px !important;">
+                                    <td style="text-align:center; vertical-align: bottom; width: 25%; padding-top: 20px !important;">
                                         <div style="border-bottom: 1px solid #000; margin-bottom: 5px; width: 100%;"></div>
                                         <strong>Date</strong>
                                     </td>
