@@ -1,4 +1,4 @@
-name: 🚀 Build & Deploy (PHP + POS Subdomain)
+name: 🚀 Build & Deploy (PHP + POS Subdirectory)
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./
-          server-dir: /
+          server-dir: /sites/ekamuthu-enterprises/
           exclude: |
             **/.git*
             **/.git*/**
@@ -42,7 +42,7 @@ jobs:
             pos-system/**
             .github/**
 
-      - name: 📂 Deploy POS Subdomain
+      - name: 📂 Deploy POS Backend
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -51,12 +51,12 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./pos-system/server/
-          server-dir: /sites/pos-ekamuthu.sourcecode.lk/
+          server-dir: /sites/ekamuthu-enterprises/pos-system/server/
           exclude: |
             **/node_modules/**
             .env
 
-      - name: 📂 Upload Built POS Assets to Subdomain
+      - name: 📂 Upload Built POS Assets to Subdirectory
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -65,4 +65,4 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./pos-system/client/dist/
-          server-dir: /sites/pos-ekamuthu.sourcecode.lk/dist/
+          server-dir: /sites/ekamuthu-enterprises/pos-system/client/dist/

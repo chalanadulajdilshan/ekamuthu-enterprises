@@ -83,7 +83,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/company')
+    // Relative path for subdirectory deployment
+    fetch('api/company')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
