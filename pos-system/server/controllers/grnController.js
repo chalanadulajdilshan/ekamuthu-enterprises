@@ -22,7 +22,7 @@ exports.store = async (req, res) => {
 
 exports.getNextNo = async (req, res) => {
     try {
-        const nextNo = await Grn.getNextArnNo();
+        const nextNo = await Grn.getNextGrnNo();
         res.json({ success: true, data: nextNo });
     } catch (error) {
         console.error('GrnController.getNextNo:', error);

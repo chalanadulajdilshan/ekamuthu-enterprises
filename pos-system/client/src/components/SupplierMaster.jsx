@@ -83,7 +83,8 @@ const SupplierMaster = () => {
       });
       window.location.reload();
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save supplier. Please try again.' });
+      const msg = err.response?.data?.message || 'Failed to save supplier. Please try again.';
+      Swal.fire({ icon: 'error', title: 'Error', text: msg });
     } finally {
       setSaving(false);
     }

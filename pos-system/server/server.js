@@ -23,6 +23,20 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// SERVE FRONTEND (PRODUCTION)
+// The dist folder will be uploaded to the same directory as the server files in production
+const frontendPath = path.join(__dirname, 'dist');
+app.use(express.static(frontendPath));
+
+// Catch-all route for React SPA navigation
+app.get('*', (req, res) => {
+    // If it starts with /api, we should have caught it by now. 
+    // Otherwise, send the React index.html.
+    if (!req.url.startsWith('/api')) {
+        res.sendFile(path.join(frontendPath, 'index.html'));
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`\n🚀 POS Server running on http://localhost:${PORT}`);

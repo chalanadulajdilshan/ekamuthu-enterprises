@@ -1578,3 +1578,209 @@ a { text-decoration: none; }
   .settings-preview-card { grid-column: span 1; }
   .settings-custom-colors { grid-template-columns: 1fr; }
 }
+
+/* ============================================
+   Selection Modal & Triggers
+   ============================================ */
+.selection-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.selection-trigger:hover {
+  border-color: var(--primary);
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.selection-trigger .trigger-icon {
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.selection-trigger-placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.selection-trigger-value {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.selection-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.15s ease-out;
+}
+
+.selection-modal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUpModal 0.15s ease-out;
+}
+
+.selection-modal-header {
+  padding: 20px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selection-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.selection-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.selection-modal-close:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.selection-modal-search {
+  padding: 16px 20px;
+  position: relative;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.selection-modal-search .search-icon {
+  position: absolute;
+  left: 36px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.selection-modal-search .search-input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.selection-modal-search .search-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.selection-modal-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.selection-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.selection-list-item:hover {
+  background: var(--primary-light);
+}
+
+.selection-list-item .item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.selection-list-item .item-code {
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.selection-list-item .item-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.selection-list-item .select-icon {
+  opacity: 0;
+  color: var(--primary);
+  font-size: 18px;
+  transition: var(--transition);
+}
+
+.selection-list-item:hover .select-icon {
+  opacity: 1;
+  transform: translateX(-4px);
+}
+
+.selection-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpModal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

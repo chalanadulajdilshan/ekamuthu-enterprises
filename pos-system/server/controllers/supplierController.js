@@ -17,7 +17,17 @@ exports.store = async (req, res) => {
         res.json({ success: true, message: 'Supplier created successfully', id: result.insertId, code: result.code });
     } catch (error) {
         console.error('SupplierController.store:', error);
-        res.status(500).json({ success: false, message: error.message });
+        
+        // Handle duplicate entry (MySQL Error 1062)
+        if (error.errno === 1062 || error.code === 'ER_DUP_ENTRY') {
+            const field = error.sqlMessage.includes('idx_supplier_mobile') ? 'mobile number' : 'code';
+            return res.status(400).json({ 
+                success: false, 
+                message: `A supplier with this ${field} already exists. Please use a unique value.` 
+            });
+        }
+
+        res.status(500).json({ success: false, message: 'Internal server error while creating supplier' });
     }
 };
 
@@ -27,6 +37,16 @@ exports.update = async (req, res) => {
         res.json({ success: true, message: 'Supplier updated successfully' });
     } catch (error) {
         console.error('SupplierController.update:', error);
-        res.status(500).json({ success: false, message: error.message });
+
+        // Handle duplicate entry (MySQL Error 1062)
+        if (error.errno === 1062 || error.code === 'ER_DUP_ENTRY') {
+            const field = error.sqlMessage.includes('idx_supplier_mobile') ? 'mobile number' : 'code';
+            return res.status(400).json({ 
+                success: false, 
+                message: `Another supplier already uses this ${field}. Please use a unique value.` 
+            });
+        }
+
+        res.status(500).json({ success: false, message: 'Internal server error while updating supplier' });
     }
 };

@@ -1,25 +1,69 @@
-name: 🚀 Deploy to FTP
+name: 🚀 Build & Deploy (PHP + POS Subdomain)
 
 on:
   push:
     branches:
-      - main   # Change if your branch is master
+      - main
 
 jobs:
-  ftp-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 🛒 Checkout code
         uses: actions/checkout@v3
 
-      - name: 📂 Sync files via FTP
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-env: production
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📦 Install & Build POS Frontend
+        run: |
+          cd pos-system/client
+          npm install
+          npm run build
+
+      - name: 📂 Deploy Main PHP Site
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT }}
+          port: 21
           protocol: ftp
-          local-dir: ./   # folder in your repo
-          server-dir: /   # change to your server path
+          local-dir: ./
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            pos-system/**
+            .github/**
+
+      - name: 📂 Deploy POS Subdomain
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          local-dir: ./pos-system/server/
+          server-dir: /sites/pos-ekamuthu.sourcecode.lk/
+          exclude: |
+            **/node_modules/**
+            .env
+
+      - name: 📂 Upload Built POS Assets to Subdomain
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          local-dir: ./pos-system/client/dist/
+          server-dir: /sites/pos-ekamuthu.sourcecode.lk/dist/

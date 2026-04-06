@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `item_master` (
   `barcode` varchar(100) DEFAULT NULL COMMENT 'Entered Bar Code',
   `name` varchar(255) NOT NULL COMMENT 'Description / Item Name',
   `brand` int(11) DEFAULT '1' COMMENT 'Supplier / Brand Mapping',
+  `category` int(11) DEFAULT '1' COMMENT 'Department / Category Mapping',
   `department_id` int(11) DEFAULT '1' COMMENT 'Department Mapping',
   `stock_type` int(11) DEFAULT '1',
   `note` text DEFAULT NULL,
@@ -27,9 +28,15 @@ CREATE TABLE IF NOT EXISTS `item_master` (
   `max_stock` int(11) DEFAULT '0',
   `re_order_qty` int(11) DEFAULT '1' COMMENT 'Pack Quantity',
   
-  -- STATUS
+  -- SETTINGS & STATUS
   `is_active` tinyint(1) DEFAULT '1' COMMENT 'Is Available to Sale',
   `image_file` varchar(255) DEFAULT NULL COMMENT 'Product Image Filename',
+  `quick_menu` tinyint(1) DEFAULT '0',
+  `can_price_edit` tinyint(1) DEFAULT '0',
+  `scale_item` tinyint(1) DEFAULT '0',
+  `lottery_item` tinyint(1) DEFAULT '0',
+  `voucher_item` tinyint(1) DEFAULT '0',
+  `serial_track` tinyint(1) DEFAULT '0',
   
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
@@ -76,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `sales_invoice_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
--- 4. STOCK MASTER (REALTIME INVENTORY MAPPING)
+-- 4. STOCK MASTER (LEGACY - NOW REPLACED BY BATCHES)
 CREATE TABLE IF NOT EXISTS `stock_master` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `item_id` int(11) NOT NULL,
@@ -86,4 +93,64 @@ CREATE TABLE IF NOT EXISTS `stock_master` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `item_id` (`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- 5. GRN MASTER (GOODS RECEIVED NOTE - FIFO HEADER)
+CREATE TABLE IF NOT EXISTS `grn_master` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `grn_no` varchar(50) NOT NULL,
+    `supplier_id` int(11) NOT NULL,
+    `department_id` int(11) NOT NULL,
+    `entry_date` date NOT NULL,
+    `invoice_no` varchar(50) DEFAULT NULL,
+    `invoice_date` date DEFAULT NULL,
+    `payment_type` tinyint(2) DEFAULT '1' COMMENT '1: Cash, 2: Credit',
+    `sub_total` decimal(15,2) DEFAULT '0.00',
+    `total_discount` decimal(15,2) DEFAULT '0.00',
+    `total_amount` decimal(15,2) DEFAULT '0.00',
+    `remark` text DEFAULT NULL,
+    `status` varchar(20) DEFAULT 'Approved',
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `grn_no` (`grn_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- 6. GRN ITEMS (GRN LINE ITEMS)
+CREATE TABLE IF NOT EXISTS `grn_items` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `grn_id` int(11) NOT NULL,
+    `item_id` int(11) NOT NULL,
+    `item_code` varchar(50) DEFAULT NULL,
+    `qty` decimal(15,2) NOT NULL,
+    `list_price` decimal(15,2) NOT NULL,
+    `discount_1` decimal(5,2) DEFAULT '0.00',
+    `discount_2` decimal(5,2) DEFAULT '0.00',
+    `discount_3` decimal(5,2) DEFAULT '0.00',
+    `discount_4` decimal(5,2) DEFAULT '0.00',
+    `discount_5` decimal(5,2) DEFAULT '0.00',
+    `actual_cost` decimal(15,2) NOT NULL,
+    `selling_price` decimal(15,2) NOT NULL,
+    `unit_total` decimal(15,2) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `grn_id` (`grn_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- 7. ITEM BATCHES (FIFO INVENTORY TRACKING)
+CREATE TABLE IF NOT EXISTS `item_batches` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `item_id` int(11) NOT NULL,
+    `grn_id` int(11) NOT NULL,
+    `qty_received` decimal(15,2) NOT NULL,
+    `qty_remaining` decimal(15,2) NOT NULL,
+    `cost_price` decimal(15,2) NOT NULL,
+    `selling_price` decimal(15,2) NOT NULL,
+    `batch_no` varchar(50) DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `item_id` (`item_id`),
+    KEY `grn_id` (`grn_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

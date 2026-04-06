@@ -16,9 +16,9 @@ class Dashboard {
 
         const [lowStock] = await db.query(`
             SELECT COUNT(*) as count FROM (
-                SELECT im.id, IFNULL(SUM(sm.quantity), 0) as qty, im.re_order_level
+                SELECT im.id, IFNULL(SUM(ib.qty_remaining), 0) as qty, im.re_order_level
                 FROM item_master im
-                LEFT JOIN stock_master sm ON im.id = sm.item_id
+                LEFT JOIN item_batches ib ON im.id = ib.item_id
                 WHERE im.is_active = 1
                 GROUP BY im.id
                 HAVING qty <= im.re_order_level AND qty > 0

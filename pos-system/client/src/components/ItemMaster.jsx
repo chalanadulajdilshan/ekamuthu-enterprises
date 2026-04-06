@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { FiSave, FiSearch, FiPackage, FiList, FiPlus, FiCamera, FiX, FiSettings, FiTrash2 } from 'react-icons/fi';
-import { getProducts, getDepartments, getBrands, createProduct, updateProduct, deleteProduct } from '../services/api';
+import { FiSave, FiSearch, FiPackage, FiList, FiPlus, FiCamera, FiX, FiSettings, FiTrash2, FiMapPin, FiTag, FiTruck } from 'react-icons/fi';
+import { 
+  getProducts, createProduct, updateProduct, deleteProduct, 
+  getDepartments, getBrands 
+} from '../services/api';
+import SearchableSelectModal from './SearchableSelectModal';
 import Swal from 'sweetalert2';
 
 const initialForm = {
@@ -27,6 +31,11 @@ const ItemMaster = () => {
   const [products, setProducts] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [brands, setBrands] = useState([]);
+  
+  // Modal States
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [showBrandModal, setShowBrandModal] = useState(false);
+  const [showTaxModal, setShowTaxModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,12 +51,12 @@ const ItemMaster = () => {
         getDepartments(),
         getBrands()
       ]);
-      setProducts(prodRes.data.data || []);
-      setDepartments(deptRes.data.data || []);
-      setBrands(brandRes.data.data || []);
+      setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
+      setDepartments(deptRes.data?.data || (Array.isArray(deptRes.data) ? deptRes.data : []));
+      setBrands(brandRes.data?.data || (Array.isArray(brandRes.data) ? brandRes.data : []));
     } catch (err) {
-      console.error('Fetch error:', err);
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load data' });
+      console.error('ItemMaster fetch error:', err);
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load data. ' + (err.response?.data?.message || err.message) });
     } finally {
       setLoading(false);
     }
@@ -95,6 +104,16 @@ const ItemMaster = () => {
       image_url: p.image_file ? `/uploads/${p.image_file}` : null,
     });
     setShowList(false);
+  };
+
+  const getDeptName = () => {
+    const d = departments.find(d => d.id === parseInt(formData.category));
+    return d ? d.name : 'Select Department';
+  };
+
+  const getBrandName = () => {
+    const b = brands.find(b => b.id === parseInt(formData.brand));
+    return b ? b.name : 'Select Brand';
   };
 
   const handleSave = async () => {
@@ -306,18 +325,32 @@ const ItemMaster = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Department *</label>
-                  <select className="form-select" name="category" value={formData.category} onChange={handleInput}>
-                    <option value="">-- Select --</option>
-                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
+                  <button 
+                    type="button"
+                    className="selection-trigger" 
+                    onClick={() => setShowDeptModal(true)}
+                  >
+                    <span className={formData.category ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                      <FiMapPin style={{ marginRight: 8 }} />
+                      {getDeptName()}
+                    </span>
+                    <FiSearch className="trigger-icon" />
+                  </button>
                 </div>
 
                 <div className="form-group span-3">
                   <label className="form-label">Brand</label>
-                  <select className="form-select" name="brand" value={formData.brand} onChange={handleInput}>
-                    <option value="">-- Select --</option>
-                    {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                  </select>
+                  <button 
+                    type="button"
+                    className="selection-trigger" 
+                    onClick={() => setShowBrandModal(true)}
+                  >
+                    <span className={formData.brand ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                      <FiTruck style={{ marginRight: 8 }} />
+                      {getBrandName()}
+                    </span>
+                    <FiSearch className="trigger-icon" />
+                  </button>
                 </div>
 
                 <div className="form-group span-2">
@@ -349,9 +382,16 @@ const ItemMaster = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Tax</label>
-                  <select className="form-select" name="tax_type" value={formData.tax_type} onChange={handleInput}>
-                    <option value="T0-0">T0-0</option>
-                  </select>
+                  <button 
+                    type="button"
+                    className="selection-trigger" 
+                    onClick={() => setShowTaxModal(true)}
+                  >
+                    <span className={formData.tax_type ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                      {formData.tax_type || 'Select Tax'}
+                    </span>
+                    <FiSearch className="trigger-icon" />
+                  </button>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Retail Price</label>
@@ -440,6 +480,38 @@ const ItemMaster = () => {
           </div>
         </div>
       </div>
+      {/* Modals */}
+      <SearchableSelectModal
+        isOpen={showDeptModal}
+        onClose={() => setShowDeptModal(false)}
+        onSelect={(d) => setFormData(prev => ({ ...prev, category: d.id }))}
+        data={departments}
+        title="Select Department"
+        searchPlaceholder="Type department name..."
+        renderItem="name"
+      />
+
+      <SearchableSelectModal
+        isOpen={showBrandModal}
+        onClose={() => setShowBrandModal(false)}
+        onSelect={(b) => setFormData(prev => ({ ...prev, brand: b.id }))}
+        data={brands}
+        title="Select Brand / Supplier"
+        searchPlaceholder="Type brand name..."
+        renderItem="name"
+      />
+
+      <SearchableSelectModal
+        isOpen={showTaxModal}
+        onClose={() => setShowTaxModal(false)}
+        onSelect={(t) => setFormData(prev => ({ ...prev, tax_type: t.name }))}
+        data={[
+          { id: 'T0-0', name: 'T0-0' }
+        ]}
+        title="Select Tax Type"
+        renderItem="name"
+      />
+
     </div>
   );
 };

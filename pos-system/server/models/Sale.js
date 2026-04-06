@@ -32,13 +32,9 @@ class Sale {
             const invoice_no = `POS-${dateStr}-${String(sequence).padStart(4, '0')}`;
             const invoice_date = today.toISOString().slice(0, 19).replace('T', ' ');
 
-            // Calculate final cost from items
-            let final_cost = 0;
-            for (const item of items) {
-                final_cost += (item.cost || 0) * item.quantity;
-            }
+            let totalFinalCost = 0;
 
-            // Insert sales_invoice
+            // 1. Insert sales_invoice header (final_cost will be updated after calculating from batches)
             const [invoiceResult] = await connection.query(
                 `INSERT INTO sales_invoice (
                     ref_id, invoice_type, invoice_no, invoice_date, company_id,
@@ -52,15 +48,40 @@ class Sale {
                     customer_id || 0, customer_name || 'Walk-in Customer',
                     customer_mobile || '', customer_address || '',
                     '', department_id || 1, payment_type == 2 ? 2 : 1, 1,
-                    final_cost, payment_type || 1, sub_total, discount || 0,
+                    0, payment_type || 1, sub_total, discount || 0,
                     tax || 0, grand_total, 0, remark || 'POS Sale', 0, null
                 ]
             );
 
             const invoiceId = invoiceResult.insertId;
 
-            // Insert sales_invoice_items & update stock
+            // 2. Insert sales_invoice_items & update stock (FIFO)
             for (const item of items) {
+                let remainingToDeduct = item.quantity;
+                let totalItemCost = 0;
+
+                // Fetch batches in FIFO order
+                const [batches] = await connection.query(
+                    `SELECT id, qty_remaining, cost_price FROM item_batches WHERE item_id = ? AND qty_remaining > 0 ORDER BY created_at ASC`,
+                    [item.item_id]
+                );
+
+                for (const batch of batches) {
+                    if (remainingToDeduct <= 0) break;
+                    const deduct = Math.min(remainingToDeduct, batch.qty_remaining);
+                    
+                    await connection.query(
+                        `UPDATE item_batches SET qty_remaining = qty_remaining - ? WHERE id = ?`,
+                        [deduct, batch.id]
+                    );
+
+                    totalItemCost += deduct * batch.cost_price;
+                    remainingToDeduct -= deduct;
+                }
+
+                totalFinalCost += totalItemCost;
+                const unitCost = item.quantity > 0 ? (totalItemCost / item.quantity) : 0;
+
                 await connection.query(
                     `INSERT INTO sales_invoice_items (
                         invoice_id, item_code, item_name, service_item_code,
@@ -68,21 +89,18 @@ class Sale {
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         invoiceId, item.code, item.name, '',
-                        item.quantity, item.cost || 0, item.price, item.discount || 0
+                        item.quantity, unitCost, item.price, item.discount || 0
                     ]
-                );
-
-                await connection.query(
-                    `UPDATE stock_master
-                     SET quantity = quantity - ?
-                     WHERE item_id = ? AND quantity > 0
-                     ORDER BY id ASC LIMIT 1`,
-                    [item.quantity, item.item_id]
                 );
             }
 
-            await connection.commit();
+            // 3. Update the header with the actual calculated final_cost
+            await connection.query(
+                `UPDATE sales_invoice SET final_cost = ? WHERE id = ?`,
+                [totalFinalCost, invoiceId]
+            );
 
+            await connection.commit();
             return { invoice_id: invoiceId, invoice_no, grand_total };
         } catch (error) {
             await connection.rollback();

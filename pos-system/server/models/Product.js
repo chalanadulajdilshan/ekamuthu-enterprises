@@ -4,20 +4,20 @@ class Product {
     static async getAll({ search = '', category = '', all = false }) {
         let query = `
             SELECT
-                im.id, im.code, im.name, im.brand, im.department_id,
-                im.list_price, im.net_price, im.tax_type, im.invoice_price, im.discount,
-                im.is_active, im.barcode, im.reminder_note, im.re_order_level, im.re_order_qty,
-                im.max_stock, im.note, im.image_file,
+                im.id, im.code, im.name, im.brand, im.category,
+                im.list_price, im.invoice_price, im.discount,
+                im.is_active, im.barcode, im.reminder_note, im.re_order_level, im.re_order_qty, im.note,
+                im.image_file,
                 IFNULL(sm_total.total_qty, 0) as available_qty,
-                dm.name as department_name,
+                cm.name as category_name,
                 b.name as brand_name
             FROM item_master im
             LEFT JOIN (
-                SELECT item_id, SUM(quantity) as total_qty
-                FROM stock_master
+                SELECT item_id, SUM(qty_remaining) as total_qty
+                FROM item_batches
                 GROUP BY item_id
             ) sm_total ON im.id = sm_total.item_id
-            LEFT JOIN department_master dm ON im.department_id = dm.id
+            LEFT JOIN category_master cm ON im.category = cm.id
             LEFT JOIN brands b ON im.brand = b.id
             WHERE 1=1
         `;
@@ -65,7 +65,7 @@ class Product {
                 code, name, brand || 1, size || '', barcode || '',
                 image_file || '',
                 category || 1, re_order_level || 0, re_order_qty || 0, max_stock || 0,
-                note || '', list_price || 0, net_price || 0, tax_type || 'T0-0', 
+                note || '', list_price || 0, net_price || 0, tax_type || 'T0-0',
                 invoice_price || 0,
                 discount || 0, is_active ? 1 : 0
             ]

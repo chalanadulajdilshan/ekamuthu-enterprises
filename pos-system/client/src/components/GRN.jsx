@@ -7,6 +7,7 @@ import {
 import { 
   getSuppliers, getDepartments, getProducts, createGrn, getNextGrnNo 
 } from '../services/api';
+import SearchableSelectModal from './SearchableSelectModal';
 
 const GRN = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,12 @@ const GRN = ({ onBack }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [products, setProducts] = useState([]);
+  
+  // Modal States
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [showDepartmentModal, setShowDepartmentModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showPaymentTypeModal, setShowPaymentTypeModal] = useState(false);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -62,12 +69,15 @@ const GRN = ({ onBack }) => {
         getNextGrnNo()
       ]);
       
-      setSuppliers(suppRes.data.data);
-      setDepartments(deptRes.data.data);
-      setProducts(prodRes.data.data);
-      setFormData(prev => ({ ...prev, arn_no: nextNoRes.data.data }));
+      setSuppliers(suppRes.data?.data || (Array.isArray(suppRes.data) ? suppRes.data : []));
+      setDepartments(deptRes.data?.data || (Array.isArray(deptRes.data) ? deptRes.data : []));
+      setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
+      
+      const nextNo = nextNoRes.data?.data || nextNoRes.data;
+      setFormData(prev => ({ ...prev, arn_no: nextNo }));
     } catch (err) {
-      setError('Failed to load initial data');
+      console.error('GRN fetch error:', err);
+      setError('Failed to load initial data. ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -96,9 +106,7 @@ const GRN = ({ onBack }) => {
     currentItem.discount_4, currentItem.discount_5
   ]);
 
-  const handleProductSelect = (e) => {
-    const productId = e.target.value;
-    const product = products.find(p => p.id === parseInt(productId));
+  const handleProductSelect = (product) => {
     if (product) {
       setCurrentItem(prev => ({
         ...prev,
@@ -109,6 +117,25 @@ const GRN = ({ onBack }) => {
         invoice_price: product.invoice_price || 0
       }));
     }
+  };
+
+  const getSupplierName = () => {
+    const s = suppliers.find(s => s.id === parseInt(formData.supplier_id));
+    return s ? `${s.code} - ${s.name}` : 'Select Supplier';
+  };
+
+  const getDepartmentName = () => {
+    const d = departments.find(d => d.id === parseInt(formData.department_id));
+    return d ? d.name : 'Select Department';
+  };
+
+  const getPaymentTypeName = () => {
+    const types = [
+      { id: '1', name: 'Cash Purchase' },
+      { id: '2', name: 'Credit Purchase' }
+    ];
+    const t = types.find(t => t.id === String(formData.payment_type));
+    return t ? t.name : 'Select Payment Type';
   };
 
   const addItem = () => {
@@ -226,35 +253,32 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Supplier</label>
-                <div className="search-wrapper">
-                  <FiTruck className="search-icon" />
-                  <select 
-                    className="form-select" 
-                    required 
-                    value={formData.supplier_id}
-                    style={{ paddingLeft: '34px' }}
-                    onChange={(e) => setFormData({...formData, supplier_id: e.target.value})}
-                  >
-                    <option value="">Select Supplier</option>
-                    {suppliers.map(s => <option key={s.id} value={s.id}>{s.code} - {s.name}</option>)}
-                  </select>
-                </div>
+                <button 
+                  type="button"
+                  className="selection-trigger" 
+                  onClick={() => setShowSupplierModal(true)}
+                >
+                  <span className={formData.supplier_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                    <FiTruck style={{ marginRight: 8 }} />
+                    {getSupplierName()}
+                  </span>
+                  <FiSearch className="trigger-icon" />
+                </button>
               </div>
+
               <div className="form-group">
                 <label className="form-label">Department / Location</label>
-                <div className="search-wrapper">
-                  <FiMapPin className="search-icon" />
-                  <select 
-                    className="form-select" 
-                    required
-                    value={formData.department_id}
-                    style={{ paddingLeft: '34px' }}
-                    onChange={(e) => setFormData({...formData, department_id: e.target.value})}
-                  >
-                    <option value="">Select Dept</option>
-                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
-                </div>
+                <button 
+                  type="button"
+                  className="selection-trigger" 
+                  onClick={() => setShowDepartmentModal(true)}
+                >
+                  <span className={formData.department_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                    <FiMapPin style={{ marginRight: 8 }} />
+                    {getDepartmentName()}
+                  </span>
+                  <FiSearch className="trigger-icon" />
+                </button>
               </div>
               <div className="form-group">
                 <label className="form-label">Entry Date</label>
@@ -287,14 +311,17 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Payment Type</label>
-                <select 
-                  className="form-select"
-                  value={formData.payment_type}
-                  onChange={(e) => setFormData({...formData, payment_type: e.target.value})}
+                <button 
+                  type="button"
+                  className="selection-trigger" 
+                  onClick={() => setShowPaymentTypeModal(true)}
                 >
-                  <option value="1">Cash Purchase</option>
-                  <option value="2">Credit Purchase</option>
-                </select>
+                  <span className={formData.payment_type ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                    <FiCreditCard style={{ marginRight: 8 }} />
+                    {getPaymentTypeName()}
+                  </span>
+                  <FiSearch className="trigger-icon" />
+                </button>
               </div>
               <div className="form-group">
                 <label className="form-label">Remarks</label>
@@ -319,10 +346,18 @@ const GRN = ({ onBack }) => {
             <div className="form-grid form-grid-4" style={{ rowGap: '20px' }}>
               <div className="form-group span-2">
                 <label className="form-label">Select Product</label>
-                <select className="form-select" value={currentItem.item_id} onChange={handleProductSelect}>
-                  <option value="">Search/Select Item</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.code} - {p.name}</option>)}
-                </select>
+                <button 
+                  type="button"
+                  className="selection-trigger" 
+                  onClick={() => setShowProductModal(true)}
+                  style={{ height: '42px' }}
+                >
+                  <span className={currentItem.item_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                    <FiShoppingCart style={{ marginRight: 8 }} />
+                    {currentItem.item_id ? `${currentItem.item_code} - ${currentItem.item_name}` : 'Search/Select Product Item'}
+                  </span>
+                  <FiSearch className="trigger-icon" />
+                </button>
               </div>
               <div className="form-group">
                 <label className="form-label">Received Qty</label>
@@ -491,6 +526,57 @@ const GRN = ({ onBack }) => {
           </div>
         </div>
       </form>
+
+      {/* Modals */}
+      <SearchableSelectModal 
+        isOpen={showSupplierModal}
+        onClose={() => setShowSupplierModal(false)}
+        onSelect={(s) => setFormData({...formData, supplier_id: s.id})}
+        data={suppliers}
+        title="Select Supplier"
+        searchPlaceholder="Type supplier name or code..."
+        renderItem="name"
+      />
+
+      <SearchableSelectModal 
+        isOpen={showDepartmentModal}
+        onClose={() => setShowDepartmentModal(false)}
+        onSelect={(d) => setFormData({...formData, department_id: d.id})}
+        data={departments}
+        title="Select Department"
+        searchPlaceholder="Type department name..."
+        renderItem="name"
+      />
+
+      <SearchableSelectModal 
+        isOpen={showProductModal}
+        onClose={() => setShowProductModal(false)}
+        onSelect={handleProductSelect}
+        data={products}
+        title="Select Product Item"
+        searchPlaceholder="Type product name or code..."
+        renderItem={(p) => (
+          <>
+            <span className="item-code">{p.code}</span>
+            <span className="item-name">{p.name}</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+              Stock: {p.available_qty}
+            </span>
+          </>
+        )}
+      />
+
+      <SearchableSelectModal
+        isOpen={showPaymentTypeModal}
+        onClose={() => setShowPaymentTypeModal(false)}
+        onSelect={(t) => setFormData({...formData, payment_type: t.id})}
+        data={[
+          { id: '1', name: 'Cash Purchase' },
+          { id: '2', name: 'Credit Purchase' }
+        ]}
+        title="Select Payment Type"
+        renderItem="name"
+      />
       
       <style>{`
         .summary-row {
