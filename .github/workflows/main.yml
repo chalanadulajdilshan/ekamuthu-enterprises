@@ -52,17 +52,3 @@ jobs:
           protocol: ftp
           local-dir: ./pos-system/client/dist/
           server-dir: /ekamuthu-enterprises/pos-system/
-
-      - name: 📂 Deploy POS Backend (Node Subdomain)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
-          local-dir: ./pos-system/server/
-          server-dir: /pos-ekamuthu.sourcecode.lk/
-          exclude: |
-            **/node_modules/**
-            .env
