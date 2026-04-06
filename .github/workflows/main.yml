@@ -51,4 +51,4 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./pos-system/client/dist/
-          server-dir: /ekamuthu-enterprises/pos-system/
+          server-dir: /pos-system/
