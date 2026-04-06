@@ -34,7 +34,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./
-          server-dir: /ekamuthu-enterprises/
+          server-dir: /
           exclude: |
             **/.git*
             **/.git*/**
