@@ -8,6 +8,7 @@ import BrandMaster from './components/BrandMaster';
 import GRN from './components/GRN';
 import ReceiptModal from './components/ReceiptModal';
 import Settings from './components/Settings';
+import { getCompany } from './services/api';
 
 const PAGE_META = {
   dashboard:      { name: 'Dashboard',       breadcrumb: 'Overview' },
@@ -83,11 +84,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/company')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setCompanyData(data.data);
+    getCompany()
+      .then(res => {
+        // Axios wraps the response in a `data` object
+        if (res.data && res.data.success) {
+          setCompanyData(res.data.data);
         }
       })
       .catch(err => console.error('Error fetching company data:', err));
