@@ -382,16 +382,14 @@ const ItemMaster = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Tax</label>
-                  <button 
-                    type="button"
-                    className="selection-trigger" 
-                    onClick={() => setShowTaxModal(true)}
-                  >
-                    <span className={formData.tax_type ? "selection-trigger-value" : "selection-trigger-placeholder"}>
-                      {formData.tax_type || 'Select Tax'}
-                    </span>
-                    <FiSearch className="trigger-icon" />
-                  </button>
+                  <input
+                    className="form-input"
+                    type="text"
+                    name="tax_type"
+                    value={formData.tax_type}
+                    onChange={handleInput}
+                    placeholder="e.g. 0"
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Retail Price</label>

@@ -2,10 +2,11 @@ import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink, FiSet
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: FiHome },
+  { id: 'invoice', label: 'Sales Invoice', icon: FiShoppingCart },
   { id: 'itemMaster', label: 'Products', icon: FiPackage },
   { id: 'supplierMaster', label: 'Suppliers', icon: FiTruck },
   { id: 'brandMaster', label: 'Brands', icon: FiTag },
-  { id: 'grn', label: 'GRN (Stock Receipt)', icon: FiShoppingCart },
+  { id: 'grn', label: 'GRN (Receipt)', icon: FiPackage },
 ];
 
 const Sidebar = ({ currentView, onNavigate, companyData }) => {
