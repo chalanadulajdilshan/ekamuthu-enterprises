@@ -34,7 +34,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./
-          server-dir: /sites/ekamuthu-enterprises/
+          server-dir: /ekamuthu-enterprises/
           exclude: |
             **/.git*
             **/.git*/**
@@ -51,7 +51,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./pos-system/client/dist/
-          server-dir: /sites/ekamuthu-enterprises/pos-system/
+          server-dir: /ekamuthu-enterprises/pos-system/
 
       - name: 📂 Deploy POS Backend (Node Subdomain)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -62,7 +62,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./pos-system/server/
-          server-dir: /sites/pos-ekamuthu.sourcecode.lk/
+          server-dir: /pos-ekamuthu.sourcecode.lk/
           exclude: |
             **/node_modules/**
             .env
