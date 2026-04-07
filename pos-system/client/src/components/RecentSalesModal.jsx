@@ -21,49 +21,51 @@ const RecentSalesModal = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal modal-lg">
-        <div className="modal-header">
-          <div className="modal-title">
+    <div className="modal-overlay animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal modal-lg glass shadow-xl">
+        <div className="modal-header premium-gradient" style={{ border: 'none', color: 'white' }}>
+          <div className="modal-title" style={{ fontSize: '18px' }}>
             <FiClock />
-            Recent Sales
+            Recent Sales Transactions
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} style={{ color: 'rgba(255,255,255,0.8)' }}>
             <FiX />
           </button>
         </div>
 
-        <div className="modal-body" style={{ padding: 0, maxHeight: '60vh', overflowY: 'auto' }}>
+        <div className="modal-body" style={{ padding: 0, maxHeight: '70vh', overflowY: 'auto' }}>
           {loading ? (
             <div className="loading-container">
               <div className="spinner" />
-              <span>Loading...</span>
+              <span>Loading ledger data...</span>
             </div>
           ) : sales.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-title">No recent sales</div>
+            <div className="empty-state" style={{ padding: '60px' }}>
+              <FiClock className="empty-state-icon" />
+              <div className="empty-state-title">No transactions recorded yet</div>
+              <p className="empty-state-sub">New sales will appear here in real-time.</p>
             </div>
           ) : (
             <table className="table">
-              <thead>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                 <tr>
-                  <th>Invoice #</th>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th style={{ textAlign: 'right' }}>Amount</th>
+                  <th style={{ background: 'var(--bg-hover)', paddingLeft: '24px' }}>Invoice Ref</th>
+                  <th style={{ background: 'var(--bg-hover)' }}>Processing Date</th>
+                  <th style={{ background: 'var(--bg-hover)' }}>Customer Entity</th>
+                  <th style={{ background: 'var(--bg-hover)', textAlign: 'right', paddingRight: '24px' }}>Grand Total</th>
                 </tr>
               </thead>
               <tbody>
                 {sales.map(sale => (
                   <tr key={sale.id}>
-                    <td>
-                      <span className="badge badge-primary">{sale.invoice_no}</span>
+                    <td style={{ paddingLeft: '24px' }}>
+                      <span className="badge badge-primary" style={{ fontWeight: 800 }}>{sale.invoice_no}</span>
                     </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-                      {new Date(sale.invoice_date).toLocaleDateString('en-GB')}
+                    <td style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '13px' }}>
+                      {new Date(sale.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td>{sale.customer_name || 'Walk-in'}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>
+                    <td style={{ fontWeight: 600 }}>{sale.customer_name || 'Counter Sale / Walk-in'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--success)', paddingRight: '24px', fontSize: '15px' }}>
                       Rs.&nbsp;{parseFloat(sale.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -73,9 +75,9 @@ const RecentSalesModal = ({ onClose }) => {
           )}
         </div>
 
-        <div className="modal-footer">
-          <button className="btn btn-secondary" style={{ marginLeft: 'auto' }} onClick={onClose}>
-            <FiX /> Close
+        <div className="modal-footer glass" style={{ borderTop: '1px solid var(--border)' }}>
+          <button className="btn btn-secondary shadow-sm" style={{ marginLeft: 'auto' }} onClick={onClose}>
+            Close Explorer
           </button>
         </div>
       </div>
