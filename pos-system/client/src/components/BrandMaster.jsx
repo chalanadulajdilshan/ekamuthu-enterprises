@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FiSave, FiSearch, FiList, FiPlus, FiTag, FiGlobe, FiMessageSquare, FiX } from 'react-icons/fi';
-import { getBrands, getBrandCategories, createBrand, updateBrand } from '../services/api';
-import SearchableSelectModal from './SearchableSelectModal';
+import { getBrands, createBrand, updateBrand } from '../services/api';
 import Swal from 'sweetalert2';
 
 const initialForm = {
   id: null,
-  category_id: '',
   name: '',
   country_id: '',
   is_active: true,
@@ -15,7 +13,6 @@ const initialForm = {
 
 const BrandMaster = () => {
   const [brands, setBrands] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -23,14 +20,12 @@ const BrandMaster = () => {
   const [formData, setFormData] = useState(initialForm);
   
   // Modal States
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [brandRes, catRes] = await Promise.all([getBrands(), getBrandCategories()]);
+      const [brandRes] = await Promise.all([getBrands()]);
       setBrands(brandRes.data?.data || (Array.isArray(brandRes.data) ? brandRes.data : []));
-      setCategories(catRes.data?.data || (Array.isArray(catRes.data) ? catRes.data : []));
     } catch (err) {
       console.error('BrandMaster fetch error:', err);
       Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load brands. ' + (err.response?.data?.message || err.message) });
@@ -49,22 +44,18 @@ const BrandMaster = () => {
   const selectBrand = (b) => {
     setFormData({
       id: b.id,
-      category_id: b.category_id || '',
       name: b.name || '',
       country_id: b.country_id || '',
       is_active: b.is_active !== undefined ? Boolean(b.is_active) : true,
+      remark: b.remark || '',
     });
     setShowList(false);
   };
 
-  const getCategoryName = () => {
-    const c = categories.find(c => c.id === parseInt(formData.category_id));
-    return c ? c.name : 'Select Category';
-  };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.category_id) {
-      Swal.fire({ icon: 'error', title: 'Missing Fields', text: 'Brand name and category are required' });
+    if (!formData.name) {
+      Swal.fire({ icon: 'error', title: 'Missing Fields', text: 'Brand name is required' });
       return;
     }
     setSaving(true);
@@ -154,10 +145,6 @@ const BrandMaster = () => {
                   <div key={b.id} className="list-item" onClick={() => selectBrand(b)} style={{ cursor: 'pointer' }}>
                     <div className="list-item-name">{b.name}</div>
                     <div className="list-item-meta">
-                      <span className="badge badge-info" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <FiTag size={9} />
-                        {categories.find(c => c.id === b.category_id)?.name || 'Unknown'}
-                      </span>
                       <span className={`badge ${b.is_active ? 'badge-success' : 'badge-warning'}`}>
                         {b.is_active ? 'Active' : 'Inactive'}
                       </span>
@@ -200,20 +187,6 @@ const BrandMaster = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Category *</label>
-              <button 
-                type="button"
-                className="selection-trigger" 
-                onClick={() => setShowCategoryModal(true)}
-              >
-                <span className={formData.category_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>
-                  <FiTag style={{ marginRight: 8 }} />
-                  {getCategoryName()}
-                </span>
-                <FiSearch className="trigger-icon" />
-              </button>
-            </div>
 
             <div className="form-group">
               <label className="form-label"><FiGlobe size={11} style={{ marginRight: 4 }} />Country of Origin</label>
@@ -258,15 +231,6 @@ const BrandMaster = () => {
         </div>
       </div>
       {/* Modals */}
-      <SearchableSelectModal
-        isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
-        onSelect={(c) => setFormData(prev => ({ ...prev, category_id: c.id }))}
-        data={categories}
-        title="Select Brand Category"
-        searchPlaceholder="Type category name..."
-        renderItem="name"
-      />
 
     </div>
   );
