@@ -6,67 +6,82 @@ import RecentSalesModal from './RecentSalesModal';
 // --- Custom Premium SVG Charts (Lightweight & Performance-focused) ---
 
 const AreaChart = ({ data = [], color = '#6366F1' }) => {
-  if (!data || data.length === 0) return <div className="empty-chart">No data available</div>;
+  if (!data || data.length === 0) return <div className="empty-chart">No sales data recorded this week</div>;
 
-  const max = Math.max(...data.map(d => d.total), 10);
+  const max = Math.max(...data.map(d => d.total), 1000);
   const height = 180;
   const width = 450;
-  const padding = 20;
+  const padding = 30;
 
-  const points = data.map((d, i) => {
-    // Fix: Handle single data point case to avoid Infinity (division by zero)
-    const x = data.length > 1 
-      ? (i / (data.length - 1)) * (width - padding * 2) + padding
-      : width / 2;
-    const y = height - ((d.total / max) * (height - padding * 2)) - padding;
-    return { x, y, val: d.total, date: d.date };
-  });
+  // Ensure we have at least 2 points for a proper path, or center 1 point
+  const points = data.length === 1 
+    ? [
+        { x: padding, y: height - padding, val: 0, date: new Date(new Date(data[0].date).setDate(new Date(data[0].date).getDate() - 1)).toISOString() },
+        { x: width / 2, y: height - ((data[0].total / max) * (height - padding * 2)) - padding, val: data[0].total, date: data[0].date },
+        { x: width - padding, y: height - padding, val: 0, date: new Date(new Date(data[0].date).setDate(new Date(data[0].date).getDate() + 1)).toISOString() }
+      ]
+    : data.map((d, i) => ({
+        x: (i / (data.length - 1)) * (width - padding * 2) + padding,
+        y: height - ((d.total / max) * (height - padding * 2)) - padding,
+        val: d.total,
+        date: d.date
+      }));
 
-  const path = data.length > 1 
-    ? `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')
-    : points.length > 0 ? `M ${points[0].x - 10} ${points[0].y} L ${points[0].x + 10} ${points[0].y}` : '';
-  
-  const areaPath = data.length > 1
-    ? `${path} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`
-    : path ? `${path} L ${points[0].x + 10} ${height} L ${points[0].x - 10} ${height} Z` : '';
+  const path = `M ${points[0].x} ${points[0].y} ` + 
+    points.map((p, i) => {
+      if (i === 0) return '';
+      // Simple smoothing: use curve if data is decent, or just lines
+      return `L ${p.x} ${p.y}`;
+    }).join(' ');
+
+  const areaPath = `${path} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
   return (
-    <div className="chart-wrapper">
-      <svg viewBox={`0 0 ${width} ${height}`} className="premium-chart-svg">
+    <div className="chart-wrapper animate-fade-in">
+      <svg viewBox={`0 0 ${width} ${height}`} className="premium-chart-svg" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.01" />
           </linearGradient>
         </defs>
         
-        {/* Grid Lines */}
+        {/* Horizontal Grid Lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-          <line 
-            key={i} 
-            x1={padding} 
-            y1={height - (p * (height - padding * 2)) - padding} 
-            x2={width - padding} 
-            y2={height - (p * (height - padding * 2)) - padding} 
-            stroke="var(--border)" 
-            strokeDasharray="4 4" 
-            strokeWidth="1"
-          />
+          <g key={i}>
+            <line 
+              x1={padding} 
+              y1={height - (p * (height - padding * 2)) - padding} 
+              x2={width - padding} 
+              y2={height - (p * (height - padding * 2)) - padding} 
+              stroke="var(--border)" 
+              strokeDasharray="4 4" 
+              strokeWidth="0.5"
+            />
+            <text x={padding - 5} y={height - (p * (height - padding * 2)) - padding} textAnchor="end" fontSize="8" fill="var(--text-muted)" dominantBaseline="middle">
+              {((max * p) / 1000).toFixed(1)}k
+            </text>
+          </g>
         ))}
 
         {/* Area */}
-        <path d={areaPath} fill="url(#chartGradient)" />
+        <path d={areaPath} fill="url(#areaGradient)" className="chart-area-path" />
         
         {/* Line */}
-        <path d={path} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={path} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="chart-line-path" />
         
-        {/* Points */}
+        {/* Points & Labels */}
         {points.map((p, i) => (
           <g key={i} className="chart-point-group">
-            <circle cx={p.x} cy={p.y} r="5" fill="white" stroke={color} strokeWidth="2" />
-            <text x={p.x} y={height - 5} textAnchor="middle" fontSize="10" fill="var(--text-muted)">
+            <circle cx={p.x} cy={p.y} r="4" fill="white" stroke={color} strokeWidth="2" />
+            <text x={p.x} y={height - 10} textAnchor="middle" fontSize="9" fontWeight="600" fill="var(--text-muted)">
               {new Date(p.date).toLocaleDateString('en-US', { weekday: 'short' })}
             </text>
+            {p.val > 0 && (
+              <text x={p.x} y={p.y - 12} textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-primary)">
+                {p.val > 1000 ? (p.val / 1000).toFixed(1) + 'k' : p.val}
+              </text>
+            )}
           </g>
         ))}
       </svg>
@@ -75,23 +90,35 @@ const AreaChart = ({ data = [], color = '#6366F1' }) => {
 };
 
 const DonutChart = ({ data = [] }) => {
-  if (!data || data.length === 0) return <div className="empty-chart">No data available</div>;
+  if (!data || data.length === 0) return <div className="empty-chart">No category data</div>;
 
   const total = data.reduce((sum, d) => sum + parseFloat(d.total), 0);
   const colors = ['#6366F1', '#10B981', '#F59E0B', '#3B82F6', '#EF4444', '#8B5CF6'];
   
-  let currentAngle = 0;
-  const size = 180;
+  const size = 220;
   const center = size / 2;
-  const radius = 60;
-  const innerRadius = 40;
+  const radius = 75;
+  const innerRadius = 50;
 
+  let currentAngle = 0;
   const slices = data.map((d, i) => {
-    const angle = (parseFloat(d.total) / total) * 360;
+    const value = parseFloat(d.total);
+    const percent = (value / total);
+    const angle = percent * 360;
     const startAngle = currentAngle;
     currentAngle += angle;
+
+    // Special case for 100% slice (SVG arcs fail with start === end)
+    if (percent >= 0.999) {
+      return {
+        isFull: true,
+        path: '', // handled separately
+        color: colors[i % colors.length],
+        ...d,
+        percent: (percent * 100).toFixed(0)
+      };
+    }
     
-    // Convert to radians
     const startRad = (startAngle - 90) * Math.PI / 180;
     const endRad = (currentAngle - 90) * Math.PI / 180;
     
@@ -115,30 +142,47 @@ const DonutChart = ({ data = [] }) => {
       'Z'
     ].join(' ');
 
-    return { path, color: colors[i % colors.length], ...d };
+    return { path, color: colors[i % colors.length], ...d, percent: (percent * 100).toFixed(0) };
   });
 
   return (
-    <div className="donut-chart-container">
-      <svg width={size} height={size}>
+    <div className="donut-chart-container animate-fade-in">
+      <div className="donut-svg-wrapper">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          {slices.map((s, i) => (
+            s.isFull ? (
+              <path 
+                key={i} 
+                d={`M ${center} ${center - radius} A ${radius} ${radius} 0 1 1 ${center} ${center + radius} A ${radius} ${radius} 0 1 1 ${center} ${center - radius} M ${center} ${center - innerRadius} A ${innerRadius} ${innerRadius} 0 1 0 ${center} ${center + innerRadius} A ${innerRadius} ${innerRadius} 0 1 0 ${center} ${center - innerRadius} Z`}
+                fill={s.color}
+                className="chart-slice"
+              />
+            ) : (
+              <path key={i} d={s.path} fill={s.color} className="chart-slice">
+                <title>{`${s.name}: Rs. ${parseFloat(s.total).toLocaleString()}`}</title>
+              </path>
+            )
+          ))}
+          <circle cx={center} cy={center} r={innerRadius - 5} fill="var(--bg-card)" shadow="var(--shadow-sm)" />
+          <text x={center} y={center} textAnchor="middle" dominantBaseline="middle" className="donut-center-text">
+            <tspan x={center} dy="-8" fontSize="10" fontWeight="600" fill="var(--text-muted)" style={{ textTransform: 'uppercase', letterSpacing: '1px' }}>Revenue</tspan>
+            <tspan x={center} dy="22" fontSize="18" fontWeight="900" fill="var(--text-primary)">
+              {total > 1000 ? (total / 1000).toFixed(1) + 'k' : total.toFixed(0)}
+            </tspan>
+          </text>
+        </svg>
+      </div>
+      <div className="donut-legend-premium">
         {slices.map((s, i) => (
-          <path key={i} d={s.path} fill={s.color} className="chart-slice">
-            <title>{`${s.name}: Rs. ${parseFloat(s.total).toLocaleString()}`}</title>
-          </path>
-        ))}
-        <text x={center} y={center} textAnchor="middle" dominantBaseline="middle" className="donut-center-text">
-          <tspan x={center} dy="-5" fontSize="10" fill="var(--text-muted)">Total</tspan>
-          <tspan x={center} dy="20" fontSize="14" fontWeight="800" fill="var(--text-primary)">
-            {total > 1000 ? (total / 1000).toFixed(1) + 'k' : total.toFixed(0)}
-          </tspan>
-        </text>
-      </svg>
-      <div className="donut-legend">
-        {slices.map((s, i) => (
-          <div key={i} className="legend-item">
-            <span className="legend-color" style={{ background: s.color }} />
-            <span className="legend-label">{s.name}</span>
-            <span className="legend-value">{((s.total/total)*100).toFixed(0)}%</span>
+          <div key={i} className="legend-row">
+            <div className="legend-info">
+              <span className="legend-dot" style={{ backgroundColor: s.color }} />
+              <span className="legend-name">{s.name}</span>
+            </div>
+            <div className="legend-stats">
+              <span className="legend-pct">{s.percent}%</span>
+              <span className="legend-val">Rs.{(parseFloat(s.total)/1000).toFixed(1)}k</span>
+            </div>
           </div>
         ))}
       </div>
