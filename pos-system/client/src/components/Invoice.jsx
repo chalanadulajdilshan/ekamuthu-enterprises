@@ -52,6 +52,24 @@ const Invoice = ({ onBack }) => {
     unit_total: 0
   });
 
+  // Global runtime error visibility (so silent failures on live become visible).
+  useEffect(() => {
+    const onErr = (e) => {
+      console.error('[Invoice window.error]', e.error || e.message, e);
+      try { window.alert('JS Error: ' + (e.error?.stack || e.message || 'unknown')); } catch (_) {}
+    };
+    const onRej = (e) => {
+      console.error('[Invoice unhandledrejection]', e.reason);
+      try { window.alert('Promise rejected: ' + (e.reason?.stack || e.reason?.message || JSON.stringify(e.reason))); } catch (_) {}
+    };
+    window.addEventListener('error', onErr);
+    window.addEventListener('unhandledrejection', onRej);
+    return () => {
+      window.removeEventListener('error', onErr);
+      window.removeEventListener('unhandledrejection', onRej);
+    };
+  }, []);
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -108,8 +126,11 @@ const Invoice = ({ onBack }) => {
   }, [currentItem.price, currentItem.quantity, currentItem.discount]);
 
   const handleProductSelect = (product) => {
-    console.log('[Invoice] product selected:', product);
-    if (!product) return;
+    console.log('[Invoice] product selected (raw):', product);
+    if (!product) {
+      window.alert('Invoice: product select called with empty product');
+      return;
+    }
     // Accept several possible id/code/name field shapes from the API
     const pid = product.id ?? product.Id ?? product.item_id ?? product.ID;
     const pcode = product.code ?? product.item_code ?? product.Code ?? '';
@@ -118,6 +139,7 @@ const Invoice = ({ onBack }) => {
       const m = 'Selected product has no id. Raw: ' + JSON.stringify(product);
       console.error(m);
       setError(m);
+      window.alert(m);
       return;
     }
     setCurrentItem(prev => ({
@@ -169,11 +191,17 @@ const Invoice = ({ onBack }) => {
     const hasId = currentItem.item_id !== '' && currentItem.item_id != null;
     const qty = parseFloat(currentItem.quantity);
     if (!hasId) {
-      setError('No item selected. Please pick a product from the list.');
+      const m = 'No item selected. item_id=' + JSON.stringify(currentItem.item_id) +
+        ' code=' + JSON.stringify(currentItem.item_code) +
+        ' name=' + JSON.stringify(currentItem.item_name);
+      setError(m);
+      window.alert(m);
       return;
     }
     if (!qty || qty <= 0) {
-      setError('Invalid quantity: ' + JSON.stringify(currentItem.quantity));
+      const m = 'Invalid quantity: ' + JSON.stringify(currentItem.quantity);
+      setError(m);
+      window.alert(m);
       return;
     }
     setFormData(prev => ({
