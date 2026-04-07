@@ -12,8 +12,6 @@ import Swal from 'sweetalert2';
 
 const Invoice = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   // Master Data
   const [customers, setCustomers] = useState([]);
@@ -105,7 +103,11 @@ const Invoice = ({ onBack }) => {
       .filter(x => x.r.status === 'rejected');
     if (failed.length) {
       const msg = failed.map(f => `${f.name}: ${f.r.reason?.response?.data?.message || f.r.reason?.message || 'failed'}`).join(' | ');
-      setError('Some data failed to load — ' + msg);
+      Swal.fire({
+        icon: 'error',
+        title: 'Initial Data Error',
+        text: 'Some data failed to load: ' + msg
+      });
     }
 
     setLoading(false);
@@ -139,7 +141,6 @@ const Invoice = ({ onBack }) => {
     if (pid == null || pid === '') {
       const m = 'Selected product has no valid ID in the database.';
       console.error('No ID found in product:', product);
-      setError(m);
       Swal.fire({ icon: 'error', title: 'Invalid Product', text: m });
       return;
     }
@@ -152,7 +153,6 @@ const Invoice = ({ onBack }) => {
       discount: 0,
       available_qty: Number(product.available_qty || 0)
     }));
-    setError('');
   };
 
   const handleCustomerSelect = (customer) => {
@@ -194,13 +194,11 @@ const Invoice = ({ onBack }) => {
     const qty = parseFloat(currentItem.quantity);
     if (!hasId) {
       const m = 'No item has been selected to add.';
-      setError(m);
       Swal.fire({ icon: 'warning', title: 'Missing Item', text: m });
       return;
     }
     if (!qty || qty <= 0) {
       const m = 'Please enter a valid quantity greater than 0.';
-      setError(m);
       Swal.fire({ icon: 'warning', title: 'Invalid Quantity', text: m });
       return;
     }
@@ -212,7 +210,6 @@ const Invoice = ({ onBack }) => {
       
     if ((qty + alreadyAddedQty) > currentItem.available_qty) {
       const m = `You cannot bill more than what is in stock.\n\nAvailable: ${currentItem.available_qty}\nAlready in invoice: ${alreadyAddedQty}\nRequested: ${qty}`;
-      setError(m);
       Swal.fire({ 
         icon: 'error', 
         title: `Insufficient Stock for ${currentItem.item_code}`, 
@@ -237,7 +234,6 @@ const Invoice = ({ onBack }) => {
       unit_total: 0,
       available_qty: 0
     });
-    setError('');
   };
 
   const removeItem = (id) => {
@@ -270,7 +266,11 @@ const Invoice = ({ onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.items.length === 0) {
-      setError('Please add at least one item to the invoice');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Empty Invoice',
+        text: 'Please add at least one item to the invoice'
+      });
       return;
     }
 
@@ -282,7 +282,6 @@ const Invoice = ({ onBack }) => {
 
     try {
       setLoading(true);
-      setError('');
       const { subTotal, totalDiscount, tax, grandTotal } = calculateTotals();
 
       const payload = {
@@ -307,7 +306,11 @@ const Invoice = ({ onBack }) => {
 
       setTimeout(() => onBack(), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save Invoice');
+      Swal.fire({
+        icon: 'error',
+        title: 'Save Failed',
+        text: err.response?.data?.message || 'Failed to save Invoice'
+      });
     } finally {
       setLoading(false);
     }
@@ -318,7 +321,7 @@ const Invoice = ({ onBack }) => {
   return (
     <div className="page animate-fade-in">
       {/* Header */}
-      <div className="page-header-row animate-fade-in" style={{ alignItems: 'center', marginBottom: '32px' }}>
+      <div className="page-header-row animate-fade-in" style={{ alignItems: 'center', marginBottom: '32px', display: 'flex', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <button className="topbar-btn" onClick={onBack}>
             <FiArrowLeft />
@@ -327,6 +330,19 @@ const Invoice = ({ onBack }) => {
             <h1 className="page-title" style={{ fontSize: 28 }}>Sales Invoice</h1>
             <p className="page-subtitle">Record a new POS sale transaction</p>
           </div>
+        </div>
+        <div className="page-actions">
+          <button 
+            type="button" 
+            className="btn btn-primary" 
+            disabled={loading || formData.items.length === 0}
+            onClick={handleSubmit}
+            style={{ height: '48px', padding: '0 24px', fontWeight: 'bold', boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.3)' }}
+          >
+            {loading ? 'Processing...' : (
+              <><FiCheckCircle style={{ marginRight: '8px', fontSize: '20px' }} /> COMPLETE SALE</>
+            )}
+          </button>
         </div>
       </div>
 
@@ -636,19 +652,9 @@ const Invoice = ({ onBack }) => {
                 </div>
               </div>
 
-              {error && <div className="alert alert-danger mt-3" style={{ padding: '10px', fontSize: '14px' }}>{error}</div>}
-              {success && <div className="alert alert-success mt-3" style={{ padding: '10px', fontSize: '14px' }}>{success}</div>}
 
-              <button
-                type="submit"
-                className="btn btn-primary mt-3"
-                disabled={loading || formData.items.length === 0}
-                style={{ width: '100%', height: '54px', fontSize: '16px', fontWeight: 'bold' }}
-              >
-                {loading ? 'Processing...' : (
-                  <><FiCheckCircle style={{ marginRight: '8px', fontSize: '20px' }} /> COMPLETE SALE</>
-                )}
-              </button>
+
+
             </div>
           </div>
         </div>

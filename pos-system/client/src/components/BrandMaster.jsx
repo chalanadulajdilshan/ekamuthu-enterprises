@@ -74,7 +74,7 @@ const BrandMaster = () => {
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'Brand saved successfully',
+        text: `Brand ${formData.id ? 'updated' : 'saved'} successfully`,
         confirmButtonColor: '#4F46E5',
       });
       window.location.reload();
@@ -117,7 +117,7 @@ const BrandMaster = () => {
             {saving ? (
               <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving...</>
             ) : (
-              <><FiSave /> Save Brand</>
+              <><FiSave /> {formData.id ? 'Update Brand' : 'Save Brand'}</>
             )}
           </button>
         </div>

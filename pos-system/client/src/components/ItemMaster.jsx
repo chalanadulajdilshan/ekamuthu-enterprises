@@ -146,7 +146,7 @@ const ItemMaster = () => {
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'Item saved successfully',
+        text: `Item ${formData.id ? 'updated' : 'saved'} successfully`,
         confirmButtonColor: '#4F46E5',
       });
       window.location.reload();

@@ -7,10 +7,6 @@ const GRNList = ({ onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Modal State
-  const [viewModalData, setViewModalData] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     fetchGrns();
@@ -28,16 +24,8 @@ const GRNList = ({ onNavigate }) => {
     }
   };
 
-  const handleView = async (id) => {
-    try {
-      setLoadingDetails(true);
-      const res = await getGrnDetails(id);
-      setViewModalData(res.data?.data);
-    } catch (err) {
-      alert('Failed to load GRN details');
-    } finally {
-      setLoadingDetails(false);
-    }
+  const handleView = (id) => {
+    onNavigate('grn_view', id);
   };
 
   const filteredGrns = grns.filter(grn => 
@@ -114,74 +102,7 @@ const GRNList = ({ onNavigate }) => {
         </div>
       </div>
 
-      {loadingDetails && (
-        <div className="modal-overlay">
-           <div className="modal-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-              <div className="text-primary fw-bold">Loading Details...</div>
-           </div>
-        </div>
-      )}
 
-      {viewModalData && (
-        <div className="modal-overlay" onClick={() => setViewModalData(null)}>
-          <div className="modal-container" style={{ maxWidth: '900px' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">GRN Details: {viewModalData.grn.grn_no}</h2>
-              <button className="modal-close" onClick={() => setViewModalData(null)}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                <div className="card" style={{ background: 'var(--bg-surface)' }}>
-                  <div className="card-body">
-                    <h4 className="text-secondary mb-2" style={{ fontSize: '13px', textTransform: 'uppercase' }}>Supplier Info</h4>
-                    <div className="fw-bold">[{viewModalData.grn.supplier_code}] {viewModalData.grn.supplier_name}</div>
-                    <div className="text-sm mt-2">Department: {viewModalData.grn.department_name}</div>
-                  </div>
-                </div>
-                <div className="card" style={{ background: 'var(--bg-surface)' }}>
-                  <div className="card-body text-right">
-                    <h4 className="text-secondary mb-2" style={{ fontSize: '13px', textTransform: 'uppercase' }}>GRN Summary</h4>
-                    <div><strong>Entry Date:</strong> {new Date(viewModalData.grn.entry_date).toLocaleDateString()}</div>
-                    <div><strong>Supplier Invoice:</strong> {viewModalData.grn.invoice_no}</div>
-                    <div className="text-primary mt-2" style={{ fontSize: '18px', fontWeight: 'bold' }}>Total Value: Rs {parseFloat(viewModalData.grn.total_amount).toFixed(2)}</div>
-                  </div>
-                </div>
-              </div>
-
-              <h4 className="fw-bold mb-2">Received Items</h4>
-              <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                <table className="table" style={{ fontSize: '14px' }}>
-                  <thead style={{ position: 'sticky', top: 0, backgroundColor: 'var(--bg-surface)', zIndex: 1 }}>
-                    <tr>
-                      <th>Product Code</th>
-                      <th className="text-right">List Price</th>
-                      <th className="text-center">Qty</th>
-                      <th className="text-right">Actual Cost</th>
-                      <th className="text-right">Selling Price</th>
-                      <th className="text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {viewModalData.items.map(item => (
-                      <tr key={item.id}>
-                        <td className="fw-bold">{item.item_code || 'Product ' + item.item_id}</td>
-                        <td className="text-right font-mono">{parseFloat(item.list_price).toFixed(2)}</td>
-                        <td className="text-center">{item.qty}</td>
-                        <td className="text-right font-mono">{parseFloat(item.actual_cost).toFixed(2)}</td>
-                        <td className="text-right font-mono text-success">{parseFloat(item.selling_price).toFixed(2)}</td>
-                        <td className="text-right font-mono fw-bold text-primary">{parseFloat(item.unit_total).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="modal-footer" style={{ borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', paddingTop: '15px' }}>
-              <button className="btn btn-secondary" onClick={() => setViewModalData(null)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

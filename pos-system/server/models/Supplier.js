@@ -69,6 +69,11 @@ class Supplier {
 
         return result;
     }
+
+    static async delete(id) {
+        const [result] = await db.query('DELETE FROM supplier_master WHERE id = ?', [id]);
+        return result;
+    }
 }
 
 module.exports = Supplier;

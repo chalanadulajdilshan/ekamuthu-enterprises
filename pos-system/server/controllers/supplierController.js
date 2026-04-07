@@ -50,3 +50,22 @@ exports.update = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error while updating supplier' });
     }
 };
+
+exports.destroy = async (req, res) => {
+    try {
+        await Supplier.delete(req.params.id);
+        res.json({ success: true, message: 'Supplier deleted successfully' });
+    } catch (error) {
+        console.error('SupplierController.destroy:', error);
+        
+        // Handle foreign key constraint (MySQL Error 1451)
+        if (error.errno === 1451 || error.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'This supplier cannot be deleted because it is referenced in GRN records or other transactions.' 
+            });
+        }
+
+        res.status(500).json({ success: false, message: 'Internal server error while deleting supplier' });
+    }
+};

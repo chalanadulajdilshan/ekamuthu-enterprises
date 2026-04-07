@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiSave, FiSearch, FiTruck, FiList, FiPlus, FiPhone, FiMail, FiMapPin, FiCreditCard, FiUser, FiMessageSquare, FiX } from 'react-icons/fi';
-import { getSuppliers, createSupplier, updateSupplier } from '../services/api';
+import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../services/api';
+import { FiSave, FiSearch, FiTruck, FiList, FiPlus, FiPhone, FiMail, FiMapPin, FiCreditCard, FiUser, FiMessageSquare, FiX, FiTrash2, FiEdit3 } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 
 const initialForm = {
@@ -78,7 +78,7 @@ const SupplierMaster = () => {
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'Supplier saved successfully',
+        text: `Supplier ${formData.id ? 'updated' : 'saved'} successfully`,
         confirmButtonColor: '#4F46E5',
       });
       window.location.reload();
@@ -87,6 +87,58 @@ const SupplierMaster = () => {
       Swal.fire({ icon: 'error', title: 'Error', text: msg });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!formData.id) return;
+
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete supplier "${formData.name}". This action cannot be undone!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      setSaving(true);
+      try {
+        await deleteSupplier(formData.id);
+        await Swal.fire('Deleted!', 'Supplier has been removed.', 'success');
+        setFormData(initialForm);
+        fetchData();
+      } catch (err) {
+        const msg = err.response?.data?.message || 'Failed to delete supplier. It might be linked to other records.';
+        Swal.fire('Error', msg, 'error');
+      } finally {
+        setSaving(false);
+      }
+    }
+  };
+
+  const deleteFromList = async (e, s) => {
+    e.stopPropagation();
+    const result = await Swal.fire({
+      title: 'Delete Order?',
+      text: `Remove supplier "${s.name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Delete'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteSupplier(s.id);
+        Swal.fire('Deleted!', '', 'success');
+        if (formData.id === s.id) setFormData(initialForm);
+        fetchData();
+      } catch (err) {
+        Swal.fire('Error', err.response?.data?.message || 'Delete failed', 'error');
+      }
     }
   };
 
@@ -119,11 +171,16 @@ const SupplierMaster = () => {
           <button className="btn btn-secondary" onClick={() => setFormData(initialForm)}>
             <FiPlus /> New Supplier
           </button>
+          {formData.id && (
+            <button className="btn btn-danger" onClick={handleDelete} disabled={saving}>
+              <FiTrash2 /> Delete
+            </button>
+          )}
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
             {saving ? (
               <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving...</>
             ) : (
-              <><FiSave /> Save Supplier</>
+              <><FiSave /> {formData.id ? 'Update Supplier' : 'Save Supplier'}</>
             )}
           </button>
         </div>
@@ -159,11 +216,30 @@ const SupplierMaster = () => {
                 {filtered.length > 0 ? filtered.map(s => (
                   <div key={s.id} className="list-item" onClick={() => selectSupplier(s)} style={{ cursor: 'pointer' }}>
                     <div className="list-item-name">{s.name}</div>
-                    <div className="list-item-meta">
-                      <span className="badge badge-primary">{s.code || 'NO CODE'}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <FiPhone size={10} /> {s.mobile_number}
-                      </span>
+                    <div className="list-item-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span className="badge badge-primary">{s.code || 'NO CODE'}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <FiPhone size={10} /> {s.mobile_number}
+                        </span>
+                      </div>
+                      <div className="list-item-actions" style={{ display: 'flex', gap: 4 }}>
+                        <button 
+                          className="btn btn-icon btn-secondary" 
+                          style={{ padding: '4px', height: 'auto', width: 'auto' }}
+                          title="Edit"
+                        >
+                          <FiEdit3 size={12} />
+                        </button>
+                        <button 
+                          className="btn btn-icon btn-danger" 
+                          style={{ padding: '4px', height: 'auto', width: 'auto' }}
+                          onClick={(e) => deleteFromList(e, s)}
+                          title="Delete"
+                        >
+                          <FiTrash2 size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )) : (

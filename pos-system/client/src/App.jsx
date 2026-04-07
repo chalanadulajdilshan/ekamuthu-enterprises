@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiSun, FiMoon } from 'react-icons/fi';
+import { FiSun, FiMoon, FiShoppingBag, FiSettings, FiExternalLink } from 'react-icons/fi';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import ItemMaster from './components/ItemMaster';
@@ -8,8 +8,10 @@ import BrandMaster from './components/BrandMaster';
 import LiveStock from './components/LiveStock';
 import GRN from './components/GRN';
 import GRNList from './components/GRNList';
+import GRNDetails from './components/GRNDetails';
 import Invoice from './components/Invoice';
 import InvoiceList from './components/InvoiceList';
+import InvoiceDetails from './components/InvoiceDetails';
 import ReceiptModal from './components/ReceiptModal';
 import Settings from './components/Settings';
 import { getCompany } from './services/api';
@@ -22,8 +24,10 @@ const PAGE_META = {
   liveStock:      { name: 'Live Stock',       breadcrumb: 'Inventory → Live Stock' },
   grn:            { name: 'GRN List',         breadcrumb: 'Inventory → GRN' },
   grn_new:        { name: 'Create GRN',       breadcrumb: 'Inventory → GRN → Create' },
+  grn_view:       { name: 'GRN History',      breadcrumb: 'Inventory → GRN → View' },
   invoice:        { name: 'Sales Invoices',   breadcrumb: 'Sales → Invoices' },
   invoice_new:    { name: 'New Invoice',      breadcrumb: 'Sales → Invoices → Create' },
+  invoice_view:   { name: 'Invoice History',  breadcrumb: 'Sales → Invoices → View' },
   settings:       { name: 'Settings',         breadcrumb: 'System → Settings' },
 };
 
@@ -76,6 +80,31 @@ function applyStoredSettings() {
   root.style.setProperty('--radius-lg', radiusLgMap[radius] || '12px');
 }
 
+const AppContent = ({ currentView, setCurrentView, selectedDetailId, setSelectedDetailId, theme, handleThemeChange }) => {
+  return (
+    <div className="app-content">
+      {currentView === 'dashboard'      && <Dashboard onNavigate={setCurrentView} />}
+      {currentView === 'itemMaster'     && <ItemMaster />}
+      {currentView === 'supplierMaster' && <SupplierMaster />}
+      {currentView === 'brandMaster'    && <BrandMaster />}
+      {currentView === 'liveStock'      && <LiveStock />}
+      {currentView === 'grn'            && <GRNList onNavigate={(view, id) => {
+        if (id) setSelectedDetailId(id);
+        setCurrentView(view);
+      }} />}
+      {currentView === 'grn_new'        && <GRN onBack={() => setCurrentView('grn')} />}
+      {currentView === 'grn_view'       && <GRNDetails grnId={selectedDetailId} onBack={() => setCurrentView('grn')} />}
+      {currentView === 'invoice'        && <InvoiceList onNavigate={(view, id) => {
+        if (id) setSelectedDetailId(id);
+        setCurrentView(view);
+      }} />}
+      {currentView === 'invoice_new'    && <Invoice onBack={() => setCurrentView('invoice')} />}
+      {currentView === 'invoice_view'   && <InvoiceDetails invoiceId={selectedDetailId} onBack={() => setCurrentView('invoice')} />}
+      {currentView === 'settings'       && <Settings theme={theme} onThemeChange={handleThemeChange} />}
+    </div>
+  );
+};
+
 function App() {
   const [currentView, setCurrentView] = useState(() => {
     return localStorage.getItem('pos_current_view') || 'dashboard';
@@ -84,6 +113,7 @@ function App() {
     return localStorage.getItem('pos_theme') || 'light';
   });
   const [receiptData, setReceiptData] = useState(null);
+  const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [companyData, setCompanyData] = useState(null);
 
   // Apply stored settings on first load
@@ -94,7 +124,6 @@ function App() {
   useEffect(() => {
     getCompany()
       .then(res => {
-        // Axios wraps the response in a `data` object
         if (res.data && res.data.success) {
           setCompanyData(res.data.data);
         }
@@ -140,18 +169,14 @@ function App() {
         </div>
 
         {/* Page Content */}
-        <div className="app-content">
-          {currentView === 'dashboard'      && <Dashboard onNavigate={setCurrentView} />}
-          {currentView === 'itemMaster'     && <ItemMaster />}
-          {currentView === 'supplierMaster' && <SupplierMaster />}
-          {currentView === 'brandMaster'    && <BrandMaster />}
-          {currentView === 'liveStock'      && <LiveStock />}
-          {currentView === 'grn'            && <GRNList onNavigate={setCurrentView} />}
-          {currentView === 'grn_new'        && <GRN onBack={() => setCurrentView('grn')} />}
-          {currentView === 'invoice'        && <InvoiceList onNavigate={setCurrentView} />}
-          {currentView === 'invoice_new'    && <Invoice onBack={() => setCurrentView('invoice')} />}
-          {currentView === 'settings'       && <Settings theme={theme} onThemeChange={handleThemeChange} />}
-        </div>
+        <AppContent 
+          currentView={currentView} 
+          setCurrentView={setCurrentView} 
+          selectedDetailId={selectedDetailId} 
+          setSelectedDetailId={setSelectedDetailId}
+          theme={theme}
+          handleThemeChange={handleThemeChange}
+        />
       </div>
 
       {receiptData && (

@@ -50,6 +50,7 @@ export const getCustomers = (search = '') => api.get('/customers', { params: { s
 export const getSuppliers = (search = '') => api.get('/suppliers', { params: { search } });
 export const createSupplier = (data) => api.post('/suppliers', data);
 export const updateSupplier = (id, data) => api.put(`/suppliers/${id}`, data);
+export const deleteSupplier = (id) => api.delete(`/suppliers/${id}`);
 
 // Company
 export const getCompany = () => api.get('/company');

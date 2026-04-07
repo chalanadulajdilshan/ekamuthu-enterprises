@@ -8,11 +8,10 @@ import {
   getSuppliers, getDepartments, getProducts, createGrn, getNextGrnNo
 } from '../services/api';
 import SearchableSelectModal from './SearchableSelectModal';
+import Swal from 'sweetalert2';
 
 const GRN = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   // Master Data
   const [suppliers, setSuppliers] = useState([]);
@@ -55,15 +54,12 @@ const GRN = ({ onBack }) => {
     unit_total: 0
   });
 
-  // Global runtime error visibility (so silent failures on live become visible).
   useEffect(() => {
     const onErr = (e) => {
       console.error('[GRN window.error]', e.error || e.message, e);
-      try { window.alert('JS Error: ' + (e.error?.stack || e.message || 'unknown')); } catch (_) {}
     };
     const onRej = (e) => {
       console.error('[GRN unhandledrejection]', e.reason);
-      try { window.alert('Promise rejected: ' + (e.reason?.stack || e.reason?.message || JSON.stringify(e.reason))); } catch (_) {}
     };
     window.addEventListener('error', onErr);
     window.addEventListener('unhandledrejection', onRej);
@@ -115,7 +111,11 @@ const GRN = ({ onBack }) => {
       .filter(x => x.r.status === 'rejected');
     if (failed.length) {
       const msg = failed.map(f => `${f.name}: ${f.r.reason?.response?.data?.message || f.r.reason?.message || 'failed'}`).join(' | ');
-      setError('Some data failed to load — ' + msg);
+      Swal.fire({
+        icon: 'error',
+        title: 'Initial Data Error',
+        text: 'Some data failed to load: ' + msg
+      });
     }
 
     setLoading(false);
@@ -142,7 +142,7 @@ const GRN = ({ onBack }) => {
   const handleProductSelect = (product) => {
     console.log('[GRN] product selected:', product);
     if (!product) {
-      window.alert('Product select called with empty product');
+      Swal.fire({ icon: 'error', title: 'Product Select Error', text: 'Product selection failed.' });
       return;
     }
     // Accept several possible id/code/name field shapes from the API
@@ -150,7 +150,7 @@ const GRN = ({ onBack }) => {
     const pcode = product.code ?? product.item_code ?? product.Code ?? '';
     const pname = product.name ?? product.item_name ?? product.Name ?? '';
     if (pid == null || pid === '') {
-      window.alert('Selected product has no id. Raw: ' + JSON.stringify(product));
+      Swal.fire({ icon: 'error', title: 'Invalid Product', text: 'Selected product has no valid database ID.' });
       return;
     }
     setCurrentItem(prev => ({
@@ -161,7 +161,6 @@ const GRN = ({ onBack }) => {
       list_price: Number(product.list_price ?? product.cost_price ?? 0) || 0,
       invoice_price: Number(product.invoice_price ?? product.retail_price ?? 0) || 0
     }));
-    setError('');
   };
 
   const getSupplierName = () => {
@@ -188,13 +187,11 @@ const GRN = ({ onBack }) => {
     const hasId = currentItem.item_id !== '' && currentItem.item_id != null;
     const qty = parseFloat(currentItem.quantity);
     if (!hasId) {
-      const m = 'No item selected. item_id=' + JSON.stringify(currentItem.item_id);
-      setError(m); window.alert(m);
+      Swal.fire({ icon: 'warning', title: 'Missing Item', text: 'Please select a product first.' });
       return;
     }
     if (!qty || qty <= 0) {
-      const m = 'Invalid quantity: ' + JSON.stringify(currentItem.quantity);
-      setError(m); window.alert(m);
+      Swal.fire({ icon: 'warning', title: 'Invalid Quantity', text: 'Please enter a valid quantity greater than zero.' });
       return;
     }
     setFormData(prev => ({
@@ -217,7 +214,6 @@ const GRN = ({ onBack }) => {
       invoice_price: 0,
       unit_total: 0
     });
-    setError('');
   };
 
   const removeItem = (id) => {
@@ -243,17 +239,16 @@ const GRN = ({ onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.items.length === 0) {
-      setError('Please add at least one item');
+      Swal.fire({ icon: 'warning', title: 'Empty GRN', text: 'Please add at least one item before saving.' });
       return;
     }
     if (!formData.supplier_id || !formData.department_id) {
-      setError('Please select supplier and department');
+      Swal.fire({ icon: 'warning', title: 'Missing Information', text: 'Please select both a supplier and a department.' });
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
       const { subTotal, totalDiscount, grandTotal } = calculateTotals();
 
       const payload = {
@@ -264,10 +259,20 @@ const GRN = ({ onBack }) => {
       };
 
       await createGrn(payload);
-      setSuccess('GRN Saved successfully and stock updated!');
+      Swal.fire({
+        icon: 'success',
+        title: 'GRN Saved!',
+        text: 'Goods Received Note has been successfully recorded and stock levels updated.',
+        timer: 2000,
+        showConfirmButton: false
+      });
       setTimeout(() => onBack(), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save GRN');
+      Swal.fire({
+        icon: 'error',
+        title: 'Save Failed',
+        text: err.response?.data?.message || 'Failed to save GRN'
+      });
     } finally {
       setLoading(false);
     }
@@ -278,7 +283,7 @@ const GRN = ({ onBack }) => {
   return (
     <div className="page animate-fade-in">
       {/* Header */}
-      <div className="page-header-row" style={{ alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-header-row" style={{ alignItems: 'center', marginBottom: '24px', display: 'flex', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button className="btn btn-secondary" onClick={onBack} style={{ padding: '8px' }}>
             <FiArrowLeft />
@@ -288,34 +293,23 @@ const GRN = ({ onBack }) => {
             <p className="page-subtitle">Stock replenishment & Purchase recording</p>
           </div>
         </div>
-        <div className="page-actions">
-          <span className="badge badge-primary" style={{ fontSize: '14px', padding: '6px 12px' }}>ARN No: {formData.arn_no}</span>
+        <div className="page-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span className="badge badge-primary" style={{ fontSize: '14px', padding: '10px 16px', borderRadius: '8px' }}>ARN No: {formData.arn_no}</span>
+          <button 
+            type="button" 
+            className="btn btn-primary" 
+            disabled={loading || formData.items.length === 0}
+            onClick={handleSubmit}
+            style={{ height: '48px', padding: '0 24px', fontWeight: 'bold', boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.3)' }}
+          >
+            {loading ? 'Saving...' : (
+              <><FiSave style={{ marginRight: '8px', fontSize: '18px' }} /> SAVE GRN</>
+            )}
+          </button>
         </div>
       </div>
 
-      {(error || success) && (
-        <div
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 1000,
-            padding: '12px 16px',
-            marginBottom: 16,
-            borderRadius: 8,
-            fontWeight: 600,
-            color: '#fff',
-            background: error ? '#c0392b' : '#27ae60',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}
-        >
-          {error || success}
-          <button
-            type="button"
-            onClick={() => { setError(''); setSuccess(''); }}
-            style={{ float: 'right', background: 'transparent', color: '#fff', border: 0, fontSize: 18, cursor: 'pointer' }}
-          >×</button>
-        </div>
-      )}
+
 
       <form onSubmit={handleSubmit}>
         {/* Main Info Card */}
@@ -436,7 +430,7 @@ const GRN = ({ onBack }) => {
                   onClick={() => {
                     console.log('[GRN] opening product modal. products.length=', products.length);
                     if (!products.length) {
-                      window.alert('Product list is empty. The /products API did not return any items. Check Network tab for the /api/products?all=true call.');
+                      Swal.fire({ icon: 'error', title: 'Empty Product List', text: 'No products were found in the database. Please check your inventory.' });
                     }
                     setShowProductModal(true);
                   }}
@@ -572,19 +566,7 @@ const GRN = ({ onBack }) => {
                 <textarea className="form-textarea" rows={3} placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })}></textarea>
               </div>
 
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg"
-                  disabled={loading || formData.items.length === 0}
-                  style={{ flex: 2, height: 54, fontSize: 16, fontWeight: 700 }}
-                >
-                  <FiSave /> {loading ? 'Saving...' : 'Confirm & Save GRN'}
-                </button>
-                <button type="button" className="btn btn-secondary btn-lg" onClick={onBack} style={{ flex: 1, height: 54 }}>
-                  Cancel
-                </button>
-              </div>
+
             </div>
           </div>
 
