@@ -105,7 +105,7 @@ const SupplierMaster = () => {
   }
 
   return (
-    <div className="page">
+    <div className="page animate-fade-in">
       {/* Header Row */}
       <div className="page-header-row">
         <div>

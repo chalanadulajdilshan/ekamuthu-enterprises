@@ -564,52 +564,53 @@ const GRN = ({ onBack }) => {
         </div>
 
         {/* Footer Summary & Submit */}
-        <div className="form-grid form-grid-2 mb-5" style={{ alignItems: 'flex-start' }}>
-          <div className="card h-100">
+        <div className="form-grid form-grid-2 mb-5" style={{ alignItems: 'flex-start', gap: 24 }}>
+          <div className="card shadow-md h-100">
             <div className="card-body">
-              {error && <div className="badge badge-danger w-100 mb-3" style={{ padding: '10px', borderRadius: 'var(--radius)' }}>{error}</div>}
-              {success && <div className="badge badge-success w-100 mb-3" style={{ padding: '10px', borderRadius: 'var(--radius)' }}>{success}</div>}
-
               <div className="form-group mb-4">
                 <label className="form-label">Final Remark</label>
-                <textarea className="form-textarea" placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })}></textarea>
+                <textarea className="form-textarea" rows={3} placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })}></textarea>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '16px' }}>
                 <button
                   type="submit"
                   className="btn btn-primary btn-lg"
                   disabled={loading || formData.items.length === 0}
-                  style={{ flex: 2 }}
+                  style={{ flex: 2, height: 54, fontSize: 16, fontWeight: 700 }}
                 >
                   <FiSave /> {loading ? 'Saving...' : 'Confirm & Save GRN'}
                 </button>
-                <button type="button" className="btn btn-secondary btn-lg" onClick={onBack} style={{ flex: 1 }}>
+                <button type="button" className="btn btn-secondary btn-lg" onClick={onBack} style={{ flex: 1, height: 54 }}>
                   Cancel
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="card" style={{ background: 'var(--bg)' }}>
-            <div className="card-body">
-              <div className="summary-row">
+          <div className="card shadow-lg" style={{ background: 'var(--bg-hover)', border: 'none' }}>
+            <div className="card-body" style={{ padding: 32 }}>
+              <div className="summary-row" style={{ fontSize: 15, marginBottom: 12 }}>
                 <span>Sub Total:</span>
                 <span className="fw-bold">{parseFloat(totals.subTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="summary-row" style={{ color: 'var(--danger)' }}>
+              <div className="summary-row" style={{ color: 'var(--danger)', fontSize: 15, marginBottom: 12 }}>
                 <span>Total Discount:</span>
                 <span className="fw-bold">-{parseFloat(totals.totalDiscount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="summary-row">
+              <div className="summary-row" style={{ fontSize: 15, marginBottom: 24 }}>
                 <span>Total Items:</span>
-                <span>{formData.items.length} (Sum: {totals.totalQty})</span>
+                <span className="fw-bold">{formData.items.length} units</span>
               </div>
-              <div className="summary-total mt-3 pt-3" style={{ borderTop: '2px dashed var(--border)' }}>
-                <span>Grand Total:</span>
-                <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--primary)' }}>
+              
+              <div className="premium-gradient shadow-lg" style={{
+                padding: '24px',
+                borderRadius: '20px',
+              }}>
+                <div style={{ fontSize: '13px', opacity: 0.9, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>GRAND TOTAL</div>
+                <div className="font-mono" style={{ fontSize: '32px', fontWeight: '900' }}>
                   LKR {parseFloat(totals.grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </span>
+                </div>
               </div>
             </div>
           </div>

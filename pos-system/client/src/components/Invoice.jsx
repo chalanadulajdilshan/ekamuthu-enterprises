@@ -318,37 +318,37 @@ const Invoice = ({ onBack }) => {
   return (
     <div className="page animate-fade-in">
       {/* Header */}
-      <div className="page-header-row" style={{ alignItems: 'center', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button className="btn btn-secondary" onClick={onBack} style={{ padding: '8px' }}>
+      <div className="page-header-row animate-fade-in" style={{ alignItems: 'center', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <button className="topbar-btn" onClick={onBack}>
             <FiArrowLeft />
           </button>
           <div>
-            <h1 className="page-title">Sales Invoice</h1>
+            <h1 className="page-title" style={{ fontSize: 28 }}>Sales Invoice</h1>
             <p className="page-subtitle">Record a new POS sale transaction</p>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="animate-fade-in">
         {/* Main Info Card */}
-        <div className="card mb-4 shadow-sm">
+        <div className="card shadow-md animate-fade-in" style={{ marginBottom: 24 }}>
           <div className="card-header">
-            <div className="card-title"><FiFileText /> Invoice Details</div>
+            <div className="card-title"><FiFileText /> Invoice General Information</div>
           </div>
           <div className="card-body">
-            <div className="form-grid form-grid-4" style={{ rowGap: '20px' }}>
+            <div className="form-grid form-grid-4" style={{ rowGap: '24px' }}>
               <div className="form-group span-2">
-                <label className="form-label">Customer</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <label className="form-label">Customer Entity</label>
+                <div style={{ display: 'flex', gap: '12px' }}>
                   <button
                     type="button"
                     className="selection-trigger"
                     onClick={() => setShowCustomerModal(true)}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, height: 48 }}
                   >
                     <span className={formData.customer_id || formData.customer_name ? "selection-trigger-value" : "selection-trigger-placeholder"}>
-                      <FiUser style={{ marginRight: 8, opacity: 0.7 }} />
+                      <FiUser style={{ marginRight: 8, color: 'var(--primary)' }} />
                       {getCustomerName()}
                     </span>
                     <FiSearch className="trigger-icon" />
