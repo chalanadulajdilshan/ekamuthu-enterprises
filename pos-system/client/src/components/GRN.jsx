@@ -125,13 +125,10 @@ const GRN = ({ onBack }) => {
   useEffect(() => {
     const listPrice = parseFloat(currentItem.list_price) || 0;
     const q = parseFloat(currentItem.quantity) || 0;
-
-    // Apply cascading discounts
-    let discountedPrice = listPrice;
-    [1, 2, 3, 4, 5].forEach(i => {
-      const d = parseFloat(currentItem[`discount_${i}`]) || 0;
-      discountedPrice = discountedPrice * (1 - d / 100);
-    });
+    
+    // Apply single discount
+    const d = parseFloat(currentItem.discount_1) || 0;
+    const discountedPrice = listPrice * (1 - d / 100);
 
     setCurrentItem(prev => ({
       ...prev,
@@ -139,9 +136,7 @@ const GRN = ({ onBack }) => {
       unit_total: (discountedPrice * q).toFixed(2)
     }));
   }, [
-    currentItem.list_price, currentItem.quantity,
-    currentItem.discount_1, currentItem.discount_2, currentItem.discount_3,
-    currentItem.discount_4, currentItem.discount_5
+    currentItem.list_price, currentItem.quantity, currentItem.discount_1
   ]);
 
   const handleProductSelect = (product) => {
@@ -426,8 +421,9 @@ const GRN = ({ onBack }) => {
             <div className="card-title text-primary"><FiShoppingCart /> Add Items to Stock</div>
           </div>
           <div className="card-body">
-            <div className="form-grid form-grid-4" style={{ rowGap: '20px' }}>
-              <div className="form-group span-2">
+            {/* ROW 1: Product, Qty, List Price, Discount */}
+            <div className="form-grid" style={{ gridTemplateColumns: 'minmax(250px, 2fr) 1fr 1fr 1fr', gap: '15px', alignItems: 'end', marginBottom: '20px' }}>
+              <div className="form-group">
                 <label className="form-label">
                   Select Product
                   <span style={{ marginLeft: 8, fontSize: 11, color: '#888' }}>
@@ -458,6 +454,7 @@ const GRN = ({ onBack }) => {
                 <input
                   type="number"
                   className="form-input"
+                  style={{ height: '42px' }}
                   value={currentItem.quantity}
                   onChange={(e) => setCurrentItem({ ...currentItem, quantity: e.target.value })}
                 />
@@ -467,48 +464,46 @@ const GRN = ({ onBack }) => {
                 <input
                   type="number"
                   className="form-input"
+                  style={{ height: '42px' }}
                   value={currentItem.list_price}
                   onChange={(e) => setCurrentItem({ ...currentItem, list_price: e.target.value })}
                 />
               </div>
+              <div className="form-group">
+                <label className="form-label">Discount %</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  style={{ height: '42px' }}
+                  value={currentItem.discount_1}
+                  onChange={(e) => setCurrentItem({ ...currentItem, discount_1: e.target.value })}
+                />
+              </div>
             </div>
 
-            <div className="form-grid mt-3" style={{ gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="form-group">
-                  <label className="form-label" style={{ fontSize: '10px' }}>Dis {i} %</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    style={{ padding: '6px' }}
-                    value={currentItem[`discount_${i}`]}
-                    onChange={(e) => setCurrentItem({ ...currentItem, [`discount_${i}`]: e.target.value })}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="form-grid form-grid-4 mt-3" style={{ alignItems: 'flex-end' }}>
+            {/* ROW 2: Actual Cost, Selling Price, Unit Total, Add Button */}
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr auto', gap: '15px', alignItems: 'end' }}>
               <div className="form-group">
                 <label className="form-label">Actual Cost (Per Unit)</label>
-                <input type="text" readOnly className="form-input fw-bold" style={{ background: 'var(--bg-hover)', color: 'var(--primary)' }} value={currentItem.actual_cost} />
+                <input type="text" readOnly className="form-input fw-bold" style={{ height: '42px', background: 'var(--bg-hover)', color: 'var(--primary)' }} value={currentItem.actual_cost} />
               </div>
               <div className="form-group">
                 <label className="form-label">New Selling Price</label>
                 <input
                   type="number"
                   className="form-input"
+                  style={{ height: '42px' }}
                   value={currentItem.invoice_price}
                   onChange={(e) => setCurrentItem({ ...currentItem, invoice_price: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label className="form-label">Unit Total</label>
-                <input type="text" readOnly className="form-input fw-bold" style={{ background: 'var(--info-light)', color: 'var(--info)' }} value={currentItem.unit_total} />
+                <input type="text" readOnly className="form-input fw-bold" style={{ height: '42px', background: 'var(--info-light)', color: 'var(--info)' }} value={currentItem.unit_total} />
               </div>
               <div className="form-group">
-                <button type="button" className="btn btn-primary w-100" style={{ height: '42px' }} onClick={addItem}>
-                  <FiPlus /> Add Item
+                <button type="button" className="btn btn-primary" style={{ height: '42px', padding: '0 30px' }} onClick={addItem}>
+                  <FiPlus style={{ marginRight: '8px' }} /> Add Item
                 </button>
               </div>
             </div>
@@ -550,7 +545,7 @@ const GRN = ({ onBack }) => {
                       <td style={{ textAlign: 'right' }}>{parseFloat(item.list_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       <td style={{ textAlign: 'center' }}>
                         <small className="text-muted">
-                          {[1, 2, 3, 4, 5].filter(i => item[`discount_${i}`] > 0).map(i => `${item[`discount_${i}`]}%`).join(' + ') || '0%'}
+                          {item.discount_1 > 0 ? `${item.discount_1}%` : '0%'}
                         </small>
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{parseFloat(item.actual_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
