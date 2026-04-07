@@ -28,7 +28,7 @@ const GRN = ({ onBack }) => {
   const [formData, setFormData] = useState({
     arn_no: '',
     supplier_id: '',
-    department_id: '',
+    department_id: '1',
     entry_date: new Date().toISOString().split('T')[0],
     invoice_no: '',
     invoice_date: new Date().toISOString().split('T')[0],

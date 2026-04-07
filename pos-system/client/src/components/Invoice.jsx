@@ -30,7 +30,7 @@ const Invoice = ({ onBack }) => {
     customer_name: '',
     customer_mobile: '',
     customer_address: '',
-    department_id: '',
+    department_id: '1',
     invoice_date: new Date().toISOString().split('T')[0],
     payment_type: '1', // 1: Cash, 2: Credit
     remark: '',

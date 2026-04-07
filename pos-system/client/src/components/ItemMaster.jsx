@@ -12,7 +12,7 @@ const initialForm = {
   code: '',
   name: '',
   barcode: '',
-  category: '',
+  category: '1',
   brand: '',
   note: '',
   reminder_note: '',

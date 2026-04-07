@@ -7,7 +7,7 @@ const navItems = [
   { id: 'supplierMaster', label: 'Supplier Hub', icon: FiTruck },
   { id: 'brandMaster', label: 'Brand Registry', icon: FiTag },
   { id: 'liveStock', label: 'Live Inventory', icon: FiBox },
-  { id: 'grn', label: 'Purchase Ledger', icon: FiPackage },
+  { id: 'grn', label: 'GRN', icon: FiPackage },
 ];
 
 const Sidebar = ({ currentView, onNavigate, companyData }) => {
@@ -20,7 +20,7 @@ const Sidebar = ({ currentView, onNavigate, companyData }) => {
   // Split name for nicer layout
   const nameParts = companyData?.name?.split(' ') || ['Ekamuthu', 'Enterprises'];
   const nameFirst = nameParts[0];
-  const nameRest  = nameParts.slice(1).join(' ');
+  const nameRest = nameParts.slice(1).join(' ');
 
   return (
     <div className="sidebar shadow-2xl">
@@ -67,7 +67,7 @@ const Sidebar = ({ currentView, onNavigate, companyData }) => {
           <FiSettings />
           <span>Control Panel</span>
         </button>
-        <a href="/" className="sidebar-nav-item" style={{ textDecoration: 'none' }}>
+        <a href="/ekamuthu-enterprises/" className="sidebar-nav-item" style={{ textDecoration: 'none' }}>
           <FiExternalLink />
           <span>Return to Base</span>
         </a>
