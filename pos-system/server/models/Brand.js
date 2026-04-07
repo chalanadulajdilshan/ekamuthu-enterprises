@@ -15,7 +15,7 @@ class Brand {
         const { category_id, name, country_id, is_active, remark } = data;
         const [result] = await db.query(
             `INSERT INTO brands (category_id, name, country_id, is_active, remark) VALUES (?, ?, ?, ?, ?)`,
-            [category_id, name, country_id || '', is_active ? 1 : 0, remark || '']
+            [category_id || 0, name, country_id || '', is_active ? 1 : 0, remark || '']
         );
         return result;
     }
@@ -24,7 +24,7 @@ class Brand {
         const { category_id, name, country_id, is_active, remark } = data;
         const [result] = await db.query(
             `UPDATE brands SET category_id = ?, name = ?, country_id = ?, is_active = ?, remark = ? WHERE id = ?`,
-            [category_id, name, country_id || '', is_active ? 1 : 0, remark || '', id]
+            [category_id || 0, name, country_id || '', is_active ? 1 : 0, remark || '', id]
         );
         return result;
     }
