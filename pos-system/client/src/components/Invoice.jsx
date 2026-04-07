@@ -57,11 +57,11 @@ const Invoice = ({ onBack }) => {
   useEffect(() => {
     const onErr = (e) => {
       console.error('[Invoice window.error]', e.error || e.message, e);
-      try { window.alert('JS Error: ' + (e.error?.stack || e.message || 'unknown')); } catch (_) {}
+      // Removed noisy window.alert for global JS errors
     };
     const onRej = (e) => {
       console.error('[Invoice unhandledrejection]', e.reason);
-      try { window.alert('Promise rejected: ' + (e.reason?.stack || e.reason?.message || JSON.stringify(e.reason))); } catch (_) {}
+      // Removed noisy window.alert for rejected promises
     };
     window.addEventListener('error', onErr);
     window.addEventListener('unhandledrejection', onRej);
@@ -129,7 +129,7 @@ const Invoice = ({ onBack }) => {
   const handleProductSelect = (product) => {
     console.log('[Invoice] product selected (raw):', product);
     if (!product) {
-      window.alert('Invoice: product select called with empty product');
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Product selection failed. Empty product data received.' });
       return;
     }
     // Accept several possible id/code/name field shapes from the API
@@ -137,10 +137,10 @@ const Invoice = ({ onBack }) => {
     const pcode = product.code ?? product.item_code ?? product.Code ?? '';
     const pname = product.name ?? product.item_name ?? product.Name ?? '';
     if (pid == null || pid === '') {
-      const m = 'Selected product has no id. Raw: ' + JSON.stringify(product);
-      console.error(m);
+      const m = 'Selected product has no valid ID in the database.';
+      console.error('No ID found in product:', product);
       setError(m);
-      window.alert(m);
+      Swal.fire({ icon: 'error', title: 'Invalid Product', text: m });
       return;
     }
     setCurrentItem(prev => ({
@@ -193,17 +193,15 @@ const Invoice = ({ onBack }) => {
     const hasId = currentItem.item_id !== '' && currentItem.item_id != null;
     const qty = parseFloat(currentItem.quantity);
     if (!hasId) {
-      const m = 'No item selected. item_id=' + JSON.stringify(currentItem.item_id) +
-        ' code=' + JSON.stringify(currentItem.item_code) +
-        ' name=' + JSON.stringify(currentItem.item_name);
+      const m = 'No item has been selected to add.';
       setError(m);
-      window.alert(m);
+      Swal.fire({ icon: 'warning', title: 'Missing Item', text: m });
       return;
     }
     if (!qty || qty <= 0) {
-      const m = 'Invalid quantity: ' + JSON.stringify(currentItem.quantity);
+      const m = 'Please enter a valid quantity greater than 0.';
       setError(m);
-      window.alert(m);
+      Swal.fire({ icon: 'warning', title: 'Invalid Quantity', text: m });
       return;
     }
 
@@ -213,9 +211,14 @@ const Invoice = ({ onBack }) => {
       .reduce((sum, i) => sum + parseFloat(i.quantity), 0);
       
     if ((qty + alreadyAddedQty) > currentItem.available_qty) {
-      const m = `Insufficient stock for ${currentItem.item_code}!\nAvailable: ${currentItem.available_qty}\nAlready in invoice: ${alreadyAddedQty}\nRequested: ${qty}\n\nYou cannot bill more than what is in stock.`;
+      const m = `You cannot bill more than what is in stock.\n\nAvailable: ${currentItem.available_qty}\nAlready in invoice: ${alreadyAddedQty}\nRequested: ${qty}`;
       setError(m);
-      window.alert(m);
+      Swal.fire({ 
+        icon: 'error', 
+        title: `Insufficient Stock for ${currentItem.item_code}`, 
+        text: m,
+        confirmButtonColor: '#3085d6'
+      });
       return;
     }
 
