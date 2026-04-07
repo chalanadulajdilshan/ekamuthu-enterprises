@@ -80,7 +80,7 @@ function applyStoredSettings() {
   root.style.setProperty('--radius-lg', radiusLgMap[radius] || '12px');
 }
 
-const AppContent = ({ currentView, setCurrentView, selectedDetailId, setSelectedDetailId, theme, handleThemeChange }) => {
+const AppContent = ({ currentView, setCurrentView, selectedDetailId, setSelectedDetailId, theme, handleThemeChange, setReceiptData }) => {
   return (
     <div className="app-content">
       {currentView === 'dashboard'      && <Dashboard onNavigate={setCurrentView} />}
@@ -97,8 +97,11 @@ const AppContent = ({ currentView, setCurrentView, selectedDetailId, setSelected
       {currentView === 'invoice'        && <InvoiceList onNavigate={(view, id) => {
         if (id) setSelectedDetailId(id);
         setCurrentView(view);
+      }} setReceiptData={setReceiptData} />}
+      {currentView === 'invoice_new'    && <Invoice onBack={() => setCurrentView('invoice')} onComplete={(data) => {
+        setReceiptData(data);
+        setCurrentView('invoice');
       }} />}
-      {currentView === 'invoice_new'    && <Invoice onBack={() => setCurrentView('invoice')} />}
       {currentView === 'invoice_view'   && <InvoiceDetails invoiceId={selectedDetailId} onBack={() => setCurrentView('invoice')} />}
       {currentView === 'settings'       && <Settings theme={theme} onThemeChange={handleThemeChange} />}
     </div>
@@ -176,6 +179,7 @@ function App() {
           setSelectedDetailId={setSelectedDetailId}
           theme={theme}
           handleThemeChange={handleThemeChange}
+          setReceiptData={setReceiptData}
         />
       </div>
 

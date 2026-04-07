@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiFileText, FiPlus, FiEye, FiSearch } from 'react-icons/fi';
+import { FiFileText, FiPlus, FiEye, FiSearch, FiPrinter } from 'react-icons/fi';
 import { getRecentSales, getSaleDetails } from '../services/api';
 
-const InvoiceList = ({ onNavigate }) => {
+const InvoiceList = ({ onNavigate, setReceiptData }) => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -96,9 +96,43 @@ const InvoiceList = ({ onNavigate }) => {
                       Rs. {parseFloat(inv.grand_total).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="text-center" style={{ paddingRight: 24 }}>
-                      <button className="btn btn-secondary btn-icon" onClick={() => handleView(inv.id)} title="View Detailed Receipt">
-                        <FiEye />
-                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                        <button className="btn btn-secondary btn-icon" onClick={() => handleView(inv.id)} title="View Detailed Receipt">
+                          <FiEye />
+                        </button>
+                        <button 
+                          className="btn btn-primary btn-icon" 
+                          onClick={async () => {
+                            try {
+                              const res = await getSaleDetails(inv.id);
+                              if (res.data?.success) {
+                                // Normalize for ReceiptModal
+                                const { invoice, items } = res.data.data;
+                                setReceiptData({
+                                  invoice_no: invoice.invoice_no,
+                                  customer: {
+                                    name: invoice.customer_name,
+                                    mobile: invoice.customer_mobile
+                                  },
+                                  sub_total: invoice.sub_total,
+                                  discount: invoice.discount,
+                                  grand_total: invoice.grand_total,
+                                  items: items.map(i => ({
+                                    name: i.item_name,
+                                    quantity: i.quantity,
+                                    price: i.price
+                                  }))
+                                });
+                              }
+                            } catch (err) {
+                              console.error('Print fetch failed', err);
+                            }
+                          }} 
+                          title="Quick Print A5 Invoice"
+                        >
+                          <FiPrinter />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

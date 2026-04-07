@@ -18,35 +18,126 @@ const ReceiptModal = ({ data, onClose }) => {
     fetchCompany();
   }, []);
 
+  useEffect(() => {
+    if (data && company.name) {
+      // Auto trigger print when data is ready
+      setTimeout(() => {
+        handlePrint();
+      }, 500);
+    }
+  }, [data, company]);
+
   const handlePrint = () => {
-    const printContent = receiptRef.current.innerHTML;
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
     printWindow.document.write(`
       <html>
         <head>
-          <title>Receipt - ${data.invoice_no}</title>
+          <title>Invoice - ${data.invoice_no}</title>
           <style>
-            body { font-family: 'Courier New', monospace; margin: 0; padding: 16px; font-size: 12px; color: #000; }
-            .receipt { padding: 0; }
-            .receipt-header { text-align: center; padding-bottom: 12px; border-bottom: 2px dashed #000; margin-bottom: 12px; }
-            .receipt-company { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
-            .receipt-address { font-size: 10px; color: #555; margin-bottom: 2px; }
-            .receipt-divider { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-            .receipt-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
-            .receipt-info-label { color: #555; }
-            .receipt-info-value { font-weight: 600; }
-            .receipt-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-            .receipt-table th { font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid #000; text-align: left; }
-            .receipt-table th:last-child, .receipt-table td:last-child { text-align: right; }
-            .receipt-table td { padding: 5px 0; font-size: 11px; border-bottom: 1px solid #eee; }
-            .receipt-totals { margin-top: 10px; padding-top: 8px; border-top: 2px dashed #000; }
-            .receipt-total-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
-            .receipt-total-row.grand { font-size: 15px; font-weight: 800; padding: 6px 0; border-top: 2px solid #000; margin-top: 4px; }
-            .receipt-footer { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 2px dashed #000; font-size: 11px; color: #555; }
+            @page { size: A5 portrait; margin: 10mm; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; font-size: 13px; color: #333; }
+            .invoice-wrapper { width: 148mm; box-sizing: border-box; }
+            .header-table { width: 100%; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .company-name { font-size: 20px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+            .company-info { font-size: 11px; line-height: 1.4; color: #555; }
+            .invoice-title { font-size: 24px; font-weight: 900; color: #000; text-align: right; }
+            
+            .meta-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .meta-group div { margin-bottom: 4px; }
+            .meta-label { font-weight: 700; color: #000; min-width: 90px; display: inline-block; }
+            
+            .item-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            .item-table th { background: #f4f4f4; border: 1px solid #000; padding: 8px; text-align: left; font-size: 11px; text-transform: uppercase; }
+            .item-table td { border: 1px solid #ccc; padding: 8px; font-size: 12px; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            
+            .totals-container { float: right; width: 220px; margin-top: 15px; }
+            .total-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+            .total-row.grand { border-bottom: 2px double #000; font-weight: 800; font-size: 15px; margin-top: 4px; padding: 8px 0; }
+            
+            .footer-section { clear: both; margin-top: 50px; border-top: 1px solid #ddd; padding-top: 15px; font-size: 10px; color: #777; }
+            .signature-box { border-top: 1px solid #000; width: 150px; margin-top: 40px; text-align: center; font-weight: 700; }
           </style>
         </head>
         <body>
-          ${printContent}
+          <div class="invoice-wrapper">
+            <table class="header-table">
+              <tr>
+                <td>
+                  <div class="company-name">${company.name || 'Ekamuthu Enterprises'}</div>
+                  <div class="company-info">
+                    ${company.address ? `<div>${company.address}</div>` : ''}
+                    ${company.phone ? `<div>Tel: ${company.phone}</div>` : ''}
+                    ${company.email ? `<div>Email: ${company.email}</div>` : ''}
+                  </div>
+                </td>
+                <td class="invoice-title">INVOICE</td>
+              </tr>
+            </table>
+
+            <div class="meta-section">
+              <div class="meta-group">
+                <div><span class="meta-label">Bill To:</span> ${data.customer?.name || 'Cash Customer'}</div>
+                <div><span class="meta-label">Contact:</span> ${data.customer?.mobile || '-'}</div>
+              </div>
+              <div class="meta-group text-right">
+                <div><span class="meta-label">Invoice #:</span> ${data.invoice_no}</div>
+                <div><span class="meta-label">Date:</span> ${formattedDate}</div>
+                <div><span class="meta-label">Time:</span> ${formattedTime}</div>
+              </div>
+            </div>
+
+            <table class="item-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px">#</th>
+                  <th>Item Description</th>
+                  <th class="text-center" style="width: 60px">Qty</th>
+                  <th class="text-right" style="width: 80px">Price</th>
+                  <th class="text-right" style="width: 90px">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.items.map((item, idx) => `
+                  <tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td><b>${item.name}</b></td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-right">${parseFloat(item.price).toFixed(2)}</td>
+                    <td class="text-right">${(item.price * item.quantity).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="totals-container">
+              <div class="total-row">
+                <span>Subtotal</span>
+                <span>${parseFloat(data.sub_total).toFixed(2)}</span>
+              </div>
+              ${data.discount > 0 ? `
+                <div class="total-row">
+                  <span>Discount</span>
+                  <span>- ${parseFloat(data.discount).toFixed(2)}</span>
+                </div>
+              ` : ''}
+              <div class="total-row grand">
+                <span>Total Due</span>
+                <span>Rs. ${parseFloat(data.grand_total).toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 60px; display: flex; justify-content: space-between;">
+               <div class="signature-box">Prepared By</div>
+               <div class="signature-box">Customer Signature</div>
+            </div>
+
+            <div class="footer-section">
+              <p>Terms: Goods once sold will not be taken back. This is a computer generated invoice.</p>
+              <div class="text-center" style="margin-top: 10px;"><b>Thank you for your business!</b></div>
+            </div>
+          </div>
           <script>window.onload = function(){ window.print(); window.close(); }<\/script>
         </body>
       </html>

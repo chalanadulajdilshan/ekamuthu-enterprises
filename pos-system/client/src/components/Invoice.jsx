@@ -10,7 +10,7 @@ import {
 import SearchableSelectModal from './SearchableSelectModal';
 import Swal from 'sweetalert2';
 
-const Invoice = ({ onBack }) => {
+const Invoice = ({ onBack, onComplete }) => {
   const [loading, setLoading] = useState(false);
 
   // Master Data
@@ -300,11 +300,31 @@ const Invoice = ({ onBack }) => {
         icon: 'success',
         title: 'Invoice Created!',
         text: 'The sales invoice has been successfully recorded.',
-        timer: 2000,
+        timer: 1500,
         showConfirmButton: false
       });
 
-      setTimeout(() => onBack(), 2000);
+      // Prepare normalized receipt data for the printer
+      const receiptPayload = {
+        invoice_no: 'SAVED', // The list refresh will show actual No.
+        customer: {
+          name: customerName,
+          mobile: formData.customer_mobile
+        },
+        sub_total: subTotal,
+        discount: totalDiscount,
+        grand_total: grandTotal,
+        items: formData.items.map(i => ({
+          name: i.item_name,
+          quantity: i.quantity,
+          price: i.price,
+        }))
+      };
+
+      setTimeout(() => {
+        if (onComplete) onComplete(receiptPayload);
+        else onBack();
+      }, 1500);
     } catch (err) {
       Swal.fire({
         icon: 'error',
