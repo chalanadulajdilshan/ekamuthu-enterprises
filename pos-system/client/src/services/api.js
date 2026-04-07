@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE = 'https://pos-ekamuthu.sourcecode.lk/api';
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalhost 
+    ? 'http://localhost:3001/api' 
+    : 'https://pos-ekamuthu.sourcecode.lk/api';
 
 const api = axios.create({
     baseURL: API_BASE,
@@ -48,5 +51,6 @@ export const getDashboardStats = () => api.get('/dashboard-stats');
 export const getGrns = () => api.get('/grn');
 export const createGrn = (data) => api.post('/grn', data);
 export const getNextGrnNo = () => api.get('/grn/next-no');
+export const getGrnDetails = (id) => api.get(`/grn/${id}`);
 
 export default api;

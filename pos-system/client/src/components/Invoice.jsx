@@ -358,14 +358,14 @@ const Invoice = ({ onBack }) => {
               <FiShoppingBag /> Add Products
             </div>
           </div>
-          <div className="card-body" style={{ background: '#f8fafc' }}>
+          <div className="card-body">
             <div className="form-grid" style={{ gridTemplateColumns: 'minmax(250px, 2fr) 1fr 1fr 1fr 1.5fr auto', gap: '15px', alignItems: 'end' }}>
               
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '13px' }}>Scan or Select Product *</label>
                 <button 
                   type="button"
-                  className="selection-trigger bg-white" 
+                  className="selection-trigger" 
                   onClick={() => setShowProductModal(true)}
                   style={{ height: '42px' }}
                 >
@@ -380,11 +380,11 @@ const Invoice = ({ onBack }) => {
                 <label className="form-label" style={{ fontSize: '13px' }}>Price</label>
                 <input 
                   type="number" 
-                  className="form-input bg-white" 
+                  className="form-input" 
                   value={currentItem.price}
                   onChange={(e) => setCurrentItem(prev => ({...prev, price: e.target.value}))}
                   readOnly
-                  style={{ height: '42px', color: 'var(--text-light)', backgroundColor: '#f1f5f9' }}
+                  style={{ height: '42px', color: 'var(--text-light)' }}
                 />
               </div>
 
@@ -392,7 +392,7 @@ const Invoice = ({ onBack }) => {
                 <label className="form-label" style={{ fontSize: '13px' }}>Qty *</label>
                 <input 
                   type="number" 
-                  className="form-input bg-white" 
+                  className="form-input" 
                   value={currentItem.quantity}
                   onChange={(e) => setCurrentItem(prev => ({...prev, quantity: e.target.value}))}
                   min="0.01" step="0.01"
@@ -404,7 +404,7 @@ const Invoice = ({ onBack }) => {
                 <label className="form-label" style={{ fontSize: '13px' }}>Discount (Amt)</label>
                 <input 
                   type="number" 
-                  className="form-input bg-white" 
+                  className="form-input" 
                   value={currentItem.discount}
                   onChange={(e) => setCurrentItem(prev => ({...prev, discount: e.target.value}))}
                   min="0" step="0.01"
@@ -437,10 +437,10 @@ const Invoice = ({ onBack }) => {
         <div className="form-grid" style={{ gridTemplateColumns: '3fr 1.5fr', gap: '24px' }}>
           
           {/* Item List */}
-          <div className="card shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
+          <div className="card shadow-sm">
             <div className="table-responsive">
               <table className="table">
-                <thead style={{ background: '#f8fafc' }}>
+                <thead>
                   <tr>
                     <th style={{ width: '40px' }}>#</th>
                     <th>Product details</th>
@@ -469,7 +469,7 @@ const Invoice = ({ onBack }) => {
                         </td>
                         <td className="text-right font-mono">{parseFloat(item.price).toFixed(2)}</td>
                         <td className="text-center">
-                          <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#475569', fontSize: '13px' }}>
+                          <span className="badge" style={{ fontSize: '13px' }}>
                             {item.quantity}
                           </span>
                         </td>
@@ -498,7 +498,7 @@ const Invoice = ({ onBack }) => {
           </div>
 
           {/* Grand Totals */}
-          <div className="card shadow-sm" style={{ border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+          <div className="card shadow-sm">
             <div className="card-body d-flex flex-column" style={{ height: '100%' }}>
               
               <div style={{ flex: 1 }}>

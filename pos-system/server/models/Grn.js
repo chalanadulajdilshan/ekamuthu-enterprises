@@ -97,6 +97,28 @@ class Grn {
             connection.release();
         }
     }
+
+    static async getById(id) {
+        const query = `
+            SELECT gm.*, s.name as supplier_name, dm.name as department_name, s.code as supplier_code
+            FROM grn_master gm
+            LEFT JOIN supplier_master s ON gm.supplier_id = s.id
+            LEFT JOIN department_master dm ON gm.department_id = dm.id
+            WHERE gm.id = ?
+        `;
+        const [grnRows] = await db.query(query, [id]);
+        
+        if (grnRows.length === 0) return null;
+
+        const [items] = await db.query('SELECT * FROM grn_items WHERE grn_id = ?', [id]);
+        const [company] = await db.query('SELECT * FROM company_profile WHERE id = 1');
+
+        return {
+            grn: grnRows[0],
+            items,
+            company: company[0] || {}
+        };
+    }
 }
 
 module.exports = Grn;

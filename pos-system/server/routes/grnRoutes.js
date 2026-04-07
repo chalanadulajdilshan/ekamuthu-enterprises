@@ -5,5 +5,6 @@ const grnController = require('../controllers/grnController');
 router.get('/', grnController.index);
 router.post('/', grnController.store);
 router.get('/next-no', grnController.getNextNo);
+router.get('/:id', grnController.show);
 
 module.exports = router;

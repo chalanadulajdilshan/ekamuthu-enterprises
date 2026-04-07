@@ -29,3 +29,16 @@ exports.getNextNo = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+exports.show = async (req, res) => {
+    try {
+        const grn = await Grn.getById(req.params.id);
+        if (!grn) {
+            return res.status(404).json({ success: false, message: 'GRN not found' });
+        }
+        res.json({ success: true, data: grn });
+    } catch (error) {
+        console.error('GrnController.show:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

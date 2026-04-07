@@ -6,7 +6,9 @@ import ItemMaster from './components/ItemMaster';
 import SupplierMaster from './components/SupplierMaster';
 import BrandMaster from './components/BrandMaster';
 import GRN from './components/GRN';
+import GRNList from './components/GRNList';
 import Invoice from './components/Invoice';
+import InvoiceList from './components/InvoiceList';
 import ReceiptModal from './components/ReceiptModal';
 import Settings from './components/Settings';
 import { getCompany } from './services/api';
@@ -16,8 +18,10 @@ const PAGE_META = {
   itemMaster:     { name: 'Item Master',      breadcrumb: 'Products → Item Master' },
   supplierMaster: { name: 'Supplier Master',  breadcrumb: 'Masters → Suppliers' },
   brandMaster:    { name: 'Brand Master',     breadcrumb: 'Masters → Brands' },
-  grn:            { name: 'GRN',              breadcrumb: 'Inventory → GRN' },
-  invoice:        { name: 'Sales Invoice',    breadcrumb: 'Sales → Invoice' },
+  grn:            { name: 'GRN List',         breadcrumb: 'Inventory → GRN' },
+  grn_new:        { name: 'Create GRN',       breadcrumb: 'Inventory → GRN → Create' },
+  invoice:        { name: 'Sales Invoices',   breadcrumb: 'Sales → Invoices' },
+  invoice_new:    { name: 'New Invoice',      breadcrumb: 'Sales → Invoices → Create' },
   settings:       { name: 'Settings',         breadcrumb: 'System → Settings' },
 };
 
@@ -139,8 +143,10 @@ function App() {
           {currentView === 'itemMaster'     && <ItemMaster />}
           {currentView === 'supplierMaster' && <SupplierMaster />}
           {currentView === 'brandMaster'    && <BrandMaster />}
-          {currentView === 'grn'            && <GRN onBack={() => setCurrentView('dashboard')} />}
-          {currentView === 'invoice'        && <Invoice onBack={() => setCurrentView('dashboard')} />}
+          {currentView === 'grn'            && <GRNList onNavigate={setCurrentView} />}
+          {currentView === 'grn_new'        && <GRN onBack={() => setCurrentView('grn')} />}
+          {currentView === 'invoice'        && <InvoiceList onNavigate={setCurrentView} />}
+          {currentView === 'invoice_new'    && <Invoice onBack={() => setCurrentView('invoice')} />}
           {currentView === 'settings'       && <Settings theme={theme} onThemeChange={handleThemeChange} />}
         </div>
       </div>

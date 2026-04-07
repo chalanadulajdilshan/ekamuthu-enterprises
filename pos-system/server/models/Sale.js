@@ -37,19 +37,16 @@ class Sale {
             // 1. Insert sales_invoice header (final_cost will be updated after calculating from batches)
             const [invoiceResult] = await connection.query(
                 `INSERT INTO sales_invoice (
-                    ref_id, invoice_type, invoice_no, invoice_date, company_id,
-                    customer_id, customer_name, customer_mobile, customer_address,
-                    recommended_person, department_id, sale_type, discount_type,
-                    final_cost, payment_type, sub_total, discount, tax, grand_total,
-                    outstanding_settle_amount, remark, credit_period, due_date
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    invoice_no, invoice_date, customer_id, customer_name, customer_mobile, 
+                    customer_address, department_id, payment_type, sub_total, 
+                    discount, tax, grand_total, final_cost, status, remark
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    '', 'POS', invoice_no, invoice_date, 1,
-                    customer_id || 0, customer_name || 'Walk-in Customer',
-                    customer_mobile || '', customer_address || '',
-                    '', department_id || 1, payment_type == 2 ? 2 : 1, 1,
-                    0, payment_type || 1, sub_total, discount || 0,
-                    tax || 0, grand_total, 0, remark || 'POS Sale', 0, null
+                    invoice_no, invoice_date, customer_id || 0, 
+                    customer_name || 'Walk-in Customer', customer_mobile || '', 
+                    customer_address || '', department_id || 1, payment_type || 1, 
+                    sub_total, discount || 0, tax || 0, grand_total, 
+                    0, 1, remark || 'POS Sale'
                 ]
             );
 
@@ -81,15 +78,18 @@ class Sale {
 
                 totalFinalCost += totalItemCost;
                 const unitCost = item.quantity > 0 ? (totalItemCost / item.quantity) : 0;
+                
+                // Calculate item-level total: (price * qty) - discount
+                const itemTotal = (item.price * item.quantity) - (item.discount || 0);
 
                 await connection.query(
                     `INSERT INTO sales_invoice_items (
-                        invoice_id, item_code, item_name, service_item_code,
-                        quantity, cost, price, discount
+                        invoice_id, item_code, item_name,
+                        quantity, cost, price, discount, total
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
-                        invoiceId, item.code, item.name, '',
-                        item.quantity, unitCost, item.price, item.discount || 0
+                        invoiceId, item.item_code || item.code, item.item_name || item.name,
+                        item.quantity, unitCost, item.price, item.discount || 0, itemTotal
                     ]
                 );
             }

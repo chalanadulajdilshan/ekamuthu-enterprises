@@ -2,11 +2,11 @@ const db = require('../config/db');
 
 class Customer {
     static async getAll(search = '') {
-        let query = 'SELECT id, code, name, mobile, address, email FROM customer_master WHERE 1=1';
+        let query = 'SELECT id, code, name, mobile_number, address FROM customer_master WHERE 1=1';
         const params = [];
 
         if (search) {
-            query += ` AND (name LIKE ? OR code LIKE ? OR mobile LIKE ?)`;
+            query += ` AND (name LIKE ? OR code LIKE ? OR mobile_number LIKE ?)`;
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
 

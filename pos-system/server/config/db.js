@@ -1,10 +1,12 @@
 const mysql = require('mysql2/promise');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const pool = mysql.createPool({
     host: 'localhost',
-    user: 'chalcepi_ekamuthu',
-    password: '!}}c~bOdZR#g',
-    database: 'chalcepi_ekamuthu',
+    user: isProd ? 'chalcepi_ekamuthu' : 'root',
+    password: isProd ? '!}}c~bOdZR#g' : '',
+    database: isProd ? 'chalcepi_ekamuthu' : 'ekamuthu-enterprises',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
