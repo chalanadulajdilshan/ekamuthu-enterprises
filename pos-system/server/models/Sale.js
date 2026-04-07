@@ -57,6 +57,17 @@ class Sale {
                 let remainingToDeduct = item.quantity;
                 let totalItemCost = 0;
 
+                // Validate sufficient stock before billing
+                const [stockCheck] = await connection.query(
+                    `SELECT SUM(qty_remaining) as total_stock FROM item_batches WHERE item_id = ?`,
+                    [item.item_id]
+                );
+                const availableStock = stockCheck[0].total_stock || 0;
+                
+                if (availableStock < item.quantity) {
+                    throw new Error(`Insufficient stock for item [${item.item_code || item.item_id}]. Available: ${availableStock}, Requested: ${item.quantity}`);
+                }
+
                 // Fetch batches in FIFO order
                 const [batches] = await connection.query(
                     `SELECT id, qty_remaining, cost_price FROM item_batches WHERE item_id = ? AND qty_remaining > 0 ORDER BY created_at ASC`,

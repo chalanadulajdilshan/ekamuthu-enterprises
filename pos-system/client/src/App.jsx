@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import ItemMaster from './components/ItemMaster';
 import SupplierMaster from './components/SupplierMaster';
 import BrandMaster from './components/BrandMaster';
+import LiveStock from './components/LiveStock';
 import GRN from './components/GRN';
 import GRNList from './components/GRNList';
 import Invoice from './components/Invoice';
@@ -18,6 +19,7 @@ const PAGE_META = {
   itemMaster:     { name: 'Item Master',      breadcrumb: 'Products → Item Master' },
   supplierMaster: { name: 'Supplier Master',  breadcrumb: 'Masters → Suppliers' },
   brandMaster:    { name: 'Brand Master',     breadcrumb: 'Masters → Brands' },
+  liveStock:      { name: 'Live Stock',       breadcrumb: 'Inventory → Live Stock' },
   grn:            { name: 'GRN List',         breadcrumb: 'Inventory → GRN' },
   grn_new:        { name: 'Create GRN',       breadcrumb: 'Inventory → GRN → Create' },
   invoice:        { name: 'Sales Invoices',   breadcrumb: 'Sales → Invoices' },
@@ -143,6 +145,7 @@ function App() {
           {currentView === 'itemMaster'     && <ItemMaster />}
           {currentView === 'supplierMaster' && <SupplierMaster />}
           {currentView === 'brandMaster'    && <BrandMaster />}
+          {currentView === 'liveStock'      && <LiveStock />}
           {currentView === 'grn'            && <GRNList onNavigate={setCurrentView} />}
           {currentView === 'grn_new'        && <GRN onBack={() => setCurrentView('grn')} />}
           {currentView === 'invoice'        && <InvoiceList onNavigate={setCurrentView} />}

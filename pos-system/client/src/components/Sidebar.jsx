@@ -1,4 +1,4 @@
-import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink, FiSettings, FiShoppingCart } from 'react-icons/fi';
+import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink, FiSettings, FiShoppingCart, FiBox } from 'react-icons/fi';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: FiHome },
@@ -6,6 +6,7 @@ const navItems = [
   { id: 'itemMaster', label: 'Products', icon: FiPackage },
   { id: 'supplierMaster', label: 'Suppliers', icon: FiTruck },
   { id: 'brandMaster', label: 'Brands', icon: FiTag },
+  { id: 'liveStock', label: 'Live Stock', icon: FiBox },
   { id: 'grn', label: 'GRN (Receipt)', icon: FiPackage },
 ];
 

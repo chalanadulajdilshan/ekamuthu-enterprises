@@ -49,7 +49,8 @@ const Invoice = ({ onBack }) => {
     quantity: 1,
     price: 0, // retail price
     discount: 0,
-    unit_total: 0
+    unit_total: 0,
+    available_qty: 0
   });
 
   // Global runtime error visibility (so silent failures on live become visible).
@@ -148,7 +149,8 @@ const Invoice = ({ onBack }) => {
       item_code: pcode,
       item_name: pname,
       price: Number(product.invoice_price ?? product.retail_price ?? 0) || 0,
-      discount: 0
+      discount: 0,
+      available_qty: Number(product.available_qty || 0)
     }));
     setError('');
   };
@@ -204,6 +206,19 @@ const Invoice = ({ onBack }) => {
       window.alert(m);
       return;
     }
+
+    // Check against available stock
+    const alreadyAddedQty = formData.items
+      .filter(i => i.item_id === currentItem.item_id)
+      .reduce((sum, i) => sum + parseFloat(i.quantity), 0);
+      
+    if ((qty + alreadyAddedQty) > currentItem.available_qty) {
+      const m = `Insufficient stock for ${currentItem.item_code}!\nAvailable: ${currentItem.available_qty}\nAlready in invoice: ${alreadyAddedQty}\nRequested: ${qty}\n\nYou cannot bill more than what is in stock.`;
+      setError(m);
+      window.alert(m);
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       items: [...prev.items, { ...currentItem, id: Date.now() }]
@@ -216,7 +231,8 @@ const Invoice = ({ onBack }) => {
       quantity: 1,
       price: 0,
       discount: 0,
-      unit_total: 0
+      unit_total: 0,
+      available_qty: 0
     });
     setError('');
   };
