@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FiShoppingBag, FiUser, FiCalendar, FiFileText, FiPlus, FiTrash2, 
+import {
+  FiShoppingBag, FiUser, FiCalendar, FiFileText, FiPlus, FiTrash2,
   FiSave, FiArrowLeft, FiSearch, FiShoppingCart, FiCreditCard,
   FiMapPin, FiCheckCircle
 } from 'react-icons/fi';
-import { 
-  getCustomers, getDepartments, getProducts, createSale 
+import {
+  getCustomers, getDepartments, getProducts, createSale
 } from '../services/api';
 import SearchableSelectModal from './SearchableSelectModal';
 import Swal from 'sweetalert2';
@@ -14,18 +14,18 @@ const Invoice = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Master Data
   const [customers, setCustomers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [products, setProducts] = useState([]);
-  
+
   // Modal States
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showDepartmentModal, setShowDepartmentModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showPaymentTypeModal, setShowPaymentTypeModal] = useState(false);
-  
+
   // Form State
   const [formData, setFormData] = useState({
     customer_id: '',
@@ -64,11 +64,11 @@ const Invoice = ({ onBack }) => {
         getDepartments(),
         getProducts({ all: true })
       ]);
-      
+
       setCustomers(custRes.data?.data || (Array.isArray(custRes.data) ? custRes.data : []));
       setDepartments(deptRes.data?.data || (Array.isArray(deptRes.data) ? deptRes.data : []));
       setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
-      
+
     } catch (err) {
       console.error('Invoice fetch error:', err);
       setError('Failed to load initial data. ' + (err.response?.data?.message || err.message));
@@ -82,7 +82,7 @@ const Invoice = ({ onBack }) => {
     const listPrice = parseFloat(currentItem.price) || 0;
     const q = parseFloat(currentItem.quantity) || 0;
     const d = parseFloat(currentItem.discount) || 0;
-    
+
     let discountedPrice = listPrice - d;
     if (discountedPrice < 0) discountedPrice = 0;
 
@@ -119,7 +119,7 @@ const Invoice = ({ onBack }) => {
 
   const getCustomerName = () => {
     if (formData.customer_id) {
-       return `${formData.customer_name} ${formData.customer_mobile ? `(${formData.customer_mobile})` : ''}`;
+      return `${formData.customer_name} ${formData.customer_mobile ? `(${formData.customer_mobile})` : ''}`;
     }
     return formData.customer_name ? formData.customer_name : 'Walk-in Customer (Select or Type)';
   };
@@ -140,7 +140,7 @@ const Invoice = ({ onBack }) => {
 
   const addItem = () => {
     if (!currentItem.item_id || !currentItem.quantity) {
-      setError(`Cannot add item: Missing Product ID (${currentItem.item_id}) or Quantity (${currentItem.quantity}). Please re-select the product.`);
+      setError('Please select an item and enter quantity');
       return;
     }
     setFormData(prev => ({
@@ -172,10 +172,10 @@ const Invoice = ({ onBack }) => {
     const itemDiscounts = formData.items.reduce((acc, item) => acc + (parseFloat(item.discount) * parseFloat(item.quantity)), 0);
     const globalDiscount = parseFloat(formData.discount) || 0;
     const globalTax = parseFloat(formData.tax) || 0;
-    
+
     // Grand total = (SubTotal - itemDiscounts - globalDiscount) + globalTax
     const grandTotal = (subTotal - itemDiscounts - globalDiscount) + globalTax;
-    
+
     return {
       subTotal: subTotal.toFixed(2),
       itemDiscounts: itemDiscounts.toFixed(2),
@@ -193,18 +193,18 @@ const Invoice = ({ onBack }) => {
       setError('Please add at least one item to the invoice');
       return;
     }
-    
+
     // Walk-in logic handling
     let customerName = formData.customer_name.trim();
     if (!customerName) {
-        customerName = 'Walk-in Customer';
+      customerName = 'Walk-in Customer';
     }
 
     try {
       setLoading(true);
       setError('');
       const { subTotal, totalDiscount, tax, grandTotal } = calculateTotals();
-      
+
       const payload = {
         ...formData,
         customer_name: customerName,
@@ -214,17 +214,17 @@ const Invoice = ({ onBack }) => {
         tax: tax,
         grand_total: grandTotal
       };
-      
+
       await createSale(payload);
-      
+
       Swal.fire({
-          icon: 'success',
-          title: 'Invoice Created!',
-          text: 'The sales invoice has been successfully recorded.',
-          timer: 2000,
-          showConfirmButton: false
+        icon: 'success',
+        title: 'Invoice Created!',
+        text: 'The sales invoice has been successfully recorded.',
+        timer: 2000,
+        showConfirmButton: false
       });
-      
+
       setTimeout(() => onBack(), 2000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save Invoice');
@@ -261,42 +261,42 @@ const Invoice = ({ onBack }) => {
               <div className="form-group span-2">
                 <label className="form-label">Customer</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <button 
+                  <button
                     type="button"
-                    className="selection-trigger" 
+                    className="selection-trigger"
                     onClick={() => setShowCustomerModal(true)}
                     style={{ flex: 1 }}
-                    >
+                  >
                     <span className={formData.customer_id || formData.customer_name ? "selection-trigger-value" : "selection-trigger-placeholder"}>
-                        <FiUser style={{ marginRight: 8, opacity: 0.7 }} />
-                        {getCustomerName()}
+                      <FiUser style={{ marginRight: 8, opacity: 0.7 }} />
+                      {getCustomerName()}
                     </span>
                     <FiSearch className="trigger-icon" />
+                  </button>
+                  {formData.customer_id && (
+                    <button type="button" className="btn btn-secondary" onClick={() => setFormData(prev => ({ ...prev, customer_id: '', customer_name: '', customer_mobile: '', customer_address: '' }))}>
+                      Clear
                     </button>
-                    {formData.customer_id && (
-                        <button type="button" className="btn btn-secondary" onClick={() => setFormData(prev => ({...prev, customer_id: '', customer_name: '', customer_mobile: '', customer_address: ''}))}>
-                            Clear
-                        </button>
-                    )}
+                  )}
                 </div>
               </div>
               <div className="form-group">
                 <label className="form-label">Customer Name (Manual)</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={formData.customer_name} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, customer_name: e.target.value, customer_id: '' }))} 
-                  placeholder="Walk-in Customer Name" 
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customer_name: e.target.value, customer_id: '' }))}
+                  placeholder="Walk-in Customer Name"
                   disabled={formData.customer_id !== ''}
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Department *</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowDepartmentModal(true)}
                   style={{ borderColor: !formData.department_id ? 'var(--danger)' : '' }}
                 >
@@ -312,9 +312,9 @@ const Invoice = ({ onBack }) => {
                 <label className="form-label">Date *</label>
                 <div className="input-with-icon">
                   <FiCalendar className="input-icon" />
-                  <input 
-                    type="date" 
-                    className="form-input" 
+                  <input
+                    type="date"
+                    className="form-input"
                     value={formData.invoice_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, invoice_date: e.target.value }))}
                     required
@@ -324,9 +324,9 @@ const Invoice = ({ onBack }) => {
 
               <div className="form-group">
                 <label className="form-label">Payment Type *</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowPaymentTypeModal(true)}
                 >
                   <span className="selection-trigger-value">
@@ -339,9 +339,9 @@ const Invoice = ({ onBack }) => {
 
               <div className="form-group span-2">
                 <label className="form-label">Remarks</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
+                <input
+                  type="text"
+                  className="form-input"
                   value={formData.remark}
                   onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
                   placeholder="Optional transaction notes"
@@ -360,12 +360,12 @@ const Invoice = ({ onBack }) => {
           </div>
           <div className="card-body">
             <div className="form-grid" style={{ gridTemplateColumns: 'minmax(250px, 2fr) 1fr 1fr 1fr 1.5fr auto', gap: '15px', alignItems: 'end' }}>
-              
+
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '13px' }}>Scan or Select Product *</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowProductModal(true)}
                   style={{ height: '42px' }}
                 >
@@ -378,11 +378,11 @@ const Invoice = ({ onBack }) => {
 
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '13px' }}>Price</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
+                <input
+                  type="number"
+                  className="form-input"
                   value={currentItem.price}
-                  onChange={(e) => setCurrentItem(prev => ({...prev, price: e.target.value}))}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, price: e.target.value }))}
                   readOnly
                   style={{ height: '42px', color: 'var(--text-light)' }}
                 />
@@ -390,11 +390,11 @@ const Invoice = ({ onBack }) => {
 
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '13px' }}>Qty *</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
+                <input
+                  type="number"
+                  className="form-input"
                   value={currentItem.quantity}
-                  onChange={(e) => setCurrentItem(prev => ({...prev, quantity: e.target.value}))}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, quantity: e.target.value }))}
                   min="0.01" step="0.01"
                   style={{ height: '42px', fontWeight: 'bold' }}
                 />
@@ -402,11 +402,11 @@ const Invoice = ({ onBack }) => {
 
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '13px' }}>Discount (Amt)</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
+                <input
+                  type="number"
+                  className="form-input"
                   value={currentItem.discount}
-                  onChange={(e) => setCurrentItem(prev => ({...prev, discount: e.target.value}))}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, discount: e.target.value }))}
                   min="0" step="0.01"
                   style={{ height: '42px' }}
                 />
@@ -420,9 +420,9 @@ const Invoice = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <button 
-                  type="button" 
-                  className="btn btn-primary" 
+                <button
+                  type="button"
+                  className="btn btn-primary"
                   onClick={addItem}
                   style={{ height: '42px', width: '100%' }}
                 >
@@ -435,7 +435,7 @@ const Invoice = ({ onBack }) => {
 
         {/* Invoice Summary Area */}
         <div className="form-grid" style={{ gridTemplateColumns: '3fr 1.5fr', gap: '24px' }}>
-          
+
           {/* Item List */}
           <div className="card shadow-sm">
             <div className="table-responsive">
@@ -455,8 +455,8 @@ const Invoice = ({ onBack }) => {
                   {formData.items.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="text-center" style={{ padding: '40px 20px', color: '#94a3b8' }}>
-                         <FiShoppingCart style={{ fontSize: '48px', opacity: 0.2, marginBottom: '12px', display: 'inline-block' }} />
-                         <p>No items added yet. Scan or search above to start.</p>
+                        <FiShoppingCart style={{ fontSize: '48px', opacity: 0.2, marginBottom: '12px', display: 'inline-block' }} />
+                        <p>No items added yet. Scan or search above to start.</p>
                       </td>
                     </tr>
                   ) : (
@@ -480,8 +480,8 @@ const Invoice = ({ onBack }) => {
                           {item.unit_total}
                         </td>
                         <td className="text-right">
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="btn btn-icon danger-icon"
                             onClick={() => removeItem(item.id)}
                             style={{ background: '#fee2e2', color: '#ef4444' }}
@@ -500,13 +500,13 @@ const Invoice = ({ onBack }) => {
           {/* Grand Totals */}
           <div className="card shadow-sm">
             <div className="card-body d-flex flex-column" style={{ height: '100%' }}>
-              
+
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '15px' }}>
                   <span className="text-secondary">Total Items:</span>
                   <span className="fw-bold">{formData.items.length} ({totals.totalQty} qty)</span>
                 </div>
-                
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '15px' }}>
                   <span className="text-secondary">Sub Total:</span>
                   <span className="font-mono fw-bold">{totals.subTotal}</span>
@@ -515,23 +515,23 @@ const Invoice = ({ onBack }) => {
                 <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '16px', marginBottom: '16px' }}>
                   <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <label className="form-label mb-0">Global Discount</label>
-                    <input 
-                      type="number" 
-                      className="form-input text-right font-mono" 
+                    <input
+                      type="number"
+                      className="form-input text-right font-mono"
                       style={{ width: '120px', padding: '4px 8px', height: '32px' }}
                       value={formData.discount}
-                      onChange={(e) => setFormData(prev => ({...prev, discount: e.target.value}))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, discount: e.target.value }))}
                     />
                   </div>
-                  
+
                   <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <label className="form-label mb-0">Tax</label>
-                    <input 
-                      type="number" 
-                      className="form-input text-right font-mono" 
+                    <input
+                      type="number"
+                      className="form-input text-right font-mono"
                       style={{ width: '120px', padding: '4px 8px', height: '32px' }}
                       value={formData.tax}
-                      onChange={(e) => setFormData(prev => ({...prev, tax: e.target.value}))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tax: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -542,10 +542,10 @@ const Invoice = ({ onBack }) => {
                 </div>
               </div>
 
-              <div style={{ 
-                background: 'var(--primary)', 
-                color: 'white', 
-                padding: '20px', 
+              <div style={{
+                background: 'var(--primary)',
+                color: 'white',
+                padding: '20px',
                 borderRadius: '12px',
                 marginTop: '16px',
                 boxShadow: '0 10px 20px -5px rgba(var(--primary-rgb), 0.4)'
@@ -559,14 +559,14 @@ const Invoice = ({ onBack }) => {
               {error && <div className="alert alert-danger mt-3" style={{ padding: '10px', fontSize: '14px' }}>{error}</div>}
               {success && <div className="alert alert-success mt-3" style={{ padding: '10px', fontSize: '14px' }}>{success}</div>}
 
-              <button 
-                type="submit" 
-                className="btn btn-primary mt-3" 
+              <button
+                type="submit"
+                className="btn btn-primary mt-3"
                 disabled={loading || formData.items.length === 0}
                 style={{ width: '100%', height: '54px', fontSize: '16px', fontWeight: 'bold' }}
               >
                 {loading ? 'Processing...' : (
-                   <><FiCheckCircle style={{ marginRight: '8px', fontSize: '20px' }} /> COMPLETE SALE</>
+                  <><FiCheckCircle style={{ marginRight: '8px', fontSize: '20px' }} /> COMPLETE SALE</>
                 )}
               </button>
             </div>

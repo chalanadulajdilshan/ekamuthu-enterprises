@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FiPackage, FiUser, FiCalendar, FiFileText, FiPlus, FiTrash2, 
+import {
+  FiPackage, FiUser, FiCalendar, FiFileText, FiPlus, FiTrash2,
   FiSave, FiArrowLeft, FiSearch, FiShoppingCart, FiCreditCard,
   FiMapPin, FiTruck
 } from 'react-icons/fi';
-import { 
-  getSuppliers, getDepartments, getProducts, createGrn, getNextGrnNo 
+import {
+  getSuppliers, getDepartments, getProducts, createGrn, getNextGrnNo
 } from '../services/api';
 import SearchableSelectModal from './SearchableSelectModal';
 
@@ -13,18 +13,18 @@ const GRN = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Master Data
   const [suppliers, setSuppliers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [products, setProducts] = useState([]);
-  
+
   // Modal States
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showDepartmentModal, setShowDepartmentModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showPaymentTypeModal, setShowPaymentTypeModal] = useState(false);
-  
+
   // Form State
   const [formData, setFormData] = useState({
     arn_no: '',
@@ -68,11 +68,11 @@ const GRN = ({ onBack }) => {
         getProducts({ all: true }),
         getNextGrnNo()
       ]);
-      
+
       setSuppliers(suppRes.data?.data || (Array.isArray(suppRes.data) ? suppRes.data : []));
       setDepartments(deptRes.data?.data || (Array.isArray(deptRes.data) ? deptRes.data : []));
       setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
-      
+
       const nextNo = nextNoRes.data?.data || nextNoRes.data;
       setFormData(prev => ({ ...prev, arn_no: nextNo }));
     } catch (err) {
@@ -87,7 +87,7 @@ const GRN = ({ onBack }) => {
   useEffect(() => {
     const listPrice = parseFloat(currentItem.list_price) || 0;
     const q = parseFloat(currentItem.quantity) || 0;
-    
+
     // Apply cascading discounts
     let discountedPrice = listPrice;
     [1, 2, 3, 4, 5].forEach(i => {
@@ -101,8 +101,8 @@ const GRN = ({ onBack }) => {
       unit_total: (discountedPrice * q).toFixed(2)
     }));
   }, [
-    currentItem.list_price, currentItem.quantity, 
-    currentItem.discount_1, currentItem.discount_2, currentItem.discount_3, 
+    currentItem.list_price, currentItem.quantity,
+    currentItem.discount_1, currentItem.discount_2, currentItem.discount_3,
     currentItem.discount_4, currentItem.discount_5
   ]);
 
@@ -140,7 +140,7 @@ const GRN = ({ onBack }) => {
 
   const addItem = () => {
     if (!currentItem.item_id || !currentItem.quantity) {
-      setError(`Cannot add item: Missing Product ID (${currentItem.item_id}) or Quantity (${currentItem.quantity}). Please re-select the product.`);
+      setError('Please select an item and enter quantity');
       return;
     }
     setFormData(prev => ({
@@ -177,7 +177,7 @@ const GRN = ({ onBack }) => {
     const subTotal = formData.items.reduce((acc, item) => acc + (parseFloat(item.list_price) * parseFloat(item.quantity)), 0);
     const grandTotal = formData.items.reduce((acc, item) => acc + parseFloat(item.unit_total), 0);
     const totalDiscount = subTotal - grandTotal;
-    
+
     return {
       subTotal: subTotal.toFixed(2),
       totalDiscount: totalDiscount.toFixed(2),
@@ -201,14 +201,14 @@ const GRN = ({ onBack }) => {
       setLoading(true);
       setError('');
       const { subTotal, totalDiscount, grandTotal } = calculateTotals();
-      
+
       const payload = {
         ...formData,
         sub_total: subTotal,
         total_discount: totalDiscount,
         total_arn_value: grandTotal
       };
-      
+
       await createGrn(payload);
       setSuccess('GRN Saved successfully and stock updated!');
       setTimeout(() => onBack(), 2000);
@@ -235,14 +235,11 @@ const GRN = ({ onBack }) => {
           </div>
         </div>
         <div className="page-actions">
-           <span className="badge badge-primary" style={{ fontSize: '14px', padding: '6px 12px' }}>ARN No: {formData.arn_no}</span>
+          <span className="badge badge-primary" style={{ fontSize: '14px', padding: '6px 12px' }}>ARN No: {formData.arn_no}</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {error && <div className="alert alert-danger mb-4" style={{ padding: '15px', borderRadius: 'var(--radius)', backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #f87171' }}><strong>Error:</strong> {error}</div>}
-        {success && <div className="alert alert-success mb-4" style={{ padding: '15px', borderRadius: 'var(--radius)', backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #4ade80' }}><strong>Success:</strong> {success}</div>}
-        
         {/* Main Info Card */}
         <div className="card mb-4 shadow-sm">
           <div className="card-header">
@@ -256,9 +253,9 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Supplier</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowSupplierModal(true)}
                 >
                   <span className={formData.supplier_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>
@@ -271,9 +268,9 @@ const GRN = ({ onBack }) => {
 
               <div className="form-group">
                 <label className="form-label">Department / Location</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowDepartmentModal(true)}
                 >
                   <span className={formData.department_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>
@@ -285,38 +282,38 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Entry Date</label>
-                <input 
-                  type="date" 
-                  className="form-input" 
+                <input
+                  type="date"
+                  className="form-input"
                   value={formData.entry_date}
-                  onChange={(e) => setFormData({...formData, entry_date: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, entry_date: e.target.value })}
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Invoice Number</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Supplier Invoice #"
                   className="form-input"
                   value={formData.invoice_no}
-                  onChange={(e) => setFormData({...formData, invoice_no: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, invoice_no: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label className="form-label">Invoice Date</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   className="form-input"
                   value={formData.invoice_date}
-                  onChange={(e) => setFormData({...formData, invoice_date: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, invoice_date: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label className="form-label">Payment Type</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowPaymentTypeModal(true)}
                 >
                   <span className={formData.payment_type ? "selection-trigger-value" : "selection-trigger-placeholder"}>
@@ -328,12 +325,12 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Remarks</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="form-input"
                   placeholder="Notes..."
                   value={formData.remark}
-                  onChange={(e) => setFormData({...formData, remark: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                 />
               </div>
             </div>
@@ -349,9 +346,9 @@ const GRN = ({ onBack }) => {
             <div className="form-grid form-grid-4" style={{ rowGap: '20px' }}>
               <div className="form-group span-2">
                 <label className="form-label">Select Product</label>
-                <button 
+                <button
                   type="button"
-                  className="selection-trigger" 
+                  className="selection-trigger"
                   onClick={() => setShowProductModal(true)}
                   style={{ height: '42px' }}
                 >
@@ -364,20 +361,20 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Received Qty</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
+                <input
+                  type="number"
+                  className="form-input"
                   value={currentItem.quantity}
-                  onChange={(e) => setCurrentItem({...currentItem, quantity: e.target.value})}
+                  onChange={(e) => setCurrentItem({ ...currentItem, quantity: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label className="form-label">List Price (Cost)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   className="form-input"
                   value={currentItem.list_price}
-                  onChange={(e) => setCurrentItem({...currentItem, list_price: e.target.value})}
+                  onChange={(e) => setCurrentItem({ ...currentItem, list_price: e.target.value })}
                 />
               </div>
             </div>
@@ -386,12 +383,12 @@ const GRN = ({ onBack }) => {
               {[1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="form-group">
                   <label className="form-label" style={{ fontSize: '10px' }}>Dis {i} %</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     className="form-input"
                     style={{ padding: '6px' }}
                     value={currentItem[`discount_${i}`]}
-                    onChange={(e) => setCurrentItem({...currentItem, [`discount_${i}`]: e.target.value})}
+                    onChange={(e) => setCurrentItem({ ...currentItem, [`discount_${i}`]: e.target.value })}
                   />
                 </div>
               ))}
@@ -404,11 +401,11 @@ const GRN = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">New Selling Price</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   className="form-input"
                   value={currentItem.invoice_price}
-                  onChange={(e) => setCurrentItem({...currentItem, invoice_price: e.target.value})}
+                  onChange={(e) => setCurrentItem({ ...currentItem, invoice_price: e.target.value })}
                 />
               </div>
               <div className="form-group">
@@ -456,14 +453,14 @@ const GRN = ({ onBack }) => {
                       <td><span className="badge badge-primary">{item.item_code}</span></td>
                       <td style={{ fontWeight: 600 }}>{item.item_name}</td>
                       <td style={{ textAlign: 'center', fontWeight: 800 }}>{item.quantity}</td>
-                      <td style={{ textAlign: 'right' }}>{parseFloat(item.list_price).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                      <td style={{ textAlign: 'right' }}>{parseFloat(item.list_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       <td style={{ textAlign: 'center' }}>
                         <small className="text-muted">
-                          {[1,2,3,4,5].filter(i => item[`discount_${i}`] > 0).map(i => `${item[`discount_${i}`]}%`).join(' + ') || '0%'}
+                          {[1, 2, 3, 4, 5].filter(i => item[`discount_${i}`] > 0).map(i => `${item[`discount_${i}`]}%`).join(' + ') || '0%'}
                         </small>
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{parseFloat(item.actual_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 800 }}>{parseFloat(item.unit_total).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{parseFloat(item.actual_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 800 }}>{parseFloat(item.unit_total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       <td style={{ textAlign: 'center' }}>
                         <button type="button" className="btn btn-danger btn-sm" style={{ padding: '6px' }} onClick={() => removeItem(item.id)}>
                           <FiTrash2 />
@@ -480,38 +477,40 @@ const GRN = ({ onBack }) => {
         {/* Footer Summary & Submit */}
         <div className="form-grid form-grid-2 mb-5" style={{ alignItems: 'flex-start' }}>
           <div className="card h-100">
-             <div className="card-body">
-                
-                <div className="form-group mb-4">
-                  <label className="form-label">Final Remark</label>
-                  <textarea className="form-textarea" placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData({...formData, remark: e.target.value})}></textarea>
-                </div>
+            <div className="card-body">
+              {error && <div className="badge badge-danger w-100 mb-3" style={{ padding: '10px', borderRadius: 'var(--radius)' }}>{error}</div>}
+              {success && <div className="badge badge-success w-100 mb-3" style={{ padding: '10px', borderRadius: 'var(--radius)' }}>{success}</div>}
 
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary btn-lg" 
-                    disabled={loading || formData.items.length === 0}
-                    style={{ flex: 2 }}
-                  >
-                    <FiSave /> {loading ? 'Saving...' : 'Confirm & Save GRN'}
-                  </button>
-                  <button type="button" className="btn btn-secondary btn-lg" onClick={onBack} style={{ flex: 1 }}>
-                    Cancel
-                  </button>
-                </div>
-             </div>
+              <div className="form-group mb-4">
+                <label className="form-label">Final Remark</label>
+                <textarea className="form-textarea" placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })}></textarea>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg"
+                  disabled={loading || formData.items.length === 0}
+                  style={{ flex: 2 }}
+                >
+                  <FiSave /> {loading ? 'Saving...' : 'Confirm & Save GRN'}
+                </button>
+                <button type="button" className="btn btn-secondary btn-lg" onClick={onBack} style={{ flex: 1 }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="card" style={{ background: 'var(--bg)' }}>
             <div className="card-body">
               <div className="summary-row">
                 <span>Sub Total:</span>
-                <span className="fw-bold">{parseFloat(totals.subTotal).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="fw-bold">{parseFloat(totals.subTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="summary-row" style={{ color: 'var(--danger)' }}>
                 <span>Total Discount:</span>
-                <span className="fw-bold">-{parseFloat(totals.totalDiscount).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="fw-bold">-{parseFloat(totals.totalDiscount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="summary-row">
                 <span>Total Items:</span>
@@ -520,7 +519,7 @@ const GRN = ({ onBack }) => {
               <div className="summary-total mt-3 pt-3" style={{ borderTop: '2px dashed var(--border)' }}>
                 <span>Grand Total:</span>
                 <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--primary)' }}>
-                  LKR {parseFloat(totals.grandTotal).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                  LKR {parseFloat(totals.grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
@@ -529,27 +528,27 @@ const GRN = ({ onBack }) => {
       </form>
 
       {/* Modals */}
-      <SearchableSelectModal 
+      <SearchableSelectModal
         isOpen={showSupplierModal}
         onClose={() => setShowSupplierModal(false)}
-        onSelect={(s) => setFormData({...formData, supplier_id: s.id})}
+        onSelect={(s) => setFormData({ ...formData, supplier_id: s.id })}
         data={suppliers}
         title="Select Supplier"
         searchPlaceholder="Type supplier name or code..."
         renderItem="name"
       />
 
-      <SearchableSelectModal 
+      <SearchableSelectModal
         isOpen={showDepartmentModal}
         onClose={() => setShowDepartmentModal(false)}
-        onSelect={(d) => setFormData({...formData, department_id: d.id})}
+        onSelect={(d) => setFormData({ ...formData, department_id: d.id })}
         data={departments}
         title="Select Department"
         searchPlaceholder="Type department name..."
         renderItem="name"
       />
 
-      <SearchableSelectModal 
+      <SearchableSelectModal
         isOpen={showProductModal}
         onClose={() => setShowProductModal(false)}
         onSelect={handleProductSelect}
@@ -570,7 +569,7 @@ const GRN = ({ onBack }) => {
       <SearchableSelectModal
         isOpen={showPaymentTypeModal}
         onClose={() => setShowPaymentTypeModal(false)}
-        onSelect={(t) => setFormData({...formData, payment_type: t.id})}
+        onSelect={(t) => setFormData({ ...formData, payment_type: t.id })}
         data={[
           { id: '1', name: 'Cash Purchase' },
           { id: '2', name: 'Credit Purchase' }
@@ -578,7 +577,7 @@ const GRN = ({ onBack }) => {
         title="Select Payment Type"
         renderItem="name"
       />
-      
+
       <style>{`
         .summary-row {
           display: flex;
