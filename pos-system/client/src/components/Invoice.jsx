@@ -57,24 +57,39 @@ const Invoice = ({ onBack }) => {
   }, []);
 
   const fetchInitialData = async () => {
-    try {
-      setLoading(true);
-      const [custRes, deptRes, prodRes] = await Promise.all([
-        getCustomers(),
-        getDepartments(),
-        getProducts({ all: true })
-      ]);
+    setLoading(true);
+    const unwrap = (res) => res.data?.data || (Array.isArray(res.data) ? res.data : []);
 
-      setCustomers(custRes.data?.data || (Array.isArray(custRes.data) ? custRes.data : []));
-      setDepartments(deptRes.data?.data || (Array.isArray(deptRes.data) ? deptRes.data : []));
-      setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
+    const results = await Promise.allSettled([
+      getCustomers(),
+      getDepartments(),
+      getProducts({ all: true })
+    ]);
+    const [custR, deptR, prodR] = results;
 
-    } catch (err) {
-      console.error('Invoice fetch error:', err);
-      setError('Failed to load initial data. ' + (err.response?.data?.message || err.message));
-    } finally {
-      setLoading(false);
+    if (custR.status === 'fulfilled') setCustomers(unwrap(custR.value));
+    else console.error('Invoice customers fetch failed:', custR.reason);
+
+    if (deptR.status === 'fulfilled') setDepartments(unwrap(deptR.value));
+    else console.error('Invoice departments fetch failed:', deptR.reason);
+
+    if (prodR.status === 'fulfilled') {
+      const list = unwrap(prodR.value);
+      console.log('Invoice products loaded:', list.length);
+      setProducts(list);
+    } else {
+      console.error('Invoice products fetch failed:', prodR.reason);
     }
+
+    const failed = results
+      .map((r, i) => ({ r, name: ['customers', 'departments', 'products'][i] }))
+      .filter(x => x.r.status === 'rejected');
+    if (failed.length) {
+      const msg = failed.map(f => `${f.name}: ${f.r.reason?.response?.data?.message || f.r.reason?.message || 'failed'}`).join(' | ');
+      setError('Some data failed to load — ' + msg);
+    }
+
+    setLoading(false);
   };
 
   // Calculate unit total when current item changes
@@ -93,16 +108,27 @@ const Invoice = ({ onBack }) => {
   }, [currentItem.price, currentItem.quantity, currentItem.discount]);
 
   const handleProductSelect = (product) => {
-    if (product) {
-      setCurrentItem(prev => ({
-        ...prev,
-        item_id: product.id,
-        item_code: product.code,
-        item_name: product.name,
-        price: product.invoice_price || product.retail_price || 0,
-        discount: 0
-      }));
+    console.log('[Invoice] product selected:', product);
+    if (!product) return;
+    // Accept several possible id/code/name field shapes from the API
+    const pid = product.id ?? product.Id ?? product.item_id ?? product.ID;
+    const pcode = product.code ?? product.item_code ?? product.Code ?? '';
+    const pname = product.name ?? product.item_name ?? product.Name ?? '';
+    if (pid == null || pid === '') {
+      const m = 'Selected product has no id. Raw: ' + JSON.stringify(product);
+      console.error(m);
+      setError(m);
+      return;
     }
+    setCurrentItem(prev => ({
+      ...prev,
+      item_id: pid,
+      item_code: pcode,
+      item_name: pname,
+      price: Number(product.invoice_price ?? product.retail_price ?? 0) || 0,
+      discount: 0
+    }));
+    setError('');
   };
 
   const handleCustomerSelect = (customer) => {
@@ -139,8 +165,15 @@ const Invoice = ({ onBack }) => {
   };
 
   const addItem = () => {
-    if (!currentItem.item_id || !currentItem.quantity) {
-      setError('Please select an item and enter quantity');
+    console.log('[Invoice] addItem called. currentItem =', currentItem);
+    const hasId = currentItem.item_id !== '' && currentItem.item_id != null;
+    const qty = parseFloat(currentItem.quantity);
+    if (!hasId) {
+      setError('No item selected. Please pick a product from the list.');
+      return;
+    }
+    if (!qty || qty <= 0) {
+      setError('Invalid quantity: ' + JSON.stringify(currentItem.quantity));
       return;
     }
     setFormData(prev => ({
