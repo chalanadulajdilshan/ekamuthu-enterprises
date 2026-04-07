@@ -55,6 +55,24 @@ const GRN = ({ onBack }) => {
     unit_total: 0
   });
 
+  // Global runtime error visibility (so silent failures on live become visible).
+  useEffect(() => {
+    const onErr = (e) => {
+      console.error('[GRN window.error]', e.error || e.message, e);
+      try { window.alert('JS Error: ' + (e.error?.stack || e.message || 'unknown')); } catch (_) {}
+    };
+    const onRej = (e) => {
+      console.error('[GRN unhandledrejection]', e.reason);
+      try { window.alert('Promise rejected: ' + (e.reason?.stack || e.reason?.message || JSON.stringify(e.reason))); } catch (_) {}
+    };
+    window.addEventListener('error', onErr);
+    window.addEventListener('unhandledrejection', onRej);
+    return () => {
+      window.removeEventListener('error', onErr);
+      window.removeEventListener('unhandledrejection', onRej);
+    };
+  }, []);
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -127,16 +145,28 @@ const GRN = ({ onBack }) => {
   ]);
 
   const handleProductSelect = (product) => {
-    if (product) {
-      setCurrentItem(prev => ({
-        ...prev,
-        item_id: product.id,
-        item_code: product.code,
-        item_name: product.name,
-        list_price: product.list_price || 0,
-        invoice_price: product.invoice_price || 0
-      }));
+    console.log('[GRN] product selected:', product);
+    if (!product) {
+      window.alert('Product select called with empty product');
+      return;
     }
+    // Accept several possible id/code/name field shapes from the API
+    const pid = product.id ?? product.Id ?? product.item_id ?? product.ID;
+    const pcode = product.code ?? product.item_code ?? product.Code ?? '';
+    const pname = product.name ?? product.item_name ?? product.Name ?? '';
+    if (pid == null || pid === '') {
+      window.alert('Selected product has no id. Raw: ' + JSON.stringify(product));
+      return;
+    }
+    setCurrentItem(prev => ({
+      ...prev,
+      item_id: pid,
+      item_code: pcode,
+      item_name: pname,
+      list_price: Number(product.list_price ?? product.cost_price ?? 0) || 0,
+      invoice_price: Number(product.invoice_price ?? product.retail_price ?? 0) || 0
+    }));
+    setError('');
   };
 
   const getSupplierName = () => {
@@ -159,8 +189,17 @@ const GRN = ({ onBack }) => {
   };
 
   const addItem = () => {
-    if (!currentItem.item_id || !currentItem.quantity) {
-      setError('Please select an item and enter quantity');
+    console.log('[GRN] addItem called. currentItem =', currentItem);
+    const hasId = currentItem.item_id !== '' && currentItem.item_id != null;
+    const qty = parseFloat(currentItem.quantity);
+    if (!hasId) {
+      const m = 'No item selected. item_id=' + JSON.stringify(currentItem.item_id);
+      setError(m); window.alert(m);
+      return;
+    }
+    if (!qty || qty <= 0) {
+      const m = 'Invalid quantity: ' + JSON.stringify(currentItem.quantity);
+      setError(m); window.alert(m);
       return;
     }
     setFormData(prev => ({
@@ -258,6 +297,30 @@ const GRN = ({ onBack }) => {
           <span className="badge badge-primary" style={{ fontSize: '14px', padding: '6px 12px' }}>ARN No: {formData.arn_no}</span>
         </div>
       </div>
+
+      {(error || success) && (
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
+            padding: '12px 16px',
+            marginBottom: 16,
+            borderRadius: 8,
+            fontWeight: 600,
+            color: '#fff',
+            background: error ? '#c0392b' : '#27ae60',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}
+        >
+          {error || success}
+          <button
+            type="button"
+            onClick={() => { setError(''); setSuccess(''); }}
+            style={{ float: 'right', background: 'transparent', color: '#fff', border: 0, fontSize: 18, cursor: 'pointer' }}
+          >×</button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         {/* Main Info Card */}
@@ -365,11 +428,22 @@ const GRN = ({ onBack }) => {
           <div className="card-body">
             <div className="form-grid form-grid-4" style={{ rowGap: '20px' }}>
               <div className="form-group span-2">
-                <label className="form-label">Select Product</label>
+                <label className="form-label">
+                  Select Product
+                  <span style={{ marginLeft: 8, fontSize: 11, color: '#888' }}>
+                    [debug: products loaded={products.length}, picked id={String(currentItem.item_id || '-')}]
+                  </span>
+                </label>
                 <button
                   type="button"
                   className="selection-trigger"
-                  onClick={() => setShowProductModal(true)}
+                  onClick={() => {
+                    console.log('[GRN] opening product modal. products.length=', products.length);
+                    if (!products.length) {
+                      window.alert('Product list is empty. The /products API did not return any items. Check Network tab for the /api/products?all=true call.');
+                    }
+                    setShowProductModal(true);
+                  }}
                   style={{ height: '42px' }}
                 >
                   <span className={currentItem.item_id ? "selection-trigger-value" : "selection-trigger-placeholder"}>

@@ -13,6 +13,27 @@ const api = axios.create({
     }
 });
 
+// Visible diagnostics: log every request/response, surface failures.
+api.interceptors.request.use((config) => {
+    console.log('[API →]', (config.method || 'get').toUpperCase(), (config.baseURL || '') + (config.url || ''), config.params || '');
+    return config;
+});
+api.interceptors.response.use(
+    (res) => {
+        console.log('[API ←]', res.status, res.config?.url, 'data keys:', res.data && typeof res.data === 'object' ? Object.keys(res.data) : typeof res.data);
+        return res;
+    },
+    (err) => {
+        const url = err.config?.url || '(no url)';
+        const status = err.response?.status || 'NO_RESPONSE';
+        const msg = err.response?.data?.message || err.message || 'unknown error';
+        console.error('[API ✗]', status, url, msg, err);
+        // Tag the error so callers / global handlers display something useful.
+        err.userMessage = `API ${status} ${url}: ${msg}`;
+        return Promise.reject(err);
+    }
+);
+
 // Products
 export const getProducts = (params = {}) => api.get('/products', { params, timeout: 120000 });
 export const createProduct = (data) => api.post('/products', data);
