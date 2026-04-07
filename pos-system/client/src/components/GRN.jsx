@@ -60,27 +60,47 @@ const GRN = ({ onBack }) => {
   }, []);
 
   const fetchInitialData = async () => {
-    try {
-      setLoading(true);
-      const [suppRes, deptRes, prodRes, nextNoRes] = await Promise.all([
-        getSuppliers(),
-        getDepartments(),
-        getProducts({ all: true }),
-        getNextGrnNo()
-      ]);
+    setLoading(true);
+    const unwrap = (res) => res.data?.data || (Array.isArray(res.data) ? res.data : []);
 
-      setSuppliers(suppRes.data?.data || (Array.isArray(suppRes.data) ? suppRes.data : []));
-      setDepartments(deptRes.data?.data || (Array.isArray(deptRes.data) ? deptRes.data : []));
-      setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
+    const results = await Promise.allSettled([
+      getSuppliers(),
+      getDepartments(),
+      getProducts({ all: true }),
+      getNextGrnNo()
+    ]);
+    const [suppR, deptR, prodR, nextR] = results;
 
-      const nextNo = nextNoRes.data?.data || nextNoRes.data;
-      setFormData(prev => ({ ...prev, arn_no: nextNo }));
-    } catch (err) {
-      console.error('GRN fetch error:', err);
-      setError('Failed to load initial data. ' + (err.response?.data?.message || err.message));
-    } finally {
-      setLoading(false);
+    if (suppR.status === 'fulfilled') setSuppliers(unwrap(suppR.value));
+    else console.error('GRN suppliers fetch failed:', suppR.reason);
+
+    if (deptR.status === 'fulfilled') setDepartments(unwrap(deptR.value));
+    else console.error('GRN departments fetch failed:', deptR.reason);
+
+    if (prodR.status === 'fulfilled') {
+      const list = unwrap(prodR.value);
+      console.log('GRN products loaded:', list.length);
+      setProducts(list);
+    } else {
+      console.error('GRN products fetch failed:', prodR.reason);
     }
+
+    if (nextR.status === 'fulfilled') {
+      const nextNo = nextR.value.data?.data || nextR.value.data;
+      setFormData(prev => ({ ...prev, arn_no: nextNo }));
+    } else {
+      console.error('GRN next-no fetch failed:', nextR.reason);
+    }
+
+    const failed = results
+      .map((r, i) => ({ r, name: ['suppliers', 'departments', 'products', 'next ARN no'][i] }))
+      .filter(x => x.r.status === 'rejected');
+    if (failed.length) {
+      const msg = failed.map(f => `${f.name}: ${f.r.reason?.response?.data?.message || f.r.reason?.message || 'failed'}`).join(' | ');
+      setError('Some data failed to load — ' + msg);
+    }
+
+    setLoading(false);
   };
 
   // Calculate actual cost and unit total when current item changes

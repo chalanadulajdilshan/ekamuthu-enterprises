@@ -7,14 +7,14 @@ const API_BASE = isLocalhost
 
 const api = axios.create({
     baseURL: API_BASE,
-    timeout: 10000,
+    timeout: 60000,
     headers: {
         'Content-Type': 'application/json',
     }
 });
 
 // Products
-export const getProducts = (params = {}) => api.get('/products', { params });
+export const getProducts = (params = {}) => api.get('/products', { params, timeout: 120000 });
 export const createProduct = (data) => api.post('/products', data);
 export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const getCategories = () => api.get('/categories');
