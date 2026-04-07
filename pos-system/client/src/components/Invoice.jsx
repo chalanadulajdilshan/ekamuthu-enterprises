@@ -140,7 +140,7 @@ const Invoice = ({ onBack }) => {
 
   const addItem = () => {
     if (!currentItem.item_id || !currentItem.quantity) {
-      setError('Please select an item and enter quantity');
+      setError(`Cannot add item: Missing Product ID (${currentItem.item_id}) or Quantity (${currentItem.quantity}). Please re-select the product.`);
       return;
     }
     setFormData(prev => ({

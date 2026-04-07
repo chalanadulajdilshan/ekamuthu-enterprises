@@ -7,7 +7,7 @@ class Dashboard {
         const [todaySales] = await db.query(`
             SELECT COUNT(*) as count, IFNULL(SUM(grand_total), 0) as total
             FROM sales_invoice
-            WHERE DATE(invoice_date) = ? AND invoice_no LIKE 'POS-%' AND is_cancel = 0
+            WHERE DATE(invoice_date) = ? AND invoice_no LIKE 'POS-%' AND status = 1
         `, [today]);
 
         const [totalProducts] = await db.query(`

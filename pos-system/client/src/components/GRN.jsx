@@ -140,7 +140,7 @@ const GRN = ({ onBack }) => {
 
   const addItem = () => {
     if (!currentItem.item_id || !currentItem.quantity) {
-      setError('Please select an item and enter quantity');
+      setError(`Cannot add item: Missing Product ID (${currentItem.item_id}) or Quantity (${currentItem.quantity}). Please re-select the product.`);
       return;
     }
     setFormData(prev => ({
@@ -240,6 +240,9 @@ const GRN = ({ onBack }) => {
       </div>
 
       <form onSubmit={handleSubmit}>
+        {error && <div className="alert alert-danger mb-4" style={{ padding: '15px', borderRadius: 'var(--radius)', backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #f87171' }}><strong>Error:</strong> {error}</div>}
+        {success && <div className="alert alert-success mb-4" style={{ padding: '15px', borderRadius: 'var(--radius)', backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #4ade80' }}><strong>Success:</strong> {success}</div>}
+        
         {/* Main Info Card */}
         <div className="card mb-4 shadow-sm">
           <div className="card-header">
@@ -478,8 +481,6 @@ const GRN = ({ onBack }) => {
         <div className="form-grid form-grid-2 mb-5" style={{ alignItems: 'flex-start' }}>
           <div className="card h-100">
              <div className="card-body">
-                {error && <div className="badge badge-danger w-100 mb-3" style={{ padding: '10px', borderRadius: 'var(--radius)' }}>{error}</div>}
-                {success && <div className="badge badge-success w-100 mb-3" style={{ padding: '10px', borderRadius: 'var(--radius)' }}>{success}</div>}
                 
                 <div className="form-group mb-4">
                   <label className="form-label">Final Remark</label>

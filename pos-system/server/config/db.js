@@ -4,9 +4,9 @@ const isProd = process.env.NODE_ENV === 'production';
 
 const pool = mysql.createPool({
     host: 'localhost',
-    user: isProd ? 'chalcepi_ekamuthu' : 'root',
+    user: isProd ? 'chalcepi_ekamuthu-enterprises' : 'root',
     password: isProd ? '!}}c~bOdZR#g' : '',
-    database: isProd ? 'chalcepi_ekamuthu' : 'ekamuthu-enterprises',
+    database: isProd ? 'chalcepi_ekamuthu-enterprises' : 'ekamuthu-enterprises',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
