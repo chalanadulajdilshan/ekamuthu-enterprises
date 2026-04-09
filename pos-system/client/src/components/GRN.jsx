@@ -625,17 +625,34 @@ const GRN = ({ onBack }) => {
         onClose={() => setShowProductModal(false)}
         onSelect={handleProductSelect}
         data={products}
-        title="Select Product Item"
-        searchPlaceholder="Type product name or code..."
-        renderItem={(p) => (
-          <>
-            <span className="item-code">{p.code}</span>
-            <span className="item-name">{p.name}</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-              Stock: {p.available_qty}
-            </span>
-          </>
-        )}
+        title="Select Product to Receive"
+        searchPlaceholder="Search by name, code or barcode..."
+        columns={[
+          { label: 'Item Code', key: 'code', width: '120px' },
+          { label: 'Product Name', key: 'name' },
+          { 
+            label: 'Av. Qty', 
+            key: 'available_qty', 
+            width: '100px',
+            render: (p) => (
+              <span className={`badge ${p.available_qty <= p.re_order_level ? 'badge-danger' : 'badge-success'}`}>
+                {p.available_qty}
+              </span>
+            )
+          },
+          { 
+            label: 'Last Cost', 
+            key: 'list_price', 
+            width: '120px', 
+            render: (p) => <span className="text-secondary">Rs. {parseFloat(p.list_price || p.cost_price || 0).toFixed(2)}</span>
+          },
+          { 
+            label: 'Retail Price', 
+            key: 'invoice_price', 
+            width: '120px',
+            render: (p) => <span className="fw-bold text-primary">Rs. {parseFloat(p.invoice_price || p.retail_price || 0).toFixed(2)}</span>
+          }
+        ]}
       />
 
       <SearchableSelectModal

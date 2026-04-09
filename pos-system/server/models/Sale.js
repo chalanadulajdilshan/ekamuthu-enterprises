@@ -147,6 +147,38 @@ class Sale {
             company: company[0] || {}
         };
     }
+
+    static async getSalesReport(filters = {}) {
+        const { from, to, customer_id } = filters;
+        let query = `
+            SELECT si.*, 
+                   dm.name as department_name,
+                   c.name as customer_db_name
+            FROM sales_invoice si
+            LEFT JOIN department_master dm ON si.department_id = dm.id
+            LEFT JOIN customer_master c ON si.customer_id = c.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (from) {
+            query += ' AND si.invoice_date >= ?';
+            params.push(`${from} 00:00:00`);
+        }
+        if (to) {
+            query += ' AND si.invoice_date <= ?';
+            params.push(`${to} 23:59:59`);
+        }
+        if (customer_id && customer_id !== 'all') {
+            query += ' AND si.customer_id = ?';
+            params.push(customer_id);
+        }
+
+        query += ' ORDER BY si.invoice_date DESC';
+
+        const [rows] = await db.query(query, params);
+        return rows;
+    }
 }
 
 module.exports = Sale;

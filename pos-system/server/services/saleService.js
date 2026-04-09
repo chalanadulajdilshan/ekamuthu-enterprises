@@ -21,4 +21,11 @@ const getSaleDetails = async (id) => {
     return await Sale.getById(id);
 };
 
-module.exports = { createSale, getRecentSales, getSaleDetails };
+/**
+ * Get sales report with filters.
+ */
+const getSalesReport = async (filters) => {
+    return await Sale.getSalesReport(filters);
+};
+
+module.exports = { createSale, getRecentSales, getSaleDetails, getSalesReport };

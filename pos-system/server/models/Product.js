@@ -9,6 +9,7 @@ class Product {
                 im.is_active, im.barcode, im.reminder_note, im.re_order_level, im.re_order_qty, im.note,
                 im.image_file,
                 IFNULL(sm_total.total_qty, 0) as available_qty,
+                IFNULL(latest_cost.cost_price, 0) as cost_price,
                 cm.name as category_name,
                 b.name as brand_name
             FROM item_master im
@@ -17,6 +18,15 @@ class Product {
                 FROM item_batches
                 GROUP BY item_id
             ) sm_total ON im.id = sm_total.item_id
+            LEFT JOIN (
+                SELECT ib1.item_id, ib1.cost_price
+                FROM item_batches ib1
+                INNER JOIN (
+                    SELECT item_id, MAX(id) as max_id
+                    FROM item_batches
+                    GROUP BY item_id
+                ) ib2 ON ib1.id = ib2.max_id
+            ) latest_cost ON im.id = latest_cost.item_id
             LEFT JOIN category_master cm ON im.category = cm.id
             LEFT JOIN brands b ON im.brand = b.id
             WHERE 1=1

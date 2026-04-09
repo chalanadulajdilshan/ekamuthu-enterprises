@@ -11,6 +11,7 @@ import { FiSearch, FiX, FiCheck } from 'react-icons/fi';
  * @param {string} searchPlaceholder - Placeholder for the search input
  * @param {string|function} renderItem - How to display each item (either a key name or a render function)
  * @param {string} keyExtractor - Field to use as unique key (default 'id')
+ * @param {Array} columns - Optional array of column definitions { label, key, render, width } for table mode
  */
 const SearchableSelectModal = ({ 
   isOpen, 
@@ -20,7 +21,8 @@ const SearchableSelectModal = ({
   title = "Select Item", 
   searchPlaceholder = "Search...",
   renderItem,
-  keyExtractor = 'id'
+  keyExtractor = 'id',
+  columns = null
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const searchInputRef = useRef(null);
@@ -63,7 +65,7 @@ const SearchableSelectModal = ({
 
   return (
     <div className="selection-modal-overlay" onClick={onClose}>
-      <div className="selection-modal" onClick={e => e.stopPropagation()}>
+      <div className="selection-modal" style={{ maxWidth: columns ? '900px' : '500px' }} onClick={e => e.stopPropagation()}>
         <div className="selection-modal-header">
           <h3 className="selection-modal-title">{title}</h3>
           <button className="selection-modal-close" onClick={onClose}>
@@ -83,27 +85,56 @@ const SearchableSelectModal = ({
           />
         </div>
 
-        <div className="selection-modal-list">
+        <div className="selection-modal-list" style={columns ? { padding: 0, overflow: 'hidden' } : {}}>
           {filteredData.length > 0 ? (
-            filteredData.map((item, index) => (
-              <div 
-                key={item[keyExtractor] || index} 
-                className="selection-list-item"
-                onClick={() => handleSelectItem(item)}
-              >
-                <div className="item-content">
-                  {typeof renderItem === 'function' ? (
-                    renderItem(item)
-                  ) : (
-                    <>
-                      {item.code && <span className="item-code">{item.code}</span>}
-                      <span className="item-name">{item[renderItem] || item.name}</span>
-                    </>
-                  )}
-                </div>
-                <FiCheck className="select-icon" />
+            columns ? (
+              <div className="table-responsive" style={{ maxHeight: '450px' }}>
+                <table className="table table-hover mb-0">
+                  <thead style={{ position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white' }}>
+                    <tr>
+                      {columns.map((col, idx) => (
+                        <th key={idx} style={{ width: col.width, whiteSpace: 'nowrap' }}>{col.label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map((item, index) => (
+                      <tr 
+                        key={item[keyExtractor] || index} 
+                        onClick={() => handleSelectItem(item)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {columns.map((col, idx) => (
+                          <td key={idx}>
+                            {col.render ? col.render(item) : (item[col.key] || '-')}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))
+            ) : (
+              filteredData.map((item, index) => (
+                <div 
+                  key={item[keyExtractor] || index} 
+                  className="selection-list-item"
+                  onClick={() => handleSelectItem(item)}
+                >
+                  <div className="item-content">
+                    {typeof renderItem === 'function' ? (
+                      renderItem(item)
+                    ) : (
+                      <>
+                        {item.code && <span className="item-code">{item.code}</span>}
+                        <span className="item-name">{item[renderItem] || item.name}</span>
+                      </>
+                    )}
+                  </div>
+                  <FiCheck className="select-icon" />
+                </div>
+              ))
+            )
           ) : (
             <div className="selection-empty">
               <p>No results found for "{searchTerm}"</p>

@@ -65,6 +65,7 @@ export const getPaymentTypes = () => api.get('/payment-types');
 export const createSale = (data) => api.post('/sales', data);
 export const getRecentSales = () => api.get('/sales/recent');
 export const getSaleDetails = (id) => api.get(`/sales/${id}`);
+export const getSalesReport = (params) => api.get('/sales/report', { params });
 
 // Dashboard
 export const getDashboardStats = () => api.get('/dashboard-stats');

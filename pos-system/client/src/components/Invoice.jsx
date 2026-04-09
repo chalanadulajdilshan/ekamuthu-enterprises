@@ -724,15 +724,39 @@ const Invoice = ({ onBack, onComplete }) => {
 
       <SearchableSelectModal
         isOpen={showProductModal}
-        title="Select Product"
+        title="Select Product for Sale"
         data={products}
         onClose={() => setShowProductModal(false)}
         onSelect={(product) => {
           handleProductSelect(product);
           setShowProductModal(false);
         }}
-        searchFields={['barcode', 'code', 'name']}
-        renderItem={(p) => `[${p.code}] ${p.name} - Rs.${p.invoice_price || p.retail_price || 0}`}
+        columns={[
+          { label: 'Item Code', key: 'code', width: '120px' },
+          { label: 'Product Name', key: 'name' },
+          { 
+            label: 'Av. Qty', 
+            key: 'available_qty', 
+            width: '100px',
+            render: (p) => (
+              <span className={`badge ${p.available_qty <= p.re_order_level ? 'badge-danger' : 'badge-success'}`}>
+                {p.available_qty}
+              </span>
+            )
+          },
+          { 
+            label: 'Cost Price', 
+            key: 'cost_price', 
+            width: '120px', 
+            render: (p) => <span className="text-secondary">Rs. {parseFloat(p.cost_price || 0).toFixed(2)}</span>
+          },
+          { 
+            label: 'Retail Price', 
+            key: 'invoice_price', 
+            width: '120px',
+            render: (p) => <span className="fw-bold text-primary">Rs. {parseFloat(p.invoice_price || p.retail_price || 0).toFixed(2)}</span>
+          }
+        ]}
       />
     </div>
   );

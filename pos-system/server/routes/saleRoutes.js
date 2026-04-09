@@ -3,6 +3,7 @@ const router = express.Router();
 const saleController = require('../controllers/saleController');
 
 router.post('/', saleController.store);
+router.get('/report', saleController.report);
 router.get('/recent', saleController.recent);
 router.get('/:id', saleController.show);
 

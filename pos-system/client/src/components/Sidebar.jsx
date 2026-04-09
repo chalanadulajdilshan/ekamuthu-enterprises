@@ -1,4 +1,4 @@
-import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink, FiSettings, FiShoppingCart, FiBox } from 'react-icons/fi';
+import { FiHome, FiPackage, FiTruck, FiTag, FiShoppingBag, FiExternalLink, FiSettings, FiShoppingCart, FiBox, FiTrendingUp } from 'react-icons/fi';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: FiHome },
@@ -8,6 +8,7 @@ const navItems = [
   { id: 'brandMaster', label: 'Brand Registry', icon: FiTag },
   { id: 'liveStock', label: 'Live Inventory', icon: FiBox },
   { id: 'grn', label: 'GRN', icon: FiPackage },
+  { id: 'salesReport', label: 'Sales Performance', icon: FiTrendingUp },
 ];
 
 const Sidebar = ({ currentView, onNavigate, companyData }) => {

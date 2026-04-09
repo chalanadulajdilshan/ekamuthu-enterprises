@@ -13,6 +13,7 @@ import Invoice from './components/Invoice';
 import InvoiceList from './components/InvoiceList';
 import InvoiceDetails from './components/InvoiceDetails';
 import ReceiptModal from './components/ReceiptModal';
+import SalesReport from './components/SalesReport';
 import Settings from './components/Settings';
 import { getCompany } from './services/api';
 
@@ -29,6 +30,7 @@ const PAGE_META = {
   invoice_new:    { name: 'New Invoice',      breadcrumb: 'Sales → Invoices → Create' },
   invoice_view:   { name: 'Invoice History',  breadcrumb: 'Sales → Invoices → View' },
   settings:       { name: 'Settings',         breadcrumb: 'System → Settings' },
+  salesReport:    { name: 'Sales Report',     breadcrumb: 'Reports → Sales' },
 };
 
 // Utility: adjust hex color brightness
@@ -103,6 +105,7 @@ const AppContent = ({ currentView, setCurrentView, selectedDetailId, setSelected
         setCurrentView('invoice');
       }} />}
       {currentView === 'invoice_view'   && <InvoiceDetails invoiceId={selectedDetailId} onBack={() => setCurrentView('invoice')} />}
+      {currentView === 'salesReport'    && <SalesReport />}
       {currentView === 'settings'       && <Settings theme={theme} onThemeChange={handleThemeChange} />}
     </div>
   );

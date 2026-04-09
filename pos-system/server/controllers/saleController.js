@@ -32,3 +32,13 @@ exports.show = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+exports.report = async (req, res) => {
+    try {
+        const { getSalesReport } = require('../services/saleService');
+        const sales = await getSalesReport(req.query);
+        res.json({ success: true, data: sales });
+    } catch (error) {
+        console.error('SaleController.report:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
