@@ -301,48 +301,55 @@ const ItemMaster = () => {
               <div className="card-title"><FiPackage /> Basic Information</div>
             </div>
             <div className="card-body">
-              <div className="form-grid form-grid-3" style={{ rowGap: 16 }}>
-                <div className="form-group span-2">
-                  <label className="form-label">Product Code *</label>
-                  <input
-                    className="form-input"
-                    type="text"
-                    name="code"
-                    value={formData.code}
-                    onChange={handleInput}
-                    placeholder="e.g. PRD-001"
-                    style={{ fontWeight: 700, color: 'var(--primary)' }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Barcode</label>
-                  <input className="form-input" type="text" name="barcode" value={formData.barcode} onChange={handleInput} placeholder="Scan or type" />
-                </div>
-
-                <div className="form-group span-2">
-                  <label className="form-label">Product Description *</label>
-                  <input className="form-input" type="text" name="name" value={formData.name} onChange={handleInput} placeholder="Full product name" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Department *</label>
-                  <button 
-                    type="button"
-                    className="selection-trigger" 
-                    onClick={() => setShowDeptModal(true)}
-                  >
-                    <span className={formData.category ? "selection-trigger-value" : "selection-trigger-placeholder"}>
-                      <FiMapPin style={{ marginRight: 8 }} />
-                      {getDeptName()}
-                    </span>
-                    <FiSearch className="trigger-icon" />
-                  </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Row 1: Product Code + Barcode */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+                  <div className="form-group">
+                    <label className="form-label">Product Code *</label>
+                    <input
+                      className="form-input"
+                      type="text"
+                      name="code"
+                      value={formData.code}
+                      onChange={handleInput}
+                      placeholder="e.g. PRD-001"
+                      style={{ fontWeight: 700, color: 'var(--primary)' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Barcode</label>
+                    <input className="form-input" type="text" name="barcode" value={formData.barcode} onChange={handleInput} placeholder="Scan or type" />
+                  </div>
                 </div>
 
-                <div className="form-group span-3">
+                {/* Row 2: Product Description + Department */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+                  <div className="form-group">
+                    <label className="form-label">Product Description *</label>
+                    <input className="form-input" type="text" name="name" value={formData.name} onChange={handleInput} placeholder="Full product name" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Department *</label>
+                    <button
+                      type="button"
+                      className="selection-trigger"
+                      onClick={() => setShowDeptModal(true)}
+                    >
+                      <span className={formData.category ? "selection-trigger-value" : "selection-trigger-placeholder"}>
+                        <FiMapPin style={{ marginRight: 8 }} />
+                        {getDeptName()}
+                      </span>
+                      <FiSearch className="trigger-icon" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Row 3: Brand (full width) */}
+                <div className="form-group">
                   <label className="form-label">Brand</label>
-                  <button 
+                  <button
                     type="button"
-                    className="selection-trigger" 
+                    className="selection-trigger"
                     onClick={() => setShowBrandModal(true)}
                   >
                     <span className={formData.brand ? "selection-trigger-value" : "selection-trigger-placeholder"}>
@@ -353,13 +360,16 @@ const ItemMaster = () => {
                   </button>
                 </div>
 
-                <div className="form-group span-2">
-                  <label className="form-label">Note</label>
-                  <input className="form-input" type="text" name="note" value={formData.note} onChange={handleInput} placeholder="Optional notes" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Reminder Note</label>
-                  <input className="form-input" type="text" name="reminder_note" value={formData.reminder_note} onChange={handleInput} />
+                {/* Row 4: Note + Reminder Note */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+                  <div className="form-group">
+                    <label className="form-label">Note</label>
+                    <input className="form-input" type="text" name="note" value={formData.note} onChange={handleInput} placeholder="Optional notes" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Reminder Note</label>
+                    <input className="form-input" type="text" name="reminder_note" value={formData.reminder_note} onChange={handleInput} />
+                  </div>
                 </div>
               </div>
             </div>
