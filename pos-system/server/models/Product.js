@@ -58,12 +58,26 @@ class Product {
         return rows;
     }
 
+    static async checkCodeDuplicate(code, excludeId = null) {
+        let query = 'SELECT id FROM item_master WHERE code = ?';
+        const params = [code];
+        if (excludeId) {
+            query += ' AND id != ?';
+            params.push(excludeId);
+        }
+        const [rows] = await db.query(query, params);
+        return rows.length > 0;
+    }
+
     static async create(data) {
         const {
-            code, name, brand, category, list_price, net_price, tax_type, invoice_price,
-            discount, re_order_level, re_order_qty, max_stock, is_active,
             barcode, size, note, image_file
         } = data;
+
+        // Check for duplicate code
+        if (await Product.checkCodeDuplicate(code)) {
+            throw new Error(`Product code "${code}" is already in use.`);
+        }
 
         const [result] = await db.query(
             `INSERT INTO item_master (
@@ -86,10 +100,13 @@ class Product {
 
     static async update(id, data) {
         const {
-            code, name, brand, category, list_price, net_price, tax_type, invoice_price,
-            discount, re_order_level, re_order_qty, max_stock, is_active,
             barcode, size, note, image_file
         } = data;
+
+        // Check for duplicate code
+        if (await Product.checkCodeDuplicate(code, id)) {
+            throw new Error(`Product code "${code}" is already in use by another product.`);
+        }
 
         let updateQuery = `UPDATE item_master SET
                 code = ?, name = ?, brand = ?, department_id = ?,
