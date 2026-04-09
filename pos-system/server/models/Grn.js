@@ -52,6 +52,14 @@ class Grn {
 
             const grnId = grnResult.insertId;
 
+            // Validate all items have a proper item_id before processing
+            for (const item of items) {
+                const id = parseInt(item.item_id);
+                if (!id || id <= 0) {
+                    throw new Error(`Invalid item_id "${item.item_id}" for item "${item.item_code || item.item_name}". Please re-select the product and try again.`);
+                }
+            }
+
             // 2. Insert into grn_items and Update Stock via item_batches (FIFO)
             for (const item of items) {
                 // a. Insert individual items

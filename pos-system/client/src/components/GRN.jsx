@@ -121,6 +121,16 @@ const GRN = ({ onBack }) => {
     setLoading(false);
   };
 
+  const refreshProducts = async () => {
+    try {
+      const res = await getProducts({ all: true });
+      const list = res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setProducts(list);
+    } catch (err) {
+      console.error('GRN refresh products failed:', err);
+    }
+  };
+
   // Calculate actual cost and unit total when current item changes
   useEffect(() => {
     const listPrice = parseFloat(currentItem.list_price) || 0;
@@ -149,8 +159,8 @@ const GRN = ({ onBack }) => {
     const pid = product.id ?? product.Id ?? product.item_id ?? product.ID;
     const pcode = product.code ?? product.item_code ?? product.Code ?? '';
     const pname = product.name ?? product.item_name ?? product.Name ?? '';
-    if (pid == null || pid === '') {
-      Swal.fire({ icon: 'error', title: 'Invalid Product', text: 'Selected product has no valid database ID.' });
+    if (pid == null || pid === '' || parseInt(pid) <= 0) {
+      Swal.fire({ icon: 'error', title: 'Invalid Product', text: 'Selected product has no valid database ID. Try refreshing the product list.' });
       return;
     }
     setCurrentItem(prev => ({
@@ -358,7 +368,7 @@ const GRN = ({ onBack }) => {
                   type="date"
                   className="form-input"
                   value={formData.entry_date}
-                  onChange={(e) => setFormData({ ...formData, entry_date: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, entry_date: e.target.value }))}
                 />
               </div>
 
@@ -369,7 +379,7 @@ const GRN = ({ onBack }) => {
                   placeholder="Supplier Invoice #"
                   className="form-input"
                   value={formData.invoice_no}
-                  onChange={(e) => setFormData({ ...formData, invoice_no: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, invoice_no: e.target.value }))}
                 />
               </div>
               <div className="form-group">
@@ -378,7 +388,7 @@ const GRN = ({ onBack }) => {
                   type="date"
                   className="form-input"
                   value={formData.invoice_date}
-                  onChange={(e) => setFormData({ ...formData, invoice_date: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, invoice_date: e.target.value }))}
                 />
               </div>
               <div className="form-group">
@@ -402,7 +412,7 @@ const GRN = ({ onBack }) => {
                   className="form-input"
                   placeholder="Notes..."
                   value={formData.remark}
-                  onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
                 />
               </div>
             </div>
@@ -418,20 +428,12 @@ const GRN = ({ onBack }) => {
             {/* ROW 1: Product, Qty, List Price, Discount */}
             <div className="form-grid" style={{ gridTemplateColumns: 'minmax(250px, 2fr) 1fr 1fr 1fr', gap: '15px', alignItems: 'end', marginBottom: '20px' }}>
               <div className="form-group">
-                <label className="form-label">
-                  Select Product
-                  <span style={{ marginLeft: 8, fontSize: 11, color: '#888' }}>
-                    [debug: products loaded={products.length}, picked id={String(currentItem.item_id || '-')}]
-                  </span>
-                </label>
+                <label className="form-label">Select Product</label>
                 <button
                   type="button"
                   className="selection-trigger"
                   onClick={() => {
-                    console.log('[GRN] opening product modal. products.length=', products.length);
-                    if (!products.length) {
-                      Swal.fire({ icon: 'error', title: 'Empty Product List', text: 'No products were found in the database. Please check your inventory.' });
-                    }
+                    refreshProducts();
                     setShowProductModal(true);
                   }}
                   style={{ height: '42px' }}
@@ -563,7 +565,7 @@ const GRN = ({ onBack }) => {
             <div className="card-body">
               <div className="form-group mb-4">
                 <label className="form-label">Final Remark</label>
-                <textarea className="form-textarea" rows={3} placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })}></textarea>
+                <textarea className="form-textarea" rows={3} placeholder="Overall notes for this ARN..." value={formData.remark} onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}></textarea>
               </div>
 
 
@@ -603,7 +605,7 @@ const GRN = ({ onBack }) => {
       <SearchableSelectModal
         isOpen={showSupplierModal}
         onClose={() => setShowSupplierModal(false)}
-        onSelect={(s) => setFormData({ ...formData, supplier_id: s.id })}
+        onSelect={(s) => setFormData(prev => ({ ...prev, supplier_id: s.id }))}
         data={suppliers}
         title="Select Supplier"
         searchPlaceholder="Type supplier name or code..."
@@ -613,7 +615,7 @@ const GRN = ({ onBack }) => {
       <SearchableSelectModal
         isOpen={showDepartmentModal}
         onClose={() => setShowDepartmentModal(false)}
-        onSelect={(d) => setFormData({ ...formData, department_id: d.id })}
+        onSelect={(d) => setFormData(prev => ({ ...prev, department_id: d.id }))}
         data={departments}
         title="Select Department"
         searchPlaceholder="Type department name..."
@@ -658,7 +660,7 @@ const GRN = ({ onBack }) => {
       <SearchableSelectModal
         isOpen={showPaymentTypeModal}
         onClose={() => setShowPaymentTypeModal(false)}
-        onSelect={(t) => setFormData({ ...formData, payment_type: t.id })}
+        onSelect={(t) => setFormData(prev => ({ ...prev, payment_type: t.id }))}
         data={[
           { id: '1', name: 'Cash Purchase' },
           { id: '2', name: 'Credit Purchase' }
