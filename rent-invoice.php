@@ -143,18 +143,28 @@ if (empty($return_rows)) {
 $total_customer_paid = 0;
 $total_extra_charges = 0;
 $total_repair_cost = 0;
+$total_actual_rental = 0; // Sum of basic rental + extra days
 foreach ($return_rows as $rr) {
     $total_customer_paid += floatval($rr['customer_paid'] ?? 0);
     $total_extra_charges += floatval($rr['extra_charge_amount'] ?? 0);
     $total_repair_cost += floatval($rr['repair_cost'] ?? 0);
+    $total_actual_rental += floatval($rr['rental_amount'] ?? 0);
+    $total_actual_rental += floatval($rr['extra_day_amount'] ?? 0);
+}
+
+$isReturnInvoice = !empty($return_rows);
+
+// For return invoices, update hire_amount to reflect actual total rental charged
+if ($isReturnInvoice) {
+    $hire_amount = $total_actual_rental;
+} else {
+    $hire_amount = $total_amount;
 }
 // Include deposit in total customer paid (deposit is money the customer paid upfront)
 $total_customer_paid += $total_deposit;
-$isReturnInvoice = !empty($return_rows);
 
 // Calculate net amount and outstanding
-$hire_amount = $total_amount;
-$net_amount = $total_amount + $total_deposit + $transport_amount + $total_extra_charges;
+$net_amount = $hire_amount + $total_deposit + $transport_amount + $total_extra_charges;
 $total_outstanding = $net_amount; // For now, assuming full amount is outstanding
 
 // Get customer WhatsApp number (mobile_number_2) for WhatsApp sharing
@@ -841,10 +851,31 @@ if (!empty($customerMobile)) {
                                     <?php if (!empty($rent_items)): 
                                         $firstItem = $rent_items[0];
                                         $durationVal = intval($firstItem['duration']);
+                                        
+                                        // On return bills, calculate the maximum actual duration from return records
+                                        if ($isReturnInvoice && !empty($return_rows)) {
+                                            $maxUsedDays = 0;
+                                            foreach ($return_rows as $rr) {
+                                                if (isset($rr['used_days']) && intval($rr['used_days']) > $maxUsedDays) {
+                                                    $maxUsedDays = intval($rr['used_days']);
+                                                }
+                                            }
+                                            // Fallback to general date calculation if records are empty or missing used_days
+                                            if ($maxUsedDays === 0 && $EQUIPMENT_RENT->rental_start_date && $EQUIPMENT_RENT->received_date) {
+                                                $start = strtotime($EQUIPMENT_RENT->rental_start_date);
+                                                $end = strtotime($EQUIPMENT_RENT->received_date);
+                                                $maxUsedDays = max(1, (int)ceil(($end - $start) / 86400));
+                                            }
+                                            
+                                            if ($maxUsedDays > 0) {
+                                                $durationVal = $maxUsedDays;
+                                            }
+                                        }
+                                        
                                         $durationUnit = ($firstItem['rent_type'] === 'month') ? ' Months' : ' Days';
                                     ?>
                                     <div style="margin-top: 8px; font-weight: bold; font-size: 12px; border-top: 1px dashed #eee; padding-top: 4px; color: #000;">
-                                        All items estimated duration = <?php echo $durationVal . $durationUnit; ?>
+                                        <?php echo $isReturnInvoice ? 'All items actual duration' : 'All items estimated duration'; ?> = <?php echo $durationVal . $durationUnit; ?>
                                     </div>
                                     <?php endif; ?>
                                 </div>
