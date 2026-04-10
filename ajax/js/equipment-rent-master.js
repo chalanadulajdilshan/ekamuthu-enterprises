@@ -597,6 +597,8 @@ jQuery(document).ready(function () {
     $("#addItemBtn").html('<i class="uil uil-plus"></i> Add').removeClass("btn-warning").addClass("btn-success");
     $("#cancelEditBtn").hide();
     
+    $("#is_branch_exchange").prop("checked", false);
+    
     // Reset UI states
     $("#item_qty").prop("readonly", true);
     $("#item_sub_equipment_display").prop("disabled", false).attr("placeholder", "Select equipment");
@@ -1314,6 +1316,7 @@ jQuery(document).ready(function () {
           // System-controlled received date (read-only)
           $("#received_date").prop("readonly", true).addClass("bg-light");
           $("#received_date_container").show();
+          $("#is_branch_exchange").prop("checked", rent.is_branch_exchange == 1);
           $("#remark").val(rent.remark || "");
           $("#workplace_address").val(rent.workplace_address || "");
           $("#transport_cost").val(formatAmount(rent.transport_cost || 0));
@@ -2306,6 +2309,37 @@ jQuery(document).ready(function () {
       return false;
     }
 
+    // Branch to Branch Exchange Validation
+    var totalBill = 0;
+    rentItems.forEach(function (item) {
+      totalBill += parseFloat(item.amount || 0);
+    });
+
+    if ($("#is_branch_exchange").is(":checked")) {
+      if (totalBill > 0) {
+        $("#create").prop("disabled", false);
+        swal({
+          title: "Branch Exchange Validation",
+          text: "If 'Branch to Branch Exchange' is selected, the bill amount must be 0. Please update the item prices.",
+          type: "warning",
+          confirmButtonText: "OK",
+        });
+        return false;
+      }
+    } else {
+      // For regular rentals, prevent zero total
+      if (totalBill <= 0) {
+        $("#create").prop("disabled", false);
+        swal({
+          title: "Amount Required",
+          text: "Rental bill total must be greater than zero for normal rentals. If this is a branch exchange, please select the 'Branch to Branch Exchange' option.",
+          type: "warning",
+          confirmButtonText: "OK",
+        });
+        return false;
+      }
+    }
+
     $("#page-preloader").show();
 
     // Ensure all items use the current Rental Date field value
@@ -2320,6 +2354,12 @@ jQuery(document).ready(function () {
 
     var formData = new FormData($("#form-data")[0]);
     formData.append("create", true);
+    // Explicitly handle checkbox if needed or ensure form-data has it
+    if ($("#is_branch_exchange").is(":checked")) {
+      formData.set("is_branch_exchange", "1");
+    } else {
+      formData.set("is_branch_exchange", "0");
+    }
     formData.append("items", JSON.stringify(rentItems));
     formData.append("transport_details", JSON.stringify(rentTransportDetails));
     // Received date is system-controlled; do not send manual value
@@ -2409,15 +2449,38 @@ jQuery(document).ready(function () {
       return false;
     }
     if (rentItems.length === 0) {
-      $("#update").prop("disabled", false);
-      swal({
-        title: "Error!",
-        text: "Please add at least one equipment item",
-        type: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
       return false;
+    }
+
+    // Branch to Branch Exchange Validation
+    var totalBill = 0;
+    rentItems.forEach(function (item) {
+      totalBill += parseFloat(item.amount || 0);
+    });
+
+    if ($("#is_branch_exchange").is(":checked")) {
+      if (totalBill > 0) {
+        $("#update").prop("disabled", false);
+        swal({
+          title: "Branch Exchange Validation",
+          text: "If 'Branch to Branch Exchange' is selected, the bill amount must be 0. Please update the item prices.",
+          type: "warning",
+          confirmButtonText: "OK",
+        });
+        return false;
+      }
+    } else {
+      // For regular rentals, prevent zero total
+      if (totalBill <= 0) {
+        $("#update").prop("disabled", false);
+        swal({
+          title: "Amount Required",
+          text: "Rental bill total must be greater than zero for normal rentals. If this is a branch exchange, please select the 'Branch to Branch Exchange' option.",
+          type: "warning",
+          confirmButtonText: "OK",
+        });
+        return false;
+      }
     }
 
     $("#page-preloader").show();
@@ -2432,6 +2495,11 @@ jQuery(document).ready(function () {
 
     var formData = new FormData($("#form-data")[0]);
     formData.append("update", true);
+    if ($("#is_branch_exchange").is(":checked")) {
+      formData.set("is_branch_exchange", "1");
+    } else {
+      formData.set("is_branch_exchange", "0");
+    }
     formData.append("items", JSON.stringify(rentItems));
     formData.append("transport_details", JSON.stringify(rentTransportDetails));
     // Received date is system-controlled; do not send manual value

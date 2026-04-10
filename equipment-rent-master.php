@@ -344,11 +344,19 @@ $bill_number = $lastId + 1;
 
                                                 <!-- Return-after-9 checkbox (applies to Return All) -->
                                                 <div class="col-md-3 align-self-end">
-                                                    <div class="form-check mt-2">
-                                                        <input class="form-check-input" type="checkbox" id="after_9am_extra_day_all" value="1">
-                                                        <label class="form-check-label" for="after_9am_extra_day_all">
-                                                            Return after 9:00 AM (count extra day)
-                                                        </label>
+                                                    <div class="d-flex flex-wrap gap-3 mt-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="after_9am_extra_day_all" value="1">
+                                                            <label class="form-check-label" for="after_9am_extra_day_all">
+                                                                Return after 9:00 AM
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="is_branch_exchange" name="is_branch_exchange" value="1">
+                                                            <label class="form-check-label fw-bold text-primary" for="is_branch_exchange">
+                                                                Branch to Branch Exchange
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                 </div>
 

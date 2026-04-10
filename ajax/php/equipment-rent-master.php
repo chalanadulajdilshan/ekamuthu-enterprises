@@ -66,6 +66,22 @@ if (isset($_POST['create'])) {
         exit();
     }
 
+    // Amount Validation
+    $totalAmount = 0;
+    foreach ($items as $item) {
+        $totalAmount += (float)($item['amount'] ?? 0);
+    }
+    $isBranchExchange = isset($_POST['is_branch_exchange']) && $_POST['is_branch_exchange'] == 1;
+
+    if ($isBranchExchange && $totalAmount > 0) {
+        echo json_encode(["status" => "error", "message" => "Branch exchange must have zero bill amount"]);
+        exit();
+    }
+    if (!$isBranchExchange && $totalAmount <= 0) {
+        echo json_encode(["status" => "error", "message" => "Normal rentals must have a bill amount greater than zero"]);
+        exit();
+    }
+
     // Validate all equipment availability before creating
     foreach ($items as $item) {
         $EQUIP_CHECK = new Equipment($item['equipment_id']);
@@ -108,6 +124,7 @@ if (isset($_POST['create'])) {
     $existingReceivedDate = $EQUIPMENT_RENT->received_date;
     $EQUIPMENT_RENT->status = 'rented';
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
+    $EQUIPMENT_RENT->is_branch_exchange = isset($_POST['is_branch_exchange']) ? (int)$_POST['is_branch_exchange'] : 0;
     $EQUIPMENT_RENT->workplace_address = $_POST['workplace_address'] ?? null;
     $EQUIPMENT_RENT->total_items = count($items);
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
@@ -247,6 +264,22 @@ if (isset($_POST['update'])) {
         exit();
     }
 
+    // Amount Validation
+    $totalAmount = 0;
+    foreach ($items as $item) {
+        $totalAmount += (float)($item['amount'] ?? 0);
+    }
+    $isBranchExchange = isset($_POST['is_branch_exchange']) && $_POST['is_branch_exchange'] == 1;
+
+    if ($isBranchExchange && $totalAmount > 0) {
+        echo json_encode(["status" => "error", "message" => "Branch exchange must have zero bill amount"]);
+        exit();
+    }
+    if (!$isBranchExchange && $totalAmount <= 0) {
+        echo json_encode(["status" => "error", "message" => "Normal rentals must have a bill amount greater than zero"]);
+        exit();
+    }
+
     // Get existing item IDs for this rent
     $existingItems = $EQUIPMENT_RENT->getItems();
     $existingItemIds = array_column($existingItems, 'id');
@@ -346,6 +379,7 @@ if (isset($_POST['update'])) {
     $EQUIPMENT_RENT->rental_date = $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->rental_start_date = $_POST['rental_start_date'] ?? $_POST['rental_date'] ?? date('Y-m-d');
     $EQUIPMENT_RENT->remark = $_POST['remark'] ?? '';
+    $EQUIPMENT_RENT->is_branch_exchange = isset($_POST['is_branch_exchange']) ? (int)$_POST['is_branch_exchange'] : 0;
     $EQUIPMENT_RENT->workplace_address = $_POST['workplace_address'] ?? null;
     $EQUIPMENT_RENT->transport_cost = $_POST['transport_cost'] ?? 0;
     $EQUIPMENT_RENT->deposit_total = $_POST['custom_deposit'] ?? 0;
@@ -633,6 +667,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_rent_details') {
                 "rental_start_date" => $EQUIPMENT_RENT->rental_start_date,
                 "received_date" => $EQUIPMENT_RENT->received_date,
                 "status" => $EQUIPMENT_RENT->status,
+                "is_branch_exchange" => $EQUIPMENT_RENT->is_branch_exchange,
                 "remark" => $EQUIPMENT_RENT->remark,
                 "workplace_address" => $EQUIPMENT_RENT->workplace_address,
                 "transport_cost" => $EQUIPMENT_RENT->transport_cost,

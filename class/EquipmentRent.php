@@ -29,6 +29,7 @@ class EquipmentRent
     public $bank_account_number;
     public $bank_reference;
     public $bank_slip;
+    public $is_branch_exchange;
     public $created_by;
     public $created_at;
     public $updated_at;
@@ -67,6 +68,7 @@ class EquipmentRent
                 $this->bank_account_number = $result['bank_account_number'] ?? null;
                 $this->bank_reference = $result['bank_reference'] ?? null;
                 $this->bank_slip = $result['bank_slip'] ?? null;
+                $this->is_branch_exchange = $result['is_branch_exchange'] ?? 0;
                 $this->created_by = $result['created_by'] ?? null;
                 $this->created_at = $result['created_at'] ?? null;
                 $this->updated_at = $result['updated_at'] ?? null;
@@ -79,11 +81,11 @@ class EquipmentRent
         $now = date('Y-m-d H:i:s');
 
         $query = "INSERT INTO `equipment_rent` (
-            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `remark`, `workplace_address`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `total_rent_amount`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `bank_slip`, `created_by`, `created_at`
+            `bill_number`, `customer_id`, `rental_date`, `rental_start_date`, `received_date`, `status`, `is_cancelled`, `is_branch_exchange`, `remark`, `workplace_address`, `total_items`, `transport_cost`, `deposit_total`, `payment_type_id`, `total_rent_amount`, `cheque_number`, `cheque_date`, `cheque_branch_id`, `transfer_branch_id`, `bank_account_number`, `bank_reference`, `bank_slip`, `created_by`, `created_at`
         ) VALUES (
             '$this->bill_number', '$this->customer_id', '$this->rental_date', " .
             ($this->rental_start_date ? "'$this->rental_start_date'" : "NULL") . ", " .
-            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '" . ($this->is_cancelled ? 1 : 0) . "', '" . addslashes($this->remark) . "', " . ($this->workplace_address ? "'" . addslashes($this->workplace_address) . "'" : "NULL") . ", '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
+            ($this->received_date ? "'$this->received_date'" : "NULL") . ", '$this->status', '" . ($this->is_cancelled ? 1 : 0) . "', '" . ($this->is_branch_exchange ? 1 : 0) . "', '" . addslashes($this->remark) . "', " . ($this->workplace_address ? "'" . addslashes($this->workplace_address) . "'" : "NULL") . ", '$this->total_items', '$this->transport_cost', '$this->deposit_total', " .
             ($this->payment_type_id ? "'$this->payment_type_id'" : "NULL") . ", " .
             ($this->total_rent_amount ? "'" . $this->total_rent_amount . "'" : "0") . ", " .
             ($this->cheque_number ? "'" . addslashes($this->cheque_number) . "'" : "NULL") . ", " .
@@ -119,6 +121,7 @@ class EquipmentRent
             `received_date` = " . ($this->received_date ? "'$this->received_date'" : "NULL") . ", 
             `status` = '$this->status', 
             `is_cancelled` = '" . ($this->is_cancelled ? 1 : 0) . "', 
+            `is_branch_exchange` = '" . ($this->is_branch_exchange ? 1 : 0) . "', 
             `cancel_amount` = '" . ($this->cancel_amount ? $this->cancel_amount : 0) . "', 
             `cancel_date` = " . ($this->cancel_date ? "'$this->cancel_date'" : "NULL") . ",
             `remark` = '" . addslashes($this->remark) . "',
@@ -249,6 +252,7 @@ class EquipmentRent
             $this->transfer_branch_id = $result['transfer_branch_id'] ?? null;
             $this->bank_account_number = $result['bank_account_number'] ?? null;
             $this->bank_reference = $result['bank_reference'] ?? null;
+            $this->is_branch_exchange = $result['is_branch_exchange'] ?? 0;
             $this->remark = $result['remark'];
             $this->workplace_address = $result['workplace_address'] ?? null;
             return true;
