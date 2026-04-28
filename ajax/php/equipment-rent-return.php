@@ -105,10 +105,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_return') {
     }
 
     if ($refund_amount > 0) {
-        // Default company refund paid to full refund amount when not provided, and clamp within range
-        $company_refund_paid = ($company_refund_paid === null)
-            ? $refund_amount
-            : max(0, min($refund_amount, $company_refund_paid));
+        $is_partial_refund = isset($_POST['partial_refund']) && intval($_POST['partial_refund']) === 1;
+
+        if ($is_partial_refund) {
+            // Allow zero/empty to mean nothing paid yet; clamp within range
+            $company_refund_paid = ($company_refund_paid === null) ? 0 : max(0, min($refund_amount, $company_refund_paid));
+        } else {
+            // When not partial, default to full refund if nothing specified
+            if ($company_refund_paid === null || $company_refund_paid <= 0) {
+                $company_refund_paid = $refund_amount;
+            } else {
+                $company_refund_paid = min($refund_amount, $company_refund_paid);
+            }
+        }
 
         $RETURN->company_refund_paid = $company_refund_paid;
         $RETURN->initial_company_refund_paid = $company_refund_paid;

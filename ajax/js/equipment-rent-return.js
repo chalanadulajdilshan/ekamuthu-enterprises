@@ -345,6 +345,33 @@ $(document).ready(function () {
                                 </tr>`;
           }
 
+          // If company owes a refund, add Partial Refund section (as in Return All)
+          if (calc.refund_amount > 0) {
+            settlementHtml += `
+                                <tr class="border-top mt-2">
+                                    <td colspan="2" class="pb-0">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="partial_refund_checkbox">
+                                            <label class="form-check-label fw-bold" for="partial_refund_checkbox">Partial Refund - අර්ධ ආපසු ගෙවීම</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr id="partial_refund_section" style="display:none;">
+                                    <td><strong>Company Refund Paid:</strong></td>
+                                    <td class="text-right">
+                                        <input type="number" id="company_refund_paid" class="form-control form-control-sm d-inline-block" 
+                                               style="width:140px; text-align:right;" step="0.01" min="0" 
+                                               max="${calc.refund_amount.toFixed(2)}" value="0">
+                                    </td>
+                                </tr>
+                                <tr id="company_outstanding_section" style="display:none;">
+                                    <td><strong>Company Outstanding:</strong></td>
+                                    <td class="text-right">
+                                        <strong class="text-danger" id="company_outstanding_display">Rs. ${formatAmount(calc.refund_amount)}</strong>
+                                    </td>
+                                </tr>`;
+          }
+
           settlementHtml += `</table></div>`;
 
           $("#settlementPreview").html(settlementHtml).show();
@@ -368,6 +395,26 @@ $(document).ready(function () {
                 }
               })
               .trigger("input");
+          }
+
+          // Bind live company outstanding calculation
+          if (calc.refund_amount > 0) {
+            const refundAmount = calc.refund_amount;
+            $("#partial_refund_checkbox").on("change", function () {
+              if ($(this).is(":checked")) {
+                $("#partial_refund_section, #company_outstanding_section").show();
+              } else {
+                $("#partial_refund_section, #company_outstanding_section").hide();
+                // Reset value when unchecked
+                $("#company_refund_paid").val(0).trigger("input");
+              }
+            });
+
+            $("#company_refund_paid").on("input", function () {
+              const paid = parseFloat($(this).val()) || 0;
+              const outstanding = Math.max(0, refundAmount - paid);
+              $("#company_outstanding_display").text("Rs. " + formatAmount(outstanding));
+            });
           }
         } else {
           $("#settlementPreview")
@@ -438,6 +485,8 @@ $(document).ready(function () {
         penalty_percentage: penaltyPercentage,
         remark: remark,
         customer_paid: parseFloat($("#customer_paid_amount").val()) || 0,
+        partial_refund: $("#partial_refund_checkbox").is(":checked") ? 1 : 0,
+        company_refund_paid: parseFloat($("#company_refund_paid").val()) || 0,
       },
       dataType: "json",
       success: function (response) {
