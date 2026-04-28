@@ -278,6 +278,7 @@ jQuery(document).ready(function () {
                     // Show trip details section & switch to update mode
                     $('#section-trip-details').addClass('show');
                     $('#create').hide();
+                    $('#print-trip-btn').show().attr('href', 'print-trip.php?id=' + result.trip_id).attr('target', '_blank');
 
                     // Show trip details section & switch to update mode
                     $('#section-trip-details').addClass('show');
@@ -330,6 +331,8 @@ jQuery(document).ready(function () {
                         timer: 2500,
                         showConfirmButton: false
                     });
+
+                    $('#print-trip-btn').show().attr('href', 'print-trip.php?id=' + id).attr('target', '_blank');
 
                     window.setTimeout(function () {
                         window.location.reload();
@@ -447,6 +450,7 @@ jQuery(document).ready(function () {
                         tbody += '<td>' + parseFloat(trip.start_meter).toFixed(2) + '</td>';
                         tbody += '<td>' + (trip.end_meter !== '-' ? parseFloat(trip.end_meter).toFixed(2) : '-') + '</td>';
                         tbody += '<td>' + trip.status_label + '</td>';
+                        tbody += '<td><a href="print-trip.php?id=' + trip.id + '" target="_blank" class="btn btn-soft-info btn-sm"><i class="uil uil-print"></i></a></td>';
                         tbody += '</tr>';
                     });
                     $('#tripTableBody').html(tbody);
@@ -555,6 +559,7 @@ jQuery(document).ready(function () {
 
                     // Show trip details section
                     $('#section-trip-details').addClass('show');
+                    $('#print-trip-btn').show().attr('href', 'print-trip.php?id=' + trip.id).attr('target', '_blank');
 
                     // Always load pay amount
                     $('#pay_amount').val(parseFloat(trip.pay_amount || 0).toFixed(2));

@@ -100,6 +100,9 @@ $customers = $CUSTOMER->all();
                                 <i class="uil uil-trash-alt me-1"></i> Delete
                             </a>
                             <?php endif; ?>
+                            <a href="#" class="btn btn-info" id="print-trip-btn" style="display: none;">
+                                <i class="uil uil-print me-1"></i> Print
+                            </a>
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
@@ -491,6 +494,7 @@ $customers = $CUSTOMER->all();
                                         <th>Start Meter</th>
                                         <th>End Meter</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tripTableBody">
