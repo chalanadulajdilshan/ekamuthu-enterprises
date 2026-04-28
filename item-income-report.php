@@ -98,6 +98,7 @@ include 'auth.php';
                                         <table id="reportTable" class="table table-bordered dt-responsive nowrap w-100 mb-0">
                                             <thead class="table-dark">
                                                 <tr>
+                                                    <th style="width:40px;">#</th>
                                                     <th style="width:30px;"></th>
                                                     <th>අයිතම</th>
                                                     <th class="text-end">අගය</th>
@@ -113,6 +114,7 @@ include 'auth.php';
                                             <tbody id="reportTableBody"></tbody>
                                             <tfoot>
                                                 <tr class="fw-bold bg-light">
+                                                    <th></th>
                                                     <th></th>
                                                     <th class="text-end">TOTAL</th>
                                                     <th class="text-end" id="footValue">-</th>

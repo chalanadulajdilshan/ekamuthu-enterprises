@@ -213,6 +213,7 @@ usort($equipmentMap, function ($a, $b) {
     <table>
         <thead>
             <tr>
+                <th style="width:30px;">#</th>
                 <th>අයිතම</th>
                 <th class="text-right">අගය</th>
                 <th class="text-right">කුලියට දුන් ප්‍රමාණය</th>
@@ -226,10 +227,11 @@ usort($equipmentMap, function ($a, $b) {
         </thead>
         <tbody>
             <?php if (count($equipmentMap) === 0): ?>
-                <tr><td colspan="8" style="text-align:center;">No records found</td></tr>
+                <tr><td colspan="10" style="text-align:center;">No records found</td></tr>
             <?php else: ?>
-                <?php foreach ($equipmentMap as $eq): ?>
+                <?php $i = 1; foreach ($equipmentMap as $eq): ?>
                     <tr class="equipment-row">
+                        <td style="text-align:center;"><?php echo $i++; ?></td>
                         <td><?php echo $eq['equipment_code'] . ' - ' . $eq['equipment_name']; ?></td>
                         <td class="text-right"><?php echo number_format($eq['totals']['value'], 2); ?></td>
                         <td class="text-right"><?php echo $eq['totals']['rented_qty']; ?></td>
@@ -244,6 +246,7 @@ usort($equipmentMap, function ($a, $b) {
                         <?php foreach ($eq['sub_equipment'] as $se): ?>
                             <?php if (!$se['sub_equipment_code']) continue; ?>
                             <tr class="sub-row">
+                                <td></td>
                                 <td><?php echo $se['sub_equipment_code']; ?></td>
                                 <td class="text-right"><?php echo number_format($se['value'], 2); ?></td>
                                 <td class="text-right"><?php echo $se['rented_qty']; ?></td>

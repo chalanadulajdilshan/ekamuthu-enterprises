@@ -6,7 +6,7 @@ $(document).ready(function () {
         var fromDate = $('#fromDate').val(), toDate = $('#toDate').val(), code = $('#equipmentCode').val().trim();
         if (!fromDate || !toDate) { swal('Error', 'Please select a valid date range', 'error'); return; }
         $('#summarySection').show();
-        $('#reportTableBody').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
+        $('#reportTableBody').html('<tr><td colspan="11" class="text-center">Loading...</td></tr>');
         $.ajax({
             url: 'ajax/php/item-income-report.php', method: 'POST', dataType: 'json',
             data: { action: 'get_item_income_report', from_date: fromDate, to_date: toDate, equipment_code: code },
@@ -18,12 +18,13 @@ $(document).ready(function () {
                 $('#sumRepairCost').text(res.summary.total_repair_cost);
                 $('#sumProfit').text(res.summary.total_profit);
                 var d = res.data, rows = '', tV=0,tRQ=0,tBD=0,tRV=0,tPQ=0,tPC=0,tPR=0;
-                if (!d.length) { $('#reportTableBody').html('<tr><td colspan="9" class="text-center">No records found</td></tr>'); return; }
+                if (!d.length) { $('#reportTableBody').html('<tr><td colspan="11" class="text-center">No records found</td></tr>'); return; }
                 d.forEach(function(eq, i) {
                     var id='eq_'+i, t=eq.totals, hasSub=eq.sub_equipment.some(function(s){return s.sub_equipment_code!==null;});
                     var btn = hasSub ? '<button class="btn btn-sm btn-outline-primary toggle-btn" data-target="'+id+'">+</button>' : '';
                     var label = eq.equipment_code + ' - ' + eq.equipment_name;
                     rows += '<tr class="equipment-row" data-target="'+id+'">';
+                    rows += '<td class="text-center">'+(i+1)+'</td>';
                     rows += '<td class="text-center">'+btn+'</td>';
                     rows += '<td>'+label+'</td>';
                     rows += '<td class="text-end">'+fmt(t.value)+'</td>';
@@ -39,6 +40,7 @@ $(document).ready(function () {
                         eq.sub_equipment.forEach(function(se) {
                             if (!se.sub_equipment_code) return;
                             rows += '<tr class="sub-equipment-row '+id+'" style="display:none;">';
+                            rows += '<td></td>';
                             rows += '<td></td>';
                             rows += '<td>'+se.sub_equipment_code+'</td>';
                             rows += '<td class="text-end">'+fmt(se.value)+'</td>';
