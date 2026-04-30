@@ -880,14 +880,7 @@ if (!empty($customerMobile)) {
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            <?php if (empty($return_rows)): ?>
-                            <div class="no-print" style="width: 100px; height: 100px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; flex-shrink: 0; background: #fff;">
-                                <p style="font-size: 11px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
-                            </div>
-                            <div class="d-none d-print-block" style="width: 100px; height: 100px; border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; flex-shrink: 0; background: #fff;">
-                                <p style="font-size: 11px; font-weight: bold; margin-bottom: 6px; text-align: center;">Finger Mark<br>ඇඟිලි සලකුණ</p>
-                            </div>
-                            <?php endif; ?>
+
                         </div>
                     </div>
                     <div class="col-md-4 col-4 d-flex justify-content-end">
