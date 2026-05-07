@@ -775,7 +775,7 @@ if (!empty($customerMobile)) {
                         <thead class="table-light">
                             <tr>
                                 <th>Date</th>
-                                <th>Time</th>
+                                <th class="text-center">Duration</th>
                                 <th>Equipment</th>
                                 <th class="text-center">Qty</th>
                                 <th class="text-end">Rental</th>
@@ -791,8 +791,21 @@ if (!empty($customerMobile)) {
                         <tbody style="font-size:13px;">
                             <?php foreach ($return_rows as $ret): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($ret['return_date']); ?></td>
-                                    <td><?php echo htmlspecialchars($ret['return_time'] ?? '-'); ?></td>
+                                    <td>
+                                        <div><?php echo htmlspecialchars($ret['return_date']); ?></div>
+                                        <div style="font-size:11px; color:#666;"><?php echo htmlspecialchars($ret['return_time'] ?? '-'); ?></div>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php
+                                            $usedDays = max(1, intval($ret['used_days'] ?? 0));
+                                            if (($ret['rent_type'] ?? '') === 'month') {
+                                                $monthsCount = max(1, (int)ceil($usedDays / 30));
+                                                echo $monthsCount . ' Month' . ($monthsCount > 1 ? 's' : '');
+                                            } else {
+                                                echo $usedDays . ' Day' . ($usedDays > 1 ? 's' : '');
+                                            }
+                                        ?>
+                                    </td>
                                     <td><?php echo htmlspecialchars($ret['equipment_name'] ?? '-'); ?></td>
                                     <td class="text-center"><?php echo intval($ret['return_qty'] ?? 0); ?></td>
                                     <td class="text-end"><?php echo number_format(floatval($ret['rental_amount'] ?? 0), 2); ?></td>
