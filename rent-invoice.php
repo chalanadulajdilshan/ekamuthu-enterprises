@@ -881,14 +881,25 @@ if (!empty($customerMobile)) {
                                             }
                                             
                                             if ($maxUsedDays > 0) {
-                                                $durationVal = $maxUsedDays;
+                                                if (($firstItem['rent_type'] ?? '') === 'month') {
+                                                    $durationVal = max(1, (int)ceil($maxUsedDays / 30));
+                                                } else {
+                                                    $durationVal = $maxUsedDays;
+                                                }
                                             }
                                         }
-                                        
-                                        $durationUnit = ($firstItem['rent_type'] === 'month') ? ' Months' : ' Days';
+
+                                        $isMonth = ($firstItem['rent_type'] ?? '') === 'month';
+                                        $durationUnit = $isMonth
+                                            ? ($durationVal > 1 ? ' Months' : ' Month')
+                                            : ($durationVal > 1 ? ' Days' : ' Day');
+                                        $durationExtra = '';
+                                        if ($isMonth && !empty($maxUsedDays) && $isReturnInvoice) {
+                                            $durationExtra = ' (' . $maxUsedDays . ' Day' . ($maxUsedDays > 1 ? 's' : '') . ')';
+                                        }
                                     ?>
                                     <div style="margin-top: 8px; font-weight: bold; font-size: 12px; border-top: 1px dashed #eee; padding-top: 4px; color: #000;">
-                                        <?php echo $isReturnInvoice ? 'All items actual duration' : 'All items estimated duration'; ?> = <?php echo $durationVal . $durationUnit; ?>
+                                        <?php echo $isReturnInvoice ? 'All items actual duration' : 'All items estimated duration'; ?> = <?php echo $durationVal . $durationUnit . $durationExtra; ?>
                                     </div>
                                     <?php endif; ?>
                                 </div>
