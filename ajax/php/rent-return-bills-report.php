@@ -274,6 +274,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
     $finalData = [];
     $summary = [
         'total_quantity' => 0,
+        'total_daily_rent' => 0,
         'total_amount' => 0,
         'total_extra_amount' => 0,
         'total_profit' => 0,
@@ -295,6 +296,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         foreach ($bill['items'] as $item) {
             $billTotalAmount += $item['amount'];
             $billTotalQty += $item['quantity'];
+            $summary['total_daily_rent'] += floatval($item['daily_rent']);
             if ($bill['bill_type'] == 'Return') {
                 $billTotalExtraAmount += ($item['extra_day_amount'] ?? 0) + ($item['penalty_amount'] ?? 0);
             }
@@ -361,6 +363,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_rent_return_bills_report
         'data' => $finalData,
         'summary' => [
             'total_quantity' => $summary['total_quantity'],
+            'total_daily_rent' => number_format($summary['total_daily_rent'], 2),
             'total_amount' => number_format($summary['total_amount'], 2),
             'total_extra_amount' => number_format($summary['total_extra_amount'], 2),
             'total_profit' => number_format($summary['total_profit'], 2),

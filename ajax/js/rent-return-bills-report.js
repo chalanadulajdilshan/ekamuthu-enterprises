@@ -79,6 +79,14 @@ $(document).ready(function () {
             },
             { data: 'rent_date' },
             { data: 'return_date' },
+            { data: 'daily_rent' },
+            { 
+                data: 'amount', 
+                className: 'text-end',
+                render: function (data) {
+                    return formatNumber(data);
+                }
+            },
             { data: 'quantity', className: 'text-end' },
             {
                 data: 'deposit', className: 'text-end', render: function (data) {
@@ -292,6 +300,7 @@ $(document).ready(function () {
                     $("#reportInfoSection").show();
                     $("#dateRangeDisplay").text(response.summary.date_range);
                     $("#totalBills").text(response.summary.total_bills);
+                    $("#totalAmountDisplay").text(response.summary.total_amount);
                     $("#totalRentBills").text(response.summary.total_rent_bills);
                     $("#totalReturnBills").text(response.summary.total_return_bills);
                 } else {
@@ -332,6 +341,8 @@ $(document).ready(function () {
 
         // Update totals
         $("#totalQty").text(summary.total_quantity);
+        $('#totalDailyRent').text(summary.total_daily_rent);
+        $('#footerTotal').text(summary.total_amount);
         $('#totalAmount').text(summary.total_amount);
         $('#totalExtraAmount').text(summary.total_extra_amount);
         $('#totalProfit').text(summary.total_profit);
@@ -577,15 +588,17 @@ $(document).ready(function () {
       <table>
           <thead>
               <tr>
-                <th style="width: 7%;">වර්ගය</th>
-                <th style="width: 6%;">අංකය</th>
-                <th style="width: 8%;">දිනය</th>
-                <th style="width: 12%;">පාරිභෝගිකයා</th>
-                <th style="width: 8%;">දුරකථන</th>
-                <th style="width: 15%;">ලිපිනය</th>
-                <th style="width: 10%;">හැඳුනුම්පත</th>
-                <th style="width: 4%;">දින</th>
-                <th style="width: 10%;">සටහන</th>
+                <th style="width: 6%;">වර්ගය</th>
+                <th style="width: 5%;">අංකය</th>
+                <th style="width: 7%;">දිනය</th>
+                <th style="width: 10%;">පාරිභෝගිකයා</th>
+                <th style="width: 7%;">දුරකථන</th>
+                <th style="width: 10%;">ලිපිනය</th>
+                <th style="width: 7%;">හැඳුනුම්පත</th>
+                <th style="width: 3%;">දින</th>
+                <th style="width: 6%;">සටහන</th>
+                <th style="width: 5%;">දිනක කුලිය</th>
+                <th style="width: 6%; text-align: right;">මුළු එකතුව</th>
                 <th style="width: 4%; text-align: right;">ප්‍රමාණය</th>
                 <th style="width: 5%; text-align: right;">තැන්පතුව</th>
                 <th style="width: 5%; text-align: right;">ලාභය</th>
@@ -610,6 +623,8 @@ $(document).ready(function () {
                   <td class="text-center">${item.customer_nic || '-'}</td>
                   <td class="text-center">${item.day_count || '-'}${item.after_9am == 1 ? '<br><span style="color:red; font-size:7px;">+1 DAY</span>' : ''}</td>
                   <td style="font-size: 8px;">${item.remarks || '-'}</td>
+                  <td class="text-center">${item.daily_rent || '-'}</td>
+                  <td class="text-right">${formatNumber(item.amount)}</td>
                   <td class="text-right">${item.quantity || 0}</td>
                   <td class="text-right">${formatNumber(item.deposit)}</td>
                   <td class="text-right">${formatNumber(item.amount)}</td>
@@ -622,7 +637,7 @@ $(document).ready(function () {
           </tbody>
           <tfoot>
               <tr style="background-color: #f8f9fa; font-weight: bold;">
-                  <td colspan="9" class="text-right">එකතුව</td>
+                  <td colspan="11" class="text-right">එකතුව</td>
                   <td class="text-right">${summary.total_quantity}</td>
                   <td class="text-right">${formatNumber(summary.total_deposit)}</td>
                   <td class="text-right">${formatNumber(summary.total_amount)}</td>

@@ -178,17 +178,20 @@ $translations = Translations::getSinhalaMapping();
                                 <h5 id="reportTitle">Rent & Return Bills Report</h5>
                                 <div class="report-details">
                                     <div class="row">
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <strong>Date Range:</strong> <span id="dateRangeDisplay">-</span>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <strong>Total Bills:</strong> <span id="totalBills">0</span>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <strong>Rent Bills:</strong> <span id="totalRentBills">0</span>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <strong>Return Bills:</strong> <span id="totalReturnBills">0</span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>Total Amount:</strong> Rs. <span id="totalAmountDisplay">0.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -309,6 +312,8 @@ $translations = Translations::getSinhalaMapping();
                                                 <th>Day Count<br><small class="gp-sinhala-term" style="font-size: 18px;"><?php echo $translations['Day Count'] ?? ''; ?></small></th>
                                                 <th>Rent Date<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Rent Date'] ?? ''; ?></small></th>
                                                 <th>Return Date<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Return Date'] ?? ''; ?></small></th>
+                                                <th>One Day Rent<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Daily Rent'] ?? 'දිනක කුලිය'; ?></small></th>
+                                                <th class="text-end">Total<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Total'] ?? 'එකතුව'; ?></small></th>
                                                 <th class="text-end">Qty<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Qty'] ?? ''; ?></small></th>
                                                 <th class="text-end">Deposit<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Deposit'] ?? ''; ?></small></th>
                                                 <th class="text-end">Profit<br><small class="gp-sinhala-term" style="font-size: 16px;"><?php echo $translations['Profit'] ?? ''; ?></small></th>
@@ -324,11 +329,13 @@ $translations = Translations::getSinhalaMapping();
                                         <tfoot>
                                             <tr>
                                                 <td colspan="11" class="text-end fw-bold">Totals <br><small class="gp-sinhala-term d-inline" style="font-size: 12px;"><?php echo $translations['Totals'] ?? ''; ?></small></td>
-                                                <td id="totalQty" class="text-end fw-bold">0</td>
-                                                <td id="totalDeposit" class="text-end fw-bold">0.00</td>
-                                                <td id="totalAmount" class="text-end fw-bold">0.00</td>
-                                                <td id="totalExtraAmount" class="text-end fw-bold">0.00</td>
-                                                <td id="totalProfit" class="text-end fw-bold">0.00</td>
+                                                <td class="text-end fw-bold"><small>Daily Rent (කුලිය)</small><br><span id="totalDailyRent">0.00</span></td>
+                                                <td class="text-end fw-bold"><small>Total (එකතුව)</small><br><span id="footerTotal">0.00</span></td>
+                                                <td class="text-end fw-bold"><small>Qty (ප්‍රමාණය)</small><br><span id="totalQty">0</span></td>
+                                                <td class="text-end fw-bold"><small>Deposit (තැන්පතුව)</small><br><span id="totalDeposit">0.00</span></td>
+                                                <td class="text-end fw-bold"><small>Profit (ලාභය)</small><br><span id="totalAmount">0.00</span></td>
+                                                <td class="text-end fw-bold"><small>Extra (අතිරේක)</small><br><span id="totalExtraAmount">0.00</span></td>
+                                                <td class="text-end fw-bold"><small>Refund (ආපසු)</small><br><span id="totalProfit">0.00</span></td>
                                                 <td></td>
                                                 <td></td>
                                             </tr>
