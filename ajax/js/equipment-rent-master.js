@@ -2582,7 +2582,7 @@ jQuery(document).ready(function () {
     $("#item_sub_equipment_display").val("");
     $("#transport_cost").val("");
     $("#custom_deposit").val("");
-    $("#transport_cost").prop("readonly", true); // transport cost is always computed from transport details
+    $("#transport_cost").prop("readonly", false); // allow manual transport cost entry
     $("#custom_deposit").prop("readonly", false); // allow manual input for new rent
     $("#btn-manage-deposits").hide();
     $("#transportDetailsTableBody").html(

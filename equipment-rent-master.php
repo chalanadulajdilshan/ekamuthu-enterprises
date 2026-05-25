@@ -547,9 +547,9 @@ $bill_number = $lastId + 1;
                                                                         <input type="text"
                                                                             class="form-control form-control-sm text-end"
                                                                             id="transport_cost" name="transport_cost"
-                                                                            placeholder="0.00" readonly
+                                                                            placeholder="0.00"
                                                                             style="max-width: 120px; display: inline-block;">
-                                                                        <button type="button" class="btn btn-sm btn-outline-info ms-1" id="btn-transport-details" data-bs-toggle="modal" data-bs-target="#TransportDetailsModal" title="Manage Transport Details">
+                                                                        <button type="button" class="btn btn-sm btn-outline-info ms-1" id="btn-transport-details" data-bs-toggle="modal" data-bs-target="#TransportDetailsModal" title="Manage Transport Details" style="display:none;">
                                                                             <i class="uil uil-truck"></i>
                                                                         </button>
                                                                     </td>
