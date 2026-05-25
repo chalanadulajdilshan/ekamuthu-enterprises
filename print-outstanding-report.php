@@ -591,6 +591,23 @@ if ($customerId > 0 && empty($customerFilterName)) {
             <div style="text-align: center;">
                 <div class="report-title">
                     Outstanding Report
+                    <?php if ($monthFilter): ?>
+                        <?php
+                            $monthNames = [
+                                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                            ];
+                            $selectedMonthName = $monthNames[$monthFilter] ?? '';
+                        ?>
+                        <span class="report-subtitle">
+                            මාසය: <strong><?php echo $selectedMonthName; ?></strong>
+                        </span>
+                    <?php elseif ($fromDate || $toDate): ?>
+                        <span class="report-subtitle">
+                            දිනයන් පරාසය: <strong><?php echo ($fromDate ?: '...') . ' සිට ' . ($toDate ?: '...'); ?></strong>
+                        </span>
+                    <?php endif; ?>
                     <?php if (!empty($customerFilterName)): ?>
                         <span class="report-subtitle">
                             Customer: <strong><?php echo $customerFilterName; ?></strong>
