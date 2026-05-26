@@ -564,10 +564,54 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
                 'department_stock' => $deptStock
             ];
         } else {
-            $sql = "SELECT 
-                        se.id, 
-                        se.equipment_id, 
-                        se.code, 
+            // Build summary meta for items WITH sub-equipment
+            $subDeptSql = "SELECT dm.id as department_id, dm.name as department_name,
+                           COUNT(*) as total,
+                           SUM(CASE WHEN rental_status IN ('available', 'returned') THEN 1 ELSE 0 END) as available,
+                           SUM(CASE WHEN rental_status IN ('rent', 'rented') THEN 1 ELSE 0 END) as rented,
+                           SUM(CASE WHEN rental_status = 'repair' OR is_repair = 1 THEN 1 ELSE 0 END) as repair,
+                           SUM(CASE WHEN rental_status = 'damage' THEN 1 ELSE 0 END) as damage
+                           FROM sub_equipment se
+                           JOIN department_master dm ON se.department_id = dm.id
+                           WHERE se.equipment_id = $equipment_id
+                           GROUP BY se.department_id";
+            $subDeptResult = $db->readQuery($subDeptSql);
+            $deptStock = [];
+            $totalQty = 0;
+            $availableQty = 0;
+            $rentedQty = 0;
+            $repairQty = 0;
+            $damageQty = 0;
+            while ($subDeptRow = mysqli_fetch_assoc($subDeptResult)) {
+                $totalQty += (int)$subDeptRow['total'];
+                $availableQty += (int)$subDeptRow['available'];
+                $rentedQty += (int)$subDeptRow['rented'];
+                $repairQty += (int)$subDeptRow['repair'];
+                $damageQty += (int)$subDeptRow['damage'];
+                $deptStock[] = [
+                    'department_id' => $subDeptRow['department_id'],
+                    'department_name' => $subDeptRow['department_name'],
+                    'qty' => (int)$subDeptRow['total'],
+                    'available_qty' => (int)$subDeptRow['available'],
+                    'rented_qty' => (int)$subDeptRow['rented'],
+                    'repair_qty' => (int)$subDeptRow['repair'],
+                    'damage_qty' => (int)$subDeptRow['damage']
+                ];
+            }
+            $meta = [
+                'no_sub_items' => 0,
+                'total_qty' => $totalQty,
+                'available_qty' => $availableQty,
+                'rented_qty' => $rentedQty,
+                'repair_qty' => $repairQty,
+                'damage_qty' => $damageQty,
+                'department_stock' => $deptStock
+            ];
+
+            $sql = "SELECT
+                        se.id,
+                        se.equipment_id,
+                        se.code,
                         se.rental_status,
                         se.is_repair,
                         (SELECT eri.rent_id FROM equipment_rent_items eri WHERE eri.sub_equipment_id = se.id AND eri.status = 'rented' ORDER BY eri.id DESC LIMIT 1) AS active_rent_id,
