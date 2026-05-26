@@ -535,44 +535,9 @@ jQuery(document).ready(function () {
       return cardsHtml;
     }
 
-    // Build summary cards + Department Wise Stock for items WITH sub-equipment
+    // Build Department Wise Stock for items WITH sub-equipment (no summary cards)
     var summaryHtml = "";
     if (meta && meta.no_sub_items == 0 && meta.total_qty !== undefined) {
-      var sAvailable = parseFloat(meta.available_qty || 0).toFixed(0);
-      var sRented = parseFloat(meta.rented_qty || 0).toFixed(0);
-      var sRepair = parseFloat(meta.repair_qty || 0).toFixed(0);
-      var sDamage = parseFloat(meta.damage_qty || 0).toFixed(0);
-      var sTotal = parseFloat(meta.total_qty || 0).toFixed(0);
-
-      summaryHtml =
-        '<div class="row m-2">' +
-        '<div class="col-md-3">' +
-        '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
-        '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Available</span>' +
-        '<span class="text-muted fw-bold me-2">-</span>' +
-        '<span class="text-success fw-bold font-size-22">' + sAvailable + '</span>' +
-        '</div></div>' +
-        '<div class="col-md-3">' +
-        '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100 rented-card" style="cursor: pointer;" data-id="' +
-        meta.equipment_id + '" data-name="' + meta.equipment_name + '">' +
-        '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Rented</span>' +
-        '<span class="text-muted fw-bold me-2">-</span>' +
-        '<span class="text-danger fw-bold font-size-22">' + sRented + '</span>' +
-        '</div></div>' +
-        '<div class="col-md-3">' +
-        '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
-        '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Repair</span>' +
-        '<span class="text-muted fw-bold me-2">-</span>' +
-        '<span class="text-warning fw-bold font-size-22">' + sRepair + '</span>' +
-        '</div></div>' +
-        '<div class="col-md-3">' +
-        '<div class="p-3 bg-white rounded border shadow-sm d-flex align-items-center justify-content-center h-100">' +
-        '<span class="text-muted fw-bold me-2 text-uppercase font-size-14">Total</span>' +
-        '<span class="text-muted fw-bold me-2">-</span>' +
-        '<span class="text-dark fw-bold font-size-22">' + sTotal + '</span>' +
-        '</div></div>' +
-        '</div>';
-
       if (meta.department_stock && meta.department_stock.length > 0) {
         summaryHtml +=
           '<div class="row m-2"><div class="col-12"><h5 class="text-muted font-size-18 mb-3">Department Wise Stock</h5><div class="table-responsive"><table class="table table-bordered border-secondary mb-0" style="font-size: 16px;"><thead><tr><th>Department</th><th class="text-center">Total</th><th class="text-center">Available</th><th class="text-center">Rented</th><th class="text-center">Repair</th><th class="text-center">Damage</th></tr></thead><tbody>';
