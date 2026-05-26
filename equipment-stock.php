@@ -107,9 +107,7 @@ $EQUIPMENT = new Equipment(NULL);
                                             <thead class="table-light">
                                                 <tr>
                                                     <th style="width:30px;"></th>
-                                                    <th>Code</th>
-                                                    <th>Item Name</th>
-                                                    <th>Category</th>
+                                                    <th>Equipment</th>
                                                     <th>Department</th>
                                                     <th>Serial Number</th>
                                                     <th>Size</th>

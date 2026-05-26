@@ -29,10 +29,9 @@ jQuery(document).ready(function () {
           '<span class="mdi mdi-plus-circle-outline" style="font-size:18px; cursor:pointer;"></span>',
         width: "30px",
       },
-      { data: "code", title: "Equipment Code" },
       {
         data: "item_name",
-        title: "Item Name",
+        title: "Equipment",
         render: function (data, type, row) {
           var rentDay = parseFloat(row.rent_one_day || 0).toLocaleString(
             "en-US",
@@ -43,22 +42,15 @@ jQuery(document).ready(function () {
             { minimumFractionDigits: 2, maximumFractionDigits: 2 },
           );
           return (
-            '<div><span class="fw-bold">' +
-            (data || "-") +
-            "</span><br>" +
-            '<small class="text-danger">Day: ' +
-            rentDay +
-            " | Month: " +
-            rentMonth +
-            "</small></div>"
+            '<div>' +
+            '<span class="badge bg-light text-dark me-1" style="font-size: 13px;">' + (row.code || "-") + '</span>' +
+            '<span class="fw-bold">' + (data || "-") + '</span>' +
+            '<br>' +
+            '<span class="text-muted" style="font-size: 13px;">' + (row.category_label || "-") + '</span>' +
+            '<br>' +
+            '<small class="text-danger">Day: ' + rentDay + ' | Month: ' + rentMonth + '</small>' +
+            '</div>'
           );
-        },
-      },
-      {
-        data: "category_label",
-        title: "Category",
-        render: function (data) {
-          return data || "-";
         },
       },
       {
