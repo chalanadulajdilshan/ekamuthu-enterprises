@@ -550,7 +550,7 @@ jQuery(document).ready(function () {
             '<td class="text-center dept-rented-cell" style="cursor: pointer;" data-id="' +
             meta.equipment_id + '" data-name="' + meta.equipment_name +
             '" data-dept-id="' + dept.department_id +
-            '"><span class="badge bg-danger font-size-16">' + dRented + '</span></td>' +
+            '"><span class="badge bg-primary font-size-16">' + dRented + '</span></td>' +
             '<td class="text-center"><span class="badge bg-warning font-size-16">' + dRepair + '</span></td>' +
             '<td class="text-center"><span class="badge bg-dark font-size-16">' + dDamage + '</span></td>' +
             '</tr>';
