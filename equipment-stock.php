@@ -25,6 +25,7 @@ $EQUIPMENT = new Equipment(NULL);
     </style>
 </head>
 
+
 <body data-layout="horizontal" data-topbar="colored">
 
     <!-- Begin page -->

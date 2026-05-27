@@ -84,7 +84,8 @@ jQuery(document).ready(function () {
           });
         },
       },
-
+ 
+      
       {
         data: "deposit_one_day",
         title: "Deposit",
