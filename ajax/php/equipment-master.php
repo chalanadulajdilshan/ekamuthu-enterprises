@@ -462,7 +462,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'print_stock') {
                            COUNT(*) as total,
                            SUM(CASE WHEN rental_status IN ('available', 'returned') THEN 1 ELSE 0 END) as available,
                            SUM(CASE WHEN rental_status IN ('rent', 'rented') THEN 1 ELSE 0 END) as rented,
-                           SUM(CASE WHEN rental_status = 'repair' OR is_repair = 1 THEN 1 ELSE 0 END) as repair,
+                           SUM(CASE WHEN rental_status = 'repair' THEN 1 ELSE 0 END) as repair,
                            SUM(CASE WHEN rental_status = 'damage' THEN 1 ELSE 0 END) as damage
                            FROM sub_equipment se
                            JOIN department_master dm ON se.department_id = dm.id
@@ -569,7 +569,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_sub_equipment') {
                            COUNT(*) as total,
                            SUM(CASE WHEN rental_status IN ('available', 'returned') THEN 1 ELSE 0 END) as available,
                            SUM(CASE WHEN rental_status IN ('rent', 'rented') THEN 1 ELSE 0 END) as rented,
-                           SUM(CASE WHEN rental_status = 'repair' OR is_repair = 1 THEN 1 ELSE 0 END) as repair,
+                           SUM(CASE WHEN rental_status = 'repair' THEN 1 ELSE 0 END) as repair,
                            SUM(CASE WHEN rental_status = 'damage' THEN 1 ELSE 0 END) as damage
                            FROM sub_equipment se
                            JOIN department_master dm ON se.department_id = dm.id

@@ -605,7 +605,7 @@ jQuery(document).ready(function () {
         repairAttr = ' data-repair-id="' + item.active_repair_job_id + '"';
       }
 
-      var statusToShow = isRepair ? 'repair' : item.rental_status;
+      var statusToShow = item.rental_status;
 
       html +=
         "<tr class='sub-eq-row" +
