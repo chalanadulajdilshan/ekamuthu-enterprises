@@ -605,8 +605,7 @@ jQuery(document).ready(function () {
         repairAttr = ' data-repair-id="' + item.active_repair_job_id + '"';
       }
 
-      // Override status if under repair (Deprecated - now handled via rental_status in DB)
-      var statusToShow = item.rental_status;
+      var statusToShow = isRepair ? 'repair' : item.rental_status;
 
       html +=
         "<tr class='sub-eq-row" +
