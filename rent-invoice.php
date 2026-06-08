@@ -721,7 +721,7 @@ if (!empty($customerMobile)) {
                                 <th>Equipment Name</th>
                                 <th>Code</th>
                                 <th>Type</th>
-                                <th class="text-end">Rate</th>
+                                <th class="text-end">Rate<br><small class="text-muted fw-normal" style="font-size:10px;">(Per day rate)</small></th>
                                 <th class="text-center">Bill Qty</th>
                                 <th class="text-center">Issued Qty</th>
                                 <th class="text-end">Amount</th>
@@ -745,12 +745,14 @@ if (!empty($customerMobile)) {
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
-                                        <?php 
+                                        <?php
                                         $qty = (float)($item['quantity'] ?? 1);
                                         if ($qty <= 0) $qty = 1;
                                         $rate = (float)($item['amount'] ?? 0) / $qty;
-                                        echo number_format($rate, 2); 
+                                        echo number_format($rate, 2);
+                                        $rateUnit = ($item['rent_type'] === 'month') ? '/month' : '/day';
                                         ?>
+                                        <small style="font-size:10px; color:#666;"><?php echo $rateUnit; ?></small>
                                     </td>
                                     <?php
                                         $billQty = isset($item['bill_qty']) ? (float)$item['bill_qty'] : (float)($item['quantity'] ?? 0);
