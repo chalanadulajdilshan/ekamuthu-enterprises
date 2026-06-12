@@ -74,6 +74,10 @@ $supplier_code = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                 <i class="uil uil-chart-line me-1"></i> Analysis Report
                             </a>
 
+                            <a href="print-supplier-master.php" target="_blank" class="btn btn-dark ms-2">
+                                <i class="uil uil-print me-1"></i> Print
+                            </a>
+
                         </div>
 
                         <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
@@ -124,7 +128,7 @@ $supplier_code = 'SM/' . $_SESSION['id'] . '/0' . ($lastId + 1);
                                                     <label for="customerCode" class="form-label">Supplier Code</label>
                                                     <div class="input-group mb-3">
                                                         <input id="code" name="code" type="text" class="form-control"
-                                                            value="<?php echo $supplier_code ?>" readonly>
+                                                            value="<?php echo $supplier_code ?>">
                                                         <button class="btn btn-info" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#supplierModal"><i
                                                                 class="uil uil-search me-1"></i>

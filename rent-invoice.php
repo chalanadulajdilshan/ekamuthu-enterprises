@@ -547,12 +547,18 @@ if (!empty($customerMobile)) {
 
         .summary-label {
             text-align: right;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 13px;
+            color: #000;
         }
 
         .summary-value {
-            text-align: left;
-            min-width: 80px;
+            text-align: right;
+            min-width: 100px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #000;
+            font-variant-numeric: tabular-nums;
         }
 
         .summary-wrapper {
