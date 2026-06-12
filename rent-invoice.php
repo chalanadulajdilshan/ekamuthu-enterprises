@@ -953,7 +953,7 @@ if (!empty($customerMobile)) {
                                 <td class="summary-label"><?php echo $balanceLabel; ?></td>
                                 <td class="summary-value">
                                     <div class="d-flex flex-column align-items-end">
-                                        <span class="fw-semibold"><?php echo $balanceSign . $balanceAmount; ?></span>
+                                        <span class="fw-semibold"><?php if ($balanceSign !== ''): ?><span style="font-size:18px; font-weight:900;"><?php echo $balanceSign; ?></span><?php endif; ?><?php echo $balanceAmount; ?></span>
                                         <?php if ($refund_balance < 0): ?>
                                             <span class="badge bg-success mt-1 align-self-end">Customer Pay</span>
                                         <?php elseif ($refund_balance > 0): ?>
