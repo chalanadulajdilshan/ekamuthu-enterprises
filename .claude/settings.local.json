@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(timeout 5 npm start)"
+      "Bash(timeout 5 npm start)",
+      "Bash(C:/xampp/mysql/bin/mysql.exe -u root ekamuthu-enterprises -e \"SELECT id, bill_number, rental_date, is_cancelled, status FROM equipment_rent WHERE bill_number = '33265';\")",
+      "Bash(C:/xampp/mysql/bin/mysql.exe -h 127.0.0.1 -u root ekamuthu-enterprises -e \"SELECT id, bill_number, rental_date, is_cancelled, status FROM equipment_rent WHERE bill_number = '33265';\")"
     ]
   }
 }

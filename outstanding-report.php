@@ -495,7 +495,7 @@ include 'auth.php';
     <script src="ajax/js/common.js"></script>
     
     <!-- Page Specific JS -->
-    <script src="ajax/js/outstanding-report.js"></script>
+    <script src="ajax/js/outstanding-report.js?v=<?= filemtime(__DIR__ . '/ajax/js/outstanding-report.js') ?>"></script>
 
 </body>
 </html>
