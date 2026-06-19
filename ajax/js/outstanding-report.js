@@ -18,19 +18,9 @@ $(document).ready(function () {
         loadReport();
     });
 
-    // Month filter interactions: selecting a month clears date range; typing dates clears month
+    // Month filter and date range can be used together (AND filter)
     $('#month_filter').change(function () {
-        const val = $(this).val();
-        if (val) {
-            $('#from_date').val('');
-            $('#to_date').val('');
-        }
         loadReport();
-    });
-    $('#from_date, #to_date').change(function () {
-        if ($('#from_date').val() || $('#to_date').val()) {
-            $('#month_filter').val('');
-        }
     });
 
     // Print Report (detailed)

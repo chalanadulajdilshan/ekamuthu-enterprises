@@ -27,9 +27,6 @@ if (isset($_GET['month_filter']) && $_GET['month_filter'] !== '') {
     $monthInt = (int)$_GET['month_filter'];
     if ($monthInt >= 1 && $monthInt <= 12) {
         $monthFilter = $monthInt;
-        // Month filter takes precedence over date range
-        $fromDate = null;
-        $toDate = null;
     }
 }
 
@@ -44,14 +41,15 @@ if (!empty($searchTerm)) {
     $safeTerm = method_exists($db, 'getConnection') ? mysqli_real_escape_string($db->getConnection(), $searchTerm) : addslashes($searchTerm);
     $where .= " AND er.bill_number LIKE '%$safeTerm%'";
 }
-if ($monthFilter) {
-    $where .= " AND MONTH(er.rental_date) = $monthFilter";
-} elseif ($fromDate && $toDate) {
+if ($fromDate && $toDate) {
     $where .= " AND DATE(er.rental_date) BETWEEN '$fromDate' AND '$toDate'";
 } elseif ($fromDate) {
     $where .= " AND DATE(er.rental_date) >= '$fromDate'";
 } elseif ($toDate) {
     $where .= " AND DATE(er.rental_date) <= '$toDate'";
+}
+if ($monthFilter) {
+    $where .= " AND MONTH(er.rental_date) = $monthFilter";
 }
 
 $customerFilterName = '';

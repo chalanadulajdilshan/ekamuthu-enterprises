@@ -198,9 +198,6 @@ if ($action === 'get_outstanding_report') {
         $monthInt = (int)$monthFilterRaw;
         if ($monthInt >= 1 && $monthInt <= 12) {
             $monthFilter = $monthInt;
-            // Month filter takes precedence over date range
-            $fromDate = null;
-            $toDate = null;
         }
     }
 
@@ -209,14 +206,15 @@ if ($action === 'get_outstanding_report') {
     if ($customerId > 0) {
         $where .= " AND er.customer_id = $customerId";
     }
-    if ($monthFilter) {
-        $where .= " AND MONTH(er.rental_date) = $monthFilter";
-    } elseif ($fromDate && $toDate) {
+    if ($fromDate && $toDate) {
         $where .= " AND DATE(er.rental_date) BETWEEN '$fromDate' AND '$toDate'";
     } elseif ($fromDate) {
         $where .= " AND DATE(er.rental_date) >= '$fromDate'";
     } elseif ($toDate) {
         $where .= " AND DATE(er.rental_date) <= '$toDate'";
+    }
+    if ($monthFilter) {
+        $where .= " AND MONTH(er.rental_date) = $monthFilter";
     }
 
     $db = Database::getInstance();

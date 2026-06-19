@@ -201,7 +201,7 @@ include 'auth.php';
                                                 <option value="11">නොවැම්බර්</option>
                                                 <option value="12">දෙසැම්බර්</option>
                                             </select>
-                                            <small class="text-muted">මාසයක් තෝරන විට දිනයන් පරාසය නොගනී.</small>
+                                            <small class="text-muted">මාසය සහ දිනයන් පරාසය එකට යෙදේ.</small>
                                         </div>
                                         <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
                                             <button id="generateBtn" class="btn btn-primary"><i class="uil uil-file-alt"></i> වාර්තාව සකසන්න</button>
