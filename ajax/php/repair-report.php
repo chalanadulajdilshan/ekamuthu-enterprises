@@ -7,20 +7,23 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_report') {
     $from = $_POST['from'] ?? date('Y-m-01');
     $to = $_POST['to'] ?? date('Y-m-d');
     
-    $basic_filter = "WHERE `created_at` BETWEEN '$from 00:00:00' AND '$to 23:59:59'";
-    
+    // Filter by item breakdown date to match the Repair Job Report basis
+    $basic_filter = "WHERE `item_breakdown_date` BETWEEN '$from' AND '$to'";
+    // Cancelled jobs are excluded from all monetary totals (same as Repair Job Report)
+    $money_filter = "$basic_filter AND `job_status` != 'cancelled'";
+
     $db = Database::getInstance();
-    
+
     // 1. Total Outsource Cost
-    $q1 = "SELECT SUM(`outsource_cost`) as total FROM `repair_jobs` $basic_filter AND `is_outsource` = 1";
+    $q1 = "SELECT SUM(`outsource_cost`) as total FROM `repair_jobs` $money_filter AND `is_outsource` = 1";
     $outsource_cost = mysqli_fetch_assoc($db->readQuery($q1))['total'] ?? 0;
-    
+
     // 2. Total Commission
-    $q2 = "SELECT SUM(`commission_amount`) as total FROM `repair_jobs` $basic_filter";
+    $q2 = "SELECT SUM(`commission_amount`) as total FROM `repair_jobs` $money_filter";
     $commission = mysqli_fetch_assoc($db->readQuery($q2))['total'] ?? 0;
-    
+
     // 3. Total Repair Income (Total Cost charged to customer)
-    $q3 = "SELECT SUM(`total_cost`) as total FROM `repair_jobs` $basic_filter";
+    $q3 = "SELECT SUM(`total_cost`) as total FROM `repair_jobs` $money_filter";
     $total_income = mysqli_fetch_assoc($db->readQuery($q3))['total'] ?? 0;
     
     // 4. Total Profit (Income - Outsource Cost)
@@ -92,7 +95,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_job_details') {
     $to = $_POST['to'] ?? date('Y-m-d');
     $type = $_POST['type'] ?? '';
 
-    $basic_filter = "WHERE `created_at` BETWEEN '$from 00:00:00' AND '$to 23:59:59'";
+    $basic_filter = "WHERE `item_breakdown_date` BETWEEN '$from' AND '$to'";
     $extra_filter = "";
 
     switch ($type) {
