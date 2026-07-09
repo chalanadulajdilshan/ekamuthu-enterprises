@@ -33,7 +33,8 @@ if (isset($_GET['month_filter']) && $_GET['month_filter'] !== '') {
 $db = Database::getInstance();
 
 $today = $toDate ?: date('Y-m-d');
-$where = "WHERE 1=1";
+// Exclude cancelled bills from all outstanding calculations (align with on-screen report)
+$where = "WHERE er.is_cancelled = 0 AND er.status <> 'cancelled'";
 if ($customerId > 0) {
     $where .= " AND er.customer_id = $customerId";
 }
