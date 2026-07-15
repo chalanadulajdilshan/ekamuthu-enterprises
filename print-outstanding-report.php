@@ -137,18 +137,11 @@ if ($projectedResult) {
         }
 
         $perUnitDaily = floatval($row['per_unit_daily']);
-        $rentType = $row['rent_type'] ?? 'day';
 
-        // For monthly items: charge minimum of days in rental month, then exact days
-        if ($rentType === 'month') {
-            $daysInRentalMonth = (int)date('t', strtotime($row['rental_date']));
-            $usedDays = max(1, (int)$row['used_days']);
-            $chargedDays = max($daysInRentalMonth, $usedDays);
-            $projectedAmount = round($pendingQty * $chargedDays * $perUnitDaily, 2);
-        } else {
-            $usedDays = max(1, (int)$row['used_days']);
-            $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
-        }
+        // Outstanding is charged only for the exact days used (rental date -> today/to_date),
+        // for both daily and monthly items. Monthly items are NOT forced to a full-month minimum here.
+        $usedDays = max(1, (int)$row['used_days']);
+        $projectedAmount = round($pendingQty * $usedDays * $perUnitDaily, 2);
         if ($projectedAmount <= 0) {
             continue;
         }

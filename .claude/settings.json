@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php -l ajax/php/outstanding-report.php)"
+      "Bash(php -l ajax/php/outstanding-report.php)",
+      "Bash(php -l print-outstanding-report.php)"
     ]
   }
 }
