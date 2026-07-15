@@ -1049,8 +1049,10 @@ function generatePrintWindow(refNumber) {
     var damage = $('#billModalDamage').text().trim();
     var totalRent = $('#billModalTotalRent').text().trim();
     var totalPaid = $('#billModalTotalPaid').text().trim();
-    // Use original balance from data, not recalculated modal value
-    var balance = currentBillData && currentBillData.balance ? formatAmount(parseAmount(currentBillData.balance)) : $('#billModalBalance').text().trim();
+    // Use the recalculated modal balance so the printed Due Balance matches the
+    // selected date range (consistent with Rent / Total Rent / Paid above).
+    var balance = $('#billModalBalance').text().trim()
+        || (currentBillData && currentBillData.balance ? formatAmount(parseAmount(currentBillData.balance)) : '');
     var fullOutstanding = currentBillData && currentBillData.full_outstanding != null
         ? formatAmount(currentBillData.full_outstanding)
         : $('#billModalFullOutstanding').text().trim();
