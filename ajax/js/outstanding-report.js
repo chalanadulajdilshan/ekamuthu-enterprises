@@ -910,21 +910,11 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
             var totalAmount = parseFloat(item.amount || 0);
             var perUnitRate = totalQty > 0 ? (totalAmount / totalQty) : 0;
             
-            var rentType = item.rent_type || 'day';
-            var projectedAmount = 0;
-            
-            if (rentType === 'month') {
-                // Monthly billing: charge minimum of days in rental month, then exact days
-                var daysInMonth = new Date(startMidnight.getFullYear(), startMidnight.getMonth() + 1, 0).getDate();
-                var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
-                var chargedDays = Math.max(daysInMonth, usedDays);
-                projectedAmount = pendingQty * chargedDays * perUnitRate;
-            } else {
-                // Daily billing: charge per day
-                var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
-                projectedAmount = pendingQty * usedDays * perUnitRate;
-            }
-            
+            // Outstanding is charged only for the exact days used (start -> end date),
+            // for both daily and monthly items. Monthly items are NOT forced to a full-month minimum.
+            var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
+            var projectedAmount = pendingQty * usedDays * perUnitRate;
+
             projectedOutstanding += projectedAmount;
         });
     }
