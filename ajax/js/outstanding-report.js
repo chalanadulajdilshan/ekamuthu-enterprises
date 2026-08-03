@@ -889,35 +889,9 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
     }
     $('#billModalDayCount').text(dayCountText);
 
-    // Recalculate projected outstanding for pending items within date range
+    // Match the rent invoice page: outstanding reflects only processed (returned & settled)
+    // amounts, not a daily accrual projection for items still on rent. Projected accrual disabled.
     var projectedOutstanding = 0;
-    
-    if (data.items && data.items.length) {
-        data.items.forEach(function (item) {
-            var pendingQty = parseFloat(item.pending_qty || 0);
-            if (pendingQty <= 0) return;
-
-            // Use item rental date if available, otherwise fall back to bill rental date or user-selected start date
-            var itemRentalDate = item.rental_date ? new Date(item.rental_date) : null;
-            var effectiveStartDate = calcStartDate || itemRentalDate || new Date(data.rental_date);
-            if (isNaN(effectiveStartDate.getTime())) return;
-            
-            var startMidnight = new Date(effectiveStartDate.getFullYear(), effectiveStartDate.getMonth(), effectiveStartDate.getDate());
-            var endMidnight = new Date(calcEndDate.getFullYear(), calcEndDate.getMonth(), calcEndDate.getDate());
-            
-            // Calculate per unit rate
-            var totalQty = parseFloat(item.quantity || 0);
-            var totalAmount = parseFloat(item.amount || 0);
-            var perUnitRate = totalQty > 0 ? (totalAmount / totalQty) : 0;
-            
-            // Outstanding is charged only for the exact days used (start -> end date),
-            // for both daily and monthly items. Monthly items are NOT forced to a full-month minimum.
-            var usedDays = Math.max(1, Math.floor((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1);
-            var projectedAmount = pendingQty * usedDays * perUnitRate;
-
-            projectedOutstanding += projectedAmount;
-        });
-    }
 
     // Use backend-aligned totals (no date filtering) for recorded outstanding and payments
     var recordedOutstanding = parseFloat(data.recorded_outstanding_raw || 0);
