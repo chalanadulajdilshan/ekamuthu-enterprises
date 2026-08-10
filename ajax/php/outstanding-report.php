@@ -666,15 +666,6 @@ if ($action === 'get_outstanding_report') {
         // Balance = charges - actual payments (deposits excluded)
         $balance = max(0, $totalCharges - $totalPaid);
 
-        // Only show rows that still have anything pending
-        if ($balance <= 0) {
-            continue;
-        }
-
-        // Total rent shown = total charges only (deposits not added)
-        $totalRent = $totalCharges;
-        $rentPlusInitial = $totalRent + $initialDepositTotal;
-
         // Determine status based on whether all items are fully returned
         $allItemsReturned = true;
         if (!empty($summary['items'])) {
@@ -686,6 +677,17 @@ if ($action === 'get_outstanding_report') {
             }
         }
         $statusLabel = $allItemsReturned ? 'Returned' : 'Not Returned';
+
+        // Show rows that still have a balance, OR that still have items on rent
+        // (not fully returned). Calculation is unchanged; this only widens the
+        // filter so on-rent bills also appear in the outstanding list.
+        if ($balance <= 0 && $allItemsReturned) {
+            continue;
+        }
+
+        // Total rent shown = total charges only (deposits not added)
+        $totalRent = $totalCharges;
+        $rentPlusInitial = $totalRent + $initialDepositTotal;
 
         $data[] = [
             'id' => $rentId,
