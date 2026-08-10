@@ -182,7 +182,9 @@ while ($row = mysqli_fetch_assoc($issueReturnsRes)) {
                     <?php if (!empty($COMPANY_PROFILE->registration_number)): ?>
                         <p class="mb-1 text-muted"><strong>Reg No:</strong> <?php echo htmlspecialchars($COMPANY_PROFILE->registration_number); ?></p>
                     <?php endif; ?>
-                    <p class="mb-1 text-muted"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?></p>
+                    <p class="mb-1 text-muted"><strong>Issue Date:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?>
+                        <br><small class="text-muted"><?php echo date('h:i A', strtotime($EQUIPMENT_RENT->rental_date)); ?></small>
+                    </p>
                     <?php if ($EQUIPMENT_RENT->rental_start_date): ?>
                         <p class="mb-1 text-muted"><strong>Rented From:</strong> <?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_start_date)); ?></p>
                     <?php endif; ?>
