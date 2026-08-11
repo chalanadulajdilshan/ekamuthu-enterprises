@@ -45,6 +45,9 @@ $(document).ready(function () {
                     $("#total_machines").html(createLink(data.total_machines, 'total_machines'));
                     $("#total_outsource_machines").html(createLink(data.total_outsource_machines, 'total_outsource_machines'));
                     $("#total_in_house_machines").html(createLink(data.total_in_house_machines, 'total_in_house_machines'));
+                    $("#customer_item_only").html(createLink(data.customer_item_only, 'customer_item_only'));
+                    $("#company_outsource").html(createLink(data.company_outsource, 'company_outsource'));
+                    $("#customer_outsource").html(createLink(data.customer_outsource, 'customer_outsource'));
                     $("#cannot_repair").html(createLink(data.cannot_repair, 'cannot_repair'));
                     $("#pending").html(createLink(data.pending, 'pending'));
                     $("#checking").html(createLink(data.checking, 'checking'));

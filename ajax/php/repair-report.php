@@ -40,7 +40,19 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_report') {
 
     // Total In-house Machines (Total - Outsource)
     $total_in_house_machines = $total_machines - $total_outsource_machines;
-    
+
+    // 6.1 Customer Item only (Customer item, NOT outsourced)
+    $q_cust_only = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `item_type` = 'customer' AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
+    $customer_item_only = mysqli_fetch_assoc($db->readQuery($q_cust_only))['count'] ?? 0;
+
+    // 6.2 Company Item + Outsource
+    $q_comp_out = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `item_type` = 'company' AND `is_outsource` = 1";
+    $company_outsource = mysqli_fetch_assoc($db->readQuery($q_comp_out))['count'] ?? 0;
+
+    // 6.3 Customer Item + Outsource
+    $q_cust_out = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `item_type` = 'customer' AND `is_outsource` = 1";
+    $customer_outsource = mysqli_fetch_assoc($db->readQuery($q_cust_out))['count'] ?? 0;
+
     // 7. Cannot Repair (Taken back)
     // We assume if status is 'cannot_repair', it is taken back or returned.
     $q7 = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `job_status` = 'cannot_repair'";
@@ -78,6 +90,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_report') {
             "total_machines" => $total_machines,
             "total_outsource_machines" => $total_outsource_machines,
             "total_in_house_machines" => $total_in_house_machines,
+            "customer_item_only" => $customer_item_only,
+            "company_outsource" => $company_outsource,
+            "customer_outsource" => $customer_outsource,
             "cannot_repair" => $cannot_repair,
             "pending" => $count_pending,
             "checking" => $count_checking,
@@ -107,6 +122,15 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_job_details') {
             break;
         case 'total_in_house_machines':
             $extra_filter = "AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
+            break;
+        case 'customer_item_only':
+            $extra_filter = "AND `item_type` = 'customer' AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
+            break;
+        case 'company_outsource':
+            $extra_filter = "AND `item_type` = 'company' AND `is_outsource` = 1";
+            break;
+        case 'customer_outsource':
+            $extra_filter = "AND `item_type` = 'customer' AND `is_outsource` = 1";
             break;
         case 'cannot_repair':
             $extra_filter = "AND `job_status` = 'cannot_repair'";

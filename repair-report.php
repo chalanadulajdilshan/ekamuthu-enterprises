@@ -162,6 +162,24 @@ include 'auth.php';
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>Customer Item only</strong> - <small class="text-muted">පාරිභෝගික අයිතම පමණක් (බාහිර නොවන)</small>
+                                                    </td>
+                                                    <td class="text-end fw-bold" id="customer_item_only">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>Company Item + Outsource</strong> - <small class="text-muted">ආයතන අයිතම බාහිරින් අලුත්වැඩියා</small>
+                                                    </td>
+                                                    <td class="text-end fw-bold" id="company_outsource">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>Customer Item + Outsource</strong> - <small class="text-muted">පාරිභෝගික අයිතම බාහිරින් අලුත්වැඩියා</small>
+                                                    </td>
+                                                    <td class="text-end fw-bold" id="customer_outsource">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>Taken back as cannot repair</strong> - <small class="text-muted">සැදීමට නොහැකි නිසා රැගෙන ගිය ගණන</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="cannot_repair">0</td>
