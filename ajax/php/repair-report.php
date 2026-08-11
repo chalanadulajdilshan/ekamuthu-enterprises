@@ -45,6 +45,10 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_report') {
     $q_cust_only = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `item_type` = 'customer' AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
     $customer_item_only = mysqli_fetch_assoc($db->readQuery($q_cust_only))['count'] ?? 0;
 
+    // 6.1b Company Item only (Company item, NOT outsourced)
+    $q_comp_only = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `item_type` = 'company' AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
+    $company_item_only = mysqli_fetch_assoc($db->readQuery($q_comp_only))['count'] ?? 0;
+
     // 6.2 Company Item + Outsource
     $q_comp_out = "SELECT COUNT(*) as count FROM `repair_jobs` $basic_filter AND `item_type` = 'company' AND `is_outsource` = 1";
     $company_outsource = mysqli_fetch_assoc($db->readQuery($q_comp_out))['count'] ?? 0;
@@ -91,6 +95,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_report') {
             "total_outsource_machines" => $total_outsource_machines,
             "total_in_house_machines" => $total_in_house_machines,
             "customer_item_only" => $customer_item_only,
+            "company_item_only" => $company_item_only,
             "company_outsource" => $company_outsource,
             "customer_outsource" => $customer_outsource,
             "cannot_repair" => $cannot_repair,
@@ -125,6 +130,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_job_details') {
             break;
         case 'customer_item_only':
             $extra_filter = "AND `item_type` = 'customer' AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
+            break;
+        case 'company_item_only':
+            $extra_filter = "AND `item_type` = 'company' AND (`is_outsource` = 0 OR `is_outsource` IS NULL)";
             break;
         case 'company_outsource':
             $extra_filter = "AND `item_type` = 'company' AND `is_outsource` = 1";

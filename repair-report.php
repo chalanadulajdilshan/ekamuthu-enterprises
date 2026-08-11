@@ -168,6 +168,12 @@ include 'auth.php';
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>Company Item only</strong> - <small class="text-muted">ආයතන අයිතම පමණක් (බාහිර නොවන)</small>
+                                                    </td>
+                                                    <td class="text-end fw-bold" id="company_item_only">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>Company Item + Outsource</strong> - <small class="text-muted">ආයතන අයිතම බාහිරින් අලුත්වැඩියා</small>
                                                     </td>
                                                     <td class="text-end fw-bold" id="company_outsource">0</td>
