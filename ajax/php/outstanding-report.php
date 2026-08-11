@@ -617,9 +617,10 @@ if ($action === 'get_outstanding_report') {
 
     foreach ($rentSummary as $rentId => $summary) {
         $recordedOutstanding = $summary['recorded_outstanding'] ?? 0;
-        // Match the rent invoice page: outstanding reflects only processed (returned & settled)
-        // amounts, not a daily accrual projection for items still on rent.
-        $projectedOutstanding = 0;
+        // Accrue rent for items still on rent (Not Returned): daily rate x days used,
+        // computed up to the report's to-date. This makes on-rent bills show their
+        // running rent and balance instead of 0.
+        $projectedOutstanding = $summary['projected_outstanding'] ?? 0;
         $recordedPaid = $summary['recorded_paid'] ?? 0;
 
         // Sum non-deposit payment receipts

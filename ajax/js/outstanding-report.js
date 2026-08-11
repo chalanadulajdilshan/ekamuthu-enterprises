@@ -889,9 +889,34 @@ function recalculateOutstandingToDateRange(startDateStr, endDateStr) {
     }
     $('#billModalDayCount').text(dayCountText);
 
-    // Match the rent invoice page: outstanding reflects only processed (returned & settled)
-    // amounts, not a daily accrual projection for items still on rent. Projected accrual disabled.
+    // Accrue rent for items still on rent up to the selected end date.
+    // Mirrors the backend projected-outstanding calculation (daily rate x days used)
+    // so the modal totals match the report table.
     var projectedOutstanding = 0;
+    if (data.items && data.items.length) {
+        var calcEndMidnight = new Date(calcEndDate.getFullYear(), calcEndDate.getMonth(), calcEndDate.getDate());
+        data.items.forEach(function (item) {
+            var qty = parseFloat(item.quantity || 0);
+            var returned = parseFloat(item.returned_qty || 0);
+            var pending = Math.max(0, qty - returned);
+            if (pending <= 0 || qty <= 0) return;
+
+            var perUnitDaily = parseAmount(item.amount) / qty;
+            if (!isFinite(perUnitDaily) || perUnitDaily <= 0) return;
+
+            // Accrual starts at the item rental date (or the selected start date if later)
+            var itemStart = item.rental_date ? new Date(item.rental_date) : calcStartDate;
+            if (calcStartDate && itemStart && calcStartDate > itemStart) {
+                itemStart = calcStartDate;
+            }
+            if (!itemStart || isNaN(itemStart.getTime())) return;
+            var itemStartMidnight = new Date(itemStart.getFullYear(), itemStart.getMonth(), itemStart.getDate());
+
+            var days = Math.max(1, Math.floor((calcEndMidnight - itemStartMidnight) / 86400000) + 1);
+            projectedOutstanding += pending * days * perUnitDaily;
+        });
+        projectedOutstanding = Math.round(projectedOutstanding * 100) / 100;
+    }
 
     // Use backend-aligned totals (no date filtering) for recorded outstanding and payments
     var recordedOutstanding = parseFloat(data.recorded_outstanding_raw || 0);
