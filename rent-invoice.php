@@ -154,6 +154,10 @@ foreach ($return_rows as $rr) {
 
 $isReturnInvoice = !empty($return_rows);
 
+// Rent and return invoices keep separate first-print date/times; until printed, show the current time
+$savedPrintedAt = $isReturnInvoice ? $EQUIPMENT_RENT->return_printed_at : $EQUIPMENT_RENT->printed_at;
+$printedAt = !empty($savedPrintedAt) ? $savedPrintedAt : date('Y-m-d H:i:s');
+
 // For return invoices, update hire_amount to reflect actual total rental charged
 if ($isReturnInvoice) {
     $hire_amount = $total_actual_rental;
@@ -680,7 +684,7 @@ if (!empty($customerMobile)) {
                     <div class="col-5 text-end">
                         <div style="font-size:15px;">
                             <strong>Issued Date: </strong><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?>
-                            <?php echo date('h:i A'); ?>
+                            <?php echo date('h:i A', strtotime($printedAt)); ?>
                         </div>
                     </div>
                 </div>
@@ -1141,6 +1145,19 @@ if (!empty($customerMobile)) {
                 window.print();
             }, 500);
         }
+    });
+
+    // Save the first print date/time to the database
+    let printSaved = <?php echo !empty($savedPrintedAt) ? 'true' : 'false'; ?>;
+    window.addEventListener('beforeprint', function() {
+        if (printSaved) return;
+        printSaved = true;
+        const data = new FormData();
+        data.append('action', 'mark_printed');
+        data.append('rent_id', '<?php echo (int) $EQUIPMENT_RENT->id; ?>');
+        data.append('printed_at', '<?php echo $printedAt; ?>');
+        data.append('invoice_type', '<?php echo $isReturnInvoice ? 'return' : 'rent'; ?>');
+        fetch('ajax/php/equipment-rent-master.php', { method: 'POST', body: data, keepalive: true });
     });
 
     // Trigger print on Enter

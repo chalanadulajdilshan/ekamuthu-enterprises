@@ -718,6 +718,27 @@ if (isset($_POST['action']) && $_POST['action'] === 'get_new_code') {
     exit;
 }
 
+// Save first print date/time of the rent invoice
+if (isset($_POST['action']) && $_POST['action'] === 'mark_printed') {
+    $rentId = (int) ($_POST['rent_id'] ?? 0);
+    $printedAt = $_POST['printed_at'] ?? '';
+    $dt = DateTime::createFromFormat('Y-m-d H:i:s', $printedAt);
+    if (!$rentId || !$dt || $dt->format('Y-m-d H:i:s') !== $printedAt) {
+        echo json_encode(["status" => "error", "message" => "Invalid data"]);
+        exit;
+    }
+
+    $EQUIPMENT_RENT = new EquipmentRent($rentId);
+    if (!$EQUIPMENT_RENT->id) {
+        echo json_encode(["status" => "error", "message" => "Rent record not found"]);
+        exit;
+    }
+
+    $EQUIPMENT_RENT->markPrinted($printedAt, ($_POST['invoice_type'] ?? '') === 'return');
+    echo json_encode(["status" => "success"]);
+    exit;
+}
+
 // Get next transport ID
 if (isset($_POST['action']) && $_POST['action'] === 'get_next_transport_id') {
     $TD = new TransportDetail(null);

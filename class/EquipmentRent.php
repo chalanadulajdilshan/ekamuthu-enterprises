@@ -33,6 +33,8 @@ class EquipmentRent
     public $created_by;
     public $created_at;
     public $updated_at;
+    public $printed_at;
+    public $return_printed_at;
 
     public function __construct($id = null)
     {
@@ -72,6 +74,8 @@ class EquipmentRent
                 $this->created_by = $result['created_by'] ?? null;
                 $this->created_at = $result['created_at'] ?? null;
                 $this->updated_at = $result['updated_at'] ?? null;
+                $this->printed_at = $result['printed_at'] ?? null;
+                $this->return_printed_at = $result['return_printed_at'] ?? null;
             }
         }
     }
@@ -255,9 +259,21 @@ class EquipmentRent
             $this->is_branch_exchange = $result['is_branch_exchange'] ?? 0;
             $this->remark = $result['remark'];
             $this->workplace_address = $result['workplace_address'] ?? null;
+            $this->printed_at = $result['printed_at'] ?? null;
+            $this->return_printed_at = $result['return_printed_at'] ?? null;
             return true;
         }
         return false;
+    }
+
+    // Save the first print date/time only; later prints keep the original value
+    public function markPrinted($printedAt, $isReturn = false)
+    {
+        $db = Database::getInstance();
+        $printedAt = mysqli_real_escape_string($db->DB_CON, $printedAt);
+        $column = $isReturn ? 'return_printed_at' : 'printed_at';
+        $query = "UPDATE `equipment_rent` SET `$column` = '$printedAt' WHERE `id` = " . (int) $this->id . " AND `$column` IS NULL";
+        return $db->readQuery($query);
     }
 
     public function fetchForDataTable($request)
