@@ -680,6 +680,9 @@ if (!empty($customerMobile)) {
                     <div class="col-5 text-end">
                         <div style="font-size:15px;">
                             <strong>Issued Date: </strong><?php echo date('d M, Y', strtotime($EQUIPMENT_RENT->rental_date)); ?>
+                            <?php if (!empty($EQUIPMENT_RENT->created_at)): ?>
+                                <?php echo date('h:i A', strtotime($EQUIPMENT_RENT->created_at)); ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
