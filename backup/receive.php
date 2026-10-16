@@ -56,7 +56,8 @@ if (!$config['import_to_cloud_db']) {
 }
 
 // Restore into the cloud DB, one statement at a time.
-// mysqldump escapes newlines inside values, so a line ending in ';' always ends a statement.
+// mysqldump escapes newlines inside values, so a line ending in the delimiter always ends a statement.
+// DELIMITER is a mysql-client command (used around triggers), so it is handled here instead of sent to the server.
 $db  = $config['cloud_db'];
 $con = mysqli_connect($db['host'], $db['user'], $db['password'], $db['name']);
 if (!$con) {
@@ -66,6 +67,7 @@ mysqli_set_charset($con, 'utf8mb4');
 
 $gz        = gzopen($target, 'rb');
 $statement = '';
+$delimiter = ';';
 $count     = 0;
 while (($line = gzgets($gz)) !== false) {
     $trimmed = trim($line);
@@ -73,8 +75,15 @@ while (($line = gzgets($gz)) !== false) {
     if ($statement === '' && ($trimmed === '' || strpos($trimmed, '--') === 0 || strpos($trimmed, '/*M!999999') === 0)) {
         continue;
     }
+    if ($statement === '' && stripos($trimmed, 'DELIMITER ') === 0) {
+        $delimiter = trim(substr($trimmed, 10));
+        continue;
+    }
     $statement .= $line;
-    if (substr($trimmed, -1) === ';') {
+    if (substr($trimmed, -strlen($delimiter)) === $delimiter) {
+        $statement = substr(rtrim($statement), 0, -strlen($delimiter));
+        // Shared hosting has no `root` user: drop DEFINER so triggers/views are owned by the cloud DB user
+        $statement = preg_replace('~/\*!500\d\d DEFINER=`[^`]*`@`[^`]*`( SQL SECURITY DEFINER)?\s*\*/~', '', $statement);
         if (!mysqli_query($con, $statement)) {
             gzclose($gz);
             fail(500, "Stored {$name}, but import failed after {$count} statements: " . mysqli_error($con));
