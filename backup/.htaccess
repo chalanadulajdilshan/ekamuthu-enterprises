@@ -1,0 +1,5 @@
+# Only the upload endpoint is reachable from the web
+Require all denied
+<Files "receive.php">
+    Require all granted
+</Files>

@@ -56,7 +56,13 @@ class Database
     // Detect local or live server
     private function isLocalServer()
     {
-        return in_array($_SERVER['SERVER_NAME'], ['localhost', '127.0.0.1']);
+        $host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+        if (in_array($host, ['localhost', '127.0.0.1'])) {
+            return true;
+        }
+        // Client PC accessed from other machines on the office LAN (e.g. 192.168.1.10)
+        return filter_var($host, FILTER_VALIDATE_IP) !== false
+            && filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false;
     }
 
     // Run query
