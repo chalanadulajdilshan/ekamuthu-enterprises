@@ -16,6 +16,9 @@ function fail($code, $message)
     exit($message);
 }
 
+if (empty($config['receive_enabled'])) {
+    fail(403, 'Backup receiving is disabled');
+}
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     fail(405, 'POST only');
 }

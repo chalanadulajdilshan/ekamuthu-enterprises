@@ -24,8 +24,11 @@ return [
         'user'     => 'chalcepi_ekamuthu-enterprises',
         'password' => '!}}c~bOdZR#g',
     ],
+    // false = receive.php rejects every upload (live site is now the main system, nothing is stored or imported)
+    'receive_enabled' => false,
+
     // true  = restore each uploaded backup into the cloud DB (cloud becomes a mirror of the local system)
     // false = only store the .sql.gz files on the cloud server
-    'import_to_cloud_db' => true,
+    'import_to_cloud_db' => false,
     'cloud_keep'  => 168,  // number of backup files to keep on the cloud server (7 days)
 ];
