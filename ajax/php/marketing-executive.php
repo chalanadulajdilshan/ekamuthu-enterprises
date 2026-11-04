@@ -22,6 +22,11 @@ if (isset($_POST['create'])) {
     $res = $EXECUTIVE->create();
 
     if ($res) {
+        $loginError = $EXECUTIVE->setAppLogin($res, $_POST['app_username'] ?? '', $_POST['app_password'] ?? '', isset($_POST['app_enabled']));
+        if ($loginError) {
+            echo json_encode(['status' => 'error', 'message' => 'Saved, but app login not set: ' . $loginError]);
+            exit();
+        }
         echo json_encode(['status' => 'success']);
     } else {
         echo json_encode(['status' => 'error']);
@@ -48,6 +53,11 @@ if (isset($_POST['update'])) {
     $res = $EXECUTIVE->update();
 
     if ($res) {
+        $loginError = $EXECUTIVE->setAppLogin($EXECUTIVE->id, $_POST['app_username'] ?? '', $_POST['app_password'] ?? '', isset($_POST['app_enabled']));
+        if ($loginError) {
+            echo json_encode(['status' => 'error', 'message' => 'Saved, but app login not set: ' . $loginError]);
+            exit();
+        }
         echo json_encode(['status' => 'success']);
     } else {
         echo json_encode(['status' => 'error']);

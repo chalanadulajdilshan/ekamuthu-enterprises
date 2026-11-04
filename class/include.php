@@ -31,6 +31,7 @@ include_once(dirname(__FILE__) . '/Pages.php');
 include_once(dirname(__FILE__) . '/Permission.php');
 include_once(dirname(__FILE__) . '/UserPermission.php');
 include_once(dirname(__FILE__) . '/MarketingExecutive.php');
+include_once(dirname(__FILE__) . '/RepFollowup.php');
 include_once(dirname(__FILE__) . '/Quotation.php');
 include_once(dirname(__FILE__) . '/QuotationItem.php');
 include_once(dirname(__FILE__) . '/SizeMaster.php'); 

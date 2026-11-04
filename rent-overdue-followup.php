@@ -164,14 +164,14 @@ $REPS = $MARKETING_EXECUTIVE->getActiveExecutives();
                                                         <th>Bill No</th>
                                                         <th>Customer</th>
                                                         <th>Location</th>
-                                                        <th>Pending Items</th>
+                                                        <th>Pending</th>
                                                         <th>Due Date</th>
                                                         <th>Late</th>
                                                         <th class="text-end">Paid</th>
                                                         <th class="text-end">Projected O/S</th>
                                                         <th class="text-end">Recorded O/S</th>
                                                         <th>Rep</th>
-                                                        <th class="text-center">Payments</th>
+                                                        <th class="text-center">Details</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -193,14 +193,14 @@ $REPS = $MARKETING_EXECUTIVE->getActiveExecutives();
                                                         <th>Bill No</th>
                                                         <th>Customer</th>
                                                         <th>Location</th>
-                                                        <th>Pending Items</th>
+                                                        <th>Pending</th>
                                                         <th>Due Date</th>
                                                         <th>Late</th>
                                                         <th class="text-end">Paid</th>
                                                         <th class="text-end">Projected O/S</th>
                                                         <th class="text-end">Recorded O/S</th>
                                                         <th>Reason</th>
-                                                        <th class="text-center">Payments</th>
+                                                        <th class="text-center">Details</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -218,7 +218,7 @@ $REPS = $MARKETING_EXECUTIVE->getActiveExecutives();
                     <div class="modal-dialog modal-lg modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Payments - <span id="payBillNo"></span></h5>
+                                <h5 class="modal-title">Bill Details - <span id="payBillNo"></span></h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">

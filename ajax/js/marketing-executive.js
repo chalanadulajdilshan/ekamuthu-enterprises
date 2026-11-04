@@ -96,7 +96,7 @@ jQuery(document).ready(function () {
                     } else {
                         swal({
                             title: "Error!",
-                            text: "Something went wrong.",
+                            text: result.message || "Something went wrong.",
                             type: 'error',
                             timer: 2000,
                             showConfirmButton: false
@@ -203,7 +203,7 @@ jQuery(document).ready(function () {
                     } else {
                         swal({
                             title: "Error!",
-                            text: "Something went wrong.",
+                            text: result.message || "Something went wrong.",
                             type: 'error',
                             timer: 2000,
                             showConfirmButton: false
@@ -240,6 +240,9 @@ jQuery(document).ready(function () {
         } else {
             $('#is_active').prop('checked', false);
         }
+        $('#app_username').val($(this).data('app-username'));
+        $('#app_password').val('');
+        $('#app_enabled').prop('checked', $(this).data('app-enabled') == 1);
 
         $("#create").hide();
         $("#update").show();

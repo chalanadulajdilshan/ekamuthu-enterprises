@@ -37,16 +37,16 @@ $(document).ready(function () {
     }
 
     function buildRow(bill, lastColumn) {
-        var items = bill.items.map(function (it) {
-            return '<li>' + esc(it.item) + (it.sub_equipment ? ' / ' + esc(it.sub_equipment) : '') + ' &times; ' + it.pending_qty + '</li>';
-        }).join('');
+        // Full item list is in the details popup; keep rows short here
+        var items = bill.items.length + ' item' + (bill.items.length === 1 ? '' : 's') +
+            '<br><small class="text-muted">Qty ' + parseFloat(bill.pending_qty).toLocaleString('en-US') + '</small>';
 
         return '<tr data-rent="' + bill.rent_id + '">' +
             '<td class="text-center"><input type="checkbox" class="form-check-input row-check" value="' + bill.rent_id + '"></td>' +
             '<td>' + esc(bill.bill_number) + '<br><small class="text-muted">' + esc(bill.bill_date) + '</small></td>' +
             '<td>' + esc(bill.customer_code + ' - ' + bill.customer_name) + '<br><small class="text-muted">' + esc(bill.mobile_number) + '</small></td>' +
             '<td class="location-cell"><small>' + esc(bill.location || '-') + '</small></td>' +
-            '<td><ul class="items-list">' + items + '</ul></td>' +
+            '<td class="text-nowrap">' + items + '</td>' +
             '<td>' + esc(bill.due_date) + '</td>' +
             '<td data-order="' + bill.overdue_days + '"><span class="badge late-badge ' + lateBadgeClass(bill.overdue_days) + '">' + esc(bill.late_text) + '</span>' +
             '<br><small class="text-muted">' + bill.overdue_days + ' days</small></td>' +
@@ -108,9 +108,14 @@ $(document).ready(function () {
         $('#sumProjected').text(formatNumber(projected));
 
         renderTable('followupTable', followup, function (b) {
-            return b.rep_id
+            var html = b.rep_id
                 ? '<span class="badge bg-primary">' + esc(b.rep_name) + '</span>' + (b.assigned_at ? '<br><small class="text-muted">' + esc(b.assigned_at.substring(0, 10)) + '</small>' : '')
                 : '<span class="badge bg-light text-muted">Not assigned</span>';
+            if (b.last_visit) {
+                html += '<br><small title="' + esc(b.last_visit.remark) + '"><i class="uil uil-map-marker"></i> ' +
+                    esc(b.last_visit.visit_at.substring(0, 10) + ': ' + b.last_visit.outcome) + '</small>';
+            }
+            return html;
         });
         renderTable('noFollowupTable', noFollowup, function (b) {
             return '<small>' + esc(b.note || '-') + '</small>';
@@ -259,7 +264,13 @@ $(document).ready(function () {
             { key: 'returns', title: 'Paid at Partial Returns' },
             { key: 'settlements', title: 'Outstanding Settlements' }
         ];
-        var html = '';
+        var html = '<h6 class="fw-bold">Pending Items (not returned)</h6>' +
+            '<table class="table table-sm table-bordered mb-4"><thead class="table-light"><tr><th>Item</th><th style="width:120px">Due Date</th><th class="text-end" style="width:110px">Late (days)</th><th class="text-end" style="width:110px">Pending Qty</th></tr></thead><tbody>' +
+            bill.items.map(function (it) {
+                return '<tr><td>' + esc(it.item) + (it.sub_equipment ? ' / ' + esc(it.sub_equipment) : '') + '</td>' +
+                    '<td>' + esc(it.due_date) + '</td><td class="text-end">' + it.overdue_days + '</td>' +
+                    '<td class="text-end fw-bold">' + parseFloat(it.pending_qty).toLocaleString('en-US') + '</td></tr>';
+            }).join('') + '</tbody></table>';
         groups.forEach(function (g) {
             var list = bill.payments[g.key] || [];
             var subtotal = 0;
@@ -274,7 +285,16 @@ $(document).ready(function () {
                 '<tbody>' + rows + '</tbody>' +
                 '<tfoot><tr class="fw-bold"><td colspan="2" class="text-end">Subtotal</td><td class="text-end">' + formatNumber(subtotal) + '</td></tr></tfoot></table>';
         });
-        html += '<div class="alert alert-success mb-0 d-flex justify-content-between fw-bold"><span>Total Paid</span><span>Rs. ' + formatNumber(bill.paid_total) + '</span></div>';
+        html += '<div class="alert alert-success d-flex justify-content-between fw-bold"><span>Total Paid</span><span>Rs. ' + formatNumber(bill.paid_total) + '</span></div>';
+
+        // Rep collections are not in the accounts, so they are listed apart from Total Paid
+        if (bill.rep_collections && bill.rep_collections.length) {
+            html += '<h6 class="fw-bold mt-2">Collected by Rep (not in accounts)</h6>' +
+                '<table class="table table-sm table-bordered mb-0"><thead class="table-light"><tr><th style="width:120px">Date</th><th>Details</th><th>Status</th><th class="text-end" style="width:140px">Amount</th></tr></thead><tbody>' +
+                bill.rep_collections.map(function (c) {
+                    return '<tr><td>' + esc(c.date) + '</td><td>' + esc(c.remark) + '</td><td>' + esc(c.status_label) + '</td><td class="text-end">' + formatNumber(c.amount) + '</td></tr>';
+                }).join('') + '</tbody></table>';
+        }
 
         $('#paymentsBody').html(html);
         $('#paymentsModal').modal('show');

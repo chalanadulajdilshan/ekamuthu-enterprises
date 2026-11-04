@@ -4,6 +4,7 @@ include 'class/include.php';
 include './auth.php';
 
 
+RepFollowup::ensureSchema();
 $MARKETING_EXECUTIVE = new MarketingExecutive(NULL);
 
 // Get the last inserted package id
@@ -186,6 +187,29 @@ $marketing_ex_id = 'ME/0' . ($lastId + 1);
                                                     placeholder="Remarks..."></textarea>
                                             </div>
 
+                                            <!-- Rep App Login -->
+                                            <div class="col-md-12 mt-4">
+                                                <h5 class="font-size-15 mb-1">Rep App Login</h5>
+                                                <p class="text-muted mb-2">Lets this rep log in to the Ekamuthu Rep Android app to see assigned bills, record visits and collections. Changing the password logs the rep out of the app.</p>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label" for="app_username">App Username</label>
+                                                <input id="app_username" name="app_username" type="text"
+                                                    class="form-control" placeholder="Username" autocomplete="off">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label" for="app_password">App Password</label>
+                                                <input id="app_password" name="app_password" type="password"
+                                                    class="form-control" placeholder="Leave blank to keep current" autocomplete="new-password">
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-center">
+                                                <div class="form-check mt-3">
+                                                    <input class="form-check-input" type="checkbox" id="app_enabled"
+                                                        name="app_enabled">
+                                                    <label class="form-check-label" for="app_enabled">App Access</label>
+                                                </div>
+                                            </div>
+
                                             <!-- Hidden ID (for update) -->
                                             <input type="hidden" id="executive_id" name="id">
                                         </div>
@@ -246,7 +270,9 @@ $marketing_ex_id = 'ME/0' . ($lastId + 1);
                                             data-whatsapp_number="<?php echo htmlspecialchars($executive['whatsapp_number']); ?>"
                                             data-target-month="<?php echo htmlspecialchars($executive['target_month']); ?>"
                                             data-target="<?php echo htmlspecialchars($executive['target']); ?>"
-                                            data-active="<?php echo $executive['is_active']; ?>">
+                                            data-active="<?php echo $executive['is_active']; ?>"
+                                            data-app-username="<?php echo htmlspecialchars($executive['app_username'] ?? ''); ?>"
+                                            data-app-enabled="<?php echo (int)($executive['app_enabled'] ?? 0); ?>">
 
                                             <td><?php echo $key; ?></td>
                                             <td><?php echo htmlspecialchars($executive['code']); ?></td>

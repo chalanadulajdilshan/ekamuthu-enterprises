@@ -131,6 +131,60 @@ class MarketingExecutive
         return $result['id'];
     }
 
+    // Rep app login. Blank password keeps the current one. Returns an error message or null.
+    public function setAppLogin($id, $username, $password, $enabled)
+    {
+        RepFollowup::ensureSchema();
+        $db = Database::getInstance();
+        $id = (int)$id;
+        $username = trim($username);
+
+        if ($username === '') {
+            $db->readQuery("UPDATE `marketing_executive` SET `app_username` = NULL, `app_enabled` = 0 WHERE `id` = $id");
+            return null;
+        }
+        if (!preg_match('/^[A-Za-z0-9._-]{3,50}$/', $username)) {
+            return 'App username must be 3-50 letters/numbers (no spaces)';
+        }
+
+        $usernameSafe = $db->escapeString($username);
+        $taken = $db->readQuery("SELECT id FROM `marketing_executive` WHERE `app_username` = '$usernameSafe' AND `id` != $id");
+        if (mysqli_num_rows($taken) > 0) {
+            return 'App username is already used by another rep';
+        }
+
+        $current = mysqli_fetch_assoc($db->readQuery("SELECT `app_password` FROM `marketing_executive` WHERE `id` = $id"));
+        $set = "`app_username` = '$usernameSafe', `app_enabled` = " . ($enabled ? 1 : 0);
+        if ($password !== '') {
+            if (strlen($password) < 6) {
+                return 'App password must be at least 6 characters';
+            }
+            $set .= ", `app_password` = '" . $db->escapeString(password_hash($password, PASSWORD_DEFAULT)) . "'";
+            // New password logs the rep out of the app everywhere
+            $db->readQuery("DELETE FROM `rep_app_tokens` WHERE `rep_id` = $id");
+        } elseif (empty($current['app_password'])) {
+            return 'Please set an app password';
+        }
+
+        $db->readQuery("UPDATE `marketing_executive` SET $set WHERE `id` = $id");
+        return null;
+    }
+
+    // Returns the rep row on success, false otherwise
+    public static function appLogin($username, $password)
+    {
+        RepFollowup::ensureSchema();
+        $db = Database::getInstance();
+        $usernameSafe = $db->escapeString(trim($username));
+        $rep = mysqli_fetch_assoc($db->readQuery("SELECT * FROM `marketing_executive` WHERE `app_username` = '$usernameSafe' AND `app_enabled` = 1 AND `is_active` = 1 LIMIT 1"));
+
+        if (!$rep || empty($rep['app_password']) || !password_verify($password, $rep['app_password'])) {
+            return false;
+        }
+        $db->readQuery("UPDATE `marketing_executive` SET `app_last_login` = NOW() WHERE `id` = " . (int)$rep['id']);
+        return $rep;
+    }
+
 
 }
 ?>
