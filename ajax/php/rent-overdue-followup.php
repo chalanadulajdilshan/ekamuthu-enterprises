@@ -68,6 +68,13 @@ if ($action === 'assign_rep') {
     }
 
     $msg = $repId > 0 ? count($rentIds) . ' bill(s) assigned to ' . $REP->full_name : 'Assignment removed from ' . count($rentIds) . ' bill(s)';
+
+    // Optional: also put the bills on the rep's route for a date
+    $routeDate = $_POST['route_date'] ?? '';
+    if ($repId > 0 && preg_match('/^\d{4}-\d{2}-\d{2}$/', $routeDate)) {
+        $added = RepFollowup::addToRoute($repId, $routeDate, $rentIds, $userId);
+        $msg .= " and $added added to the $routeDate route";
+    }
     echo json_encode(['status' => 'success', 'message' => $msg]);
     exit;
 }

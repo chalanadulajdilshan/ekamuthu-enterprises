@@ -239,3 +239,35 @@ class DaySummary {
         collections = (j['collections'] as List? ?? []).map((e) => Collection.fromJson(e)).toList(),
         visits = (j['visits'] as List? ?? []).map((e) => Visit.fromJson(e)).toList();
 }
+
+class RouteStop {
+  final int rentId;
+  final int stopNo;
+  final String billNumber;
+  final String customerName;
+  final String mobileNumber;
+  final String location;
+  final bool stillAssigned;
+  // Null once every item on the bill has been returned
+  final String? lateText;
+  final int overdueDays;
+  final double outstanding;
+  final List<LastVisit> visits;
+  final double collected;
+
+  RouteStop.fromJson(Map<String, dynamic> j)
+      : rentId = toInt(j['rent_id']),
+        stopNo = toInt(j['stop_no']),
+        billNumber = toStr(j['bill_number']),
+        customerName = toStr(j['customer_name']),
+        mobileNumber = toStr(j['mobile_number']),
+        location = toStr(j['location']),
+        stillAssigned = j['still_assigned'] == true,
+        lateText = j['overdue'] is Map ? toStr(j['overdue']['late_text']) : null,
+        overdueDays = j['overdue'] is Map ? toInt(j['overdue']['overdue_days']) : 0,
+        outstanding = j['overdue'] is Map ? toDouble(j['overdue']['outstanding']) : 0,
+        visits = (j['visits'] as List? ?? []).map((e) => LastVisit.fromJson(e)!).toList(),
+        collected = toDouble(j['collected']);
+
+  bool get visited => visits.isNotEmpty;
+}

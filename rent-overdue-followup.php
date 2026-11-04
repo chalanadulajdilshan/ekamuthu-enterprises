@@ -152,8 +152,8 @@ $REPS = $MARKETING_EXECUTIVE->getActiveExecutives();
                                                     <option value="<?php echo $rep['id']; ?>"><?php echo htmlspecialchars($rep['code'] . ' - ' . $rep['full_name']); ?></option>
                                                 <?php } ?>
                                             </select>
-                                            <button type="button" class="btn btn-sm btn-primary" id="assignBtn"><i class="uil uil-user-check me-1"></i>Assign to Rep</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="unassignBtn"><i class="uil uil-user-times me-1"></i>Remove Rep</button>
+                                            <input type="text" class="form-control form-control-sm w-auto date-picker" id="assignRouteDate" placeholder="Route date (optional)" title="Also add the bills to the rep's route for this date">
+                                            <button type="button" class="btn btn-sm btn-primary" id="assignBtn"><i class="uil uil-user-check me-1"></i>Assign to Rep</button>                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="unassignBtn"><i class="uil uil-user-times me-1"></i>Remove Rep</button>
                                             <button type="button" class="btn btn-sm btn-outline-dark ms-md-auto" id="markNoFollowupBtn"><i class="uil uil-ban me-1"></i>Mark No Follow-up</button>
                                         </div>
                                         <div class="table-responsive">

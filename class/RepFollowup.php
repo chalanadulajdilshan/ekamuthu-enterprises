@@ -88,6 +88,19 @@ class RepFollowup
                 KEY `idx_rent` (`rent_id`),
                 KEY `idx_status` (`status`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+            // Day route per rep: which assigned bills to visit on a date, in order
+            "CREATE TABLE IF NOT EXISTS `rep_routes` (
+                `id` INT(11) NOT NULL AUTO_INCREMENT,
+                `rep_id` INT(11) NOT NULL,
+                `route_date` DATE NOT NULL,
+                `rent_id` INT(11) NOT NULL,
+                `stop_order` INT(11) NOT NULL DEFAULT 0,
+                `created_by` INT(11) DEFAULT NULL,
+                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `uniq_stop` (`rep_id`, `route_date`, `rent_id`),
+                KEY `idx_rep_date` (`rep_id`, `route_date`, `stop_order`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
             // Mobile app login tokens (only the SHA-256 of the token is stored)
             "CREATE TABLE IF NOT EXISTS `rep_app_tokens` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -474,6 +487,117 @@ class RepFollowup
         }
 
         return ['visits' => $visits, 'collections' => $collections, 'totals' => $totals];
+    }
+
+    private static function safeDate($date)
+    {
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$date) ? $date : date('Y-m-d');
+    }
+
+    /**
+     * Ordered stops of a rep's route for a date. Each stop has bill basics, overdue info
+     * (null once everything is returned) and what the rep did there on that date.
+     */
+    public static function getRoute($repId, $date)
+    {
+        self::ensureSchema();
+        $db = Database::getInstance();
+        $repId = (int)$repId;
+        $date = self::safeDate($date);
+
+        $result = $db->readQuery("SELECT r.id AS stop_id, r.rent_id, r.stop_order, er.bill_number, er.workplace_address,
+                                         cm.code AS customer_code, cm.name AS customer_name, cm.mobile_number, cm.mobile_number_2, cm.address AS customer_address,
+                                         (SELECT COUNT(*) FROM rent_overdue_followup f WHERE f.rent_id = r.rent_id AND f.rep_id = r.rep_id AND f.followup_required = 1) AS still_assigned
+                                  FROM rep_routes r
+                                  LEFT JOIN equipment_rent er ON r.rent_id = er.id
+                                  LEFT JOIN customer_master cm ON er.customer_id = cm.id
+                                  WHERE r.rep_id = $repId AND r.route_date = '$date'
+                                  ORDER BY r.stop_order ASC, r.id ASC");
+        $stops = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $location = trim($row['workplace_address'] ?? '');
+            $stops[(int)$row['rent_id']] = [
+                'stop_id' => (int)$row['stop_id'],
+                'rent_id' => (int)$row['rent_id'],
+                'stop_no' => count($stops) + 1,
+                'bill_number' => $row['bill_number'],
+                'customer_code' => $row['customer_code'] ?? '',
+                'customer_name' => $row['customer_name'] ?? '',
+                'mobile_number' => trim(implode(' / ', array_filter([$row['mobile_number'] ?? '', $row['mobile_number_2'] ?? '']))),
+                'location' => $location !== '' ? $location : trim($row['customer_address'] ?? ''),
+                'still_assigned' => (int)$row['still_assigned'] > 0,
+                'overdue' => null,
+                'visits' => [],
+                'collected' => 0
+            ];
+        }
+        if (!$stops) {
+            return [];
+        }
+
+        foreach (self::getOverdueBills($date, array_keys($stops)) as $b) {
+            $stops[$b['rent_id']]['overdue'] = [
+                'late_text' => $b['late_text'],
+                'overdue_days' => $b['overdue_days'],
+                'item_count' => count($b['items']),
+                'pending_qty' => (float)$b['pending_qty'],
+                'outstanding' => round($b['projected_outstanding'] + $b['recorded_outstanding'], 2)
+            ];
+        }
+
+        $day = self::getActivity($date, $date, $repId);
+        foreach ($day['visits'] as $v) {
+            if (isset($stops[(int)$v['rent_id']])) {
+                $stops[(int)$v['rent_id']]['visits'][] = ['visit_at' => $v['visit_at'], 'outcome' => $v['outcome_label'], 'remark' => $v['remark'] ?? ''];
+            }
+        }
+        foreach ($day['collections'] as $c) {
+            if (isset($stops[(int)$c['rent_id']]) && $c['status'] !== 'rejected') {
+                $stops[(int)$c['rent_id']]['collected'] += (float)$c['amount'];
+            }
+        }
+
+        return array_values($stops);
+    }
+
+    // Appends bills to the end of a rep's route for a date (bills already on it are skipped)
+    public static function addToRoute($repId, $date, $rentIds, $userId)
+    {
+        self::ensureSchema();
+        $db = Database::getInstance();
+        $repId = (int)$repId;
+        $date = self::safeDate($date);
+        $userId = (int)$userId;
+
+        $max = mysqli_fetch_assoc($db->readQuery("SELECT COALESCE(MAX(stop_order), 0) AS m FROM rep_routes WHERE rep_id = $repId AND route_date = '$date'"));
+        $order = (int)$max['m'];
+        $added = 0;
+        foreach (array_unique(array_map('intval', $rentIds)) as $rentId) {
+            if ($rentId <= 0) {
+                continue;
+            }
+            $db->readQuery("INSERT IGNORE INTO rep_routes (rep_id, route_date, rent_id, stop_order, created_by)
+                            VALUES ($repId, '$date', $rentId, " . (++$order) . ", $userId)");
+            $added += mysqli_affected_rows($db->DB_CON);
+        }
+        return $added;
+    }
+
+    // Saves a new stop order; $rentIds in the wanted order
+    public static function reorderRoute($repId, $date, $rentIds)
+    {
+        $db = Database::getInstance();
+        $repId = (int)$repId;
+        $date = self::safeDate($date);
+        foreach (array_values(array_map('intval', $rentIds)) as $i => $rentId) {
+            $db->readQuery("UPDATE rep_routes SET stop_order = " . ($i + 1) . " WHERE rep_id = $repId AND route_date = '$date' AND rent_id = $rentId");
+        }
+    }
+
+    public static function removeFromRoute($repId, $date, $rentId)
+    {
+        $db = Database::getInstance();
+        $db->readQuery("DELETE FROM rep_routes WHERE rep_id = " . (int)$repId . " AND route_date = '" . self::safeDate($date) . "' AND rent_id = " . (int)$rentId);
     }
 
     public static function isAssigned($repId, $rentId)

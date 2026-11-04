@@ -219,7 +219,7 @@ $(document).ready(function () {
             swal('Select a rep', 'Please choose the rep to assign.', 'warning');
             return;
         }
-        postAction({ action: 'assign_rep', rent_ids: ids.join(','), rep_id: repId });
+        postAction({ action: 'assign_rep', rent_ids: ids.join(','), rep_id: repId, route_date: $('#assignRouteDate').val() });
     });
 
     $('#unassignBtn').click(function () {

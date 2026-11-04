@@ -112,4 +112,9 @@ class Api {
 
   static Future<DaySummary> summary(String date) async =>
       DaySummary.fromJson((await get('summary', {'date': date}))['data']);
+
+  static Future<List<RouteStop>> route(String date) async {
+    final data = (await get('route', {'date': date}))['data'] as Map<String, dynamic>;
+    return (data['stops'] as List).map((e) => RouteStop.fromJson(e)).toList();
+  }
 }

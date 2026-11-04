@@ -289,6 +289,12 @@ try {
         respond(null, 'Proof added. Payment is now confirmed');
     }
 
+    // Ordered stops planned by the office for a date
+    if ($action === 'route') {
+        $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date'] ?? '') ? $_GET['date'] : date('Y-m-d');
+        respond(['date' => $date, 'stops' => RepFollowup::getRoute($repId, $date)]);
+    }
+
     if ($action === 'summary') {
         $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date'] ?? '') ? $_GET['date'] : date('Y-m-d');
         list($day) = dayStats($repId, $date);

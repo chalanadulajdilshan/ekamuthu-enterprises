@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'bills_screen.dart';
+import 'route_screen.dart';
 import 'summary_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,13 +16,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Screens are rebuilt on each tab switch so numbers are always fresh
+    final Widget body = switch (_tab) {
+      0 => const RouteScreen(),
+      1 => BillsScreen(onOpenSummary: () => setState(() => _tab = 2)),
+      _ => const SummaryScreen(),
+    };
     return Scaffold(
-      // Screens are rebuilt on each tab switch so numbers are always fresh
-      body: _tab == 0 ? BillsScreen(onOpenSummary: () => setState(() => _tab = 1)) : const SummaryScreen(),
+      body: body,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
+          NavigationDestination(icon: Icon(Icons.route), label: 'My Route'),
           NavigationDestination(icon: Icon(Icons.list_alt), label: 'My Bills'),
           NavigationDestination(icon: Icon(Icons.insights), label: 'Day Summary'),
         ],

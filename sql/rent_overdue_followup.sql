@@ -61,6 +61,20 @@ CREATE TABLE IF NOT EXISTS `rep_collections` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Day route per rep: which assigned bills to visit on a date, in order
+CREATE TABLE IF NOT EXISTS `rep_routes` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `rep_id` INT(11) NOT NULL,
+  `route_date` DATE NOT NULL,
+  `rent_id` INT(11) NOT NULL,
+  `stop_order` INT(11) NOT NULL DEFAULT 0,
+  `created_by` INT(11) DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_stop` (`rep_id`, `route_date`, `rent_id`),
+  KEY `idx_rep_date` (`rep_id`, `route_date`, `stop_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Mobile app login tokens (only the SHA-256 of the token is stored)
 CREATE TABLE IF NOT EXISTS `rep_app_tokens` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
