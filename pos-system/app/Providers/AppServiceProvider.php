@@ -19,9 +19,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // The POS shares the MAIN Ekamuthu database. migrate:fresh and db:wipe drop
-        // EVERY table in it (not just pos_*), which would destroy the main system.
-        // Always blocked. Use `php artisan migrate:reset` to remove only the POS tables.
+        // migrate:fresh and db:wipe drop EVERY table in the database - on live that is
+        // all sales, stock and customer history. Always blocked; to rebuild a test DB
+        // use `php artisan migrate:reset` (runs each migration's down()).
         FreshCommand::prohibit();
         WipeCommand::prohibit();
 

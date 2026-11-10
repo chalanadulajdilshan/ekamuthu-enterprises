@@ -47,14 +47,16 @@ jobs:
         id: pos
         env:
           APP_KEY: ${{ secrets.POS_APP_KEY }}
+          DB_DATABASE: ${{ secrets.POS_DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.POS_DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.POS_DB_PASSWORD }}
           DEPLOY_TOKEN: ${{ secrets.POS_DEPLOY_TOKEN }}
           ADMIN_PASSWORD: ${{ secrets.POS_ADMIN_PASSWORD }}
         run: |
-          if [ -n "$APP_KEY" ] && [ -n "$DB_PASSWORD" ] && [ -n "$DEPLOY_TOKEN" ] && [ -n "$ADMIN_PASSWORD" ]; then
+          if [ -n "$APP_KEY" ] && [ -n "$DB_DATABASE" ] && [ -n "$DB_USERNAME" ] && [ -n "$DB_PASSWORD" ] && [ -n "$DEPLOY_TOKEN" ] && [ -n "$ADMIN_PASSWORD" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::POS secrets missing (POS_APP_KEY, POS_DB_PASSWORD, POS_DEPLOY_TOKEN, POS_ADMIN_PASSWORD) - POS deploy skipped."
+            echo "::warning::POS secrets missing (POS_APP_KEY, POS_DB_DATABASE, POS_DB_USERNAME, POS_DB_PASSWORD, POS_DEPLOY_TOKEN, POS_ADMIN_PASSWORD) - POS deploy skipped."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -77,6 +79,8 @@ jobs:
         working-directory: pos-system
         env:
           APP_KEY: ${{ secrets.POS_APP_KEY }}
+          DB_DATABASE: ${{ secrets.POS_DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.POS_DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.POS_DB_PASSWORD }}
           DEPLOY_TOKEN: ${{ secrets.POS_DEPLOY_TOKEN }}
           ADMIN_PASSWORD: ${{ secrets.POS_ADMIN_PASSWORD }}
@@ -94,10 +98,11 @@ jobs:
             echo 'DB_CONNECTION=mysql'
             echo 'DB_HOST=localhost'
             echo 'DB_PORT=3306'
-            echo 'DB_DATABASE=chalcepi_ekamuthu-enterprises'
-            echo 'DB_USERNAME=chalcepi_ekamuthu-enterprises'
+            # The POS has its OWN database (no link to the main Ekamuthu DB).
+            printf "DB_DATABASE='%s'\n" "$DB_DATABASE"
+            printf "DB_USERNAME='%s'\n" "$DB_USERNAME"
             printf "DB_PASSWORD='%s'\n" "$DB_PASSWORD"
-            echo 'DB_PREFIX=pos_'
+            echo 'DB_PREFIX='
             echo 'SESSION_DRIVER=file'
             echo 'SESSION_LIFETIME=720'
             echo 'SESSION_COOKIE=ekamuthu_pos_session'
@@ -134,7 +139,7 @@ jobs:
             tests/**
             phpunit.xml
 
-      - name: 🔧 Run migrations / first-time import / caches
+      - name: 🔧 Run migrations, seed and caches
         if: steps.pos.outputs.ready == 'true'
         env:
           DEPLOY_TOKEN: ${{ secrets.POS_DEPLOY_TOKEN }}

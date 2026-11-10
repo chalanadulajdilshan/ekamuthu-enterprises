@@ -13,9 +13,9 @@ if (! function_exists('qty')) {
 if (! function_exists('px')) {
     /**
      * Prefixed table name / alias for use inside RAW SQL fragments.
-     * All POS tables live in the shared Ekamuthu database with a "pos_" prefix
-     * (config: database.connections.mysql.prefix). The query builder adds it
-     * automatically, raw strings do not - so raw SQL must go through px().
+     * Only matters when DB_PREFIX is set (config: database.connections.mysql.prefix).
+     * The query builder adds the prefix automatically, raw strings do not - so raw
+     * SQL must go through px().
      */
     function px(string $name): string
     {

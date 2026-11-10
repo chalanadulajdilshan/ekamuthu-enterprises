@@ -4,50 +4,51 @@ Hardware-store point of sale and back office: POS billing, products, categories,
 inventory with a stock ledger, purchases (GRN), customers with credit accounts, suppliers, reports,
 and settings/users. It replaces the old Node/React POS that lived in this folder.
 
-**Data model:** the POS keeps its own tables, all prefixed `pos_`, inside the same database as the
-main Ekamuthu system. It never writes to the main system's tables. Branches, items, customers,
-suppliers and store details are copied in once with `php artisan pos:import-ekamuthu`.
+**Data:** the POS has its **own database** and no connection to the main Ekamuthu system's
+database. Products, customers and suppliers are entered in the POS itself.
 
 Requires PHP 8.2+ with `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `intl`.
 
-## Install (local XAMPP or live cPanel)
+## Live deploy (automatic)
+
+Every push to `main` runs `.github/workflows/main.yml`:
+1. FTPs the main PHP site, as before.
+2. Builds `vendor/` with Composer, writes `pos-system/.env` from GitHub secrets, and FTPs `pos-system/`.
+3. Calls `POST /pos-system/_deploy` with the deploy token. This runs `migrate`, `db:seed`
+   (first admin, branch, category tabs; safe to repeat) and `optimize`.
+
+The POS steps are skipped until all of these repository secrets exist:
+
+| Secret | What |
+|---|---|
+| `POS_DB_DATABASE` | the POS database created in cPanel (e.g. `chalcepi_pos`) |
+| `POS_DB_USERNAME` | its MySQL user |
+| `POS_DB_PASSWORD` | that user's password |
+| `POS_APP_KEY` | `php artisan key:generate --show` |
+| `POS_DEPLOY_TOKEN` | any long random string |
+| `POS_ADMIN_PASSWORD` | first admin password (login `admin@pos.local`) |
+
+Open `https://ekamuthu-enterprises.sourcecode.lk/pos-system/`. `pos-system/.htaccess` sends every
+request into `public/`, so `.env`, code and `vendor/` are never served.
+
+## Local install (XAMPP)
 
 ```bash
+mysql -uroot -e "CREATE DATABASE ekamuthu_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 cd pos-system
-composer install --no-dev --optimize-autoloader
-cp .env.example .env              # then set DB_DATABASE / DB_USERNAME / DB_PASSWORD / APP_URL
+composer install
+cp .env.example .env     # APP_ENV=local, APP_DEBUG=true, APP_URL=http://localhost/ekamuthu-enterprises/pos-system,
+                         # DB_DATABASE=ekamuthu_pos, DB_USERNAME=root, DB_PASSWORD=
 php artisan key:generate
-php artisan migrate --force       # creates the pos_* tables only
-php artisan db:seed --force       # first admin login (printed), branch, category tabs
-php artisan pos:import-ekamuthu   # branches, items (+images, opening stock), customers, suppliers
-php artisan optimize              # production: caches config, routes, views
+php artisan migrate
+php artisan db:seed      # prints the admin login unless POS_ADMIN_PASSWORD is set
 ```
 
-Open `https://<site>/pos-system/` (local: `http://localhost/ekamuthu-enterprises/pos-system/`).
-The main dashboard's POS tile already links here. `pos-system/.htaccess` sends every request into
-`public/`, so `.env`, code and `vendor/` are never served.
-
-If the host has no Composer, run `composer install --no-dev` locally and upload `vendor/` too.
-
-### Importer options
+### Never wipe the live database
+`migrate:fresh` and `db:wipe` drop every table, including all sales and stock history, so both
+are blocked in code (`AppServiceProvider`). To rebuild a local test database:
 ```bash
-php artisan pos:import-ekamuthu --only=customers,suppliers   # just some parts
-php artisan pos:import-ekamuthu --stock-source=stock_master  # opening stock from the main system
-php artisan pos:import-ekamuthu --stock-source=none          # no opening stock
-php artisan pos:import-ekamuthu --category=Building          # tab for imported items (default: Others)
-```
-It's safe to re-run. Rows are matched on `legacy_id`, and opening stock is only written for
-products created in that run, so re-running never resets stock the POS has already sold from.
-The main system's categories are tyre types, so they are not imported. Re-categorise imported
-items in **Products**.
-
-### ⚠ Shared database: never wipe
-`migrate:fresh` and `db:wipe` would drop **every** table in the database, including the main
-Ekamuthu system's, so both are blocked in code (`AppServiceProvider`). To remove or rebuild only
-the POS tables:
-```bash
-php artisan migrate:reset --force    # drops pos_* tables only (runs each migration's down())
-php artisan migrate --force && php artisan db:seed --force && php artisan pos:import-ekamuthu
+php artisan migrate:reset && php artisan migrate && php artisan db:seed
 ```
 
 ### Demo data (testing only, never on live)
@@ -128,5 +129,5 @@ max_allowed_packet=64M
 - `app/Services/ProductSearch.php`: index-friendly search
 - `app/Services/DocNumber.php`: bill and GRN numbering
 - `public/js/pos.js`: POS screen; `public/css/app.css`: UI
-- `app/Console/Commands/ImportEkamuthu.php`: one-way import from the main Ekamuthu tables
+- `app/Http/Controllers/DeployController.php`: the post-deploy hook (migrate, seed, optimize)
 - Logo: drop a `public/images/logo.png` and it replaces the text logo in the sidebar.

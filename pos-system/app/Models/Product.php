@@ -10,7 +10,7 @@ class Product extends Model
 {
     protected $fillable = [
         'code', 'barcode', 'name', 'category_id', 'unit', 'cost_price',
-        'sell_price', 'reorder_level', 'image', 'is_active', 'legacy_id',
+        'sell_price', 'reorder_level', 'image', 'is_active',
     ];
 
     protected $casts = [

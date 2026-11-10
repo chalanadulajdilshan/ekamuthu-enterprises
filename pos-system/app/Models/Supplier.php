@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
-    protected $fillable = ['name', 'contact_person', 'phone', 'email', 'address', 'is_active', 'legacy_id'];
+    protected $fillable = ['name', 'contact_person', 'phone', 'email', 'address', 'is_active'];
     protected $casts = ['is_active' => 'boolean', 'balance' => 'decimal:2'];
 
     public function purchases(): HasMany

@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * Production bootstrap: safe to run more than once, creates nothing if it already exists.
- *   - one branch (renamed/linked to Ekamuthu departments by pos:import-ekamuthu)
+ *   - one branch (rename it / add more in Settings)
  *   - the hardware category tabs
  *   - the first admin login (POS_ADMIN_EMAIL / POS_ADMIN_PASSWORD via config/pos.php,
  *     otherwise a random password that is printed once)
