@@ -15,7 +15,9 @@ Every push to `main` runs `.github/workflows/main.yml`:
 1. FTPs the main PHP site, as before.
 2. Builds `vendor/` with Composer, writes `pos-system/.env` from GitHub secrets, and FTPs `pos-system/`.
 3. Calls `POST /pos-system/_deploy` with the deploy token. This runs `migrate`, `db:seed`
-   (first admin, branch, category tabs; safe to repeat) and `optimize`.
+   (first admin, branch, category tabs; safe to repeat), then caches config, events and views.
+   Routes are deliberately not cached: in this sub-folder install the compiled route matcher
+   answers `/pos-system/` with 405.
 
 The POS steps are skipped until all of these repository secrets exist:
 
@@ -110,7 +112,7 @@ php artisan pos:bulk-seed --products=100000 --customers=5000 --sales=150000
 ```bash
 # .env: APP_ENV=production, APP_DEBUG=false
 composer install --no-dev --optimize-autoloader
-php artisan optimize          # caches config, routes, events, and views
+php artisan config:cache && php artisan event:cache && php artisan view:cache   # not route:cache (sub-folder 405)
 ```
 Enable OPcache in `php.ini` (`opcache.enable=1`).
 

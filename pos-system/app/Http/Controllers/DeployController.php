@@ -15,7 +15,7 @@ use Throwable;
  *
  *  1. migrate --force   creates/updates the POS tables (its own database)
  *  2. db:seed --force   idempotent: first admin user, branch, category tabs
- *  3. optimize          cache config / routes / views for speed
+ *  3. cache             config / events / views (not routes, see below)
  *
  * The response is deliberately terse: deploy logs of a public repo are public.
  */
@@ -45,7 +45,13 @@ class DeployController extends Controller
             $steps['migrate'] = Artisan::call('migrate', ['--force' => true]);
             $steps['seed'] = Artisan::call('db:seed', ['--force' => true]);
 
-            $steps['optimize'] = Artisan::call('optimize');
+            // Config/events/views only - NOT route:cache. Laravel's compiled route matcher
+            // strips the trailing slash from REQUEST_URI before matching, which breaks the
+            // base-URL detection in this sub-folder install ("/pos-system/" -> 405).
+            // Uncached matching of ~60 routes costs well under a millisecond.
+            $steps['optimize'] = Artisan::call('config:cache')
+                + Artisan::call('event:cache')
+                + Artisan::call('view:cache');
         } catch (Throwable $e) {
             Log::error('Deploy hook failed', ['exception' => $e]);
 
