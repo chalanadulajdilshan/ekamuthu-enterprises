@@ -1,28 +1,27 @@
-name: 🚀 Build & Deploy (PHP + POS Subdomain)
+name: 🚀 Build & Deploy (PHP site + Laravel POS)
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch: {}
+
+# One deploy at a time; a newer push waits instead of racing over FTP.
+concurrency:
+  group: deploy-live
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    env:
+      SITE_URL: https://ekamuthu-enterprises.sourcecode.lk
 
     steps:
       - name: 🛒 Checkout code
         uses: actions/checkout@v4
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: 📦 Install & Build POS Frontend
-        run: |
-          cd pos-system/client
-          npm install
-          npm run build
 
       - name: 📂 Deploy Main PHP Site
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -41,7 +40,84 @@ jobs:
             pos-system/**
             .github/**
 
-      - name: 📂 Deploy POS UI (React Dist Content)
+      # ---------------------------------------------------------------- POS (Laravel)
+      # The POS deploys only when its secrets exist, so a missing secret never
+      # breaks the main site deploy or uploads a half-configured POS.
+      - name: 🔎 Check POS secrets
+        id: pos
+        env:
+          APP_KEY: ${{ secrets.POS_APP_KEY }}
+          DB_PASSWORD: ${{ secrets.POS_DB_PASSWORD }}
+          DEPLOY_TOKEN: ${{ secrets.POS_DEPLOY_TOKEN }}
+          ADMIN_PASSWORD: ${{ secrets.POS_ADMIN_PASSWORD }}
+        run: |
+          if [ -n "$APP_KEY" ] && [ -n "$DB_PASSWORD" ] && [ -n "$DEPLOY_TOKEN" ] && [ -n "$ADMIN_PASSWORD" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::POS secrets missing (POS_APP_KEY, POS_DB_PASSWORD, POS_DEPLOY_TOKEN, POS_ADMIN_PASSWORD) - POS deploy skipped."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 🐘 Setup PHP 8.2
+        if: steps.pos.outputs.ready == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, intl, fileinfo, openssl
+          tools: composer:v2
+          coverage: none
+
+      - name: 📦 Composer install (production)
+        if: steps.pos.outputs.ready == 'true'
+        working-directory: pos-system
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: ⚙️ Write POS .env and runtime folders
+        if: steps.pos.outputs.ready == 'true'
+        working-directory: pos-system
+        env:
+          APP_KEY: ${{ secrets.POS_APP_KEY }}
+          DB_PASSWORD: ${{ secrets.POS_DB_PASSWORD }}
+          DEPLOY_TOKEN: ${{ secrets.POS_DEPLOY_TOKEN }}
+          ADMIN_PASSWORD: ${{ secrets.POS_ADMIN_PASSWORD }}
+        run: |
+          umask 077
+          {
+            echo 'APP_NAME="Ekamuthu POS"'
+            echo 'APP_ENV=production'
+            printf "APP_KEY='%s'\n" "$APP_KEY"
+            echo 'APP_DEBUG=false'
+            echo 'APP_TIMEZONE=Asia/Colombo'
+            echo "APP_URL=${SITE_URL}/pos-system"
+            echo 'LOG_CHANNEL=daily'
+            echo 'LOG_LEVEL=error'
+            echo 'DB_CONNECTION=mysql'
+            echo 'DB_HOST=localhost'
+            echo 'DB_PORT=3306'
+            echo 'DB_DATABASE=chalcepi_ekamuthu-enterprises'
+            echo 'DB_USERNAME=chalcepi_ekamuthu-enterprises'
+            printf "DB_PASSWORD='%s'\n" "$DB_PASSWORD"
+            echo 'DB_PREFIX=pos_'
+            echo 'SESSION_DRIVER=file'
+            echo 'SESSION_LIFETIME=720'
+            echo 'SESSION_COOKIE=ekamuthu_pos_session'
+            echo 'SESSION_SECURE_COOKIE=true'
+            echo 'CACHE_STORE=file'
+            echo 'QUEUE_CONNECTION=sync'
+            echo 'MAIL_MAILER=log'
+            echo 'POS_ADMIN_EMAIL=admin@pos.local'
+            printf "POS_ADMIN_PASSWORD='%s'\n" "$ADMIN_PASSWORD"
+            printf "POS_DEPLOY_TOKEN='%s'\n" "$DEPLOY_TOKEN"
+          } > .env
+          # FTP skips .git* files, so give empty runtime folders a placeholder.
+          for d in storage/framework/sessions storage/framework/views storage/framework/cache/data \
+                   storage/logs storage/app/public storage/app/private bootstrap/cache public/uploads/products; do
+            mkdir -p "$d" && touch "$d/.keep"
+          done
+          rm -f bootstrap/cache/config.php bootstrap/cache/routes-*.php
+
+      - name: 📂 Deploy POS (Laravel)
+        if: steps.pos.outputs.ready == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -49,5 +125,21 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftp
-          local-dir: ./pos-system/client/dist/
+          local-dir: ./pos-system/
           server-dir: /pos-system/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            tests/**
+            phpunit.xml
+
+      - name: 🔧 Run migrations / first-time import / caches
+        if: steps.pos.outputs.ready == 'true'
+        env:
+          DEPLOY_TOKEN: ${{ secrets.POS_DEPLOY_TOKEN }}
+        run: |
+          code=$(curl -sS -o resp.json -w '%{http_code}' --max-time 900 --retry 2 --retry-delay 10 \
+            -X POST -H "X-Deploy-Token: ${DEPLOY_TOKEN}" "${SITE_URL}/pos-system/_deploy" || true)
+          echo "HTTP ${code}"; cat resp.json || true; echo
+          [ "$code" = "200" ] || { echo "::error::POS deploy hook failed (HTTP ${code})"; exit 1; }
