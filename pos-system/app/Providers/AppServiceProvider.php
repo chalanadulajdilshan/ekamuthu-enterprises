@@ -7,6 +7,7 @@ use Illuminate\Database\Console\Migrations\FreshCommand;
 use Illuminate\Database\Console\WipeCommand;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
         // use `php artisan migrate:reset` (runs each migration's down()).
         FreshCommand::prohibit();
         WipeCommand::prohibit();
+
+        // utf8mb4 indexes on VARCHAR(255) exceed the 767-byte key limit of older
+        // MySQL/MariaDB (common on shared hosting). 191 chars * 4 bytes fits.
+        Schema::defaultStringLength(191);
 
         // Fail loudly on N+1 queries during development.
         Model::preventLazyLoading(! $this->app->isProduction());
