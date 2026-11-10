@@ -37,7 +37,16 @@ class DeployController extends Controller
         } catch (Throwable $e) {
             Log::error('Deploy hook failed', ['exception' => $e]);
 
-            return response()->json(['ok' => false, 'steps' => $steps, 'error' => class_basename($e).' (see storage/logs)'], 500);
+            // First line only, SQL text cut off: enough to diagnose (e.g. "Access denied
+            // for user ..." / "Unknown database ...") without leaking queries. PDO never
+            // includes the password in its messages.
+            $msg = strtok($e->getMessage(), "\n");
+            $msg = preg_replace('/\s*\(Connection: .*$/s', '', (string) $msg);
+
+            return response()->json([
+                'ok' => false, 'steps' => $steps,
+                'error' => class_basename($e).': '.mb_substr($msg, 0, 300),
+            ], 500);
         }
 
         $failed = array_filter($steps, fn ($code) => is_int($code) && $code !== 0);
