@@ -74,4 +74,36 @@
     const msg = e.target.dataset.confirm;
     if (msg && !confirm(msg)) e.preventDefault();
   });
+
+  // ---------- Mobile menu (slide-out sidebar) ----------
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-nav-toggle]')) { document.body.classList.toggle('nav-open'); return; }
+    if (e.target.closest('[data-nav-close]') || e.target.closest('.sidebar .nav a')) document.body.classList.remove('nav-open');
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('nav-open'); });
+
+  // Icon-only sidebar on tablets: show the page name on hover / long-press.
+  document.querySelectorAll('.sidebar .nav a, .sidebar .nav summary').forEach((a) => {
+    if (!a.title) a.title = a.textContent.trim();
+  });
+
+  // ---------- Tables become cards on phones ----------
+  // Every <td> gets data-label from its column header; CSS shows it as "Label: value" on small screens.
+  // Opt out with <table class="table" data-no-stack>. Call stackTables() again after rendering rows with JS.
+  window.stackTables = (root = document) => {
+    root.querySelectorAll('table.table:not([data-no-stack])').forEach((t) => {
+      const heads = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+      if (!heads.length) return;
+      t.classList.add('stack');
+      t.querySelectorAll('tbody tr').forEach((tr) => {
+        let col = 0;
+        [...tr.children].forEach((td) => {
+          if (!td.hasAttribute('data-label')) td.setAttribute('data-label', td.colSpan > 1 ? '' : (heads[col] || ''));
+          col += td.colSpan || 1;
+        });
+      });
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => window.stackTables());
+  else window.stackTables();
 })();

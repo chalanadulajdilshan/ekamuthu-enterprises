@@ -87,6 +87,7 @@
             <td class="num lt">0.00</td>
             <td><button type="button" class="del"><i class="fa-regular fa-trash-can"></i></button></td>
           </tr>`);
+        window.stackTables?.(lines.closest('table').parentElement);
         calc();
         lines.lastElementChild.querySelector('.q').select();
     }

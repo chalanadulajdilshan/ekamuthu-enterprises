@@ -9,8 +9,14 @@
     .si-scan { display: flex; gap: 8px; }
     .si-scan .input { flex: 1; font-size: 20px; height: 54px; letter-spacing: .5px; }
     .si-scan .btn { height: 54px; padding: 0 18px; font-size: 16px; }
-    #reader { margin-top: 12px; border-radius: 10px; overflow: hidden; display: none; }
-    #reader.on { display: block; }
+    .si-cam-big { display: none; width: 100%; height: 58px; margin-top: 10px; font-size: 18px; }
+    @media (pointer: coarse) { .si-cam-big { display: flex; } }
+    @media (max-width: 720px) {
+        .si { gap: 12px; }
+        .si-scan .btn { padding: 0 14px; }
+        .si-list { max-height: 50vh; }
+        .si-save { position: sticky; bottom: 10px; z-index: 5; box-shadow: 0 8px 20px rgba(21,160,42,.35); }
+    }
     .si-hint { color: var(--muted); font-size: 13px; margin-top: 8px; }
     .si-status { padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 15px; display: flex; gap: 10px; align-items: flex-start; }
     .si-status.found { background: var(--green-50); color: var(--green-600); }
@@ -50,7 +56,7 @@
             <button class="btn btn-primary" title="Find"><i class="fa-solid fa-magnifying-glass"></i></button>
             <button type="button" class="btn" id="btnCam" title="Use camera"><i class="fa-solid fa-camera"></i></button>
         </form>
-        <div id="reader"></div>
+        <button type="button" class="btn btn-primary si-cam-big" id="btnCamBig"><i class="fa-solid fa-camera"></i> Scan with camera</button>
         <div class="si-hint">Use a barcode scanner, the phone camera <i class="fa-solid fa-camera"></i>, or
             <a href="#" id="noBarcode">add an item without a barcode</a>.</div>
     </div>
@@ -117,7 +123,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('vendor/html5-qrcode/html5-qrcode.min.js') }}"></script>
 <script>
 (function () {
     const $ = (id) => document.getElementById(id);
@@ -160,39 +165,19 @@
     $('scanForm').addEventListener('submit', (e) => { e.preventDefault(); lookup($('code').value); });
     $('noBarcode').addEventListener('click', (e) => { e.preventDefault(); openEntry(null, null); });
 
-    $('btnCam').addEventListener('click', () => (cam ? stopCam(false) : startCam()));
-
-    async function startCam() {
-        if (!window.Html5Qrcode) return toast('Camera scanner could not load.', 'err');
-        $('reader').classList.add('on');
+    // Full-screen camera (public/js/scanner.js). After saving, the camera opens again for the next item
+    // until the user closes it.
+    function startCam() {
         st.camWanted = true;
-        cam = new Html5Qrcode('reader', { verbose: false });
-        try {
-            await cam.start({ facingMode: 'environment' }, { fps: 10, qrbox: (w, h) => ({ width: Math.min(w * 0.9, 340), height: Math.min(h * 0.5, 160) }) },
-                (text) => { beep(); stopCam(true); $('code').value = text; lookup(text); },
-                () => {});
-            $('btnCam').classList.add('btn-primary');
-        } catch (e) {
-            stopCam(false);
-            toast(location.protocol !== 'https:' ? 'Camera needs an https:// link.' : 'Camera not available: ' + e, 'err', 4000);
-        }
+        Scanner.open({
+            title: 'Scan item for Stock In',
+            continuous: false,
+            onScan: (code) => { $('code').value = code; lookup(code); },
+            onClose: (reason) => { if (reason === 'user') st.camWanted = false; },
+        });
     }
-
-    async function stopCam(keepWanted) {
-        st.camWanted = keepWanted;
-        const c = cam; cam = null;
-        $('btnCam').classList.remove('btn-primary');
-        try { if (c?.isScanning) await c.stop(); c?.clear(); } catch (_) {}
-        $('reader').classList.remove('on');
-    }
-
-    function beep() {
-        try {
-            const a = new (window.AudioContext || window.webkitAudioContext)(); const o = a.createOscillator();
-            o.frequency.value = 1200; o.connect(a.destination); o.start(); setTimeout(() => { o.stop(); a.close(); }, 120);
-        } catch (_) {}
-        navigator.vibrate?.(80);
-    }
+    $('btnCam').addEventListener('click', startCam);
+    $('btnCamBig').addEventListener('click', startCam);
 
     // ---------- entry form ----------
     function openEntry(code, product) {
@@ -325,7 +310,7 @@
         st.barcode = null; st.product = null; st.isNew = false;
         $('code').value = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (st.camWanted) startCam(); else $('code').focus();
+        if (st.camWanted) startCam(); else if (!Scanner.isTouch()) $('code').focus();
     }
 })();
 </script>

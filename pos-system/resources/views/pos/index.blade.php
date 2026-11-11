@@ -26,6 +26,7 @@
                 <input id="search" type="text" placeholder="Enter Product Code / Barcode / Name..." autocomplete="off" autofocus>
                 <button type="button" class="clear hidden" id="searchClear" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            <button type="button" class="btn-cam" id="btnCam" title="Scan with camera"><i class="fa-solid fa-camera"></i></button>
         </div>
 
         <div class="cats" id="cats">
@@ -91,16 +92,22 @@
         <div class="payable"><span>Total Payable</span><b id="tTotal">{{ $settings['currency'] }} 0.00</b></div>
 
         <div class="actions">
-            <button type="button" class="act clear" id="btnClear"><i class="fa-regular fa-trash-can"></i>Clear<br>(F4)</button>
-            <button type="button" class="act disc-btn" id="btnDisc"><i class="fa-solid fa-tags"></i>Discount<br>(F6)</button>
-            <button type="button" class="act hold" id="btnHold"><i class="fa-solid fa-circle-pause"></i><span>Hold<span id="heldCount" class="held-badge hidden"></span></span>(F7)</button>
+            <button type="button" class="act clear" id="btnClear"><i class="fa-regular fa-trash-can"></i>Clear<small class="kbd-hint">(F4)</small></button>
+            <button type="button" class="act disc-btn" id="btnDisc"><i class="fa-solid fa-tags"></i>Discount<small class="kbd-hint">(F6)</small></button>
+            <button type="button" class="act hold" id="btnHold"><i class="fa-solid fa-circle-pause"></i><span>Hold<span id="heldCount" class="held-badge hidden"></span></span><small class="kbd-hint">(F7)</small></button>
             <div class="act-col">
-                <button type="button" class="act-big pay" id="btnPay" disabled><i class="fa-regular fa-credit-card"></i> Pay <small>(F8)</small></button>
+                <button type="button" class="act-big pay" id="btnPay" disabled><i class="fa-regular fa-credit-card"></i> Pay <small class="kbd-hint">(F8)</small></button>
                 <button type="button" class="act-big print" id="btnPrint"><i class="fa-solid fa-print"></i> Print Bill</button>
             </div>
         </div>
     </section>
 </div>
+
+{{-- Phones / tablets: floating cart summary while the cart is scrolled out of view --}}
+<button type="button" class="pos-mbar away" id="mbar">
+    <i class="fa-solid fa-cart-shopping"></i> <span class="cnt" id="mbarCount">0</span> items
+    <b id="mbarTotal">{{ $settings['currency'] }} 0.00</b> <i class="fa-solid fa-chevron-down"></i>
+</button>
 
 {{-- ============ Payment modal ============ --}}
 <div class="modal-bg" id="mPay">

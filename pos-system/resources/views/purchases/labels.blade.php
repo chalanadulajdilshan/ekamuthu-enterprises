@@ -36,6 +36,16 @@
         .label .price { font-size: 10pt; font-weight: 700; }
         .label .bad { flex: 1; display: flex; align-items: center; font-size: 8pt; color: #b91c1c; }
 
+        @media screen and (max-width: 720px) {
+            .toolbar { padding: 12px; }
+            .toolbar .row { gap: 10px; }
+            .toolbar label { flex: 1 1 100%; }
+            .toolbar select { flex: 1; font-size: 16px; }
+            .items { display: block; overflow-x: auto; white-space: nowrap; }
+            .items input { font-size: 16px; }
+            .btn { flex: 1 1 auto; justify-content: center; padding: 11px 14px; }
+            #sheet { padding: 12px; justify-content: center; }
+        }
         @media print {
             body { background: #fff; }
             .toolbar { display: none; }

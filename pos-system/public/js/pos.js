@@ -47,6 +47,10 @@
   const grid = $('grid');
   const pager = $('pager');
   const search = $('search');
+  // On phones/tablets, focusing the box after every tap would keep popping up the on-screen keyboard.
+  const touch = window.matchMedia('(pointer: coarse)').matches;
+  const focusSearch = () => { if (!touch) search.focus(); };
+  if (touch) search.removeAttribute('autofocus');
   const view = { q: '', cat: '', page: 1 };
   const cache = new Map(); // key -> {t, data}
   let inflight = null;
@@ -194,7 +198,7 @@
     $('searchClear').classList.toggle('hidden', !search.value);
     onSearch();
   });
-  $('searchClear').addEventListener('click', () => { search.value = ''; search.dispatchEvent(new Event('input')); search.focus(); });
+  $('searchClear').addEventListener('click', () => { search.value = ''; search.dispatchEvent(new Event('input')); focusSearch(); });
 
   // Enter = barcode / exact code. Falls back to "single search result" and then to the first result.
   search.addEventListener('keydown', async (e) => {
@@ -210,20 +214,45 @@
       if (view.q) { view.q = ''; view.page = 1; loadProducts(); }
     } catch (err) {
       if (err.status !== 404) { toast(err.message, 'err'); return; }
-      view.q = code; view.page = 1;
-      const data = await loadProducts({ force: true });
-      if (data && data.data.length === 1) {
-        addToCart(data.data[0]);
-        search.value = '';
-      } else if (!data || !data.data.length) {
-        beep(true);
-        toast(`No product for “${code}”`, 'err');
-        search.select();
-      }
+      if (await searchFallback(code)) return;
     }
   });
 
+  // Camera scan (phones / webcams): exact barcode lookup only, camera stays open for the next item.
+  async function addScanned(code) {
+    try {
+      const res = await api(`${cfg.lookupUrl}?code=${encodeURIComponent(code)}`);
+      const p = res.product;
+      if (!addToCart(p)) return { ok: false, msg: p.stock <= 0 ? `${p.name} is out of stock` : `Not enough stock: ${p.name}` };
+      const it = state.items.find((i) => i.id === p.id);
+      return { ok: true, msg: `✓ ${p.name} × ${fmtQty(it?.qty ?? 1)}  ·  ${state.items.length} item(s), ${cfg.cur} ${money(totals().total)}` };
+    } catch (err) {
+      return { ok: false, msg: err.status === 404 ? `No product for barcode ${code}` : err.message };
+    }
+  }
+  function openCamera() {
+    window.Scanner?.open({ title: 'Scan items', continuous: true, onScan: addScanned });
+  }
+  $('btnCam').addEventListener('click', openCamera);
+
+  // Not an exact code: show matching products; add straight away when there is exactly one.
+  async function searchFallback(code) {
+    view.q = code; view.page = 1;
+    const data = await loadProducts({ force: true });
+    if (data && data.data.length === 1) {
+      addToCart(data.data[0]);
+      search.value = '';
+    } else if (!data || !data.data.length) {
+      beep(true);
+      toast(`No product for “${code}”`, 'err');
+      search.select();
+    }
+    return true;
+  }
+
+  // "Scan Barcode": phones open the camera; PCs get the box ready for the USB scanner.
   $('btnScan').addEventListener('click', () => {
+    if (touch) { openCamera(); return; }
     search.focus(); search.select();
     $('btnScan').classList.add('listening');
     setTimeout(() => $('btnScan').classList.remove('listening'), 1500);
@@ -238,7 +267,7 @@
     if (!cfg.allowNegative && newQty > p.stock) {
       beep(true);
       toast(p.stock <= 0 ? `${p.name} is out of stock` : `Only ${fmtQty(p.stock)} ${p.unit || ''} of ${p.name} in stock`, 'err');
-      return;
+      return false;
     }
     const ro = Number(p.reorder) || 0;
     const wasLow = isLow(r3(p.stock - (ex ? ex.qty : 0)), ro);
@@ -249,6 +278,7 @@
     // Warn once when this sale takes the item down to its re-order level.
     const left = r3(p.stock - newQty);
     if (!wasLow && isLow(left, ro)) toast(`${p.name}: ${fmtQty(left)} ${p.unit || ''} left – at re-order level (${fmtQty(ro)})`, 'warn', 3500);
+    return true;
   }
 
   function setQty(id, qty) {
@@ -315,6 +345,9 @@
     $('tTax').textContent = `${cfg.cur} ${money(t.tax)}`;
     $('tTotal').textContent = `${cfg.cur} ${money(t.total)}`;
     $('btnPay').disabled = state.items.length === 0;
+    $('mbarCount').textContent = state.items.length;
+    $('mbarTotal').textContent = `${cfg.cur} ${money(t.total)}`;
+    updateMbar();
 
     $('discPct').classList.toggle('on', state.discType === 'percent');
     $('discAmt').classList.toggle('on', state.discType === 'amount');
@@ -337,7 +370,7 @@
     setQty(+e.target.closest('tr').dataset.id, parseFloat(e.target.value));
   });
   cartBody.addEventListener('keydown', (e) => {
-    if (e.target.dataset.a === 'qty' && e.key === 'Enter') { e.target.blur(); search.focus(); }
+    if (e.target.dataset.a === 'qty' && e.key === 'Enter') { e.target.blur(); focusSearch(); }
   });
   cartBody.addEventListener('focusin', (e) => { if (e.target.dataset.a === 'qty') e.target.select(); });
 
@@ -346,7 +379,7 @@
   $('discAmt').addEventListener('click', () => { state.discType = 'amount'; commit(); });
   $('discVal').addEventListener('input', (e) => { state.discVal = parseFloat(e.target.value) || 0; save(); renderCart(); });
   $('discVal').addEventListener('focus', (e) => e.target.select());
-  $('discVal').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.target.blur(); search.focus(); } });
+  $('discVal').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.target.blur(); focusSearch(); } });
   $('discVal').addEventListener('blur', () => renderCart());
   $('btnDisc').addEventListener('click', focusDiscount);
   function focusDiscount() { $('discVal').focus(); }
@@ -357,7 +390,7 @@
     if (ask && state.items.length && !confirm('Clear the current sale?')) return;
     state = blank();
     commit();
-    search.focus();
+    focusSearch();
   }
 
   // ------------------------------------------------------------------ customer picker
@@ -511,7 +544,7 @@
       cache.clear();
       loadProducts({ force: true }); // refresh stock badges
       refreshHeldCount();
-      search.focus();
+      focusSearch();
     } catch (err) {
       toast(err.message, 'err', 5000);
     } finally {
@@ -604,7 +637,7 @@
   // ------------------------------------------------------------------ keyboard
   document.addEventListener('keydown', (e) => {
     const modalOpen = document.querySelector('.modal-bg.open');
-    const map = { F2: () => { search.focus(); search.select(); }, F4: () => clearSale(), F6: focusDiscount, F7: holdOrRecall, F8: openPay, F12: printLast };
+    const map = { F2: () => { focusSearch(); search.select(); }, F4: () => clearSale(), F6: focusDiscount, F7: holdOrRecall, F8: openPay, F12: printLast };
     if (map[e.key]) {
       e.preventDefault();
       if (modalOpen && e.key !== 'F12') return;
@@ -614,7 +647,7 @@
     // Barcode scanners "type" into whatever has focus – route stray keystrokes into the search box.
     const tag = document.activeElement?.tagName;
     if (!modalOpen && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) {
-      search.focus();
+      focusSearch();
     }
   });
 
@@ -636,6 +669,18 @@
   }
   window.addEventListener('offline', () => setOnline(false));
   window.addEventListener('online', () => { setOnline(true); loadProducts({ force: true }); });
+
+  // ------------------------------------------------------------------ mobile cart bar
+  // Shown on narrow screens (CSS) when the cart has items and the cart panel is scrolled out of view.
+  let cartVisible = false;
+  function updateMbar() {
+    $('mbar').classList.toggle('away', cartVisible || state.items.length === 0);
+  }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([en]) => { cartVisible = en.isIntersecting; updateMbar(); }, { threshold: 0.15 })
+      .observe(document.querySelector('.pos-right'));
+  }
+  $('mbar').addEventListener('click', () => document.querySelector('.pos-right').scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
   // ------------------------------------------------------------------ boot
   renderCart();

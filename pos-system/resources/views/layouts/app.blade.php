@@ -48,7 +48,10 @@
         </nav>
     </aside>
 
+    <div class="nav-backdrop" data-nav-close></div>
+
     <header class="topbar">
+        <button type="button" class="nav-toggle" data-nav-toggle aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
         <h1><i class="fa-solid fa-store"></i> @yield('heading', 'Hardware Store POS')</h1>
         <div class="spacer"></div>
 
@@ -68,7 +71,7 @@
         @endif
 
         <div class="user-menu">
-            <button type="button" data-dropdown><i class="fa-solid fa-circle-user"></i> {{ $u->name }} <i class="fa-solid fa-chevron-down" style="font-size:12px"></i></button>
+            <button type="button" data-dropdown><i class="fa-solid fa-circle-user"></i> <span class="uname">{{ $u->name }}</span> <i class="fa-solid fa-chevron-down" style="font-size:12px"></i></button>
             <div class="dropdown">
                 <div class="meta">{{ $u->email }}<br>{{ ucfirst($u->role) }}</div>
                 <form method="post" action="{{ route('logout') }}">@csrf<button type="submit"><i class="fa-solid fa-right-from-bracket"></i> Log out</button></form>
@@ -92,6 +95,7 @@
 </div>
 <div class="toast-wrap" id="toasts"></div>
 <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
+<script src="{{ asset('js/scanner.js') }}?v={{ filemtime(public_path('js/scanner.js')) }}" data-lib="{{ asset('vendor/html5-qrcode/html5-qrcode.min.js') }}"></script>
 @stack('scripts')
 </body>
 </html>
