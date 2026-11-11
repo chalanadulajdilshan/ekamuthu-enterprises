@@ -28,6 +28,9 @@
                 <a href="{{ route('inventory.index') }}" class="{{ request()->routeIs('inventory.*') ? 'active' : '' }}"><i class="fa-solid fa-warehouse"></i><span>Inventory</span></a>
                 <a href="{{ route('purchases.index') }}" class="{{ request()->routeIs('purchases.*') ? 'active' : '' }}"><i class="fa-solid fa-truck-ramp-box"></i><span>Purchases</span></a>
             @endif
+            <a href="{{ route('stock-in.index') }}" class="{{ request()->routeIs('stock-in.*') ? 'active' : '' }}"><i class="fa-solid fa-barcode"></i><span>Stock In (Scan)</span></a>
+            <a href="{{ route('barcodes.index') }}" class="{{ request()->routeIs('barcodes.*') ? 'active' : '' }}"><i class="fa-solid fa-print"></i><span>Print Barcodes</span></a>
+            <a href="{{ route('cash-book.index') }}" class="{{ request()->routeIs('cash-book.*') ? 'active' : '' }}"><i class="fa-solid fa-book"></i><span>Cash Book</span></a>
             <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i><span>Customers</span></a>
             @if ($u->isAdmin())
                 <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers.*') ? 'active' : '' }}"><i class="fa-solid fa-people-carry-box"></i><span>Suppliers</span></a>
@@ -37,6 +40,7 @@
                         <a href="{{ route('reports.sales') }}" class="{{ request()->routeIs('reports.sales') ? 'active' : '' }}"><span>Sales Summary</span></a>
                         <a href="{{ route('reports.bills') }}" class="{{ request()->routeIs('reports.bills', 'reports.bill') ? 'active' : '' }}"><span>Bills</span></a>
                         <a href="{{ route('reports.products') }}" class="{{ request()->routeIs('reports.products') ? 'active' : '' }}"><span>Product Sales</span></a>
+                        <a href="{{ route('reports.out-of-stock') }}" class="{{ request()->routeIs('reports.out-of-stock') ? 'active' : '' }}"><span>Out of Stock</span></a>
                     </div>
                 </details>
                 <a href="{{ route('settings') }}" class="{{ request()->routeIs('settings*') ? 'active' : '' }}"><i class="fa-solid fa-gear"></i><span>Settings</span></a>

@@ -42,7 +42,7 @@ class ProductController extends Controller
             ->leftJoin('product_stocks as s', fn ($j) => $j->on('s.product_id', '=', 'products.id')->where('s.branch_id', '=', $branchId))
             ->whereIn('products.id', $ids)
             ->get(['products.id', 'products.code', 'products.barcode', 'products.name', 'products.unit',
-                'products.cost_price', 'products.sell_price', 'products.is_active', 'products.image',
+                'products.cost_price', 'products.sell_price', 'products.reorder_level', 'products.is_active', 'products.image',
                 'c.name as category', DB::raw('COALESCE('.px('s').'.qty, 0) AS stock')])
             ->keyBy('id') : collect();
 

@@ -12,6 +12,7 @@
   const cfg = {
     productsUrl: root.dataset.productsUrl,
     lookupUrl: root.dataset.lookupUrl,
+    stockUrl: root.dataset.stockUrl,
     checkoutUrl: root.dataset.checkoutUrl,
     heldUrl: root.dataset.heldUrl,
     lastReceiptUrl: root.dataset.lastReceiptUrl,
@@ -79,9 +80,19 @@
     }
   }
 
+  // Live stock = branch stock from the server minus what is already in this cart.
+  const inCart = (id) => state.items.find((i) => i.id === id)?.qty || 0;
+  const live = (p) => r3(p.stock - inCart(p.id));
+  const isLow = (left, reorder) => left <= (Number(reorder) || 0);
+
   function stockBadge(p) {
-    if (p.stock <= 0) return `<span class="pstock none">Out of stock</span>`;
-    return `<span class="pstock ${p.low ? 'low' : ''}">In Stock: ${fmtQty(p.stock)}</span>`;
+    const left = live(p);
+    const ro = Number(p.reorder) || 0;
+    const low = left > 0 && isLow(left, ro);
+    const pill = left <= 0
+      ? `<span class="pstock none">Out of stock${p.stock > 0 ? ' (in cart)' : ''}</span>`
+      : `<span class="pstock ${low ? 'low' : ''}">Stock: ${fmtQty(left)} ${esc(p.unit || '')}</span>`;
+    return `${pill}<span class="prol ${low ? 'low' : ''}">${low ? '<i class="fa-solid fa-triangle-exclamation"></i> ' : ''}Re-order level: ${fmtQty(ro)}</span>`;
   }
 
   function renderGrid(data) {
@@ -90,7 +101,7 @@
       grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><i class="fa-solid fa-box-open"></i>No products found${view.q ? ` for “${esc(view.q)}”` : ''}</div>`;
     } else {
       grid.innerHTML = data.data.map((p, i) => `
-        <div class="pcard ${p.stock <= 0 ? 'out' : ''}" data-i="${i}" title="${esc(p.code)}">
+        <div class="pcard ${live(p) <= 0 ? 'out' : ''}" data-i="${i}" title="${esc(p.code)}">
           <div class="pimg">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<i class="fa-solid ${esc(p.icon || 'fa-box')}"></i>`}</div>
           <div class="pname">${esc(p.name)}</div>
           <div class="pprice">${cfg.cur} ${money(p.price)}</div>
@@ -99,6 +110,42 @@
     }
     renderPager(data.page, data.last_page);
   }
+
+  // ------------------------------------------------------------------ live stock poll
+  // Every 15s (only while the tab is visible) re-read stock + re-order level for the
+  // products on screen and in the cart, so sales on other tills / GRNs show up here.
+  let polling = false;
+  async function pollStock() {
+    if (polling || document.hidden || !cfg.stockUrl) return;
+    const ids = new Set(state.items.map((i) => i.id));
+    (lastData?.data || []).forEach((p) => ids.add(p.id));
+    if (!ids.size) return;
+    polling = true;
+    try {
+      const fresh = await api(`${cfg.stockUrl}?ids=${[...ids].join(',')}`);
+      let gridChanged = false;
+      let cartChanged = false;
+      (lastData?.data || []).forEach((p) => {
+        const f = fresh[p.id];
+        if (f && (f.stock !== p.stock || f.reorder !== p.reorder)) { p.stock = f.stock; p.reorder = f.reorder; gridChanged = true; }
+      });
+      state.items.forEach((it) => {
+        const f = fresh[it.id];
+        if (f && (f.stock !== it.stock || f.reorder !== it.reorder)) { it.stock = f.stock; it.reorder = f.reorder; cartChanged = true; }
+      });
+      if (gridChanged && lastData) renderGrid(lastData);
+      if (cartChanged) {
+        save();
+        // Don't rebuild the cart while the cashier is typing a quantity in it.
+        if (!cartBody.contains(document.activeElement)) renderCart();
+      }
+      setOnline(true);
+    } catch (_) { /* next tick will retry */ } finally {
+      polling = false;
+    }
+  }
+  setInterval(pollStock, 15000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pollStock(); });
 
   function renderPager(page, last) {
     if (last <= 1) { pager.innerHTML = ''; return; }
@@ -193,10 +240,15 @@
       toast(p.stock <= 0 ? `${p.name} is out of stock` : `Only ${fmtQty(p.stock)} ${p.unit || ''} of ${p.name} in stock`, 'err');
       return;
     }
-    if (ex) { ex.qty = newQty; ex.stock = p.stock; ex.price = p.price; }
-    else state.items.push({ id: p.id, code: p.code, name: p.name, unit: p.unit, price: p.price, stock: p.stock, qty: r3(qty) });
+    const ro = Number(p.reorder) || 0;
+    const wasLow = isLow(r3(p.stock - (ex ? ex.qty : 0)), ro);
+    if (ex) { ex.qty = newQty; ex.stock = p.stock; ex.price = p.price; ex.reorder = ro; }
+    else state.items.push({ id: p.id, code: p.code, name: p.name, unit: p.unit, price: p.price, stock: p.stock, reorder: ro, qty: r3(qty) });
     beep();
     commit(p.id);
+    // Warn once when this sale takes the item down to its re-order level.
+    const left = r3(p.stock - newQty);
+    if (!wasLow && isLow(left, ro)) toast(`${p.name}: ${fmtQty(left)} ${p.unit || ''} left – at re-order level (${fmtQty(ro)})`, 'warn', 3500);
   }
 
   function setQty(id, qty) {
@@ -228,6 +280,14 @@
   function commit(flashId) {
     save();
     renderCart(flashId);
+    if (lastData) renderGrid(lastData); // grid shows stock left after this cart
+  }
+
+  function cartStock(it) {
+    const left = r3(it.stock - it.qty);
+    const ro = Number(it.reorder) || 0;
+    const cls = left < 0 ? 'none' : (isLow(left, ro) ? 'low' : '');
+    return `<small class="stk ${cls}">Stock: ${fmtQty(it.stock)} → ${fmtQty(left)} left · ROL ${fmtQty(ro)}</small>`;
   }
 
   function renderCart(flashId) {
@@ -235,7 +295,7 @@
     cartBody.innerHTML = state.items.map((it, i) => `
       <tr data-id="${it.id}" class="${it.id === flashId ? 'flash' : ''}">
         <td class="idx"><span>${i + 1}</span></td>
-        <td class="iname">${esc(it.name)}<small>${esc(it.code)}</small></td>
+        <td class="iname">${esc(it.name)}<small>${esc(it.code)}</small>${cartStock(it)}</td>
         <td style="text-align:center">
           <div class="qty">
             <button type="button" data-a="dec" aria-label="Decrease">−</button>

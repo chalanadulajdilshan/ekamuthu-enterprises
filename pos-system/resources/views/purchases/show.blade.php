@@ -6,6 +6,7 @@
     <a href="{{ route('purchases.index') }}" class="btn btn-ghost no-print"><i class="fa-solid fa-arrow-left"></i></a>
     <h2>{{ $purchase->ref_no }}</h2>
     <div class="spacer"></div>
+    <a class="btn no-print" href="{{ route('purchases.labels', $purchase) }}"><i class="fa-solid fa-barcode"></i> Print Barcodes</a>
     <button class="btn no-print" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
 </div>
 

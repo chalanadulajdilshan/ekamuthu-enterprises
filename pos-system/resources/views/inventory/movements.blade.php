@@ -14,7 +14,7 @@
         <table class="table">
             <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th class="num">Qty</th><th class="num">Balance</th><th>User</th></tr></thead>
             <tbody>
-            @php($colors = ['sale' => 'blue', 'purchase' => 'green', 'adjust' => 'amber', 'void' => 'red', 'opening' => 'gray'])
+            @php($colors = ['sale' => 'blue', 'purchase' => 'green', 'adjust' => 'amber', 'void' => 'red', 'opening' => 'gray', 'stock_in' => 'green'])
             @forelse ($movements as $m)
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($m->created_at)->format('Y-m-d h:i A') }}</td>

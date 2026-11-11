@@ -61,6 +61,10 @@ class PurchaseController extends Controller
 
         $purchase = PurchaseService::create($data, $request->user(), app('currentBranch'));
 
+        if ($request->boolean('print_labels')) {
+            return redirect()->route('purchases.labels', $purchase)->with('ok', "Purchase {$purchase->ref_no} saved and stock updated.");
+        }
+
         return redirect()->route('purchases.show', $purchase)->with('ok', "Purchase {$purchase->ref_no} saved and stock updated.");
     }
 
@@ -69,5 +73,19 @@ class PurchaseController extends Controller
         $purchase->load(['supplier:id,name,phone', 'user:id,name', 'items.product:id,code,name,unit']);
 
         return view('purchases.show', compact('purchase'));
+    }
+
+    /** Barcode labels for the items received on this GRN (one label per unit by default). */
+    public function labels(Purchase $purchase)
+    {
+        $purchase->load('items.product:id,code,barcode,name,unit,sell_price');
+
+        $labels = $purchase->items->map(fn ($it) => [
+            'value' => (string) ($it->product->barcode ?: $it->product->code),
+            'name' => $it->product->name,
+            'price' => money($it->product->sell_price),
+        ])->values();
+
+        return view('purchases.labels', compact('purchase', 'labels'));
     }
 }

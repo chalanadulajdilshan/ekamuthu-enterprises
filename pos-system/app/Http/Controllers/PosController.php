@@ -83,7 +83,7 @@ class PosController extends Controller
                     'unit' => $p->unit,
                     'price' => (float) $p->sell_price,
                     'stock' => (float) $p->stock,
-                    'low' => (float) $p->stock <= (float) $p->reorder_level,
+                    'reorder' => (float) $p->reorder_level,
                     'icon' => $p->icon,
                     'image' => $p->image ? asset('uploads/'.$p->image) : null,
                 ];
@@ -105,7 +105,8 @@ class PosController extends Controller
         $p = DB::table('products')
             ->leftJoin('product_stocks as s', fn ($j) => $j->on('s.product_id', '=', 'products.id')->where('s.branch_id', '=', $branchId))
             ->where('products.id', $id)->where('products.is_active', true)
-            ->first(['products.id', 'products.code', 'products.name', 'products.unit', 'products.sell_price', DB::raw('COALESCE('.px('s').'.qty, 0) AS stock')]);
+            ->first(['products.id', 'products.code', 'products.name', 'products.unit', 'products.sell_price',
+                'products.reorder_level', DB::raw('COALESCE('.px('s').'.qty, 0) AS stock')]);
 
         if (! $p) {
             return response()->json(['found' => false], 404);
@@ -113,8 +114,31 @@ class PosController extends Controller
 
         return response()->json(['found' => true, 'product' => [
             'id' => $p->id, 'code' => $p->code, 'name' => $p->name, 'unit' => $p->unit,
-            'price' => (float) $p->sell_price, 'stock' => (float) $p->stock,
+            'price' => (float) $p->sell_price, 'stock' => (float) $p->stock, 'reorder' => (float) $p->reorder_level,
         ]]);
+    }
+
+    /**
+     * Live stock poll: current branch stock + re-order level for the products the
+     * till is showing (grid page + cart). One PK-range read on product_stocks.
+     */
+    public function stock(Request $request)
+    {
+        $ids = collect(explode(',', (string) $request->input('ids', '')))
+            ->map(fn ($v) => (int) $v)->filter()->unique()->take(200)->values();
+        if ($ids->isEmpty()) {
+            return response()->json([]);
+        }
+        $branchId = app('currentBranch')->id;
+
+        $rows = DB::table('products')
+            ->leftJoin('product_stocks as s', fn ($j) => $j->on('s.product_id', '=', 'products.id')->where('s.branch_id', '=', $branchId))
+            ->whereIn('products.id', $ids)
+            ->get(['products.id', 'products.reorder_level', DB::raw('COALESCE('.px('s').'.qty, 0) AS stock')]);
+
+        return response()->json($rows->mapWithKeys(fn ($p) => [
+            $p->id => ['stock' => (float) $p->stock, 'reorder' => (float) $p->reorder_level],
+        ]));
     }
 
     public function checkout(Request $request)
@@ -224,10 +248,12 @@ class PosController extends Controller
         $items = DB::table('products')
             ->leftJoin('product_stocks as s', fn ($j) => $j->on('s.product_id', '=', 'products.id')->where('s.branch_id', '=', $branchId))
             ->whereIn('products.id', $qty->keys())->where('products.is_active', true)
-            ->get(['products.id', 'products.code', 'products.name', 'products.unit', 'products.sell_price', DB::raw('COALESCE('.px('s').'.qty, 0) AS stock')])
+            ->get(['products.id', 'products.code', 'products.name', 'products.unit', 'products.sell_price',
+                'products.reorder_level', DB::raw('COALESCE('.px('s').'.qty, 0) AS stock')])
             ->map(fn ($p) => [
                 'id' => $p->id, 'code' => $p->code, 'name' => $p->name, 'unit' => $p->unit,
-                'price' => (float) $p->sell_price, 'stock' => (float) $p->stock, 'qty' => (float) $qty[$p->id],
+                'price' => (float) $p->sell_price, 'stock' => (float) $p->stock, 'reorder' => (float) $p->reorder_level,
+                'qty' => (float) $qty[$p->id],
             ])->values();
 
         return response()->json([

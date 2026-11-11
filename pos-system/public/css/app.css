@@ -192,6 +192,7 @@ label.lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--in
 .toast { background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.25); min-width: 240px; animation: tin .2s ease-out; display: flex; gap: 10px; align-items: center; }
 .toast.ok { background: #0f7a22; }
 .toast.err { background: #b5172a; }
+.toast.warn { background: #b86e00; }
 @keyframes tin { from { transform: translateY(-8px); opacity: 0; } }
 
 /* ==========================================================================
@@ -231,6 +232,11 @@ label.lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--in
 .pstock { align-self: center; font-size: 12.5px; font-weight: 600; padding: 4px 14px; border-radius: 999px; background: var(--green-50); color: var(--green-600); }
 .pstock.low { background: var(--amber-50); color: var(--amber-600); }
 .pstock.none { background: var(--red-50); color: var(--red-600); }
+.prol { align-self: center; margin-top: 5px; font-size: 11.5px; color: var(--muted); }
+.prol.low { color: var(--amber-600); font-weight: 600; }
+.cart-table .iname small.stk { font-size: 11px; }
+.cart-table .iname small.stk.low { color: var(--amber-600); font-weight: 600; }
+.cart-table .iname small.stk.none { color: var(--red-600); font-weight: 600; }
 .pcard.skel .pimg, .pcard.skel .pname, .pcard.skel .pprice { background: linear-gradient(90deg, #eef2f8 25%, #f7f9fc 50%, #eef2f8 75%); background-size: 200% 100%; animation: sk 1.2s infinite; color: transparent; border-radius: 6px; }
 @keyframes sk { to { background-position: -200% 0; } }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); }
@@ -367,4 +373,11 @@ label.lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--in
   .act-col { grid-column: 1 / -1; flex-direction: row; }
   .act-big { min-height: 64px; }
 }
-@media print { .no-print { display: none !important; } }
+.print-only { display: none; }
+@media print {
+  .no-print, .sidebar, .topbar { display: none !important; }
+  .print-only { display: block; }
+  .main { padding: 0 !important; margin: 0 !important; }
+  .card { box-shadow: none !important; }
+  .table th, .table td { padding: 5px 8px !important; font-size: 11.5px; }
+}

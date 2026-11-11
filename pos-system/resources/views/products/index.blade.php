@@ -29,7 +29,7 @@
 
     <div class="table-wrap">
         <table class="table">
-            <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Barcode</th><th class="num">Cost</th><th class="num">Price</th><th class="num">Stock</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Barcode</th><th class="num">Cost</th><th class="num">Price</th><th class="num">Stock</th><th class="num">Re-order</th><th>Status</th><th></th></tr></thead>
             <tbody>
             @forelse ($products as $p)
                 <tr>
@@ -39,7 +39,9 @@
                     <td class="muted">{{ $p->barcode }}</td>
                     <td class="num">{{ number_format($p->cost_price, 2) }}</td>
                     <td class="num"><b>{{ number_format($p->sell_price, 2) }}</b></td>
-                    <td class="num">{{ qty($p->stock, 3) }} <small class="muted">{{ $p->unit }}</small></td>
+                    @php($state = $p->stock <= 0 ? 'red' : ($p->stock <= $p->reorder_level ? 'amber' : 'green'))
+                    <td class="num"><span class="badge badge-{{ $state }}">{{ qty($p->stock, 3) }}</span> <small class="muted">{{ $p->unit }}</small></td>
+                    <td class="num">{{ qty($p->reorder_level, 3) }}</td>
                     <td>{!! $p->is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>' !!}</td>
                     <td style="white-space:nowrap;text-align:right">
                         <a class="btn btn-sm" href="{{ route('inventory.movements', $p->id) }}" title="Stock history"><i class="fa-solid fa-clock-rotate-left"></i></a>
@@ -51,7 +53,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="empty">No products found.</td></tr>
+                <tr><td colspan="10" class="empty">No products found.</td></tr>
             @endforelse
             </tbody>
         </table>

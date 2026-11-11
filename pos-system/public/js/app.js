@@ -28,7 +28,7 @@
   window.toast = (msg, type = 'ok', ms = 2600) => {
     const el = document.createElement('div');
     el.className = `toast ${type}`;
-    el.innerHTML = `<i class="fa-solid ${type === 'err' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i><span>${esc(msg)}</span>`;
+    el.innerHTML = `<i class="fa-solid ${type === 'err' ? 'fa-circle-exclamation' : (type === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-check')}"></i><span>${esc(msg)}</span>`;
     document.getElementById('toasts').appendChild(el);
     setTimeout(() => el.remove(), ms);
   };

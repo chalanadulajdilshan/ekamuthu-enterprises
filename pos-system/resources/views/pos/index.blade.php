@@ -5,6 +5,7 @@
 <div class="pos" id="pos"
      data-products-url="{{ route('pos.products') }}"
      data-lookup-url="{{ route('pos.lookup') }}"
+     data-stock-url="{{ route('pos.stock') }}"
      data-checkout-url="{{ route('pos.checkout') }}"
      data-held-url="{{ route('pos.held') }}"
      data-last-receipt-url="{{ route('pos.receipt.last') }}"

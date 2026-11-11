@@ -7,7 +7,7 @@
     <h2>{{ $product->exists ? 'Edit: '.$product->name : 'New Product' }}</h2>
 </div>
 
-<form class="card card-pad" style="max-width:860px" method="post" enctype="multipart/form-data"
+<form class="card card-pad" method="post" enctype="multipart/form-data"
       action="{{ $product->exists ? route('products.update', $product) : route('products.store') }}">
     @csrf
     @if ($product->exists) @method('PUT') @endif

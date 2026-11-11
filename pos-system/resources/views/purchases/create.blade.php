@@ -45,6 +45,7 @@
             <div class="row"><span>Paid now</span><input class="input" style="width:160px;text-align:right" type="number" step="0.01" min="0" name="paid" value="{{ old('paid', 0) }}"></div>
         </div>
         <div class="field"><input class="input" name="note" placeholder="Note" maxlength="255" value="{{ old('note') }}"></div>
+        <div class="field"><label class="check"><input type="checkbox" name="print_labels" value="1" @checked(old('print_labels', true))> Print barcode labels after saving</label></div>
         <button class="btn btn-success" style="width:100%;height:46px;font-size:16px"><i class="fa-solid fa-floppy-disk"></i> Save Purchase & Update Stock</button>
     </div>
 </form>
