@@ -328,9 +328,16 @@ jQuery(document).ready(function () {
               showConfirmButton: false,
             });
 
+            var hasNoSubItems = $("#no_sub_items").is(":checked");
+
             setTimeout(() => {
-              window.location.href =
-                "sub-equipment-master.php?equipment_id=" + result.equipment_id;
+              if (hasNoSubItems) {
+                // No sub equipment for this item - stay on the equipment page
+                window.location.reload();
+              } else {
+                window.location.href =
+                  "sub-equipment-master.php?equipment_id=" + result.equipment_id;
+              }
             }, 2000);
           } else if (result.status === "duplicate") {
             swal({
